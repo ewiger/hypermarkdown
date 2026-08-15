@@ -53,12 +53,23 @@ cards is an **error**. Exit codes are pinned for CI — `0` clean, `1`
 diagnostics, `2` usage error — with `--strict` to fail on warnings and
 `--format json` for machine-readable output.
 
-Three more commands round it out: `hmd render` flattens a card to markdown or
+Four more commands round it out: `hmd render` flattens a card to markdown or
 HTML with its embeds expanded, `hmd graph` dumps the resolved link graph, and
 `hmd info` reports which root and discovery policy it settled on. To stop
-passing `--root`, put a `.hmd/config.toml` at the top of your project with a
-`wiki` setting; the directory doubles as the root marker, so any subtree can be
-self-contained.
+passing `--root`, run `hmd init` at the top of your project:
+
+```bash
+hmd init                    # or: hmd init --wiki notes --name shared
+```
+
+That writes `.hmd/config.toml` with every setting at its default and creates the
+namespace root it names. The directory doubles as the root marker, so any
+subtree can be self-contained — `hmd init` inside one is how you make it so.
+
+It also names the tree, in a `[namespace]` section, after the project directory
+unless you say otherwise. A project's own namespace is otherwise unnamed, and
+[naming it](../public/namespaces.md) is what would let another project bind to
+it — reserved today, so the section records intent and changes nothing.
 
 Nothing to try it on yet? The repository carries a small runnable wiki that
 exercises the spine walk, both import forms, folder notes, and most of the

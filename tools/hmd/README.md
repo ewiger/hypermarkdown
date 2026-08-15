@@ -109,16 +109,36 @@ Every other key is yours, and nothing will inspect it.
 
 | Command | What it does |
 | --- | --- |
+| `hmd init` | Write `.hmd/config.toml` and create the namespace root it names |
 | `hmd lint` | Parse, resolve, and report — `HMD001`–`HMD017`, text or JSON |
 | `hmd render` | Expand embeds and rewrite links, to flat markdown or HTML |
 | `hmd graph` | Dump the resolved link graph as JSON |
 | `hmd info` | Show the resolved root and discovery policy |
 | `hmd --version` | Print the installed version |
 
-Each takes `--root` to override the namespace root, which otherwise comes from
-the `wiki` setting in `.hmd/config.toml` (defaulting to `doc/wiki`). A `.hmd/`
-directory doubles as the project root marker, so any subtree can be
-self-contained.
+Every command but `init` takes `--root` to override the namespace root, which
+otherwise comes from the `wiki` setting in `.hmd/config.toml` (defaulting to
+`doc/wiki`). A `.hmd/` directory doubles as the project root marker, so any
+subtree can be self-contained.
+
+```bash
+hmd init                    # here; the namespace is named after the directory
+hmd init path/to/project --wiki notes --name shared
+```
+
+`init` writes every setting at its default rather than leaving them implicit —
+the file is where you find out which keys exist. It creates the wiki root
+alongside the config, since a `wiki` setting pointing at nothing is an error
+every later command reports. It refuses to replace a config it did not write;
+`--force` overrides that.
+
+The `[namespace]` section names this tree so another project can bind to it and
+address a card as `name:card`. `--name` defaults to the project directory's own
+name, repaired into that address form if it has to be — a folder called
+`My Notes` becomes `My-Notes`. A `--name` you pass is validated instead of
+repaired, because a name you typed is a request rather than a guess. Nothing
+reads either key yet: binding is specified and not implemented, so the section
+records intent.
 
 `hmd render --to markdown` is **one-way** on purpose. Flattening a card erases
 the embed boundary and the provenance of every link, which is right for

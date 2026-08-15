@@ -13,6 +13,32 @@ only for the Python API.
 
 ## [Unreleased]
 
+### Added
+- **`hmd init`** — create `.hmd/config.toml` at a project root, with every
+  setting written at its default and commented. A blank file, or one with the
+  defaults commented out, teaches nothing that no file at all does not; the
+  written file is where an author finds out which keys exist. `--wiki` names
+  the namespace root, and the command creates that directory too, because
+  `load()` rejects a `wiki` setting pointing at nothing — writing the config
+  and stopping there would leave a project whose next command fails about a
+  directory nobody asked for. A missing project directory is created; an
+  existing config is never replaced without `--force`. Initialising inside an
+  existing project succeeds and says so on stderr, since the nearer marker wins
+  and that silently changes where cards resolve.
+- **`[namespace]` in the written config** — `name` and `provider`. A project's
+  own namespace is otherwise unnamed, and naming it is what lets another
+  project bind to it and address a card as `name:card`. `--name` defaults to
+  the project directory's own name and is *repaired* into that address form
+  when it has to be (`My Notes` → `My-Notes`); a `--name` passed explicitly is
+  validated and refused instead, because a name somebody typed is a request
+  and answering a different one is worse than an error. `provider` is `folder`
+  — a local tree — and no other value is accepted yet.
+
+  **Nothing reads either key.** The specification pins the MVP to exactly two
+  settings, `wiki` and `[discovery]`, and requires the rest of the file to be
+  ignored; `init` writing a section is not the resolver reading one. The
+  section exists so binding has somewhere to land when it is implemented.
+
 ## [0.2.0] — 2026-08-10
 
 **The distribution is renamed.** `pip install hypermarkdown` replaces

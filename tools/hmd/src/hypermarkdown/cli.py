@@ -91,6 +91,44 @@ def _selected(workspace: Workspace, paths: list[Path] | None) -> list[Path] | No
 
 
 @app.command()
+def init(
+    path: Optional[Path] = typer.Argument(None, help="Project root to initialise (default: the working directory)."),
+    wiki: str = typer.Option(config_mod.DEFAULT_WIKI, "--wiki", help="Namespace root, relative to the project root."),
+    name: Optional[str] = typer.Option(None, "--name", help="Namespace name (default: the project directory's name)."),
+    force: bool = typer.Option(False, "--force", help="Replace an existing .hmd/config.toml."),
+) -> None:
+    """Create `.hmd/config.toml` and the namespace root it names."""
+    try:
+        result = config_mod.init(path, wiki=wiki, name=name, force=force)
+    except config_mod.ConfigError as exc:
+        typer.echo(f"hmd: {exc}", err=True)
+        raise typer.Exit(EXIT_USAGE)
+
+    def note(target: Path) -> str:
+        if target in result.created:
+            return " (created)"
+        if target == result.config and result.overwritten:
+            return " (replaced)"
+        return " (already there)"
+
+    typer.echo(f"project:   {result.project}{note(result.project)}")
+    typer.echo(f"config:    {result.config}{note(result.config)}")
+    typer.echo(f"wiki:      {result.wiki}{note(result.wiki)}")
+    typer.echo(
+        f"namespace: {result.name} ({result.provider})"
+        f"{' — from the directory name' if result.derived_name else ''}"
+    )
+
+    if result.enclosing is not None:
+        typer.echo(
+            f"hmd: note: {result.enclosing} is already a project root, and the nearer "
+            f"marker wins — cards under {result.project} now resolve against the new root.",
+            err=True,
+        )
+    raise typer.Exit(EXIT_OK)
+
+
+@app.command()
 def lint(
     paths: Optional[list[Path]] = typer.Argument(None, help="Files or directories; default is the whole tree."),
     root: Optional[Path] = RootOption,

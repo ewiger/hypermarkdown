@@ -9,11 +9,11 @@ itself. A decision that needs discussion is named here as an open question and
 argued wherever it belongs; nothing else may hold a task list. Update the row in
 the same commit that changes the code.
 
-**Snapshot** (2026-08-08) — M1–M4 done, gated by 219 tests, released as 0.1.0
-and 0.1.1. Everything the proposal requires to call the MVP implemented is
-implemented, and nothing is known broken: B1, the last defect, was fixed in
-0.1.1. What remains is not code but evidence and decision: a conformance corpus,
-a determinism test, and the seven open questions that block
+**Snapshot** (2026-08-15) — M1–M4 and M6 done, gated by 291 tests, released as
+0.1.0, 0.1.1, and 0.2.0. Everything the proposal requires to call the MVP
+implemented is implemented, and nothing is known broken: B1, the last defect,
+was fixed in 0.1.1. What remains is not code but evidence and decision: a
+conformance corpus, a determinism test, and the nine open questions that block
 `drafted → accepted`.
 
 Section references are to [HMD-0001](README.md) unless marked otherwise.
@@ -60,6 +60,46 @@ Gated by `tests/test_embed.py` and `tests/test_render.py`.
 M1–M3 are what this proposal requires to call the MVP done. M4 is also the
 prerequisite for [HMD-0002](../HMD-0002/STATUS.md): the MkDocs plugin expands
 embeds, so it could not exist before the expander did.
+
+### M6 — `hmd init` (§7, an amendment)
+
+| ID | Work point | Spec |
+| --- | --- | --- |
+| M6.1 | `config.init()` — write `.hmd/config.toml`, create the namespace root it names, create a missing project directory | §4 |
+| M6.2 | `CONFIG_TEMPLATE` — every setting stated at its default, each commented with what it does | §4 |
+| M6.3 | `--wiki` normalised and refused when absolute, escaping the project with `..`, empty, or holding a character a TOML basic string cannot | §4 |
+| M6.4 | Refuse to replace an existing config; `--force` overrides. A `.hmd/` without a config is not reinitialisation | §7 |
+| M6.5 | Report an enclosing project on stderr — the nearer marker wins, which silently moves where cards resolve | §4 |
+| M6.6 | <code>hmd init [PATH] [--wiki DIR] [--name ID] [--force]</code>, exit 0 or 2 | §7 |
+| M6.7 | A `[namespace]` section — `name` and `provider` — written but not read | [HMD-0004](../HMD-0004/README.md) |
+| M6.8 | `name` derived from the project directory and repaired into the address form; an explicit `--name` validated and refused instead | [HMD-0004](../HMD-0004/README.md) |
+
+Gated by `tools/hmd/tests/test_init.py`.
+
+`PATH` defaults to the working directory and `--name` to that directory's own
+name, so a bare `hmd init` is a complete answer: the common case is a project
+you are standing in, whose namespace should be called what the folder is called.
+
+M6.7 writes a section this proposal does not specify and **nothing reads**. §4
+pins the MVP to exactly two settings and requires the rest of the file to be
+ignored, which is what makes writing the section safe rather than a change to
+resolution: `load` returns the same four fields it always did, and a tree with
+no `[namespace]` loads exactly as before. Both facts are gated, because the
+tempting next commit is the one that reads it.
+
+§7 enumerates the command set and defers only `hmd query`, `hmd serve`, and
+`hmd lsp` — `init` is a fourth command it did not anticipate, so this is an
+amendment to that section rather than an implementation of it. The reason it
+belongs here rather than in a proposal of its own is that it adds no semantics:
+it writes the file §4 already specifies, at the defaults §4 already names, and
+every value it can write was already loadable. What needed deciding is on the
+tracker as Q8.
+
+M6 is also the answer to a gap §4 left open in practice. The MVP shipped a
+config format with no way to produce one, so the documented path to a project
+root was to create a dotted directory and hand-write TOML from prose in the
+specification — which meant the settings an author most needed to know about
+were the ones they were least likely to discover.
 
 ## TODO
 
@@ -135,6 +175,9 @@ is the blocker they hold up.
 | Q5 | When plugins arrive, does `[discovery] autodiscovery` generalize into a `[features]` table, and does that scale past a handful of toggles? |
 | Q6 | Should the root sweep be bounded by page count or depth, so a large tree cannot make an unresolvable bare link expensive to diagnose? |
 | Q7 | Should the MVP ship a suppression mechanism (`<!-- hmd-disable HMD001 -->`)? |
+| Q8 | Should `hmd init` seed a starter `index.hmd` in the root it creates? It creates an empty directory today, which lints clean and shows an author nothing — but a card written by a tool is a card somebody has to delete, and the format is learned from the tutorial rather than from a stub | 
+| Q9 | Should `init` grow `--mode` and `--no-autodiscovery`, or is editing the file it just wrote the right affordance? Every setting is present and commented, so a flag buys one fewer editor round trip and costs a second spelling of each setting that can disagree with the first |
+| Q10 | Should `hmd lint` report a `[namespace] name` that does not match the address form, or does an unread key stay unchecked until something reads it? `init` cannot write a bad one, but a hand-edited config can hold anything, and the first thing to read it would be the first thing to break |
 
 Two further questions were closed in passing by
 [HMD-0002](../HMD-0002/README.md): the MkDocs URL shape (§1) and whether
@@ -144,15 +187,17 @@ Deliberately left to later proposals rather than resolved here — the config
 schema and root marker, stable IDs versus redirects, named excerpts versus block
 anchors, and the query grammar.
 
-One amendment is outstanding rather than open: HMD-0002 §2 adds `nav` to the
+Two amendments are outstanding rather than open. HMD-0002 §2 adds `nav` to the
 reserved frontmatter keys, which §5.3 pins as a *closed* set of `tags`, `use`,
-`import`. Tracked as [HMD-0002 Q4](../HMD-0002/STATUS.md#open-questions-and-blockers)
-because that proposal is where the trade was made.
+`import`; tracked as [HMD-0002 Q4](../HMD-0002/STATUS.md#open-questions-and-blockers)
+because that proposal is where the trade was made. And M6 adds `hmd init` to the
+command set §7 enumerates — argued in that section, and unlike the first one it
+widens no set the specification calls closed.
 
 ## Gates
 
 ```bash
-python -m pytest                              # 209 passed (whole suite)
+python -m pytest                              # 291 passed (whole suite)
 hmd lint doc/wiki                             # exit 0, clean
 hmd lint --root examples/small                # exit 0, exactly 1 warning (HMD001)
 ```
@@ -174,3 +219,9 @@ unwritten page looks like. A clean run there is a regression, not an improvement
   version now has one home, `__init__.py`, from which `pyproject.toml` derives
   its own; the suite fails if the changelog does not mention the number. The
   upload itself is T3 and waits on configuration that is not a commit.
+- 2026-08-15: M6 done — `hmd init`. The config format shipped with the MVP and
+  nothing produced one, so the documented route to a project root was to
+  hand-write TOML from prose. The command writes every setting at its default
+  and creates the namespace root the file names, since a `wiki` pointing at
+  nothing is an error every later command reports. Amends the command set §7
+  enumerates; Q8 and Q9 record what was left undecided.
