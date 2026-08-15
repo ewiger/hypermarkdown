@@ -1,50 +1,190 @@
 # HyperMarkDown
 
 **HyperMarkDown** (`.hmd`) is this project's most generic and most-used
-knowledge format: plain Markdown extended with **wiki features**, above all
-`[[wikilinks]]` between cards. It is the default home for cross-linked, reusable
-explanations of a single idea, and every file under `doc/wiki/` is one such
-**card**. A `.hmd` file also reads fine as plain Markdown — the format is
-Markdown plus a wiki graph, nothing more exotic, with no external toolchain to
-satisfy.
+knowledge format: ordinary Markdown, plus rich visuals, plus wiki links into a
+knowledge graph. A **card** is one `.hmd` file that explains one idea and whose
+value is in what it links to; every file under `doc/wiki/` is a card. The
+baseline is CommonMark 0.31.2 taken whole, so a `.hmd` file reads fine as plain
+Markdown and any `.md` file is already syntactically valid `.hmd`.
 
-## A card is a node in a graph
+This card owns the **syntax**. It follows the upstream
+[HyperMarkDown documentation](https://hypermarkdown.org/); the
+[tutorial](https://hypermarkdown.org/wiki/hmd-tutorial/) introduces the language
+and the [language specification](https://hypermarkdown.org/wiki/hmd-lang-spec/)
+is the normative reference.
 
-A card explains one concept and nothing else; its value is the links.
-Cross-reference other cards liberally with `[[slug]]` so a whole model emerges
-from small, connected cards rather than one long document. Keep it **DRY and
-bidirectional**: never restate what another card owns — link to it — and make
-each idea reachable from both directions.
+## Three layers
 
-## Wiki features
+The format stacks three layers, each preserving the one below:
 
-The wiki graph is **closed to `doc/wiki/`**: a `[[ ]]` link resolves only to a
-card in the wiki space, never to a file elsewhere in the repo.
+- **CommonMark** — headings, paragraphs, emphasis, lists, blockquotes, fenced
+  code, inline links. Unchanged.
+- **Rich layer** — tables, task lists, strikethrough, footnotes, callouts, TeX
+  mathematics, D2 diagrams. Assumed present, not optional extensions.
+- **Hyper layer** — the constructs below, which turn a file into a node in a
+  graph.
 
-- **`[[slug]]`** links a concept to its card. The slug is a **name, not a
-  filename search**: it is looked for beside the card you are writing, then in
-  each folder above it up to the wiki root, each probed without recursion. A
-  card nearby therefore wins over a card far away. That spine never searches
-  sideways into a sibling folder; only when it finds nothing does a sweep of
-  the whole tree run. The sweep may resolve a unique card in a sibling, and if
-  it matches two cards that is an **error** asking you to qualify the link — not
-  a tie-break.
-- **`[[folder/slug]]`** is an unqualified path searched through the same phases
-  as a bare name. **`[[./folder/slug]]`** is explicitly relative to this card's
-  own folder, and **`[[/folder/slug]]`** is absolute from the wiki root.
-- **`[[slug|display text]]`** links while showing different surface text, so the
-  sentence still reads naturally.
-- **Forward links are fine** — linking a concept that has no card yet marks it as
-  worth writing later; it is not an error.
-- **Anything outside `doc/wiki/`** — `src/`, `.grem/`, proposals, model specs —
-  uses ordinary relative Markdown links, never `[[ ]]`.
+## The six hyper constructs
 
-Sections, single blocks, and embeds are addressable too, and imports can bind a
-name explicitly. Those are taught in full by [[hmd-tutorial]] and defined
-exactly by [[hmd-lang-spec]]; this card covers only the conventions this
-repository writes by.
+| Written | Means |
+| --- | --- |
+| `[[card]]` | link to a card |
+| `[[card\|words]]` | link, showing different words |
+| `[[card#Heading]]` | link to a section of a card |
+| `text ^name` | give this block a name |
+| `[[card#^name]]` | link to a named block |
+| `![[…]]` | embed any of the above instead of linking |
+
+A **wikilink** names its target by filename without the `.hmd` extension. The
+display text after `|` lets the sentence read naturally. A `#` addresses a
+heading inside the target and is forgiving about capitalization and spacing,
+since it matches against the heading's slug.
+
+A **block anchor** is a trailing `^name` at the end of a block's last line,
+preceded by at least one space and followed only by the line ending. The anchor
+is not part of the block's content and is not rendered. Anchor identifiers are
+scoped to one card and must be unique within it.
+
+```markdown
+A token is valid for exactly one rotation window. ^definition
+
+See [[hmd-tutorial#^definition]] and [[md-hmd-interop|the interop notes]].
+```
+
+An **embed** is any wikilink with a `!` in front: the content is pulled in where
+you wrote it rather than linked. Embedding a whole card expands its body with
+the frontmatter removed; embedding a heading expands that heading through the
+line before the next heading of the same or higher level; embedding a block
+expands the anchored block with the anchor stripped. Expansion is recursive,
+stops at sixteen levels, and a cycle is an error rather than a hang.
+
+```markdown
+![[glossary/token]]
+![[glossary/token#Rotation]]
+![[glossary/token#^definition]]
+```
+
+## Frontmatter
+
+A card may open with a YAML block bounded by `---`. Four keys are reserved;
+authors may add their own.
+
+```yaml
+---
+tags: [area/auth, status/accepted]
+use: [no_autodiscovery]
+import:
+  - from /shared import tokens as shared-tokens
+  - from /glossary import *
+nav:
+  order: 10
+  visibility: public
+---
+```
+
+- **`tags`** say what a card is *about*, hierarchically with `/`. Folders say
+  where it *lives*. Tags are not link targets.
+- **`use`** toggles features; an `no_` prefix turns one off. It **inherits** —
+  placed in a folder's `index.hmd` it governs that whole subtree.
+- **`import`** binds names explicitly. `import x as y` takes priority over the
+  spine; `import *` adds a search origin that runs after the spine and before
+  autodiscovery. Imports do **not** inherit.
+- **`nav`** carries publication metadata. `order` is an ascending integer;
+  `visibility` is `public` or `private` and decides whether the card is
+  published at all. Publication is opt-in — the default is private.
+
+Frontmatter is optional, and no card under `doc/wiki/` currently uses it.
+
+## Name resolution
+
+The **namespace root** is `doc/wiki/`. That is the upstream default for the
+`wiki` setting in `.hmd/config.toml`, and this repository has no such config, so
+the default stands. The graph is therefore closed to `doc/wiki/`: a `[[ ]]` link
+resolves only to a card in the wiki space, and a reference that escapes the root
+is an error. Anything outside — `src/`, proposals, model specs — is reached with
+an ordinary relative Markdown link.
+
+A reference takes one of four forms:
+
+| Form | Kind |
+| --- | --- |
+| `[[login]]` | bare name — one segment |
+| `[[specs/login]]` | unqualified path — several segments |
+| `[[./login]]`, `[[../login]]` | relative to this card |
+| `[[/specs/login]]` | absolute from the namespace root |
+
+An unqualified reference is tried in four phases, and the first match stops
+resolution:
+
+1. a **named import** — bare names only;
+2. the **spine** — this card's own directory, then its parent, outward to the
+   root, each probed non-recursively. The spine is a straight line up and never
+   searches sideways, so adding a card elsewhere cannot silently change what a
+   link means;
+3. **wildcard import origins**, in declaration order;
+4. **autodiscovery** — a sweep of the whole tree. It does look sideways, and it
+   requires a unique match; two candidates are an error, not a coin flip.
+
+A directory's `index.hmd` is its landing page, and `[[glossary]]` and
+`[[glossary/index]]` are two spellings of the same card.
+
+## The rich layer
+
+```markdown
+| Construct | Written |
+| --- | --- |
+
+- [x] a task list item
+- [ ] an unfinished one
+
+Strikethrough is ~~two tildes either side~~. Footnotes[^1] attach a marker.
+
+[^1]: The note itself, which may sit anywhere in the file.
+
+!!! note "A callout takes a kind and a title"
+    Its body is indented four spaces.
+
+??? tip "Opened with ??? instead, a callout starts collapsed"
+
+Inline maths is $n$, and display maths stands alone:
+
+$$ t_n = U\bigl(0,\; \min(t_{max},\; b \cdot 2^n)\bigr) $$
+```
+
+Diagrams are D2 in a fenced block tagged `d2`:
+
+````markdown
+```d2
+direction: right
+markdown -> HyperMarkDown: adds a graph
+```
+````
+
+## Reserved characters
+
+Inside a link target the characters `[`, `]`, `|`, `#`, `^`, and newline are
+reserved, and **there is no escape mechanism**. To show any hyper construct
+literally — as this card does throughout — put it in a code span or a fenced
+block.
+
+## Checking the graph
+
+The upstream `hmd` CLI parses, resolves, and reports: `hmd lint` is the primary
+command, `hmd info` prints the resolved root and discovery policy, `hmd graph`
+dumps the resolved graph, and `hmd render` expands embeds and rewrites links.
+
+A link to a card that does not exist is a **warning** (`HMD001`) — **forward
+links are deliberate**, marking a concept worth writing later. Errors are
+reserved for links that cannot mean one thing: an ambiguous autodiscovery match
+(`HMD002`), a duplicate block anchor in one card (`HMD006`), and malformed
+wikilink syntax (`HMD010`).
 
 ## Writing a card
+
+A card explains one concept and nothing else. Cross-reference other cards
+liberally so a whole model emerges from small, connected cards rather than one
+long document, and keep it **DRY and bidirectional**: never restate what another
+card owns — link to it — and make each idea reachable from both directions.
 
 The authoring procedure — naming, structure, and register — is owned by the
 `doc/hmd` documentation style, not restated here:
@@ -54,8 +194,6 @@ document for an agent to apply.
 
 ## Where it is used
 
-Every card in `doc/wiki/` is HyperMarkDown, including the [[kanban]] board
+Every card in `doc/wiki/` is hyper-markdown, including the [[kanban]] board
 convention. It is one of the notations the project's design layer under
 `doc/models/` may be written in, alongside more formal specifications.
-
-See [[kanban]].
