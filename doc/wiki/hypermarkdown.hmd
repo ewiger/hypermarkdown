@@ -29,7 +29,7 @@ The format stacks three layers, each preserving the one below:
 | Written | Means |
 | --- | --- |
 | `[[card]]` | link to a card |
-| `[[card\|words]]` | link, showing different words |
+| <code>&#91;&#91;card&#124;words&#93;&#93;</code> | link, showing different words |
 | `[[card#Heading]]` | link to a section of a card |
 | `text ^name` | give this block a name |
 | `[[card#^name]]` | link to a named block |
@@ -194,6 +194,6 @@ document for an agent to apply.
 
 ## Where it is used
 
-Every card in `doc/wiki/` is hyper-markdown, including the [[kanban]] board
+Every card in `doc/wiki/` is HyperMarkDown, including the [[kanban]] board
 convention. It is one of the notations the project's design layer under
 `doc/models/` may be written in, alongside more formal specifications.

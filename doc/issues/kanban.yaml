@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0009, the editor line's is 0107.
-  last_id: 106 # highest assigned overall; per stream — Python 8, editor 106
+  # the Python line's next issue is 0009, the editor line's is 0108.
+  last_id: 107 # highest assigned overall; per stream — Python 8, editor 107
   items:
     backlog:
       - id: "0008"
@@ -51,6 +51,9 @@ board:
         file: 0100-callout-open-state-lost.md
     doing: []
     done:
+      - id: "0107"
+        title: "Native binaries want a toolchain repository with d2"
+        file: "0107-toolchain-repository-for-native-binaries.md"
       - id: "0006"
         title: "Escaped pipe inside a table code span keeps its backslash"
         file: "0006-escaped-pipe-in-a-table-code-span.md"

@@ -67,20 +67,17 @@ jobs:
       - name: Lint the sorting example
         run: uv run hmd lint --root examples/cs-alg-sorting --strict
 
-      # D2 renders through its own binary, taken from the published image so CI
-      # pins the same version everywhere rather than whatever an install script
-      # resolves on the day. Without it diagrams would still build — they
-      # degrade to a labelled placeholder — but the rendered path would go
-      # untested, which is the path that can break.
-      - name: Install d2
-        run: |
-          container=$(docker create terrastruct/d2:latest)
-          for candidate in /usr/local/bin/d2 /usr/bin/d2 /bin/d2 /d2; do
-            docker cp "$container:$candidate" /usr/local/bin/d2 2>/dev/null && break
-          done
-          docker rm "$container"
-          sudo chmod +x /usr/local/bin/d2
-          d2 --version
+      # D2 renders through its own binary. It comes from the pinned
+      # `hypermarkdown-toolchain` release and nowhere else (issue 0107): one
+      # version, digest-checked against `toolchain.json`, identical here, in the
+      # docs deploy and inside the VS Code extension. Without it diagrams would
+      # still build — they degrade to a labelled placeholder — but the rendered
+      # path would go untested, which is the path that can break.
+      - name: Install the pinned toolchain
+        run: node scripts/toolchain.mjs --github-path
+
+      - name: Check d2
+        run: d2 --version
 
       # The second consumer of the resolver (HMD-0002). A build that goes red
       # here means the model works for lint but not for rendering.

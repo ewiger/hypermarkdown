@@ -21,6 +21,7 @@ import {
 } from "@hypermarkdown/core";
 
 import { DiagramEngine } from "./diagram/engine.js";
+import { diagramOptions } from "./diagram/options.js";
 import { VsCodeHost, discoverRoot } from "./workspaceHost.js";
 
 /** Milliseconds after the last keystroke before the preview re-parses (§6). */
@@ -32,12 +33,32 @@ export class Store implements vscode.Disposable {
   private host: VsCodeHost | null = null;
   private root: vscode.Uri | null = null;
   private readonly overrides = new Map<string, string>();
-  private readonly diagrams = new DiagramEngine();
+  private readonly diagrams: DiagramEngine;
   private readonly disposables: vscode.Disposable[] = [];
   private readonly changed = new vscode.EventEmitter<string | null>();
 
+  /**
+   * @param extensionUri the installed extension's root, which is where the
+   *   bundled `d2` lives in a platform-specific VSIX (issue 0107).
+   */
+  constructor(private readonly extensionUri: vscode.Uri) {
+    this.diagrams = new DiagramEngine(diagramOptions(extensionUri));
+  }
+
   /** Fires with the card that changed, or null when the whole index moved. */
   readonly onDidChange = this.changed.event;
+
+  /**
+   * Re-resolve `d2` and drop every rendered diagram.
+   *
+   * The cache is keyed by source alone, so a diagram rendered by the old binary
+   * would otherwise survive a change of binary and the setting would look like
+   * it had not taken.
+   */
+  refreshDiagramEngine(): void {
+    this.diagrams.clear(diagramOptions(this.extensionUri));
+    this.changed.fire(null);
+  }
 
   dispose(): void {
     for (const d of this.disposables) d.dispose();

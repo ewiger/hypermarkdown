@@ -48,16 +48,15 @@ jobs:
 
       # Diagrams degrade to a labelled placeholder without this, which would
       # publish quietly wrong pages rather than failing — so the deploy needs
-      # the same engine the tests get.
-      - name: Install d2
-        run: |
-          container=$(docker create terrastruct/d2:latest)
-          for candidate in /usr/local/bin/d2 /usr/bin/d2 /bin/d2 /d2; do
-            docker cp "$container:$candidate" /usr/local/bin/d2 2>/dev/null && break
-          done
-          docker rm "$container"
-          sudo chmod +x /usr/local/bin/d2
-          d2 --version
+      # the same engine the tests get, which means the same pinned
+      # `hypermarkdown-toolchain` release CI installs (issue 0107). These lines
+      # used to be a copy of CI's; now both call one script over one pin, so the
+      # site cannot be built with a different d2 than the one CI tested.
+      - name: Install the pinned toolchain
+        run: node scripts/toolchain.mjs --github-path
+
+      - name: Check d2
+        run: d2 --version
 
       # The same gate `ci.yml` gets. Nothing is published that does not build
       # clean, so `--strict` stays on here rather than being relaxed for the

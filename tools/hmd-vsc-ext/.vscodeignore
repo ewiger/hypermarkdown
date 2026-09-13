@@ -1,5 +1,6 @@
-# The VSIX ships two bundles and the static assets they need, nothing else
-# (HMD-0021 §12). README.md, CHANGELOG.md, and LICENSE stay: the marketplace
+# The VSIX ships two bundles, the static assets they need, and — in a
+# platform-specific build — `toolchain/bin/d2` from the pinned toolchain
+# release (issue 0107), nothing else (HMD-0021 §12). README.md, CHANGELOG.md, and LICENSE stay: the marketplace
 # renders the first two as its Details and Changelog tabs.
 
 src/**

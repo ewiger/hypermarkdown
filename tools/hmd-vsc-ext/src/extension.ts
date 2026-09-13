@@ -18,7 +18,7 @@ import { Store } from "./store.js";
 const HAS_ROOT = "hyperMarkdown.hasRoot";
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  const store = new Store();
+  const store = new Store(context.extensionUri);
   context.subscriptions.push(store, { dispose: () => PreviewPanel.disposeAll() });
 
   const diagnostics = new DiagnosticPublisher(store);
@@ -80,7 +80,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("hyperMarkdown.root")) void store.rebuild();
-      else if (event.affectsConfiguration("hyperMarkdown")) diagnostics.refresh();
+      else if (event.affectsConfiguration("hyperMarkdown.diagram.d2Path")) {
+        store.refreshDiagramEngine();
+      } else if (event.affectsConfiguration("hyperMarkdown")) diagnostics.refresh();
     }),
     vscode.workspace.onDidChangeWorkspaceFolders(() => void store.rebuild()),
   );

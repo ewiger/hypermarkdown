@@ -133,14 +133,35 @@ opens: five sorting algorithms, seven D2 flowcharts, KaTeX throughout, `!!!` and
 `???` callouts, block embeds, and cross-card links. It lints clean under
 `--strict`, and every diagram in it compiles with `d2`.
 
-**Diagrams need `d2`.** A `d2` fence draws only if a renderer is available: `d2`
-on `PATH`, then `docker run terrastruct/d2:latest`. With neither, the block shows
-its source and says which two things were looked for — a diagram that is not drawn
-is not a defect in the card. Everything else renders with no external tool.
+**Diagrams need `d2`, and a released build brings its own.** The extension
+resolves a renderer in one order, highest first (issue 0107):
+
+1. `hyperMarkdown.diagram.d2Path` — an explicit path, for deliberately testing
+   another build of d2. It does **not** fall through: a setting pointing at
+   nothing is reported, not quietly replaced by the bundled binary.
+2. `toolchain/bin/d2` inside the extension — the pinned
+   [`hypermarkdown-toolchain`](https://github.com/ewiger/hypermarkdown-toolchain)
+   release, staged into the VSIX per target platform by the release workflow.
+   This is the deterministic default, and the same binary CI and the published
+   site render with.
+3. `d2` on `PATH`.
+4. Nothing. The block shows its source and says what was looked for — a diagram
+   that is not drawn is not a defect in the card.
+
+There is no Docker fallback and no download at run time. An editor is not a
+place to acquire software, and `terrastruct/d2:latest` was never a pin.
+
+A **source checkout** has no `toolchain/`, so the Extension Development Host
+lands on step 3 or 4. Either install `d2`, or stage the pinned one into the
+checkout exactly as the release does:
 
 ```bash
+node ../../scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain
 brew install d2      # or see https://d2lang.com
 ```
+
+`npm run package` stages it for you. Everything but diagrams renders with no
+external tool.
 
 **Expected rough edges.** `login.hmd` exercises callouts, math, task lists,
 tables, footnotes, code fences, all six link constructs, and a D2 diagram; all of

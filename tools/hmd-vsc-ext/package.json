@@ -2,7 +2,7 @@
   "name": "hmd",
   "displayName": "HyperMarkDown",
   "description": "Live preview, embeds, backlinks, and diagnostics for HyperMarkDown (.hmd) knowledge bases.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "icon": "media/logo.png",
   "publisher": "hypermarkdown",
@@ -174,6 +174,11 @@
           "default": "expanded",
           "description": "Whether embed cards start expanded or collapsed."
         },
+        "hyperMarkdown.diagram.d2Path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Absolute path to a `d2` executable to render diagrams with. Empty uses the `d2` bundled with this build — a pinned [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain) release, the same binary the documentation site is built with — falling back to `d2` on `PATH`. Set this only to test a different build of d2 deliberately: it takes precedence over the bundled one, and a path that is not an executable is reported rather than silently ignored."
+        },
         "hyperMarkdown.diagnostics.scope": {
           "type": "string",
           "enum": [
@@ -195,7 +200,7 @@
     "example:sorting": "node ../../scripts/launch-example.mjs cs-alg-sorting",
     "example:small": "node ../../scripts/launch-example.mjs small",
     "example:wiki": "node ../../scripts/launch-example.mjs wiki",
-    "package": "npm run build && vsce package --no-dependencies"
+    "package": "npm run build && node ../../scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain && vsce package --no-dependencies"
   },
   "dependencies": {
     "@hypermarkdown/core": "^0.1.0"

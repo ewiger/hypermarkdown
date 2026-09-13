@@ -29,6 +29,13 @@ Four things version independently, and each has exactly one literal:
 | `@hypermarkdown/core` | `version` in [`tools/hmd-ts-core/package.json`](tools/hmd-ts-core/package.json) | [its changelog](tools/hmd-ts-core/CHANGELOG.md) |
 | `hmd-vsc-ext` | `version` in [`tools/hmd-vsc-ext/package.json`](tools/hmd-vsc-ext/package.json) | [its changelog](tools/hmd-vsc-ext/CHANGELOG.md) |
 
+A fifth number is pinned rather than declared here:
+[`toolchain.json`](toolchain.json) names the
+[`hypermarkdown-toolchain`](https://github.com/ewiger/hypermarkdown-toolchain)
+release every native binary comes from — today just `d2`. That repository owns
+the d2 version; this one owns only which toolchain release it consumes, and the
+two move independently. See **The pinned toolchain** below.
+
 **A tool release never implies a language version, and a language version never
 waits for one.** The language number moves when a construct changes and nothing
 else moves it; a `HyperMarkDown` release on PyPI is an implementation shipping.
@@ -42,6 +49,43 @@ The language version is declared in prose, in the spec card's opening sentence,
 because that card *is* the specification and a number in a second file would be a
 number that can disagree with it. `tests/test_docs.py` reads it from there and
 fails if the root changelog has no section for it.
+
+## The pinned toolchain
+
+`d2` is the project's only native dependency, and it is acquired in exactly one
+way: the release named in [`toolchain.json`](toolchain.json), fetched and
+digest-checked by [`scripts/toolchain.mjs`](scripts/toolchain.mjs).
+
+```bash
+node scripts/toolchain.mjs                      # this host; prints the bin/ path
+export PATH="$(node scripts/toolchain.mjs):$PATH"
+node scripts/toolchain.mjs --platform windows-x86_64 --dest build/win
+```
+
+It downloads the archive for a platform, checks it against the digest committed
+here — not against a checksum file fetched from beside the archive, which would
+prove only that the two agree — unpacks it under `.toolchain/`, and prints where
+`bin/` landed. `--github-path` also appends that directory to `PATH` for the rest
+of a workflow job, which is how `ci.yml` and `pages.yml` use it.
+
+Three consumers, one pin:
+
+| Consumer | How it gets `d2` |
+| --- | --- |
+| [`ci.yml`](.github/workflows/ci.yml) | `node scripts/toolchain.mjs --github-path` |
+| [`pages.yml`](.github/workflows/pages.yml) | the same line, so the site is built with the binary CI tested |
+| [`tools/hmd-vsc-ext`](tools/hmd-vsc-ext/) | staged into each platform-specific VSIX at package time; the extension downloads nothing |
+
+Before this there were three unpinned acquisitions — `docker create
+terrastruct/d2:latest` in CI, the same lines copy-pasted into the deploy, and
+whatever was on `PATH` in the editor. `:latest` is not a pin: identical cards
+could render differently in two runs and nothing recorded why. **Do not
+reintroduce a direct download, a Docker image, or a package-manager install of
+`d2` anywhere in this repository.**
+
+**To move d2**, bump it in the toolchain repository and cut a release there, then
+change `version` and every digest in `toolchain.json` together, in one commit.
+The digests come from that release's `SHA256SUMS`.
 
 ## Working on the specification
 

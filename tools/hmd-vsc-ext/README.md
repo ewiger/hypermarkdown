@@ -56,9 +56,12 @@ Requires VS Code 1.90 or newer.
 - **Backlinks** for the current card, listing link and embed edges separately.
 - **Diagnostics** in the Problems panel using the `HMD001`–`HMD016` rule IDs,
   identical to `hmd lint`.
-- **Math, callouts, and D2 diagrams.** KaTeX ships inside the extension; a
-  `d2` fence draws when [`d2`](https://d2lang.com) is on `PATH` or Docker is
-  available, and shows its source otherwise.
+- **Math, callouts, and D2 diagrams.** KaTeX ships inside the extension, and so
+  does [`d2`](https://d2lang.com): the build for your platform carries a pinned
+  [`hypermarkdown-toolchain`](https://github.com/ewiger/hypermarkdown-toolchain)
+  release, the same binary the documentation site is built with, so a `d2` fence
+  draws on a fresh install with nothing to configure and nothing downloaded at
+  run time. Set `hyperMarkdown.diagram.d2Path` to use a different `d2`.
 - **Syntax highlighting** for `.hmd` as its own language.
 
 ## What it needs

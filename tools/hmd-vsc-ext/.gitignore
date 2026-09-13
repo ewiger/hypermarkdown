@@ -5,3 +5,7 @@ media/webview.js.map
 
 # KaTeX assets, copied from node_modules by esbuild.mjs.
 media/katex/
+
+# The pinned d2, staged into the package by the release workflow
+# (`node scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain`).
+toolchain/

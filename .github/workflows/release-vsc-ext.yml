@@ -78,8 +78,69 @@ jobs:
         env:
           HMD_REQUIRE_PARITY: "1"
 
+      # One VSIX per VS Code target platform, each carrying the `d2` for that
+      # platform from the pinned `hypermarkdown-toolchain` release (issue 0107).
+      # This is what makes diagrams work on a fresh install: the extension
+      # downloads nothing and runs no container, so the binary has to be in the
+      # package, and a binary in the package means the package is not portable.
+      #
+      # All six are cross-packaged here on Linux. `vsce --target` only writes
+      # the target into the manifest and the filename; the bytes it bundles are
+      # whatever is in `toolchain/`, which is why the staging step below names
+      # the toolchain platform explicitly rather than letting the script detect
+      # this runner's.
+      #
+      # The `windows-arm64` target takes the x86_64 binary deliberately — the
+      # toolchain publishes no windows-arm64 archive and Windows runs it under
+      # emulation, which is the same trade VS Code itself ships.
       - name: Package
-        run: npm run -w tools/hmd-vsc-ext package
+        run: |
+          set -euo pipefail
+          targets="linux-x64:linux-x86_64 linux-arm64:linux-arm64
+                   darwin-x64:macos-x86_64 darwin-arm64:macos-arm64
+                   win32-x64:windows-x86_64 win32-arm64:windows-x86_64"
+          mkdir -p dist-vsix
+          for pair in $targets; do
+            vscode_target="${pair%%:*}"
+            toolchain_platform="${pair##*:}"
+            echo "::group::$vscode_target ($toolchain_platform)"
+            rm -rf tools/hmd-vsc-ext/toolchain
+            # `--dest` resolves against the repository root, so this path means
+            # the same thing whichever directory the step is standing in.
+            node scripts/toolchain.mjs \
+              --platform "$toolchain_platform" \
+              --dest tools/hmd-vsc-ext/toolchain
+            # `vsce` packages the directory it is run from. `--no` runs the
+            # version in the lockfile and fails rather than fetching one, for
+            # the same reason the Open VSX job does.
+            (cd tools/hmd-vsc-ext && npx --no vsce package \
+              --no-dependencies \
+              --target "$vscode_target" \
+              --out "../../dist-vsix/hmd-$vscode_target.vsix")
+            echo "::endgroup::"
+          done
+          rm -rf tools/hmd-vsc-ext/toolchain
+          ls -l dist-vsix
+
+      # Every VSIX must actually contain the binary it promises. A `.vscodeignore`
+      # edit or a staging step that silently no-ops would otherwise ship a
+      # package that renders no diagrams and says nothing about why — the exact
+      # failure this issue exists to remove, moved one layer down.
+      - name: Check every VSIX carries its d2
+        run: |
+          set -euo pipefail
+          for vsix in dist-vsix/*.vsix; do
+            case "$vsix" in
+              *win32*) expected="extension/toolchain/bin/d2.exe" ;;
+              *)       expected="extension/toolchain/bin/d2" ;;
+            esac
+            if ! unzip -l "$vsix" | grep -q "$expected"; then
+              echo "::error::$vsix does not contain $expected" >&2
+              unzip -l "$vsix" >&2
+              exit 1
+            fi
+            echo "ok $vsix → $expected"
+          done
 
       # `vsce` rewrites relative links in the packaged README against the
       # repository root and ignores `repository.directory`, so a `../../doc/…`
@@ -87,7 +148,7 @@ jobs:
       # renders correctly on GitHub and wrongly in the gallery.
       - name: Check the packaged README has no rewritten links
         run: |
-          unzip -o -d /tmp/vsix tools/hmd-vsc-ext/*.vsix >/dev/null
+          unzip -o -d /tmp/vsix dist-vsix/hmd-linux-x64.vsix >/dev/null
           if grep -q 'blob/HEAD/\.\.' /tmp/vsix/extension/readme.md; then
             echo "::error::README.md has relative links that vsce rewrote into 404s" >&2
             grep -n 'blob/HEAD/\.\.' /tmp/vsix/extension/readme.md >&2
@@ -97,7 +158,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: vsix
-          path: tools/hmd-vsc-ext/*.vsix
+          path: dist-vsix/*.vsix
           if-no-files-found: error
 
   # TEMPORARILY SKIPPED — waiting on Microsoft, not on us.
@@ -156,10 +217,15 @@ jobs:
       # untested vsce decide whether a version reaches the gallery. Bump this
       # deliberately, and drop the range once a stable carries the flag.
       #
-      # The artifact from `build`, not a fresh package: publishing a second
+      # The artifacts from `build`, not a fresh package: publishing a second
       # build would ship bytes no gate ran against. `--no-dependencies` and
       # `--packagePath` make this a pure upload, so the repository itself is not
       # needed here — no checkout, no `npm ci`.
+      #
+      # Every platform-specific VSIX in one invocation (issue 0107). The gallery
+      # treats them as one version with several builds, and the client installs
+      # the one matching its platform; uploading only some would leave the rest
+      # of the platforms on the previous version.
       - name: Publish
         run: npx @vscode/vsce@3.9.3-4 publish --oidc --no-dependencies --packagePath vsix/*.vsix
 
@@ -204,6 +270,8 @@ jobs:
       # where a failure burns a version number no registry will let us reuse.
       # `vsce` needs the explicit version for the mirror-image reason: the
       # prerelease carrying `--oidc` is deliberately not in the lock.
+      # Every platform-specific VSIX, for the same reason as the Marketplace
+      # job above: one version, one build per target.
       - name: Publish
         run: npx --no ovsx publish --packagePath vsix/*.vsix
         env:

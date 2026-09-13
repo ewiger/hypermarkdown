@@ -365,3 +365,10 @@ dist
 # A committed launch.json reintroduces the F5 ambiguity that `npm run example`
 # exists to avoid. See doc/DEVELOPER.md.
 .vscode/
+
+# Unpacked `hypermarkdown-toolchain` releases. Reproducible from toolchain.json
+# by `node scripts/toolchain.mjs`; never committed.
+.toolchain/
+
+# Platform-specific VSIXes, built by the release workflow.
+dist-vsix/
