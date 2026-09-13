@@ -21,6 +21,42 @@ against
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-14
+
+**Diagrams now work on a fresh install.** The extension is published as one
+build per platform, each carrying the `d2` binary it needs, so a `d2` fence
+draws with nothing installed and nothing configured. VS Code downloads the build
+matching the machine; nothing here downloads anything at run time.
+
+### Added
+
+- **`d2` is bundled**, from a pinned
+  [`hypermarkdown-toolchain`](https://github.com/ewiger/hypermarkdown-toolchain)
+  release — the same binary the `hmd` CLI's tests and
+  [hypermarkdown.org](https://hypermarkdown.org) render with, so a card that
+  draws in the editor draws identically on the published site. Packages ship for
+  `linux-x64`, `linux-arm64`, `darwin-x64`, `darwin-arm64`, `win32-x64` and
+  `win32-arm64`.
+- **`hyperMarkdown.diagram.d2Path`** — an absolute path to a `d2` of your own,
+  for deliberately testing another build. It takes precedence over the bundled
+  binary and does not fall through: a path that is not an executable is
+  reported in the placeholder rather than silently replaced, because a setting
+  that appears to do nothing is worse than one that fails.
+
+### Changed
+
+- **Renderer resolution is now:** the configured path, then the bundled
+  binary, then `d2` on `PATH`, then a labelled placeholder. A source checkout
+  bundles nothing and lands on `PATH`, as before.
+
+### Removed
+
+- **The Docker fallback.** `docker run terrastruct/d2:latest` is gone. It was
+  never a pin — two runs of the same card could produce different pictures and
+  nothing recorded why — and it made drawing a diagram depend on a container
+  runtime being installed and running. An editor is not a place to acquire
+  software.
+
 ## [0.1.0] — 2026-08-10
 
 First public release, on [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd)
@@ -102,5 +138,6 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.1.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.2.0...HEAD
+[0.2.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.1.0...vsc-ext-v0.2.0
 [0.1.0]: https://github.com/ewiger/hypermarkdown/releases/tag/vsc-ext-v0.1.0
