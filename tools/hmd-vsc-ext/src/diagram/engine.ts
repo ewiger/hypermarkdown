@@ -82,7 +82,19 @@ function run(command: string, source: string): Promise<string> {
       },
     );
     child.on("error", reject);
-    child.stdin?.end(source);
+
+    // A renderer that exits before it has read all of stdin — a crash, a parse
+    // error it bails on early, a binary that is not d2 at all — makes this
+    // write fail with EPIPE. Without a listener that is an unhandled `error`
+    // event on the stream, which takes down the extension host over a diagram.
+    // The `execFile` callback above is the one that decides the outcome: it
+    // still fires, with the exit status and whatever the renderer said on
+    // stderr, which is a better message than the write error anyway.
+    const stdin = child.stdin;
+    if (stdin !== null) {
+      stdin.on("error", () => {});
+      stdin.end(source);
+    }
   });
 }
 

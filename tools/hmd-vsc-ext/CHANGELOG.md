@@ -49,6 +49,13 @@ matching the machine; nothing here downloads anything at run time.
   binary, then `d2` on `PATH`, then a labelled placeholder. A source checkout
   bundles nothing and lands on `PATH`, as before.
 
+### Fixed
+
+- **A renderer that exits without reading its input no longer takes the
+  extension host down.** Writing to the stdin of a process that has already
+  gone raises `EPIPE` on the stream rather than on the render, and nothing was
+  listening. The diagram now reports what the renderer said instead.
+
 ### Removed
 
 - **The Docker fallback.** `docker run terrastruct/d2:latest` is gone. It was

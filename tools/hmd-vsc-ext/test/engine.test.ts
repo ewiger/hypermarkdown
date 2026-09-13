@@ -102,6 +102,23 @@ describe("a configured path that does not work", () => {
   });
 });
 
+describe("a renderer that exits without reading stdin", () => {
+  it("reports the failure instead of crashing on EPIPE", async () => {
+    // Writing to the stdin of a process that has already gone raises EPIPE on
+    // the stream, not on the promise. Unhandled, that ends the extension host.
+    const path = join(dir, "deaf");
+    writeFileSync(path, "#!/bin/sh\necho 'not today' >&2\nexit 2\n");
+    chmodSync(path, 0o755);
+
+    const engine = new DiagramEngine({ configuredPath: path });
+    // Large enough that the write cannot fit in the pipe buffer and complete
+    // before the child is gone, which is what makes the EPIPE reliable.
+    const { dataUri, failure } = await engine.render("a -> b\n".repeat(20_000));
+    expect(dataUri).toBeNull();
+    expect(failure).not.toBeNull();
+  });
+});
+
 describe("no renderer at all", () => {
   it("names what it looked for, and does not reach for Docker", async () => {
     process.env.PATH = join(dir, "empty");
