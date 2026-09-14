@@ -137,7 +137,9 @@ In order, against `examples/small`. These are the behaviours no unit test sees:
    naming what is on screen. Switch to **Links to** and the picture turns
    around; switch to **Network** and the direction control greys out. Click a
    node: the preview moves there and the source opens alongside. **Full screen**
-   hides the tab strip and gives the graph the panel; `Escape` gives it back.
+   takes the whole window — zen mode, uncentred, a split maximised, nothing left
+   but the canvas and its toolbar — and `Escape` gives the editor back. Close the
+   preview while it is full screen: the editor comes back on its own.
 9. **Collapse an embed card, then edit the source.** The card stays collapsed and
    the preview does not jump to the top. This is keyed DOM patching, and it is the
    behaviour most likely to regress silently.

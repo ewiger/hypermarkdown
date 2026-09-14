@@ -68,6 +68,7 @@ Nothing known.
 | Completion, rename, and hover are absent | They arrive with the language server, which lives with the canonical implementation. The preview keeps rendering without it either way | [[hmd-0024#the-language-server-is-python-on-pygls]] |
 | The integration suite is not in the default test command | Its harness downloads about 300 MB on first run | [[hmd-0021#12-packaging-and-ci]] |
 | The graph draws only what resolved, and stops at 400 cards | A red link has no card at the other end to draw it to, and is reported in the rendered tab and the Problems panel instead. Past the cap the view keeps the cards nearest the one being read and says how many it dropped: a hairball is not a more honest picture than a bounded one that names what is missing | [[hmd-0025]] |
+| Full screen can fall one press out of step | Zen mode and the rest are toggles the editor does not let an extension read back, so the tab tracks what it performed. Leave zen mode by hand and the button's next press puts it back in step | [[hmd-0025]] |
 | The webview bundle is about 400 KB, nearly all of it Cytoscape | The policy forbids remote script, so a graph library is either compiled in or absent | [[hmd-0025]], [[hmd-0021#11-webview-hardening]] |
 
 ## Done
@@ -83,8 +84,9 @@ Nothing known.
   scope pointed at what this card links to or at what links to it, link and
   embed edges drawn apart, a node opening its card, and a toolbar for zoom, fit,
   and re-running the layout. Which cards are in the picture is decided in the
-  extension host, so it is under test without a canvas. Full screen gives it the
-  panel and `Escape` gives the chrome back. It replaced the backlinks tab, whose
+  extension host, so it is under test without a canvas. Full screen hands it the
+  whole window — zen mode, uncentred, a split maximised — and `Escape` gives the
+  editor back. It replaced the backlinks tab, whose
   renderer went with it [issue 0109].
 - **Diagnostics** in the Problems panel, byte-identical to the linter's, at 500
   ms and suppressed on the line the cursor is in.
@@ -121,6 +123,13 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-09-14: the graph's full screen took the window rather than the panel. It
+  first stood only the preview's own chrome down, which left the editor's tab
+  bar, side bar, and status bar around a canvas that had asked for the screen —
+  no help at all in the case it exists for, a network too large to navigate. It
+  now asks for zen mode, undoes the centring that would trade the width back,
+  maximises a split, and undoes exactly what it did; a preview closed while it
+  holds the window gives it back [[hmd-0025]].
 - 2026-09-14: the graph tab landed and the backlinks tab was deleted. It answers
   both questions the tracker was carrying about it: the specification was
   written from the implementation rather than ahead of it, and a large vault is

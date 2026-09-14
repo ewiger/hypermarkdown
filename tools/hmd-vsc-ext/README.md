@@ -57,8 +57,8 @@ Requires VS Code 1.90 or newer.
   edges apart, and clicking one moves the preview to that card. Read it as the
   whole network, or as the card you are on and its neighbours — what it links
   to, or what links to it, which is what the backlinks tab used to list. Zoom,
-  fit, re-run the layout, or give the graph the whole panel with **Full
-  screen**.
+  fit, re-run the layout, or hand the graph the whole window with **Full
+  screen** — the editor drops into zen mode and `Escape` brings it back.
 - **Diagnostics** in the Problems panel using the `HMD001`–`HMD016` rule IDs,
   identical to `hmd lint`.
 - **Math, callouts, and D2 diagrams.** KaTeX ships inside the extension, and so

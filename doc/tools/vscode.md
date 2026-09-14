@@ -31,8 +31,9 @@ diagram.](../assets/hmd-vsc-ext-screenshot-1.png)
 - **Red links**, with an action that writes the missing card.
 - **A graph of the vault**, cards as nodes and link and embed edges drawn apart,
   clicking one to move the preview there. The whole network, or the card you are
-  on and what it links to — or what links to it — and a full-screen button for
-  when a preview column is too narrow to read a graph in.
+  on and what it links to — or what links to it. A big network is read full
+  screen: the button hands the graph the whole window, and `Escape` gives the
+  editor back.
 - **The same diagnostics as `hmd lint`** in the Problems panel, under the same
   `HMD001`–`HMD016` rule IDs.
 - **Math, callouts, and D2 diagrams**, and `.hmd` as its own language with its

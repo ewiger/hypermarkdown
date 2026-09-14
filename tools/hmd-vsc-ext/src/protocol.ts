@@ -79,7 +79,8 @@ export type WebviewMessage =
   | { type: "createCard"; target: string }
   | { type: "scrolled"; line: number }
   | { type: "modeChanged"; mode: PreviewMode }
-  | { type: "graphView"; view: GraphView };
+  | { type: "graphView"; view: GraphView }
+  | { type: "fullScreen"; on: boolean };
 
 const MODES: readonly PreviewMode[] = ["rendered", "graph"];
 const SCOPES: readonly GraphScope[] = ["network", "card"];
@@ -140,6 +141,10 @@ export function parseWebviewMessage(raw: unknown): WebviewMessage | null {
       const view = parseView(message["view"]);
       return view === null ? null : { type: "graphView", view };
     }
+    case "fullScreen":
+      return typeof message["on"] === "boolean"
+        ? { type: "fullScreen", on: message["on"] }
+        : null;
     default:
       return null;
   }

@@ -40,8 +40,9 @@ existing query rather than a new one.
   is off and a hidden webview keeps no state.
 - **A toolbar** over the canvas: zoom in and out, fit, re-run the layout, full
   screen, plus the scope and direction controls. A graph is read at the size it
-  is drawn and a preview column is narrow, so full screen stands the preview's
-  chrome down and `Escape` gives it back.
+  is drawn and a preview column is narrow, so full screen takes the whole
+  window — zen mode, the centring undone, a split maximised — and `Escape` gives
+  the editor back.
 
 ## Done when
 

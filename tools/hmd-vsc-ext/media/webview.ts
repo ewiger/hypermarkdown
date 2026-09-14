@@ -42,6 +42,7 @@ const graph = new GraphTab(
     // the rendered tab makes.
     open: (path) => vscode.postMessage({ type: "openTarget", path, fragment: null }),
     setView: (view) => vscode.postMessage({ type: "graphView", view }),
+    setFullScreen: (on) => vscode.postMessage({ type: "fullScreen", on }),
   },
   { scope: "card", direction: "downstream" },
 );

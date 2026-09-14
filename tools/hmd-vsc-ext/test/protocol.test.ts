@@ -30,6 +30,10 @@ describe("inbound messages", () => {
         view: { scope: "network", direction: "upstream" },
       }),
     ).toEqual({ type: "graphView", view: { scope: "network", direction: "upstream" } });
+    expect(parseWebviewMessage({ type: "fullScreen", on: true })).toEqual({
+      type: "fullScreen",
+      on: true,
+    });
   });
 
   it("rejects anything malformed rather than throwing", () => {
@@ -49,6 +53,8 @@ describe("inbound messages", () => {
       { type: "graphView" },
       { type: "graphView", view: { scope: "network" } },
       { type: "graphView", view: { scope: "everything", direction: "upstream" } },
+      { type: "fullScreen" },
+      { type: "fullScreen", on: "yes" },
     ]) {
       expect(parseWebviewMessage(bad)).toBeNull();
     }

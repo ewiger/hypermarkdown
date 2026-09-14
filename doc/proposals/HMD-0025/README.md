@@ -13,8 +13,9 @@ card with its neighbours in a chosen direction — the rule that unresolved edge
 are not drawn and repeated edges of one kind collapse to one, a node cap of 400
 with a nearest-first rule for choosing which cards survive it, click-to-navigate
 behaviour identical to a link in the rendered card, a toolbar of zoom, fit,
-relayout, and full screen, the division of labour that puts the cut in the
-extension host and only the drawing in the webview, and Cytoscape.js compiled
+relayout, and a full screen that takes the whole editor window rather than the
+preview panel, the division of labour that puts the cut in the extension host
+and only the drawing in the webview, and Cytoscape.js compiled
 into the webview bundle because the preview's content security policy forbids
 both remote script and `eval`. It **replaces** the backlinks tab, whose list of
 inbound cards is the card scope pointed at what links here. The message envelope
@@ -146,14 +147,25 @@ invented here.
 
 - The toolbar MUST carry the scope and direction controls, zoom in, zoom out,
   fit to the view, and re-run the layout.
-- The toolbar MUST carry a **full screen** toggle that gives the graph the whole
-  panel by standing the preview's chrome down, and MUST leave full screen on
-  `Escape`. A graph is read at the size it is drawn and a preview column is
-  narrow, so the tab that most needs room is the one that has least of it.
-- Full screen MUST be confined to the webview: the tab MUST NOT rearrange the
-  editor's groups. The webview can promise what it owns, and a control that
-  maximised an editor group would be lying about its state the moment a reader
-  moved the groups by hand.
+- The toolbar MUST carry a **full screen** toggle, and full screen MUST leave on
+  `Escape`. A graph is read at the size it is drawn, a preview column is narrow,
+  and the tab that most needs room is the one that has least of it.
+- Full screen MUST leave the graph and its toolbar as the only things on screen.
+  Standing the preview's own chrome down is not enough: the editor's tab bar,
+  side bar, panel, and status bar sit between the reader and the picture, and a
+  large network is exactly the case the button exists for.
+- Full screen MUST therefore ask the editor for **zen mode**, which is the
+  editor's own name for that state and what a reader who leaves it with
+  `Escape Escape` instead of the button will already know. It MUST also undo zen
+  mode's centred layout, which is right for prose and trades away the width a
+  canvas just asked for, and MUST maximise the editor group when the window
+  holds more than one, since a split neighbour would take half the screen.
+- Leaving full screen MUST undo exactly what entering it did, and nothing else.
+  Every one of those commands is a toggle that cannot be read back, so the tab
+  tracks what it performed; a reader who leaves zen mode by hand leaves the
+  button one press out of step, and the next press puts it back in. A preview
+  closed while it holds the window MUST give the window back, since an editor
+  with no tabs and no explanation is worse than a stale button.
 - Entering or leaving full screen MUST refit the graph, since the container
   changed size under a canvas that learns about it only when told.
 
@@ -293,6 +305,13 @@ npm run -w tools/hmd-vsc-ext build
 
 ## Changelog
 
+- 2026-09-14: full screen takes the whole window rather than the panel. The
+  first rule confined it to the webview, on the grounds that the webview can
+  only promise what it owns — but what it owns is a narrow column with the
+  editor's tab bar, side bar, and status bar around it, which is not the state a
+  reader asks for when a network is too large to navigate. It asks the editor
+  for zen mode now, undoes the centred layout that would trade the width back,
+  maximises a split, and undoes exactly what it did.
 - 2026-09-14: drafted, from the implementation rather than ahead of it. The
   graph tab began as an outline inside the preview surface record; a bundled
   layout engine, a node cap, a scope and direction model, and a full-screen mode

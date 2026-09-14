@@ -27,9 +27,11 @@ a node moves the preview to that card with its source alongside, exactly as
 clicking a link does. Read it as the whole network, or as the card you are on
 and its neighbours in one direction: what it links to, or what links to it.
 Zoom, fit, re-run the layout, and go **full screen** from the toolbar over the
-canvas — a graph is read at the size it is drawn, and a preview column is
-narrow, so the button hides the tab strip and gives the graph the whole panel
-until `Escape`.
+canvas. Full screen means the window, not the panel: the editor drops into zen
+mode with the tab bar, side bar, and status bar gone, the centred layout undone
+so the canvas keeps the width, and a split maximised — what is left on screen is
+the graph and its toolbar. `Escape` gives the editor back, and so does the
+button. A large network is the case this exists for.
 
 **The Backlinks tab is gone, replaced by that graph.** It listed the cards with
 an edge into the current one, which is the card scope pointed at what links

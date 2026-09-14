@@ -19,6 +19,8 @@ export interface GraphApi {
   open(path: string): void;
   /** Ask the host for a different cut of the graph. */
   setView(view: GraphView): void;
+  /** Ask the editor to stand its own chrome down, or to put it back. */
+  setFullScreen(on: boolean): void;
 }
 
 const LAYOUT = {
@@ -162,14 +164,14 @@ export class GraphTab {
   /**
    * Give the graph the whole panel, or give the chrome back.
    *
-   * A graph is read at the size it is drawn, and a preview column is narrow.
-   * This hides the tab strip and the breadcrumb rather than asking the editor
-   * for anything: the webview can promise what it owns, and a button that
-   * rearranged the editor's groups would leave a reader who moved them by hand
-   * looking at a control that lies about which state it is in.
+   * A graph is read at the size it is drawn, and a large network in a preview
+   * column is unreadable. The webview stands its own chrome down here and asks
+   * the host to stand the editor's down too, so what is left on screen is the
+   * canvas and the toolbar over it.
    */
   private setFullScreen(on: boolean): void {
     document.body.classList.toggle(FULL_SCREEN, on);
+    this.api.setFullScreen(on);
     const button = this.root.querySelector<HTMLElement>('[data-action="fullscreen"]');
     if (button !== null) {
       button.setAttribute("aria-pressed", String(on));
