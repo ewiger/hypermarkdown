@@ -53,17 +53,17 @@ same file. Completion and the rest of the language-server features are not in
 the extension yet; they arrive with the Python language server, and the preview
 will keep rendering without it.
 
-Diagrams are the one exception to *nothing to install*: a `d2` fence draws when
-[`d2`](https://d2lang.com) is on your `PATH` or Docker is available, and shows
-its source when neither is.
+Diagrams are no exception. The build for your platform carries a pinned
+[`d2`](https://d2lang.com) inside it, so a `d2` fence draws on a fresh install
+with nothing on your `PATH` and nothing downloaded at run time.
 
-## This is a preview release
+## What it does not do
 
-The preview surface is built and gated by tests. `HMD017` — the rule about a
-published card linking to a private one — is not ported yet, so the extension
-never reports it. The graph tab — the milestone the flag was actually waiting
-on — is built, with the cut it draws under test; the flag comes off once it has
-been through the by-hand checks a unit test cannot stand in for.
+`HMD017` — the rule about a published card linking to a private one — is not
+ported yet, so the extension never reports it. Completion, rename, and hover
+arrive with the language server, which lives with the command-line tool. Raw
+HTML in a card is escaped rather than rendered, deliberately: a webview that
+renders HTML out of a cloned repository is a script-injection surface.
 
 The full list of divergences from the CLI, each with its reason, is in the
 extension's

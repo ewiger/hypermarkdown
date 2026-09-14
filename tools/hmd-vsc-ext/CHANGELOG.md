@@ -21,22 +21,58 @@ against
 
 ## [Unreleased]
 
-**The vault has a picture.** A **Graph** tab draws the cards and the edges
-between them — link edges thin, embed edges heavy, both arrowed — and clicking
-a node moves the preview to that card with its source alongside, exactly as
-clicking a link does. Read it as the whole network, or as the card you are on
-and its neighbours in one direction: what it links to, or what links to it.
-Zoom, fit, re-run the layout, and go **full screen** from the toolbar over the
-canvas. Full screen means the window, not the panel: the editor drops into zen
-mode with the tab bar, side bar, and status bar gone, the centred layout undone
-so the canvas keeps the width, and a split maximised — what is left on screen is
-the graph and its toolbar. `Escape` gives the editor back, and so does the
-button. A large network is the case this exists for.
+Nothing yet.
 
-**The Backlinks tab is gone, replaced by that graph.** It listed the cards with
-an edge into the current one, which is the card scope pointed at what links
-here — the same answer drawn instead of listed. Two tabs offering it once each
-was the arrangement worth removing, not the answer.
+## [0.3.0] — 2026-09-14
+
+**The vault has a picture, and the preview label is off.** A **Graph** tab draws
+the cards and the edges between them, a repository can hold more than one vault,
+and the extension no longer ships marked *preview*: everything it claims to do
+is built, gated by tests, and has been read in a running editor.
+
+### Added
+
+- **A graph of the vault.** Link edges thin, embed edges heavy, both arrowed,
+  and clicking a node moves the preview to that card with its source alongside,
+  exactly as clicking a link does. Read it as the whole network, or as the card
+  you are on and its neighbours in one direction: what it links to, or what
+  links to it. Zoom, fit, re-run the layout, and go **full screen** from the
+  toolbar over the canvas.
+- **Full screen means the window, not the panel.** The editor drops into zen
+  mode with the tab bar, side bar, and status bar gone, the centred layout
+  undone so the canvas keeps the width, and a split maximised — what is left on
+  screen is the graph and its toolbar. `Escape` gives the editor back, and so
+  does the button. A large network is the case this exists for.
+- **One folder can hold several vaults.** A vault is a directory carrying its
+  own `.hmd/`, and the vault a card belongs to is now discovered from the card —
+  walking up to the nearest `.hmd/` and stopping at the workspace folder, the
+  way `git` finds its repository and the way the `hmd` CLI already finds a
+  project root. Each vault gets its own index, file watcher, and diagnostics,
+  built the first time you open a card in it. Cards in a repository holding a
+  `doc/wiki` and a self-contained example tree now all preview; before this,
+  every card outside the one root chosen at startup showed an empty state.
+- Resolution stays inside a vault: a `[[wikilink]]`, an embed, and a backlink
+  never cross into a neighbouring one, because two vaults are two namespaces.
+
+### Changed
+
+- **The extension is no longer marked `preview`** on either gallery. The graph
+  tab was the last thing the flag was waiting on.
+- `hyperMarkdown.diagnostics.scope: "workspace"` means every vault the window
+  has opened a card in, which is what "every card in the index" comes to once a
+  folder can hold more than one index.
+- A preview looking at a `.hmd` file that no vault claims says so and says what
+  would claim it, instead of asking you to open a card while you are looking at
+  one.
+
+### Removed
+
+- **The Backlinks tab**, replaced by that graph. It listed the cards with an
+  edge into the current one, which is the card scope pointed at what links
+  here — the same answer drawn instead of listed. Two tabs offering it once each
+  was the arrangement worth removing, not the answer.
+
+### Notes
 
 Two things the graph deliberately does not do. A link that does not resolve is
 not drawn, because there is no card at the other end to draw it to; those are
@@ -53,35 +89,6 @@ in the VSIX.
 The tab is specified in
 [HMD-0025](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0025/README.md),
 which is where its bounds and its rules about what is not drawn are argued.
-
-## [0.3.0] — 2026-09-14
-
-**A repository can hold more than one vault.** Open a folder carrying a
-`doc/wiki` and a self-contained example tree and every card in both previews;
-before this, one namespace root was chosen at startup and everything outside it
-showed an empty state.
-
-### Added
-
-- **One folder can hold several vaults.** A vault is a directory carrying its
-  own `.hmd/`, and the vault a card belongs to is now discovered from the card —
-  walking up to the nearest `.hmd/` and stopping at the workspace folder, the
-  way `git` finds its repository and the way the `hmd` CLI already finds a
-  project root. Each vault gets its own index, file watcher, and diagnostics,
-  built the first time you open a card in it. Cards in a repository holding a
-  `doc/wiki` and a self-contained example tree now all preview; before this,
-  every card outside the one root chosen at startup showed an empty state.
-- Resolution stays inside a vault: a `[[wikilink]]`, an embed, and a backlink
-  never cross into a neighbouring one, because two vaults are two namespaces.
-
-### Changed
-
-- `hyperMarkdown.diagnostics.scope: "workspace"` means every vault the window
-  has opened a card in, which is what "every card in the index" comes to once a
-  folder can hold more than one index.
-- A preview looking at a `.hmd` file that no vault claims says so and says what
-  would claim it, instead of asking you to open a card while you are looking at
-  one.
 
 ## [0.2.0] — 2026-09-14
 

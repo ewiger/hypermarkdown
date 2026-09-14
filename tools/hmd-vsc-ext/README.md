@@ -42,8 +42,9 @@ Then open any `.hmd` file and click the ⚡ at the top right of the editor.
 Nothing else is required: no interpreter, no virtualenv, no configuration.
 Requires VS Code 1.90 or newer.
 
-> **Preview release.** Everything below is built and gated by tests. The
-> publication model is not ported yet — see [Known gaps](#known-gaps).
+> Everything below is built and gated by tests. The publication model is not
+> ported yet, and it is one of several deliberate divergences from the CLI — see
+> [Known gaps](#known-gaps).
 
 ## What it does
 

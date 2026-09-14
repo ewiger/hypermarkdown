@@ -26,8 +26,8 @@ type, with embeds still visible as embeds and a link to nothing in red.
 **Nothing else has to be installed.** The extension carries its own
 implementation of the format — parser, resolver, and renderer, in TypeScript,
 running inside the editor — so there is no interpreter to find and no subprocess
-between a keystroke and the preview. It is a preview release; what it does, and
-what it does not do yet, is [The VS Code extension](vscode.md).
+between a keystroke and the preview. What it does, and what it does not do yet,
+is [The VS Code extension](vscode.md).
 
 ## 2. The command line
 

@@ -12,8 +12,7 @@ embeds in [`ts-core.md`](ts-core.md), and the website in [`pages.md`](pages.md).
 
 ## Status
 
-**`0.2.0` is live on both galleries for all six platform targets, `0.3.0` is cut
-and waiting on its tag, and both are still labelled a preview release.**
+**`0.3.0` is released to both galleries, and the preview label is off.**
 Everything the extension claims to do works and is gated by tests: the rendered
 tab, embeds as collapsible cards, scroll sync both ways, red links with a
 create-the-card action, the graph, diagnostics identical to the linter's, and
@@ -21,25 +20,22 @@ math, callouts, and D2 diagrams — the `d2` binary travels inside the extension
 so a diagram draws on a fresh install with nothing configured. Releases publish
 from CI with no stored credential.
 
-**The graph tab is in, and backlinks is gone.** The feature the preview label
-was waiting on is on this branch: two scopes, a direction, link and embed edges
-drawn apart, click-to-navigate, full screen, and a toolbar, drawn with a
-bundled Cytoscape.js and specified in its own record [[hmd-0025]]. The cut it
-draws is taken in the extension host and is gated by tests; what it looks like
-running is not, so the label comes off after a pass through the by-hand checks
-rather than in the same commit [issue 0109].
+**The graph tab is in, and backlinks is gone.** Two scopes, a direction, link
+and embed edges drawn apart, click-to-navigate, full screen, and a toolbar,
+drawn with a bundled Cytoscape.js and specified in its own record [[hmd-0025]].
+It was the last thing the `preview` flag was waiting on, and the flag came off
+with this release [issue 0109].
 
 **Vaults are now discovered from the card.** A window holds a catalog of
 vaults rather than one project, so a repository carrying several — this one
 carries `doc/wiki` plus a vault per example tree — previews a card in any of
-them. It is on `main`, gated by tests, and is what `0.3.0` ships; the release
-starts when the `vsc-ext-v0.3.0` tag is pushed.
+them.
 
 ## Open
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **Read the graph in a running editor** and then drop the preview label. The by-hand list in the extension's `DEVELOP.md` covers the tab; nothing automated can say whether the layout is legible on a real vault, and the live-editing checks are unautomated across the board [issue 0101] | The last step of the graph tab, and what the manifest's `preview` flag now waits on [issue 0109] | [[hmd-0025]] |
+| todo | **Automate the by-hand checks.** The list in the extension's `DEVELOP.md` — the graph's legibility on a real vault, live editing, scroll sync — is read by hand before a release, and nothing stands in for it. The parked integration suite is where this would live [issue 0101] | Not a gate on shipping; it is the reason a release still costs an afternoon | [[hmd-0025]] |
 | blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | todo | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | A network view of a large vault is where this stops being a nicety [VSX-024] | [[hmd-0025]] |
 | todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
@@ -101,9 +97,10 @@ Nothing known.
   vaults are two namespaces. A card no vault claims is told so, in place of the
   old message that asked the reader to open a card while they were looking at
   one [issue 0108].
-- **Released** — `0.1.0` on both galleries in August, `0.2.0` on 2026-09-14 for
-  six platform targets, published from CI by federated credential with no stored
-  token, with a landing page on the website.
+- **Released** — `0.1.0` on both galleries in August, then `0.2.0` and `0.3.0`
+  on 2026-09-14, each for six platform targets, published from CI by federated
+  credential with no stored token, with a landing page on the website. `0.3.0`
+  is the first release not marked `preview`.
 
 ## Gates
 
@@ -123,6 +120,13 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-09-14: `0.3.0` released, and the `preview` flag came off the manifest.
+  What it was waiting on — a graph of the vault — is in and read in a running
+  editor, so the label had nothing left to stand for [issue 0109]. The
+  extension's summary line lost *backlinks* along with the tab, and the
+  website's landing page lost both the preview section and a stale claim that a
+  `d2` fence needs `d2` on the reader's `PATH`; the binary has travelled inside
+  the VSIX since `0.2.0`.
 - 2026-09-14: the graph's full screen took the window rather than the panel. It
   first stood only the preview's own chrome down, which left the editor's tab
   bar, side bar, and status bar around a canvas that had asked for the screen —

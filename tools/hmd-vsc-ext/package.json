@@ -1,12 +1,11 @@
 {
   "name": "hmd",
   "displayName": "HyperMarkDown",
-  "description": "Live preview, embeds, backlinks, and diagnostics for HyperMarkDown (.hmd) knowledge bases.",
+  "description": "Live preview, embeds, a graph of the vault, and diagnostics for HyperMarkDown (.hmd) knowledge bases.",
   "version": "0.3.0",
   "license": "MIT",
   "icon": "media/logo.png",
   "publisher": "hypermarkdown",
-  "preview": true,
   "galleryBanner": {
     "color": "#1c1c1c",
     "theme": "dark"
