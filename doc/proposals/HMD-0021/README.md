@@ -465,8 +465,16 @@ script-src 'nonce-{nonce}';
 
 ### 12. Packaging and CI
 
+- The extension depends on the **published** `@hypermarkdown/core` by semver
+  range, not on a workspace path. Development satisfies that range from
+  `tools/hmd-ts-core/` through the npm workspaces root, so a change to the
+  core is live in the extension without a release; the manifest still names
+  the package a consumer would install, so the extension survives the core
+  gaining consumers outside this repository.
 - Bundled with esbuild into a single `dist/extension.js` plus one
-  `media/webview.js`; no `node_modules` in the VSIX (VSX-063).
+  `media/webview.js`; no `node_modules` in the VSIX (VSX-063). The core is
+  inlined by that bundle, so the shipped VSIX carries whichever copy the range
+  resolved to at build time.
 - `.vscodeignore` excludes sources, tests, and the corpus.
 - CI gains a `js` job — install, typecheck, unit tests, corpus run, `vsce
   package` — running independently of the existing Python matrix so neither
@@ -594,9 +602,6 @@ npm run -w tools/hmd-vsc-ext package
 - Should an untitled or out-of-workspace `.hmd` buffer preview at all, with no
   namespace root to resolve against? Rendering with every link red is honest
   but noisy.
-- Does the extension bundle `@hypermarkdown/core` from the workspace or depend
-  on the published npm package? Bundling is simpler until the package has
-  external consumers, and painful afterwards.
 - What is the marketplace publisher identity, and does the extension ID match
   the npm scope?
 - Does the create-card action pick the target path itself, or always prompt?
@@ -623,3 +628,7 @@ npm run -w tools/hmd-vsc-ext package
   correction reached only previews created after it; tabs restored from
   workspace storage carried `pinned: true` written by the older build and came
   back frozen. See issue 0105, second round.
+- 2026-09-14: Packaging and CI — the core dependency is settled. The extension
+  depends on the published `@hypermarkdown/core` by semver range, satisfied
+  from the workspace during development and inlined by the esbuild bundle at
+  package time. Closes the Open Question that asked between the two.
