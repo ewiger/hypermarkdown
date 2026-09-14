@@ -30,10 +30,12 @@ Keep L0, L1, and L2 lens files directly under `doc/models/`.
 
 Track progress **per tool**, in `doc/status/`: `lang.md` for the format itself,
 `hmd.md`, `ts-core.md`, and `vsc-ext.md` for the three tools, and `pages.md` for
-the website. Those files are the only place work is tracked: Done, then a TODO
-split into planned work, broken, limitations, and open questions/blockers, with
-every row carrying a state (`done`, `ready`, `blocked`, `parked`, `open`,
-`deferred`, `standing`). A proposal is a record and carries no tracker; its rows
+the website. Those files are the only place work is tracked, and they
+read in one order: **Status** in prose, then **Open**, **Broken**, **Limitations
+(known gaps)**, and **Done** last. Open rows carry a state in the board's own
+words — `todo`, `doing`, `backlog`, `blocked`, `parked` — and a blocked row says
+what unblocks it. Work points have no identifiers: a row is named by its
+subject, and anything a reader would look up trails the sentence in brackets. A proposal is a record and carries no tracker; its rows
 go to whichever tracker owns the code, citing the proposal. Never record
 progress in `doc/memory/`, in `doc/wiki/` cards, in a proposal's `README.md`, or
 in a tool's `README.md` — a decision that needs discussion becomes an open

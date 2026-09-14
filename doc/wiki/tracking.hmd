@@ -34,28 +34,44 @@ tracker and let the record describe the decision as though it were finished.
 
 ## What a tracker holds
 
-**Done** first, so the file opens with what exists rather than what does not.
-Then a TODO split four ways, and the split matters more than it looks:
+Five sections, in the order a reader asks in:
 
-- **Planned work** — specified, unblocked, not started.
-- **Broken** — known defects. A row leaves this table only when a gate would
-  catch the defect's return, not when someone believes it is fixed.
-- **Limitations** — known, accepted, not being fixed now. Each carries *why it
-  stands*, which is what stops it being rediscovered as a bug.
-- **Open questions and blockers** — what must be resolved before the proposal
-  behind the row moves from `drafted` to `accepted`, and anything else genuinely
-  undecided.
-
-Every row carries a **state** — `done`, `ready`, `blocked`, `parked`, `open`,
-`deferred`, `standing` — because a table of rows that all look alike is a list,
-not a tracker. The reader must be able to see which rows are moving.
+1. **Status** — what is happening, written as prose. No tables and no
+   identifiers. A file called *status* must answer that question before it
+   answers any other.
+2. **Open** — everything not done.
+3. **Broken** — known defects. A row leaves this table only when a gate would
+   catch the defect's return, not when someone believes it is fixed.
+4. **Limitations (known gaps)** — known, accepted, not being fixed now. Each
+   carries *why it stands*, which is what stops it being rediscovered as a bug.
+5. **Done** — last, at the very bottom, one line per shipped capability. The
+   per-commit detail belongs in a changelog, not here.
 
 A defect and a limitation look identical in a bug report and are opposites in a
 tracker: one is a promise to fix, the other is a decision not to. Keeping them
 in separate tables forces the author to say which one they mean.
 
-Most trackers end with the gates that verify their Done rows, and a changelog of
-tracker edits — dated lines, newest last.
+Open rows carry a **state**, in the words the board already uses — `todo`,
+`doing`, `backlog`, `blocked`, `parked` — because a table whose rows all look
+alike is a list, not a tracker. A `blocked` row names what unblocks it in the
+same sentence.
+
+Trackers end with the gates that verify them, the open questions, and a
+changelog of tracker edits — dated lines, newest last.
+
+## A row says what it is
+
+A row is a sentence that stands on its own: what the thing is, and what it costs
+or buys. Anything a reader would have to look up — a proposal number, a rule
+identifier, an issue number — follows the sentence in brackets and never stands
+in for it. *"The publication model is unported, so nothing here knows whether a
+card is published (HMD-0002 §2)"* is a row; *"blocked on C4.2"* is archaeology.
+
+Work points carry no identifiers of their own. A row is named by its subject —
+*the graph tab*, *per-card vault discovery* — which is also what a commit
+message and a conversation call it. Numbering schemes accumulate one per
+proposal, outlive the structure they described, and turn a tracker into a thing
+that must be decoded before it can be read.
 
 ## The rule that makes it work
 
@@ -63,10 +79,11 @@ tracker edits — dated lines, newest last.
 updated afterwards describes a repository that no longer exists, and one updated
 in advance describes a repository that does not exist yet.
 
-Trackers are also the one place in this knowledge base where identifiers may
-carry the meaning — `M4.2`, `L6`, `Q3`. A tracker is a table of IDs by nature,
-and its rows are read one at a time rather than as prose. Everywhere else,
-including this card, a claim is restated rather than cited.
+Trackers used to be the one place where identifiers could carry the meaning, on
+the theory that a table of rows is read one at a time rather than as prose. That
+was wrong in practice: the identifiers multiplied, outlived their structure, and
+left rows nobody could read without a lookup. The rule is now the same here as
+everywhere else — a claim is restated rather than cited.
 
 ## Where progress may not live
 

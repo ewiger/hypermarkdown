@@ -109,8 +109,9 @@ Three conventions that are easy to get wrong:
   format, `hmd.md`, `ts-core.md`, and `vsc-ext.md` for the three tools, and
   `pages.md` for the site. A proposal's rows go to whichever tracker owns the
   code, citing the proposal. Update the tracker in the same commit that changes
-  the code. A decision that needs discussion becomes an open question in the
-  tracker, with a state on the row saying so.
+  the code. Each reads Status, Open, Broken, Limitations, Done — in that order,
+  with Done last — and a row is a sentence that stands alone, never a pointer at
+  another row.
 - **A proposal is a complete text**, readable start to finish by someone who has
   opened no other file. Do not thread prose with identifiers standing in for the
   claim (`F21`, `Q7`, `§5.3`); restate the constraint instead, and put surviving

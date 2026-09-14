@@ -1,154 +1,108 @@
 # STATUS — the VS Code extension
 
-`tools/hmd-vsc-ext` — the preview surface: a rendered card in an editor tab,
-diagnostics in the Problems panel, and the graph. It carries its own copy of the
-format through [`@hypermarkdown/core`](ts-core.md), so nothing has to be
-installed to render a card. The canonical line is [`hmd.md`](hmd.md), the format
-itself [`lang.md`](lang.md), and the site [`pages.md`](pages.md).
+`tools/hmd-vsc-ext` — HyperMarkDown inside the editor: a rendered card in a tab
+beside its source, diagnostics in the Problems panel, and the graph. It carries
+its own copy of the format, so nothing has to be installed to preview a card —
+no interpreter, no virtualenv, no subprocess between a keystroke and the
+preview. Published as `hypermarkdown.hmd` on the VS Marketplace and Open VSX.
 
-**This file is the only place work on the extension is tracked.** Not the memos
-under `doc/memory/`, not the cards under `doc/wiki/`, not the proposals
-themselves. A decision that needs discussion is named here as an open question
-and argued wherever it belongs; nothing else may hold a task list. Update the
-row in the same commit that changes the code.
+Beside this file: the format itself in [`lang.md`](lang.md), the canonical
+implementation in [`hmd.md`](hmd.md), the format implementation this extension
+embeds in [`ts-core.md`](ts-core.md), and the website in [`pages.md`](pages.md).
 
-Specified by [HMD-0021](../proposals/HMD-0021/README.md), with diagrams by
-[HMD-0022](../proposals/HMD-0022/README.md).
+## Status
 
-**States** — `done` shipped and gated by a test · `ready` specified, unblocked,
-not started · `blocked` waiting on a decision · `parked` started and set aside ·
-`open` undecided · `deferred` deliberately not being decided now ·
-`standing` an accepted limitation · `lifted` no longer true.
+**`0.2.0` is live on both galleries for all six platform targets, and it is
+still labelled a preview release.** Everything it claims to do works and is
+gated by tests: the rendered tab, embeds as collapsible cards, scroll sync both
+ways, red links with a create-the-card action, backlinks, diagnostics identical
+to the linter's, and math, callouts, and D2 diagrams — the `d2` binary travels
+inside the extension, so a diagram draws on a fresh install with nothing
+configured. Releases publish from CI with no stored credential.
 
-**Snapshot** (2026-09-14) — `0.2.0` is live and validated on the Marketplace and
-Open VSX for all six platform targets, published from CI with **no stored
-credential** — an OIDC `azure/login` and `vsce --azure-credential`, see
-[the federated-publishing note](../memory/2026-09-14-marketplace-federated-publishing.md).
-51 tests green here, 107 in the core. `d2` travels inside the extension from a
-pinned toolchain release, so a diagram draws on a fresh install with nothing
-configured. Still a `preview` release: E6, the graph, is what it is waiting on,
-and the two things that would embarrass a first impression are that the graph
-tab does not exist and that a repository holding more than one vault shows the
-preview an empty state (issue 0108).
+**Two things stand between it and dropping the preview label.** The graph tab
+does not exist yet, which is the feature the label is waiting on. And a
+repository holding more than one vault — this one does — shows an empty state
+for every card outside the first vault, which is the first thing a new user of
+this repository hits.
+
+Nothing is being worked on right now: the last release shipped, and the next
+piece of work has not started.
+
+## Open
+
+| Status | Work | Notes |
+| --- | --- | --- |
+| todo | **The graph tab.** A directed graph of the vault drawn inside the preview, replacing the backlinks tab rather than joining it — backlinks is one view of one direction of the graph, and a tab strip carrying both would offer the same thing twice. | The release stops being a preview when this lands. Specified only in outline, so the proposal is amended in the same change (HMD-0021 §10) |
+| todo | **Per-card vault discovery.** One folder open in the editor can hold several vaults, each marked by its own `.hmd/`, and this repository does: `doc/wiki` plus a vault per example tree. Walk up from the card to the nearest `.hmd/`, stopping at the workspace folder, and hold one index per vault — the way git finds its repository, and the way the canonical implementation already finds a project root. | Fixes the empty state under Broken. Needs the proposal's one-vault-per-workspace model rewritten (issue 0108, HMD-0021 §8) |
+| blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it |
+| blocked | **Drop the preview label** from the manifest and the gallery copy. Waits on the graph tab, which is the only milestone that ever claimed it | One line in the manifest, once the graph is in |
+| parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below |
+
+**The graph tab, in parts.** One item, not seven:
+
+- A **Network** scope showing every card in the vault, link edges and embed
+  edges drawn distinctly.
+- A **Card** scope showing one card and its neighbours, with a choice of
+  **upstream** — the cards this one links to — or **downstream**, the cards that
+  link to it, which is what the backlinks tab showed.
+- **Clicking a node navigates**: the preview moves to that card and its source
+  opens alongside, exactly as clicking a link in the preview already does.
+- Drawn with a bundled **Cytoscape.js**. The webview may not reach a CDN and may
+  not evaluate code, so the library is compiled into the extension's own script;
+  the layout is recomputed whenever the tab is shown, because a hidden webview
+  keeps no state.
+- A **toolbar** over the canvas: zoom in and out, fit to the view, re-run the
+  layout, and the scope and direction controls — the standard set a graph view
+  is expected to have, taken from what the library already offers rather than
+  rebuilt.
+- The backlinks tab and its renderer are deleted in the same change.
+
+**Why the integration suite is parked**, neither reason in our code: the test
+harness spawns `Contents/MacOS/Electron` and current VS Code ships that binary
+as `Code`, and symlinking around the rename invalidates the app signature, so
+macOS kills the process outright. The untested next step is the harness's 3.1.0
+release. Neither failure exists on a Linux runner, so when this is picked up it
+belongs in CI under a virtual display rather than on a laptop. It also downloads
+about 300 MB on first run, which is why it is not in the default test command.
+
+## Broken
+
+| Status | Defect | Symptom |
+| --- | --- | --- |
+| todo | **A card in a nested vault cannot be previewed.** The extension picks one namespace root at startup, from the first workspace folder, and every card outside it is invisible to the index | Open `examples/cs-alg-sorting/complexity.hmd` in a checkout of this repository and the preview says *"Open a .hmd card to preview it."* The card is a card, it is open, and it is in the workspace — the message is accurate about the extension's state and misleading about the cause. Fixed by per-card vault discovery above, which should also make the message say that no vault claims the card |
+
+## Limitations (known gaps)
+
+| Limitation | Why it stands |
+| --- | --- |
+| Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it |
+| A published card linking to a private one is never flagged | The publication model is unported, so nothing here knows whether a card is published at all (rule HMD017) |
+| Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core |
+| A link to a heading written with an underline lands at the top of the card | Neither implementation indexes underlined headings, which is a decision the format has not taken. Write `##` headings |
+| Completion, rename, and hover are absent | They arrive with the language server, which lives with the canonical implementation. The preview keeps rendering without it either way |
+| The integration suite is not in the default test command | Its harness downloads about 300 MB on first run |
 
 ## Done
 
-| ID | Milestone | Gate |
-| --- | --- | --- |
-| E1 | Extension skeleton, language, grammar | `npm run -w tools/hmd-vsc-ext build` |
-| E2 | Index, watchers, diagnostics | `test/protocol.test.ts` |
-| E3 | Rendered tab, embeds, scroll sync | `test/renderer.test.ts` |
-| E4 | Backlinks, breadcrumb, create-card, pin | `test/renderer.test.ts` |
-| E5 | Packaging | `npm run -w tools/hmd-vsc-ext package` |
-| E7 | Editor-column surface, logo | `test/panel.test.ts` |
-| E8 | First marketplace release, `0.1.0` | live on both registries, 2026-08-11 |
-| E9 | Bundled `d2`, one build per platform, `0.2.0` | `test/engine.test.ts`; tag `vsc-ext-v0.2.0` |
-
-| ID | Work point | Spec | State |
-| --- | --- | --- | --- |
-| E1.1 | Manifest: language `hmd`, grammar, commands, settings | HMD-0021 §1 | done |
-| E1.2 | TextMate grammar including `text.html.markdown` | §2 | done |
-| E1.3 | esbuild: `dist/extension.js` + `media/webview.js` | §12 | done |
-| E2.1 | `VsCodeHost` over `vscode.workspace.fs`, root discovery | §8 | done |
-| E2.2 | `Store` — index, watchers, unsaved-buffer overrides | §8, §5.1 | done |
-| E2.3 | Diagnostics at 500 ms, suppressed on the cursor's line | §7, §5.1 | done |
-| E3.1 | Webview shell, CSP with per-load nonce | §11 | done |
-| E3.2 | `patchBlocks` — keyed DOM patching, state preserved | §5.1 | done |
-| E3.3 | Embed cards: header, collapse, failure card, nesting | §5 | done |
-| E3.4 | Scroll sync: anchors, interpolation, echo lockout | §6 | done |
-| E3.5 | Click-through: links, embed headers, reveal-source | §6 | done |
-| E4.1 | Backlinks tab, link and embed edges distinguished | §9 | done — retired by E6.6 |
-| E4.2 | Breadcrumb, pin toggle | §3 | done |
-| E4.3 | `createCard` through `WorkspaceEdit` | §5 | done |
-| E4.4 | `diagram/engine.ts` — `d2` then Docker, 64-entry LRU, data: URI | HMD-0022 §2–§6 | done |
-| E4.5 | KaTeX stylesheet and woff2 fonts copied into the VSIX | HMD-0020 §3.3 | done |
-| E5.1 | `.vscodeignore`, VSIX with no `node_modules` | §12 | done |
-| E7.1 | Preview is an editor tab; view container removed | §3 | done |
-| E7.2 | `editor/title` button gated on `hyperMarkdown.hasRoot` | §3 | done |
-| E7.3 | Several panels, each titled after its card | §3 | done |
-| E7.4 | `WebviewPanelSerializer` restores card and pin | §3 | done |
-| E7.5 | The ⚡ as tab icon, title-bar icon, and gallery PNG | issue 0104 | done |
-| E7.6 | Preview follows the editor and its own links; pin toggle in the title bar | §3 | done |
-| E8.1 | Gallery metadata: `preview`, `galleryBanner`, `badges`, `qna`, `homepage` | §1 | done |
-| E8.2 | README and CHANGELOG as the Details and Changelog tabs, links absolute | HMD-0024 | done |
-| E8.3 | `release-vsc-ext.yml`: one VSIX to Marketplace, Open VSX, and the release | §12 | done |
-| E8.4 | Publisher accounts and gallery publishing by federated credential, no stored token | — | done |
-| E8.5 | `hypermarkdown.org/tools/vscode/` landing page | — | done |
-| E9.1 | `scripts/toolchain.mjs` — fetch the pinned archive, check its digest, unpack it | issue 0107 | done |
-| E9.2 | `diagram/options.ts` — configured path, then bundled, then `PATH`, then placeholder | issue 0107 | done |
-| E9.3 | `hyperMarkdown.diagram.d2Path`; the Docker fallback removed | issue 0107 | done |
-| E9.4 | One VSIX per `--target`, each carrying `toolchain/bin/d2` | §12 | done |
-| E9.5 | `0.2.0` on the Marketplace and Open VSX, all six targets validated | — | done |
-
-## TODO
-
-### Planned work
-
-#### E6 — the graph tab
-
-The design is decided; §10 fixes only the module shape and the data source, so
-these rows are ahead of the specification and E6.7 is what closes that gap.
-
-**The graph replaces backlinks rather than joining it.** Backlinks is one view
-of one direction of the graph, and a tab strip carrying both would offer the
-same information twice, once as a list and once as a picture.
-
-| ID | State | Work point | Spec |
-| --- | --- | --- | --- |
-| E6.1 | ready | `"graph"` as a `PreviewMode` in `protocol.ts`, a `graph` host message beside `render`, and a `Store.graph()` over `buildGraph` | §4 |
-| E6.2 | ready | Cytoscape.js bundled into `media/webview.js` — no CDN, no `eval`, nodes built without `innerHTML`, and the layout recomputed on every mount since `retainContextWhenHidden` is off | §11, §12 |
-| E6.3 | ready | **Network** scope: the whole vault as one directed graph, link and embed edges drawn distinctly | §10 |
-| E6.4 | ready | **Card** scope: this card and its neighbours, with a direction choice — **upstream**, the cards it links to, and **downstream**, the cards that link to it, which is what the backlinks tab showed | §9, §10 |
-| E6.5 | ready | Click a node to navigate: the preview moves to that card and its source opens alongside, exactly as a `[[wikilink]]` click already does | §6 |
-| E6.6 | ready | The backlinks tab and `renderBacklinks` retired, and the E4.1 rows in the docs with them | §9 |
-| E6.7 | blocked | HMD-0021 amended: §10 gains the two scopes, the direction choice, the click contract, and the library constraint; §9 becomes a mode of the graph rather than a tab of its own; §4's pinned message list gains `graph` | Q1 |
-
-#### Everything else
-
-| ID | State | Work point | Blocked on |
-| --- | --- | --- | --- |
-| E10 | ready | **Per-card vault discovery** — [issue 0108](../issues/0108-vault-root-discovery-per-card.md). One folder open in the editor can hold several vaults, each marked by its own `.hmd/`; this repository does. Walk up from the card to the nearest `.hmd/`, stopping at the containing workspace folder, and hold a store per discovered root. Needs HMD-0021 §8 rewritten | Q2 |
-| E11 | blocked | **HMD017 in the Problems panel**, once the core reports it — [`ts-core.md` C4.2](ts-core.md#planned-work) | that port |
-| E5.2 | parked | **Integration suite** under `@vscode/test-cli`. Written, compiling, and parked on `feat/vsc-ext-1` (commit `cb8c6e4`) | two upstream blockers, below |
-| E12 | blocked | **Drop the `preview` flag** from the manifest and say so in the gallery copy. E6 owns the removal; the publication model does not, since it is blocked on a spec amendment of its own | E6 |
-
-### Broken
-
-| ID | State | Defect | Impact |
-| --- | --- | --- | --- |
-| D1 | open | A card in a nested vault shows *"Open a .hmd card to preview it."* The card is a card, it is open, and it is in the workspace — the message is accurate about the extension's state and misleading about the cause | Every card under `examples/` in this repository. E10 is the fix; the message should say that no vault claims the card |
-
-### Limitations
-
-| ID | State | Limitation | Why it stands |
-| --- | --- | --- | --- |
-| L1 | standing | Raw HTML in a card is escaped rather than rendered | Deliberate — a webview rendering HTML out of a workspace is a script-injection surface reachable from any cloned repository. Inherited from [`ts-core.md` L1](ts-core.md#limitations) |
-| L2 | standing | `HMD017` is never reported, so nothing here knows whether a card is published | [`ts-core.md` C4.2](ts-core.md#planned-work) |
-| L3 | standing | Math is KaTeX, not the site's MathJax, and `~x~` subscript is unsupported | [`ts-core.md` L2](ts-core.md#limitations), C7.5 |
-| L4 | standing | A fragment link to a setext heading lands at the top of the card | Neither implementation indexes setext headings; [`lang.md` T1](lang.md#planned-work) is the fix and it is a format decision, not an extension one |
-| L5 | standing | Language-server features — completion, rename, hover — are absent | They arrive with the Python server ([`hmd.md` W7](hmd.md#planned-work)). The preview keeps rendering without Python either way |
-| L6 | standing | The integration suite is not in the default test command | Its harness downloads ~305 MB (~912 MB unpacked) on first run |
-
-**On E5.2's two blockers**, neither in our code: `@vscode/test-electron` 2.5.2
-spawns `Contents/MacOS/Electron` and VS Code 1.132.0 ships that binary as
-`Code`; and symlinking around the rename invalidates the `.app` signature, so
-macOS kills the process with `SIGKILL`. The untested next step is
-`@vscode/test-electron` 3.1.0. Neither blocker exists on a Linux runner, so when
-this is unparked it belongs in CI under `xvfb-run`, not on a laptop.
-
-### Open questions and blockers
-
-| ID | State | Question |
-| --- | --- | --- |
-| Q1 | open | §10 specifies a module shape and a data source and nothing else — no commands, no interaction model, no library, no node budget. Does E6 land as an amendment first, or as an implementation the amendment then describes? |
-| Q2 | open | One store per vault or one store re-initialised on every crossing? The first is the honest model and makes diagnostics, backlinks, and the watcher per-vault; the second is much smaller and throws the index away each time the user clicks between `doc/wiki` and `examples/`. Issue 0108 prefers the first |
-| Q3 | open | Do `[[wikilinks]]` and graph edges cross a vault boundary? They almost certainly should not — two vaults are two namespaces, and a link resolving into a neighbour would make the same card render differently depending on what else is checked out. It needs saying in HMD-0021 either way |
-| Q4 | open | `hyperMarkdown.diagnostics.scope` is <code>workspace&#124;open</code>, and "workspace" would come to mean "every vault the session has opened a card in". A third value, or a redefinition? |
-| Q5 | open | What does the graph show at rest in Network scope for a large vault? Nothing bounds node count, and the layout is recomputed on every tab switch because panel state cannot be persisted beyond the card |
-| Q6 | deferred | The publisher is not domain-verified. `isDomainVerified` is `false` for `hypermarkdown.org`; the flag puts a check beside the name on the listing and affects nothing else. Verification was requested on 2026-09-14 and the gallery team wants roughly **six months of continuous release history** before granting it. First release was 2026-08-11, so the earliest worth raising again is around **2027-02**, and only if releases have kept coming. **Do not re-submit, and do not reach for DNS** — the gallery verifies by manual review, not by a record; the `EclipseFdn/open-vsx.org` issue URL in a TXT record on the apex is Open VSX's claim, not the gallery's. Re-check with `isDomainVerified` on the public `extensionquery` API rather than by looking at the portal |
-
-(V1, the secondary-side-bar question, is closed: E7 removed the view container
-rather than finding a place to put it.)
+- **The preview** — a rendered card in an editor tab, updating from the unsaved
+  buffer, scroll-synced with the editor in both directions, following the active
+  editor unless pinned, and restored on its own card after a window reload.
+- **Embeds render as cards**, labelled with the card and fragment they came
+  from, collapsible, nested, and navigating to the embedded card.
+- **Red links** for targets that do not resolve, with an action that writes the
+  missing card.
+- **Backlinks** for the current card, link and embed edges listed separately.
+  (Retired when the graph tab lands.)
+- **Diagnostics** in the Problems panel, byte-identical to the linter's, at 500
+  ms and suppressed on the line the cursor is in.
+- **Math, callouts, and D2 diagrams**, with KaTeX and a pinned `d2` build
+  shipped inside the VSIX — one build per platform, each gated on the binary
+  being there.
+- **Syntax highlighting** for `.hmd` as its own language.
+- **Released** — `0.1.0` on both galleries in August, `0.2.0` on 2026-09-14 for
+  six platform targets, published from CI by federated credential with no stored
+  token, with a landing page on the website.
 
 ## Gates
 
@@ -158,13 +112,23 @@ HMD_REQUIRE_PARITY=1 npm test
 npm run -w tools/hmd-vsc-ext package
 ```
 
+## Open questions
+
+| Question |
+| --- |
+| Does the graph tab land as a proposal amendment first, or as an implementation the amendment then describes? The proposal fixes only the data source and the module shape and says nothing about interaction (HMD-0021 §10) |
+| One index per vault, or one index re-initialised whenever the user crosses between vaults? Per vault is the honest model and makes diagnostics, backlinks, and the file watcher per vault; re-initialising is a much smaller change that throws the index away on every crossing (issue 0108) |
+| Do links and graph edges cross a vault boundary? They almost certainly should not — two vaults are two namespaces, and a link resolving into a neighbour would make the same card render differently depending on what else is checked out — but the proposal needs to say so either way |
+| The diagnostics setting offers "every card in the index" or "open cards only", and with several vaults the first would come to mean "every vault this session has opened a card in". A third value, or a redefinition? |
+| What does the graph show at rest for a large vault? Nothing bounds the node count, and the layout is recomputed every time the tab is shown |
+| The publisher is not domain-verified, and re-submitting will not help: the gallery grants it by manual review after roughly six months of continuous release history. First release was 2026-08-11, so the earliest worth raising again is around February 2027, and only if releases have kept coming. Do not reach for DNS — the TXT record on the apex is Open VSX's claim, not the gallery's — and re-check by querying the public extension API rather than by looking at the portal |
+
 ## Changelog
 
-- 2026-09-14: split out of `doc/vsc-ext/STATUS.md`, which tracked the extension
-  and the core in one file. E6 gained its design — the graph replaces the
-  backlinks tab, carries a Network and a Card scope with an upstream/downstream
-  choice inside the latter, navigates on a node click, and draws through a
-  bundled Cytoscape.js — and E12 records that E6 owns the `preview` flag's
-  removal, which closes the question of which milestone did. E10 and D1 are
-  issue 0108, promoted from an issue card to tracked work. L1–L4 arrived from
-  the extension's README, which had carried them as user-facing prose.
+- 2026-09-14: rewritten in the shape the trackers now use — status first in
+  prose, then open work, broken, gaps, and done last. Work-point numbers are
+  gone: a row is named by what it is. The graph tab gained its design, and it
+  now owns the removal of the preview label; per-card vault discovery arrived
+  from the issue board.
+- 2026-09-14: split out of the editor line's shared tracker, which covered this
+  extension and the format implementation it embeds in one file.

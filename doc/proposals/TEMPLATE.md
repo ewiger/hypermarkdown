@@ -32,8 +32,9 @@ comments and any section that genuinely does not apply. House rules:
     lives. An identifier may follow a claim so a reader can find the row; it may
     never BE the claim. Collect surviving pointers into one "See also" section at
     the end, plus footnotes if needed. A reader must never need archeology across
-    several files to parse a sentence. Trackers under doc/status/ are exempt — their
-    tables are lists of IDs by nature.
+    several files to parse a sentence. This holds for the trackers under
+    doc/status/ too: a row is a sentence that stands alone, with any identifier
+    trailing it in brackets.
 -->
 
 ## Companion notes
