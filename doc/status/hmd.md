@@ -1,4 +1,4 @@
-# STATUS — the Python implementation
+# STATUS — `hmd`, the canonical implementation
 
 HyperMarkDown is ordinary markdown plus links into a knowledge graph: a card
 names another card and the name is resolved, a card can be built out of other
