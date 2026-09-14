@@ -4,8 +4,8 @@ How `hypermarkdown.hmd` came to be published to the VS Marketplace from CI
 without a token, and the three things that cost time getting there. None of it
 is derivable from the workflows, which show only the arrangement that won.
 
-Progress is not tracked here — E8.4 and E9.5 are closed in
-[`doc/vsc-ext/STATUS.md`](../vsc-ext/STATUS.md).
+Progress is not tracked here — the tracker is
+[`doc/status/vsc-ext.md`](../status/vsc-ext.md).
 
 ## Two credentials died before this one
 
@@ -110,7 +110,7 @@ stale CDN copy, so add a cache buster before concluding anything is missing.
 
 Trust the gallery API over `vsce`'s own output either way.
 
-## The retry loop stays, and the acceptance run did not earn its removal
+## The retry loop can go now: the `0.3.0` run earned it
 
 `publish-marketplace.yml` uploads one package per `vsce` invocation with
 retries, added when PAT uploads timed out and took all six down together. The
@@ -118,8 +118,11 @@ run that proved the federated credential was green in 45 seconds with no
 retries — but every package answered `Version 0.2.0 is already published.
 Skipping publish.`, because `--skip-duplicate` did its job.
 
-So nothing pushed 18 MB, and the run says nothing about whether the timeout is
-gone. It proves authorization — reaching that answer requires an authorized
-principal, and `InvalidAccessException` is what used to come back instead. The
-loop collapses to a single `vsce publish` only after a run that genuinely
-uploads six packages.
+So nothing pushed 18 MB, and the run said nothing about whether the timeout was
+gone. It proved authorization — reaching that answer requires an authorized
+principal, and `InvalidAccessException` is what used to come back instead.
+
+The `0.3.0` release is the run that was missing. All six packages genuinely
+uploaded, in 21 seconds end to end, with no retry taken and no timeout. The
+condition the loop was waiting on is met, so collapsing it to a single `vsce
+publish` is now a change that can be argued rather than guessed at.
