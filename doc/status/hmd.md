@@ -54,33 +54,33 @@ commit: the retired domain does not redirect.
 
 ## Open
 
-| Status | Work | Notes |
-| --- | --- | --- |
-| todo | **Run the shared corpus here too.** The cases exist and the other implementation runs them; until this one does, the agreement between them is checked in one direction only, and the comparison suite is doing the real work by shelling out to this linter | Nothing blocks it |
-| todo | **Lint text, not just files.** Let a caller hand the workspace index the current contents of a card, consulted ahead of any read. Every layer below already takes text — the gap is exactly the one class that walks the tree and reads each card | First half of what the language server needs |
-| todo | **Invalidate one card at a time**, instead of loading the whole tree once when the index is built | Second half. Follows the change above |
-| todo | **A determinism test** — the same tree linted twice, and with its files created in a different order, producing identical output. The format leans on this without anything checking it | Nothing blocks it |
-| blocked | **The language server itself.** A `pygls` server, so completion, rename, and hover exist for any editor rather than only the one embedding the TypeScript implementation | Waits on the two index changes above, and on whether it is a subcommand or its own script |
-| blocked | **Redirect the retired domain** to the current one, preserving paths | Registrar configuration, not a commit. See Broken |
-| parked | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name | Waits on that branch being picked up |
+| Status | Work | Notes | References |
+| --- | --- | --- | --- |
+| todo | **Run the shared corpus here too.** The cases exist and the other implementation runs them; until this one does, the agreement between them is checked in one direction only, and the comparison suite is doing the real work by shelling out to this linter | Nothing blocks it | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
+| todo | **Lint text, not just files.** Let a caller hand the workspace index the current contents of a card, consulted ahead of any read. Every layer below already takes text — the gap is exactly the one class that walks the tree and reads each card | First half of what the language server needs | [[hmd-0024#text-not-paths]] |
+| todo | **Invalidate one card at a time**, instead of loading the whole tree once when the index is built | Second half. Follows the change above | [[hmd-0024#text-not-paths]] |
+| todo | **A determinism test** — the same tree linted twice, and with its files created in a different order, producing identical output. The format leans on this without anything checking it | Nothing blocks it | [[hmd-0020#11-determinism-and-resource-bounds]] |
+| blocked | **The language server itself.** A `pygls` server, so completion, rename, and hover exist for any editor rather than only the one embedding the TypeScript implementation | Waits on the two index changes above, and on whether it is a subcommand or its own script | [[hmd-0024#the-language-server-is-python-on-pygls]] |
+| blocked | **Redirect the retired domain** to the current one, preserving paths | Registrar configuration, not a commit. See Broken | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
+| parked | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name | Waits on that branch being picked up | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]] |
 
 ## Broken
 
-| Status | Defect | Symptom |
-| --- | --- | --- |
-| blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme | Every link published under the old host is dead. The fix is a web form, not a commit |
+| Status | Defect | Symptom | References |
+| --- | --- | --- | --- |
+| blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme | Every link published under the old host is dead. The fix is a web form, not a commit | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
 
 ## Limitations (known gaps)
 
-| Limitation | Why it stands |
-| --- | --- |
-| The workspace index reads every card from disk and cannot be handed an editor's unsaved buffer | Being fixed — it is the first open item above. Worth knowing that it is one layer, not a rewrite: the functions beneath it already take text |
-| The TypeScript implementation solved that years earlier in project time, and this one did not | Not a defect, an asymmetry: that one reads through an injectable port because it had to. This one never had a caller that needed it |
-| The source archive does not ship the example vaults, so linting them does not work from an unpacked archive | The examples are repository fixtures that both implementations lint, with exactly one copy at the root. Carrying them into the package would mean a duplicate tree |
-| The same gate commands are written in the repository guide and in each tool's guide | The cost of per-tool guides, which removed a worse problem: one guide describing tools it did not live beside. Each tool's guide is authoritative for its own commands; nothing enforces the duplication, and a stale command is a silent defect |
-| Installing under the retired name keeps installing the last release published under it, forever, and the retired plugin key survives as an alias | PyPI has no rename. The alias appears in site configs this project does not own, where removing it is a hard build failure whose cause is invisible to the site's author |
-| The retired marketplace publisher and an unregistered npm scope are left as they are | Releasing a publisher name back into the pool lets an impostor take it. Deliberate inaction, not an oversight |
-| Changelog entries keep the old name where they record what a release was actually called | A changelog is a historical record |
+| Limitation | Why it stands | References |
+| --- | --- | --- |
+| The workspace index reads every card from disk and cannot be handed an editor's unsaved buffer | Being fixed — it is the first open item above. Worth knowing that it is one layer, not a rewrite: the functions beneath it already take text | [[hmd-0024#text-not-paths]] |
+| The TypeScript implementation solved that years earlier in project time, and this one did not | Not a defect, an asymmetry: that one reads through an injectable port because it had to. This one never had a caller that needed it | [[hmd-0020#6-resolver]] |
+| The source archive does not ship the example vaults, so linting them does not work from an unpacked archive | The examples are repository fixtures that both implementations lint, with exactly one copy at the root. Carrying them into the package would mean a duplicate tree | [[hmd-0024#where-tests-live-and-what-they-answer-for]] |
+| The same gate commands are written in the repository guide and in each tool's guide | The cost of per-tool guides, which removed a worse problem: one guide describing tools it did not live beside. Each tool's guide is authoritative for its own commands; nothing enforces the duplication, and a stale command is a silent defect | [[hmd-0024#a-tools-front-matter-is-its-own]] |
+| Installing under the retired name keeps installing the last release published under it, forever, and the retired plugin key survives as an alias | PyPI has no rename. The alias appears in site configs this project does not own, where removing it is a hard build failure whose cause is invisible to the site's author | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
+| The retired marketplace publisher and an unregistered npm scope are left as they are | Releasing a publisher name back into the pool lets an impostor take it. Deliberate inaction, not an oversight | [[hmd-0005#the-extensions-identity-on-both-galleries]] |
+| Changelog entries keep the old name where they record what a release was actually called | A changelog is a historical record | [[hmd-0005#what-deliberately-keeps-its-current-spelling]] |
 
 ## Done
 
@@ -126,20 +126,20 @@ improvement.
 
 ## Open questions
 
-| Question |
-| --- |
-| Is the language server a subcommand of the existing command, or its own script? |
-| Is its library a base dependency or an optional extra? An extra keeps the plain install small; a base dependency means the server exists wherever the command does |
-| Which language features move to the server first, and how does an editor report an absent server without implying the preview failed? That the extension becomes a client of it was settled; the sequencing was not |
-| Does canonicity move if a third implementation appears, and what is the procedure? |
-| Should `hmd graph` record each card's resolved search path, so a consumer can see what a card reaches without replaying the algorithm? |
-| When is the retired plugin alias withdrawn, and what announces it — a major version, a warning at build time, or nothing? |
-| Does pruning the abandoned PyPI project mean yanking its releases or deleting it? Deletion frees the name for anyone to register and serve to a stale pin |
-| Does the retired domain redirect permanently, or for a fixed window after which the registration is allowed to lapse? A lapsed domain that once served documentation is one someone else can serve anything from |
-| Should `hmd init` write a starter card in the root it creates? It creates an empty directory today, which lints clean and shows an author nothing — but a card written by a tool is a card somebody has to delete |
-| Should `init` grow flags for the settings it writes, or is editing the file it just wrote the right affordance? |
-| Should the linter check a namespace name that does not match the address form? Nothing reads that key yet, and the first thing to read it would be the first thing to break |
-| Should the specification's version sentence stop being what the repository guard parses, now that a rename has shown the sentence can move? |
+| Question | References |
+| --- | --- |
+| Is the language server a subcommand of the existing command, or its own script? | [[hmd-0024#the-language-server-is-python-on-pygls]] |
+| Is its library a base dependency or an optional extra? An extra keeps the plain install small; a base dependency means the server exists wherever the command does | [[hmd-0024#the-language-server-is-python-on-pygls]] |
+| Which language features move to the server first, and how does an editor report an absent server without implying the preview failed? That the extension becomes a client of it was settled; the sequencing was not | [[hmd-0024#the-language-server-is-python-on-pygls]] |
+| Does canonicity move if a third implementation appears, and what is the procedure? | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
+| Should `hmd graph` record each card's resolved search path, so a consumer can see what a card reaches without replaying the algorithm? | [[hmd-0001#5-link-resolution]] |
+| When is the retired plugin alias withdrawn, and what announces it — a major version, a warning at build time, or nothing? | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
+| Does pruning the abandoned PyPI project mean yanking its releases or deleting it? Deletion frees the name for anyone to register and serve to a stale pin | [[hmd-0005#the-python-distribution-its-module-and-the-project-left-behind]] |
+| Does the retired domain redirect permanently, or for a fixed window after which the registration is allowed to lapse? A lapsed domain that once served documentation is one someone else can serve anything from | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
+| Should `hmd init` write a starter card in the root it creates? It creates an empty directory today, which lints clean and shows an author nothing — but a card written by a tool is a card somebody has to delete | [[hmd-0001#7-hmd-cli]] |
+| Should `init` grow flags for the settings it writes, or is editing the file it just wrote the right affordance? | [[hmd-0001#7-hmd-cli]] |
+| Should the linter check a namespace name that does not match the address form? Nothing reads that key yet, and the first thing to read it would be the first thing to break | [[hmd-0004#the-address-form]] |
+| Should the specification's version sentence stop being what the repository guard parses, now that a rename has shown the sentence can move? | [[hmd-0005#the-wiki-card-that-carries-the-projects-name]] |
 
 ## Changelog
 

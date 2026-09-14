@@ -32,12 +32,13 @@ subscript, and LaTeX environments written without dollar signs.
 
 ## Open
 
-| Status | Work | Notes |
-| --- | --- | --- |
-| blocked | **The publication model, and the rule that depends on it.** Parse `nav` as a mapping of order and visibility, inherit visibility from the nearest ancestor folder note defaulting to private, and warn when a published card links to or embeds an unpublished one. Four files; reproduce the canonical behaviour exactly and keep the embed veto a decision the caller passes in, so a later policy change has somewhere to land | Blocked on which proposal owns publication here: this implementation's spec stops at sixteen rules and this is the seventeenth (HMD-0002 §2, rule HMD017) |
-| todo | **Subscript.** `~x~` is subscript on the website and nothing here — not a math gap at all: it comes from a markdown extension, and markdown-it's builtin covers only `~~strikethrough~~`. One line to wire in `markdown-it-sub`, a new dependency | Then the ledgered difference is deleted, because a ledger entry that stops diverging fails the build |
-| todo | **LaTeX environments at block level.** `\begin{align}` on its own is math on the website and prose here, because this implementation only recognises a block that opens with `$$`. The likeliest real-world hit of the KaTeX-versus-MathJax difference, and the only one not written down | Not currently ledgered |
-| blocked | **Underlined headings.** Neither implementation indexes them, so a link to one fails on both while a built site anchors it anyway. If the format decides they are addressable, the change lands here and in the canonical scanner in the same commit, or the comparison suite sees one side alone | Blocked on the format taking that decision |
+| Status | Work | Notes | References |
+| --- | --- | --- | --- |
+| blocked | **The publication model, and the rule that depends on it.** Parse `nav` as a mapping of order and visibility, inherit visibility from the nearest ancestor folder note defaulting to private, and warn when a published card links to or embeds an unpublished one. Four files; reproduce the canonical behaviour exactly and keep the embed veto a decision the caller passes in, so a later policy change has somewhere to land | Blocked on which proposal owns publication here: this implementation's spec stops at sixteen rules and this is the seventeenth [HMD017] | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
+| todo | **Subscript.** `~x~` is subscript on the website and nothing here — not a math gap at all: it comes from a markdown extension, and markdown-it's builtin covers only `~~strikethrough~~`. One line to wire in `markdown-it-sub`, a new dependency | Then the ledgered difference is deleted, because a ledger entry that stops diverging fails the build | [[hmd-0020#33-free-syntax]] |
+| todo | **LaTeX environments at block level.** `\begin{align}` on its own is math on the website and prose here, because this implementation only recognises a block that opens with `$$`. The likeliest real-world hit of the KaTeX-versus-MathJax difference, and the only one not written down | Not currently ledgered | [[hmd-0020#33-free-syntax]] |
+| backlog | **Parse the in-card address.** A fragment becomes a path of steps rather than one slug, and block kinds, sentences, and words become countable. This implementation and the canonical one must agree on every boundary or an ordinal means two things, so the cases land in the shared corpus first | Waits on the format settling the grammar | [[hmd-0006#the-address-after-the-hash]], [[hmd-0006#every-block-kind-is-addressable-by-its-type]] |
+| blocked | **Underlined headings.** Neither implementation indexes them, so a link to one fails on both while a built site anchors it anyway. If the format decides they are addressable, the change lands here and in the canonical scanner in the same commit, or the comparison suite sees one side alone | Blocked on the format taking that decision | [[hmd-0020#4-heading-slugs]], [[hmd-0001#3-heading-anchors]] |
 
 ## Broken
 
@@ -49,12 +50,12 @@ Every difference from the canonical implementation is written down in
 `conformance-xfail.json` with its reason, and an entry that stops diverging
 fails the build — so this list cannot quietly go stale.
 
-| Limitation | Why it stands |
-| --- | --- |
-| Raw HTML in a card is escaped rather than passed through | The consumer is a webview, and rendering HTML out of a workspace is a script-injection surface reachable from any cloned repository. Changing it needs a sanitiser and a decision, not a flag |
-| Math is typeset by KaTeX rather than MathJax | KaTeX bundles small and needs no network at render time. It covers a subset of LaTeX, renders what it cannot in red rather than failing, and blocks links inside formulas |
-| The publication rule is never emitted | The model behind it is unported, above. It is ledgered, so the comparison suite drops it from the canonical side and still fails if this implementation ever emits it |
-| Rendering differences are recorded but not tested | The ledger has three parts, and the two that the suites read are cases and rules. A rendering difference is written down and unguarded |
+| Limitation | Why it stands | References |
+| --- | --- | --- |
+| Raw HTML in a card is escaped rather than passed through | The consumer is a webview, and rendering HTML out of a workspace is a script-injection surface reachable from any cloned repository. Changing it needs a sanitiser and a decision, not a flag | [[hmd-0021#11-webview-hardening]] |
+| Math is typeset by KaTeX rather than MathJax | KaTeX bundles small and needs no network at render time. It covers a subset of LaTeX, renders what it cannot in red rather than failing, and blocks links inside formulas | [[hmd-0020#33-free-syntax]] |
+| The publication rule is never emitted | The model behind it is unported, above. It is ledgered, so the comparison suite drops it from the canonical side and still fails if this implementation ever emits it | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
+| Rendering differences are recorded but not tested | The ledger has three parts, and the two that the suites read are cases and rules. A rendering difference is written down and unguarded | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
 
 The publication difference is latent rather than active: the wiki cleared its
 six warnings by de-linking rather than by settling the policy, so no fixture
@@ -95,11 +96,11 @@ environment variable is set, which CI does.
 
 ## Open questions
 
-| Question |
-| --- |
-| Which proposal owns publication in this implementation? Its own spec enumerates sixteen rules and says nothing about publication, which belongs to the rendering proposal. The port needs that amendment before it is written |
-| Should the port wait for the policy question? What a published-to-private link *should* do is itself unsettled on the canonical side — a blocked link, a page that exists but is unlisted, or nothing, chosen per site — so porting today's warning could mean porting it twice. Against that: matching the canonical implementation exactly is the contract, whatever it later becomes (issue 0008) |
-| Does the graph data have to match the canonical `hmd graph` output exactly? It carries a heading count where the canonical side emits heading objects, and omits frontmatter, anchors, and imports. The editor proposal says the graph tab consumes "the same data", which these shapes do not quite satisfy |
+| Question | References |
+| --- | --- |
+| Which proposal owns publication in this implementation? Its own spec enumerates sixteen rules and says nothing about publication, which belongs to the rendering proposal. The port needs that amendment before it is written | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
+| Should the port wait for the policy question? What a published-to-private link *should* do is itself unsettled on the canonical side — a blocked link, a page that exists but is unlisted, or nothing, chosen per site — so porting today's warning could mean porting it twice. Against that: matching the canonical implementation exactly is the contract, whatever it later becomes (issue 0008) | [[hmd-0002#4-red-links-and-md]] |
+| Does the graph data have to match the canonical `hmd graph` output exactly? It carries a heading count where the canonical side emits heading objects, and omits frontmatter, anchors, and imports. The editor proposal says the graph tab consumes "the same data", which these shapes do not quite satisfy | [[hmd-0021#10-deferred-tabs]], [[hmd-0020#7-the-document-ir]] |
 
 ## Changelog
 

@@ -28,9 +28,21 @@ Then the gates that verify it, the open questions, and a changelog of edits to
 the tracker itself.
 
 **A row says what it is, not where it came from.** Anything a reader would have
-to look up — a proposal number, a rule identifier, an issue number — trails the
-sentence in brackets and never replaces it. Nothing here should require opening
-another file to understand.
+to look up — a rule identifier, an issue number — trails the sentence in
+brackets and never replaces it. Nothing here should require opening another file
+to understand.
+
+**Every table carries a `References` column, and it is the last one.** It holds
+the references that back the row — a reference names its target rather than
+numbering it, so `[[hmd-0021#10-deferred-tabs]]` and never a section sign and a
+number. A row with nothing genuinely behind it carries `—` rather than a
+plausible guess. This is the column that replaced an earlier `Spec` column
+answering "which proposal section": the question was never wrong, the answer
+was, because a number tells a reader where something currently sits and that is
+the one fact guaranteed to change. The address grammar these references use is
+specified in [HMD-0006](../proposals/HMD-0006/README.md); the wikilinks resolve
+once the documentation tree is a vault, and until then they are read rather than
+followed.
 
 **Update the tracker in the same commit that changes the code.** A tracker
 updated afterwards describes a repository that no longer exists, and one updated

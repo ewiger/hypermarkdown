@@ -31,13 +31,13 @@ piece of work has not started.
 
 ## Open
 
-| Status | Work | Notes |
-| --- | --- | --- |
-| todo | **The graph tab.** A directed graph of the vault drawn inside the preview, replacing the backlinks tab rather than joining it — backlinks is one view of one direction of the graph, and a tab strip carrying both would offer the same thing twice. | The release stops being a preview when this lands. Specified only in outline, so the proposal is amended in the same change (HMD-0021 §10) |
-| todo | **Per-card vault discovery.** One folder open in the editor can hold several vaults, each marked by its own `.hmd/`, and this repository does: `doc/wiki` plus a vault per example tree. Walk up from the card to the nearest `.hmd/`, stopping at the workspace folder, and hold one index per vault — the way git finds its repository, and the way the canonical implementation already finds a project root. | Fixes the empty state under Broken. Needs the proposal's one-vault-per-workspace model rewritten (issue 0108, HMD-0021 §8) |
-| blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it |
-| blocked | **Drop the preview label** from the manifest and the gallery copy. Waits on the graph tab, which is the only milestone that ever claimed it | One line in the manifest, once the graph is in |
-| parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below |
+| Status | Work | Notes | References |
+| --- | --- | --- | --- |
+| todo | **The graph tab.** A directed graph of the vault drawn inside the preview, replacing the backlinks tab rather than joining it — backlinks is one view of one direction of the graph, and a tab strip carrying both would offer the same thing twice. | The release stops being a preview when this lands. Specified only in outline, so the proposal is amended in the same change | [[hmd-0021#10-deferred-tabs]] |
+| todo | **Per-card vault discovery.** One folder open in the editor can hold several vaults, each marked by its own `.hmd/`, and this repository does: `doc/wiki` plus a vault per example tree. Walk up from the card to the nearest `.hmd/`, stopping at the workspace folder, and hold one index per vault — the way git finds its repository, and the way the canonical implementation already finds a project root. | Fixes the empty state under Broken. Needs the proposal's one-vault-per-workspace model rewritten [issue 0108] | [[hmd-0021#8-workspace-index-and-watching]] |
+| blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
+| blocked | **Drop the preview label** from the manifest and the gallery copy. Waits on the graph tab, which is the only milestone that ever claimed it | One line in the manifest, once the graph is in | [[hmd-0021#12-packaging-and-ci]] |
+| parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
 
 **The graph tab, in parts.** One item, not seven:
 
@@ -68,20 +68,20 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Broken
 
-| Status | Defect | Symptom |
-| --- | --- | --- |
-| todo | **A card in a nested vault cannot be previewed.** The extension picks one namespace root at startup, from the first workspace folder, and every card outside it is invisible to the index | Open `examples/cs-alg-sorting/complexity.hmd` in a checkout of this repository and the preview says *"Open a .hmd card to preview it."* The card is a card, it is open, and it is in the workspace — the message is accurate about the extension's state and misleading about the cause. Fixed by per-card vault discovery above, which should also make the message say that no vault claims the card |
+| Status | Defect | Symptom | References |
+| --- | --- | --- | --- |
+| todo | **A card in a nested vault cannot be previewed.** The extension picks one namespace root at startup, from the first workspace folder, and every card outside it is invisible to the index | Open `examples/cs-alg-sorting/complexity.hmd` in a checkout of this repository and the preview says *"Open a .hmd card to preview it."* The card is a card, it is open, and it is in the workspace — the message is accurate about the extension's state and misleading about the cause. Fixed by per-card vault discovery above, which should also make the message say that no vault claims the card | [[hmd-0021#8-workspace-index-and-watching]] |
 
 ## Limitations (known gaps)
 
-| Limitation | Why it stands |
-| --- | --- |
-| Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it |
-| A published card linking to a private one is never flagged | The publication model is unported, so nothing here knows whether a card is published at all (rule HMD017) |
-| Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core |
-| A link to a heading written with an underline lands at the top of the card | Neither implementation indexes underlined headings, which is a decision the format has not taken. Write `##` headings |
-| Completion, rename, and hover are absent | They arrive with the language server, which lives with the canonical implementation. The preview keeps rendering without it either way |
-| The integration suite is not in the default test command | Its harness downloads about 300 MB on first run |
+| Limitation | Why it stands | References |
+| --- | --- | --- |
+| Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it | [[hmd-0021#11-webview-hardening]] |
+| A published card linking to a private one is never flagged | The publication model is unported, so nothing here knows whether a card is published at all (rule HMD017) | [[hmd-0002#3-expansion]] |
+| Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core | [[hmd-0020#33-free-syntax]] |
+| A link to a heading written with an underline lands at the top of the card | Neither implementation indexes underlined headings, which is a decision the format has not taken. Write `##` headings | [[hmd-0001#3-heading-anchors]] |
+| Completion, rename, and hover are absent | They arrive with the language server, which lives with the canonical implementation. The preview keeps rendering without it either way | [[hmd-0024#the-language-server-is-python-on-pygls]] |
+| The integration suite is not in the default test command | Its harness downloads about 300 MB on first run | [[hmd-0021#12-packaging-and-ci]] |
 
 ## Done
 
@@ -114,14 +114,14 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Open questions
 
-| Question |
-| --- |
-| Does the graph tab land as a proposal amendment first, or as an implementation the amendment then describes? The proposal fixes only the data source and the module shape and says nothing about interaction (HMD-0021 §10) |
-| One index per vault, or one index re-initialised whenever the user crosses between vaults? Per vault is the honest model and makes diagnostics, backlinks, and the file watcher per vault; re-initialising is a much smaller change that throws the index away on every crossing (issue 0108) |
-| Do links and graph edges cross a vault boundary? They almost certainly should not — two vaults are two namespaces, and a link resolving into a neighbour would make the same card render differently depending on what else is checked out — but the proposal needs to say so either way |
-| The diagnostics setting offers "every card in the index" or "open cards only", and with several vaults the first would come to mean "every vault this session has opened a card in". A third value, or a redefinition? |
-| What does the graph show at rest for a large vault? Nothing bounds the node count, and the layout is recomputed every time the tab is shown |
-| The publisher is not domain-verified, and re-submitting will not help: the gallery grants it by manual review after roughly six months of continuous release history. First release was 2026-08-11, so the earliest worth raising again is around February 2027, and only if releases have kept coming. Do not reach for DNS — the TXT record on the apex is Open VSX's claim, not the gallery's — and re-check by querying the public extension API rather than by looking at the portal |
+| Question | References |
+| --- | --- |
+| Does the graph tab land as a proposal amendment first, or as an implementation the amendment then describes? The proposal fixes only the data source and the module shape and says nothing about interaction | [[hmd-0021#10-deferred-tabs]] |
+| One index per vault, or one index re-initialised whenever the user crosses between vaults? Per vault is the honest model and makes diagnostics, backlinks, and the file watcher per vault; re-initialising is a much smaller change that throws the index away on every crossing (issue 0108) | [[hmd-0021#8-workspace-index-and-watching]] |
+| Do links and graph edges cross a vault boundary? They almost certainly should not — two vaults are two namespaces, and a link resolving into a neighbour would make the same card render differently depending on what else is checked out — but the proposal needs to say so either way | [[hmd-0004#namespace-a-named-tree-not-a-folder]] |
+| The diagnostics setting offers "every card in the index" or "open cards only", and with several vaults the first would come to mean "every vault this session has opened a card in". A third value, or a redefinition? | [[hmd-0021#7-diagnostics]] |
+| What does the graph show at rest for a large vault? Nothing bounds the node count, and the layout is recomputed every time the tab is shown | [[hmd-0021#10-deferred-tabs]] |
+| The publisher is not domain-verified, and re-submitting will not help: the gallery grants it by manual review after roughly six months of continuous release history. First release was 2026-08-11, so the earliest worth raising again is around February 2027, and only if releases have kept coming. Do not reach for DNS — the TXT record on the apex is Open VSX's claim, not the gallery's — and re-check by querying the public extension API rather than by looking at the portal | [[hmd-0005#the-extensions-identity-on-both-galleries]] |
 
 ## Changelog
 
