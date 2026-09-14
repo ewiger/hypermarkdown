@@ -18,8 +18,11 @@ and the one this file is the standing exception to.
 `ready` specified, unblocked, not started · `blocked` waiting on a decision ·
 `unspec` no normative text exists yet.
 
-**Snapshot** (2026-09-14): C1–C7, E1–E5, E7, E8 done; E9 — the bundled-`d2`
-release — is prepared and waits only on its tag. 158 tests green: 107 in
+**Snapshot** (2026-09-14): C1–C7, E1–E5, E7, E8, E9 done. `0.2.0` is live and
+validated on the Marketplace and Open VSX for all six platform targets, and the
+gallery now publishes from CI with **no stored credential** — an OIDC
+`azure/login` and `vsce --azure-credential`, see
+[the federated-publishing note](../memory/2026-09-14-marketplace-federated-publishing.md). 158 tests green: 107 in
 `@hypermarkdown/core`, 51 in the extension. That includes diagnostic parity with
 `hmd lint` on `examples/small`, `examples/cs-alg-sorting` and `doc/wiki` —
 byte-identical on every rule except HMD017, which is ledgered as unimplemented
@@ -49,7 +52,7 @@ the next blocks.
 | E5 | Packaging | **done** | `npm run -w tools/hmd-vsc-ext package` |
 | E6 | Graph tab | **ready** | HMD-0021 §10 |
 | E7 | Editor-column surface, logo | **done** | `test/panel.test.ts` |
-| E8 | First marketplace release, `0.1.0` | **done** | live on both registries, 2026-08-11; E8.4 reopened |
+| E8 | First marketplace release, `0.1.0` | **done** | live on both registries, 2026-08-11 |
 | E9 | Bundled `d2`, one build per platform, `0.2.0` | **done** | `test/engine.test.ts`; tag `vsc-ext-v0.2.0` |
 
 ## Work points
@@ -110,7 +113,7 @@ the next blocks.
 | E8.1 | Gallery metadata: `preview`, `galleryBanner`, `badges`, `qna`, `homepage` | §1 | done |
 | E8.2 | README and CHANGELOG as the Details and Changelog tabs, links absolute | HMD-0024 | done |
 | E8.3 | `release-vsc-ext.yml`: one VSIX to Marketplace, Open VSX, and the release | §12 | done |
-| E8.4 | Publisher accounts, Marketplace publishing, the `OVSX_PAT` secret | — | **wip** — federated, no stored credential; see below |
+| E8.4 | Publisher accounts, Marketplace publishing, the `OVSX_PAT` secret | — | **done** — gallery by federated credential, no stored token |
 | E8.5 | `hypermarkdown.org/tools/vscode/` landing page | — | done |
 | E9.1 | `scripts/toolchain.mjs` — fetch the pinned archive, check its digest, unpack it | issue 0107 | done |
 | E9.2 | `diagram/options.ts` — configured path, then bundled, then `PATH`, then placeholder | issue 0107 | done |
@@ -120,101 +123,12 @@ the next blocks.
 
 ## Open
 
-- **E8.4 — the Marketplace publishes with no stored credential.**
-
-  `release-vsc-ext.yml` and `publish-marketplace.yml` both do an OIDC
-  `azure/login@v2` and then `vsce publish --azure-credential`. There is no
-  `VSCE_PAT`, and there is not going to be one.
-
-  Two credentials were tried and abandoned first, and neither is worth
-  revisiting:
-
-  - **Trusted publishing (`--oidc`) never shipped.** microsoft/vsmarketplace#1422
-    has been open since August 2025, the gallery exposes no policy UI, and no
-    released `vsce` carries the flag — 3.9.2, the lockfile's, offers `--pat` and
-    `--azure-credential` and nothing else. The job that waited for it pinned the
-    single prerelease that had the flag, so "flip a variable, no code change"
-    had quietly stopped being true.
-  - **A PAT never published anything.** Two CI runs died on
-    `Request timeout: /_apis/gallery`, and recreating the token changed nothing.
-    Global PATs — the "all accessible organizations" scope the Marketplace
-    requires — also stop working **2026-12-01**, so the bridge expired before it
-    carried anything across.
-
-  What had been blocking `--azure-credential` all along was **authorisation, not
-  tooling**. `vsce` builds a `ChainedTokenCredential` and asks it for the Azure
-  DevOps scope; the gallery answers `InvalidAccessException` unless that exact
-  principal is a member of the publisher. The grant is keyed on the Azure DevOps
-  **profile id** — the publisher's Members → Add search accepts nothing else,
-  not a client id, object id, or resource id — and a profile id can only be read
-  by querying Azure DevOps *as* the identity in question.
-
-  On 2026-09-14 the human user's profile id was added as a **Contributor** on
-  publisher `hypermarkdown`, and a local `vsce publish --azure-credential`
-  published `0.2.0 darwin-arm64` in seconds, with no PAT and no timeout. That
-  settles the mechanism.
-
-  **The remaining step is that CI's app registration is a different principal
-  and needs its own grant.** App `hypermarkdown-vsce-publish`
-  (`ddea9a06-accf-4772-9479-11dc9cbb0b83`, no client secret and none possible
-  without adding one) authenticates from CI and reports Azure DevOps profile id
-  **`3e09813b-4c7c-6612-9b06-160401c25aeb`**. That GUID is what goes into the
-  publisher's Members → Add, as Contributor, once, in a browser.
-  `.github/workflows/ado-profile-id.yml` is the throwaway that produced it;
-  delete it once the grant is made.
-
-  One detail that is easy to get wrong: `azure/login@v2` is required rather than
-  setting the Azure environment variables directly. `EnvironmentCredential` is
-  first in `vsce`'s chain and does **not** read `AZURE_FEDERATED_TOKEN_FILE`, so
-  a bare federated token never reaches it. `azure/login` performs the OIDC
-  `az login` itself, and `AzureCliCredential`, next in the chain, picks the
-  session up. Microsoft documents only the Azure Pipelines route, through a
-  user-assigned managed identity; from GitHub the app registration federates
-  directly and no managed identity exists. An app registration is also the right
-  object rather than a managed identity because it lives in the directory rather
-  than in a subscription, so it outlives `Azure subscription 1`; both are free.
-
-  The credential is bound to `...:environment:vscode-marketplace`, so only a job
-  in that gated environment can mint a token — the `environment:` key is
-  load-bearing rather than a deployment label.
-
-  **And the subject is the immutable form.** This repository has
-  `use_immutable_subject` on, so GitHub presents
-  `repo:<owner>@<owner_id>/<repo>@<repo_id>:environment:...` rather than
-  `repo:<owner>/<repo>:environment:...`. The first CI run failed on exactly
-  that, with `AADSTS700213: No matching federated identity record found for
-  presented assertion subject` — which names the subject it presented, so the
-  error carries its own fix. Both spellings are now registered on the app, so
-  the setting can be flipped either way without a dead pipeline.
-  `gh api repos/<owner>/<repo>/actions/oidc/customization/sub` reports which is
-  live. The ID-qualified form is the better one to be on: it survives a rename
-  of the owner or the repository, where the plain form silently stops matching.
-
-  Still worth taking and neither blocking: verifying the domain
-  `hypermarkdown.org` on the publisher, which reports `verified: false` today
-  and is what puts the check beside the name on the listing; and deciding
-  whether the `preview` flag comes off at E6 (the graph tab) or at C4.2 (the
-  publication model). Today it names both.
-
-  Open VSX is unaffected and publishes automatically from `OVSX_PAT`.
-
-- **E9.5 is closed, and it is worth recording how it was read wrong twice.**
-  All six targets of `0.2.0` are validated on the gallery and on Open VSX, and
-  the GitHub release `vsc-ext-v0.2.0` carries all six VSIXes. It was believed to
-  be `darwin-arm64` only as late as the morning of 2026-09-14.
-
-  Two ways the query lies, both of which cost time:
-
-  - **`ExcludeNonValidated`.** The `flags: 1073` recipe that has been passed
-    around sets that bit, so a package still in validation is simply *absent*
-    from the response rather than reported as pending. Three targets were live
-    and invisible. Use `flags: 17` — `IncludeVersions` plus
-    `IncludeVersionProperties` — which lists every target and the state of each.
-  - **Open VSX's `/versions`** serves a stale CDN copy; add a cache buster
-    before concluding anything is missing there.
-
-  Trust the gallery API over `vsce`'s own output either way.
-
+- **The publisher is not domain-verified.** `hypermarkdown.org` reports
+  `verified: false`, which is what puts the check beside the name on the
+  listing. Not blocking anything.
+- **The `preview` flag has no agreed removal point.** Today it names both E6
+  (the graph tab) and C4.2 (the publication model) as the release it comes off
+  at. One of them has to own it.
 - **E5.2 — integration tests.** Written, compiling, and **parked on
   `feat/vsc-ext-1`** (commit `cb8c6e4`). Two blockers, neither in our code:
   `@vscode/test-electron` 2.5.2 spawns `Contents/MacOS/Electron` and VS Code

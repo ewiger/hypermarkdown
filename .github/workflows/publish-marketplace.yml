@@ -119,6 +119,11 @@ jobs:
       # other five down twice in a row. Separate calls make the failure
       # granular, and `--skip-duplicate` makes every retry cheap: whatever
       # already landed is skipped, so the loop converges instead of restarting.
+      #
+      # It stays until a run genuinely uploads six packages. The run that proved
+      # the federated credential was green in 45s with no retries, but every
+      # package answered `Version 0.2.0 is already published. Skipping publish.`
+      # — nothing pushed 18 MB, so it says nothing about the timeout.
       # The federated credential is bound to
       # `...:environment:vscode-marketplace`, so this token can only be minted
       # from the environment declared above — in the **immutable** subject form
