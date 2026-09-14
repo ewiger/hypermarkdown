@@ -104,7 +104,38 @@ jobs:
       # `--skip-duplicate` makes this idempotent: pointing it at a tag the
       # gallery already has is a no-op rather than a failure, which is what lets
       # it be the recovery tool it exists to be.
+      #
+      # One package per invocation, with retries. Uploading all six in a single
+      # `vsce publish` is what the release job does and it is the right shape
+      # when it works, but the gallery answers `Request timeout: /_apis/gallery`
+      # on these ~18 MB packages often enough that one slow upload took the
+      # other five down twice in a row. Separate calls make the failure
+      # granular, and `--skip-duplicate` makes every retry cheap: whatever
+      # already landed is skipped, so the loop converges instead of restarting.
       - name: Publish
-        run: npx --no vsce publish --no-dependencies --skip-duplicate --packagePath vsix/*.vsix
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          set -uo pipefail
+          failed=""
+          for vsix in vsix/*.vsix; do
+            published=""
+            for attempt in 1 2 3 4 5; do
+              echo "::group::$(basename "$vsix") attempt $attempt"
+              if npx --no vsce publish --no-dependencies --skip-duplicate \
+                   --packagePath "$vsix"; then
+                published="yes"
+                echo "::endgroup::"
+                break
+              fi
+              echo "::endgroup::"
+              echo "$(basename "$vsix"): attempt $attempt failed"
+              sleep $((attempt * 20))
+            done
+            [ -n "$published" ] || failed="$failed $(basename "$vsix")"
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::not published after 5 attempts each:$failed" >&2
+            exit 1
+          fi
+          echo "every VSIX published"
