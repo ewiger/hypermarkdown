@@ -42,8 +42,8 @@ Then open any `.hmd` file and click the ⚡ at the top right of the editor.
 Nothing else is required: no interpreter, no virtualenv, no configuration.
 Requires VS Code 1.90 or newer.
 
-> **Preview release.** Everything below is built and gated by tests. The graph
-> tab and the publication model are not here yet — see [Known gaps](#known-gaps).
+> **Preview release.** Everything below is built and gated by tests. The
+> publication model is not ported yet — see [Known gaps](#known-gaps).
 
 ## What it does
 
@@ -53,7 +53,12 @@ Requires VS Code 1.90 or newer.
   from, collapsible, and navigating to the embedded card rather than the
   embedding one. An embed flattened into anonymous prose is a defect here.
 - **Red links** for targets that do not resolve, with a create-the-card action.
-- **Backlinks** for the current card, listing link and embed edges separately.
+- **A graph of the vault**, drawn in the preview: cards as nodes, link and embed
+  edges apart, and clicking one moves the preview to that card. Read it as the
+  whole network, or as the card you are on and its neighbours — what it links
+  to, or what links to it, which is what the backlinks tab used to list. Zoom,
+  fit, re-run the layout, or hand the graph the whole window with **Full
+  screen** — the editor drops into zen mode and `Escape` brings it back.
 - **Diagnostics** in the Problems panel using the `HMD001`–`HMD016` rule IDs,
   identical to `hmd lint`.
 - **Math, callouts, and D2 diagrams.** KaTeX ships inside the extension, and so
@@ -141,6 +146,11 @@ about while you write:
 - **Raw HTML in a card is escaped** rather than passed through. Deliberate, and
   a divergence from the MkDocs build: a webview rendering HTML out of a
   workspace is a script-injection surface reachable from any cloned repository.
+- **The graph draws what resolved.** A red link has no card at the other end, so
+  it is absent from the picture; broken links are reported in the rendered
+  preview and in the Problems panel. The network view is capped at 400 cards,
+  keeping those nearest the one you are reading and saying how many it left
+  out.
 
 What has changed is in
 [CHANGELOG.md](https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd-vsc-ext/CHANGELOG.md);

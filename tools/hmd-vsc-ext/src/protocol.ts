@@ -6,9 +6,50 @@
  * the extension's own code, but the message boundary is still a trust boundary.
  */
 
-import type { BacklinkEntry, DocumentIR } from "@hypermarkdown/core";
+import type { DocumentIR } from "@hypermarkdown/core";
 
-export type PreviewMode = "rendered" | "backlinks";
+export type PreviewMode = "rendered" | "graph";
+
+/** Every card in the vault, or one card and its neighbours. */
+export type GraphScope = "network" | "card";
+
+/**
+ * Which way the card scope looks.
+ *
+ * `upstream` is the cards this one links to, `downstream` the cards that link
+ * to it — the direction the retired backlinks tab showed, and the default for
+ * that reason.
+ */
+export type GraphDirection = "upstream" | "downstream";
+
+export interface GraphView {
+  scope: GraphScope;
+  direction: GraphDirection;
+}
+
+export interface GraphViewNode {
+  /** The card's path inside its vault, which is also its node id. */
+  path: string;
+  /** The card's file name without the suffix, which is what is drawn. */
+  label: string;
+}
+
+export interface GraphViewEdge {
+  source: string;
+  target: string;
+  /** Link and embed edges are drawn distinctly: quoting is not mentioning. */
+  kind: "link" | "embed";
+}
+
+export interface GraphPayload {
+  view: GraphView;
+  /** The card the preview is on, which the card scope is centred on. */
+  focus: string | null;
+  nodes: GraphViewNode[];
+  edges: GraphViewEdge[];
+  /** Cards in scope that the node cap left out, so the view can say so. */
+  omitted: number;
+}
 
 export interface PreviewSettings {
   scrollSync: boolean;
@@ -26,7 +67,7 @@ export type HostMessage =
       settings: PreviewSettings;
       pinned: boolean;
     }
-  | { type: "backlinks"; irVersion: number; items: BacklinkEntry[] }
+  | { type: "graph"; irVersion: number; graph: GraphPayload }
   | { type: "revealLine"; line: number }
   | { type: "setMode"; mode: PreviewMode }
   | { type: "error"; message: string };
@@ -37,12 +78,28 @@ export type WebviewMessage =
   | { type: "openTarget"; path: string; fragment: string | null }
   | { type: "createCard"; target: string }
   | { type: "scrolled"; line: number }
-  | { type: "modeChanged"; mode: PreviewMode };
+  | { type: "modeChanged"; mode: PreviewMode }
+  | { type: "graphView"; view: GraphView }
+  | { type: "fullScreen"; on: boolean };
 
-const MODES: readonly PreviewMode[] = ["rendered", "backlinks"];
+const MODES: readonly PreviewMode[] = ["rendered", "graph"];
+const SCOPES: readonly GraphScope[] = ["network", "card"];
+const DIRECTIONS: readonly GraphDirection[] = ["upstream", "downstream"];
 
 function isMode(value: unknown): value is PreviewMode {
   return typeof value === "string" && (MODES as readonly string[]).includes(value);
+}
+
+function parseView(raw: unknown): GraphView | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const view = raw as Record<string, unknown>;
+  const scope = view["scope"];
+  const direction = view["direction"];
+  if (typeof scope !== "string" || !(SCOPES as readonly string[]).includes(scope)) return null;
+  if (typeof direction !== "string" || !(DIRECTIONS as readonly string[]).includes(direction)) {
+    return null;
+  }
+  return { scope: scope as GraphScope, direction: direction as GraphDirection };
 }
 
 /**
@@ -80,6 +137,14 @@ export function parseWebviewMessage(raw: unknown): WebviewMessage | null {
         : null;
     case "modeChanged":
       return isMode(message["mode"]) ? { type: "modeChanged", mode: message["mode"] } : null;
+    case "graphView": {
+      const view = parseView(message["view"]);
+      return view === null ? null : { type: "graphView", view };
+    }
+    case "fullScreen":
+      return typeof message["on"] === "boolean"
+        ? { type: "fullScreen", on: message["on"] }
+        : null;
     default:
       return null;
   }

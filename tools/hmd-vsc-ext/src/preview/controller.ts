@@ -21,10 +21,12 @@ import { REPARSE_DEBOUNCE_MS, debounce } from "../debounce.js";
 import {
   isSafeRelativePath,
   parseWebviewMessage,
+  type GraphView,
   type HostMessage,
   type PreviewMode,
   type PreviewSettings,
 } from "../protocol.js";
+import { DEFAULT_GRAPH_VIEW, buildGraphView } from "./graphView.js";
 
 /** How long to ignore the other side's scroll after applying one (§6). */
 export const ECHO_LOCKOUT_MS = 250;
@@ -33,7 +35,18 @@ export const SCROLL_THROTTLE_MS = 50;
 
 export class PreviewController implements vscode.Disposable {
   private mode: PreviewMode = "rendered";
+  /**
+   * Which cut of the graph this preview is showing.
+   *
+   * Per preview and not persisted: it is a way of looking at the card on
+   * screen, and the card changes under it as the reader moves.
+   */
+  private graphView: GraphView = DEFAULT_GRAPH_VIEW;
   private pinned = false;
+  /** True while this preview asked the editor to stand its chrome down. */
+  private fullScreen = false;
+  /** Whether entering it also maximised a split, so leaving can undo just that. */
+  private maximised = false;
   private current: CardRef | null = null;
   private lastAppliedScroll = 0;
   /** An open `.hmd` file no vault claims, so the empty state can say which. */
@@ -63,6 +76,9 @@ export class PreviewController implements vscode.Disposable {
   }
 
   dispose(): void {
+    // A preview closed while it held the window would leave the editor with no
+    // tabs, no side bar, and nothing on screen that explains why.
+    if (this.fullScreen) void this.setFullScreen(false);
     this.refresh.cancel();
     for (const d of this.disposables) d.dispose();
     this.cardChanged.dispose();
@@ -190,7 +206,18 @@ export class PreviewController implements vscode.Disposable {
         this.send();
         return;
       case "modeChanged":
+        // Tabs are switched in the webview, so the host hears about the switch
+        // rather than causing it — and the new tab has nothing to draw until
+        // this sends it.
         this.mode = message.mode;
+        this.send();
+        return;
+      case "graphView":
+        this.graphView = message.view;
+        this.send();
+        return;
+      case "fullScreen":
+        void this.setFullScreen(message.on);
         return;
       case "scrolled":
         this.applyScroll(message.line);
@@ -297,6 +324,50 @@ export class PreviewController implements vscode.Disposable {
     return heading?.line ?? null;
   }
 
+  // -- full screen -----------------------------------------------------
+
+  /**
+   * Give the graph the window, or give the editor back.
+   *
+   * Hiding the preview's own chrome is not enough for a large network: the tab
+   * bar, the side bar, the panel, and the status bar are still there, and what
+   * a reader asked for is the picture at the size of the screen. Zen mode is
+   * the editor's own name for exactly that, and it is what a reader who leaves
+   * with `Escape Escape` instead of the button will already know.
+   *
+   * Every command here is a toggle and none of them can be read back, so this
+   * tracks what it did and undoes precisely that. The cost of that bargain: a
+   * reader who leaves zen mode by hand leaves the button one press out of step,
+   * and the next press puts it back in.
+   */
+  private async setFullScreen(on: boolean): Promise<void> {
+    if (on === this.fullScreen) return;
+    this.fullScreen = on;
+
+    if (on) {
+      // A split neighbour would take half the screen the reader just asked for.
+      this.maximised = vscode.window.tabGroups.all.length > 1;
+      await vscode.commands.executeCommand("workbench.action.toggleZenMode");
+      // Zen mode centres the layout by default, which is right for prose and
+      // wrong for a canvas: it trades the width away again.
+      if (vscode.workspace.getConfiguration("zenMode").get<boolean>("centerLayout", true)) {
+        await vscode.commands.executeCommand("workbench.action.toggleCenteredLayout");
+      }
+      if (this.maximised) {
+        await vscode.commands.executeCommand("workbench.action.toggleMaximizeEditorGroup");
+      }
+      return;
+    }
+
+    if (this.maximised) {
+      await vscode.commands.executeCommand("workbench.action.toggleMaximizeEditorGroup");
+      this.maximised = false;
+    }
+    // Leaving zen mode restores the layout it found, centring included, so the
+    // centred-layout toggle is not undone here.
+    await vscode.commands.executeCommand("workbench.action.toggleZenMode");
+  }
+
   // -- delivery --------------------------------------------------------
 
   private settings(): PreviewSettings {
@@ -321,11 +392,11 @@ export class PreviewController implements vscode.Disposable {
       return;
     }
 
-    if (this.mode === "backlinks") {
+    if (this.mode === "graph") {
       this.post({
-        type: "backlinks",
+        type: "graph",
         irVersion: IR_VERSION,
-        items: this.current.vault.backlinksFor(this.current.rel),
+        graph: buildGraphView(this.current.vault.graph(), this.current.rel, this.graphView),
       });
       return;
     }

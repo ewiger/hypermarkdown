@@ -24,6 +24,7 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0022](HMD-0022/README.md) | drafted | Diagrams as committed artifacts | [ts-core](../status/ts-core.md), [vsc-ext](../status/vsc-ext.md) |
 | HMD-0023 | reserved | Searching the wiki from the preview | — |
 | [HMD-0024](HMD-0024/README.md) | drafted | The `tools/` layout, and a Python language server | [hmd](../status/hmd.md) |
+| [HMD-0025](HMD-0025/README.md) | drafted | The graph tab — the vault as a picture | [vsc-ext](../status/vsc-ext.md) |
 
 ## Progress is tracked per tool
 

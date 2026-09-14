@@ -9,6 +9,9 @@
 - [HMD-0020](../HMD-0020/README.md) — `@hypermarkdown/core`, which owns the
   grammar, the resolver, and the document IR this extension renders. Nothing
   semantic is decided here.
+- [HMD-0025](../HMD-0025/README.md) — the graph tab: what it draws, how the
+  network view is bounded, and the layout library it is drawn with. This record
+  keeps the tab strip, the message envelope, and the policy it runs under.
 
 ## Abstract
 
@@ -21,9 +24,9 @@ render in the webview — the `postMessage` protocol between them, the
 bidirectional scroll-sync algorithm and its timing constants, the workspace
 index and its watchers, the mapping from HMD-0001 lint rules onto VS Code
 diagnostics, and a content security policy that forbids remote content. v1
-ships the `rendered` and `backlinks` tabs; `graph` and `mind map` are specified
-only as far as the tab-strip contract. Everything specified here renders without
-Python; the language features that will arrive on the Python server of
+ships the `rendered` and `graph` tabs, the graph itself specified in HMD-0025;
+`mind map` is specified only as far as the tab-strip contract. Everything
+specified here renders without Python; the language features that will arrive on the Python server of
 [HMD-0024](../HMD-0024/README.md) are out of scope for this record, and the
 preview stays independent of them.
 
@@ -64,7 +67,7 @@ the user's editor. §11 is not boilerplate.
   HMD-0020. Where this extension appears to decide one, it is wrong.
 - **Rename refactoring** (VSX-044) and **whole-tree writes** of any kind beyond
   the single create-card action of §5.
-- **The graph and mind-map tabs** beyond the contract in §10.
+- **The mind-map tab** beyond the tab-strip contract under deferred tabs.
 - **Web-extension (browser) builds** in v1, though HMD-0020's Node-free core
   keeps the option open.
 
@@ -210,7 +213,7 @@ Messages are versioned by HMD-0020's `irVersion` and pinned here:
 ```text
 host → webview
   { type: "render",     irVersion, document, mode, settings }
-  { type: "backlinks",  irVersion, items }
+  { type: "graph",      irVersion, graph }
   { type: "revealLine", line }
   { type: "setMode",    mode }
   { type: "error",      message }
@@ -222,6 +225,7 @@ webview → host
   { type: "createCard", target, suggestedPath }
   { type: "scrolled",   line }
   { type: "modeChanged", mode }
+  { type: "graphView",   view }
 ```
 
 - The host MUST validate every inbound message against this shape and MUST
@@ -392,10 +396,10 @@ project, and a card is named by the vault that claims it as well as by its path
   for a vault builds it; it is disposed with the window. One index per vault is
   the honest model — the alternative, re-initialising a single index on every
   crossing, throws the index away each time the user clicks between `doc/wiki`
-  and an example tree, and makes diagnostics, backlinks, and the watcher lie
+  and an example tree, and makes diagnostics, the graph, and the watcher lie
   about which knowledge base they describe.
 - **Resolution never crosses a vault boundary.** Two vaults are two namespaces:
-  a `[[wikilink]]`, an embed, or a backlink that resolved into a neighbouring
+  a `[[wikilink]]`, an embed, or a graph edge that resolved into a neighbouring
   vault would make the same card render differently depending on what else
   happened to be checked out. Every path in a host/webview message is relative
   to the vault of the card that produced it.
@@ -420,28 +424,31 @@ project, and a card is named by the vault that claims it as well as by its path
   in, and grows as the user moves between them. `"open"` is unchanged and is the
   setting for anyone who wants a fixed scope.
 
-### 9. Backlinks
+### 9. The graph tab
 
-- The `backlinks` tab lists every card with a resolved edge into the current
-  one, read from the reverse edge map the index already maintains — so the
-  feature costs a query, not a scan.
-- Each entry shows the source card's namespace path, the line, and a one-line
-  context snippet, and navigates on click (VSX-023).
-- Embed edges are listed distinctly from link edges. "This card is quoted here"
-  and "this card is mentioned here" are different facts about a knowledge base.
+The graph tab draws the vault inside this webview, and **replaces** the
+backlinks tab: a list of the cards with an edge into the current one is the
+graph's card scope pointed at what links here, and a strip carrying both would
+offer the same thing twice.
+
+What it draws, how it is bounded, and how it is drawn are specified in
+[HMD-0025](../HMD-0025/README.md), which this record defers to. Two obligations
+stay here, because they are this record's own:
+
+- The tab MUST consume the index's node and edge lists through the `graph`
+  message of the host/webview split above, never the per-document IR, and its
+  view controls MUST ask the host for a new cut rather than filter a cached one.
+- The tab MUST draw under the policy below, which forbids remote script and
+  `eval`, so any layout library it uses is compiled into the extension's own
+  bundle.
 
 ### 10. Deferred tabs
 
-`graph` and `mind map` are not implemented in v1. The contract they will use is
-fixed now so their arrival is additive:
+The **mind map** is not implemented. The contract it will use is fixed here so
+its arrival is additive:
 
 - A tab is a module exporting `mount(container, api)` and receiving `render`
-  messages with the same envelope as §4.
-- The graph tab will consume the index's node and edge lists — the same data
-  `hmd graph --format json` emits — rather than the per-document IR, and will
-  render through a JavaScript graph library in the webview. D2 renders static
-  SVG server-side and is the wrong tool for click-to-navigate exploration; the
-  source sketch §15 is right about this and it should not be relitigated.
+  messages with the same envelope as the host/webview split above.
 
 ### 11. Webview hardening
 
@@ -525,10 +532,11 @@ HMD-0001 rather than an extension of it.
 3. **E3 — the rendered tab.** IR delivery, the renderer, embed cards, red
    links, scroll sync, click-through. This is the milestone the feature exists
    for; everything before it is scaffolding and everything after is additive.
-4. **E4 — backlinks, breadcrumb, create-card, pin.**
+4. **E4 — backlinks, breadcrumb, create-card, pin.** Backlinks was retired
+   by E6, which subsumes it.
 5. **E5 — packaging.** VSIX, marketplace metadata, README, an animated capture
    of E3 doing its job.
-6. **E6 — the graph tab**, under the §10 contract.
+6. **E6 — the graph tab**, which replaces the backlinks tab.
 
 E1 and E2 depend only on HMD-0020's parser and resolver stages, so they can
 start as soon as those land and before expansion exists.
@@ -549,13 +557,13 @@ tools/hmd-vsc-ext/
       view.ts             WebviewViewProvider
       panel.ts            WebviewPanel, ViewColumn.Beside
       html.ts             shell HTML, CSP, nonce
+      graphView.ts        the vault graph cut down to one view
       protocol.ts         message types, shared with the webview
     commands/
       createCard.ts
   media/
     webview.ts            renderer entry, tab strip, scroll sync
-    tabs/rendered.ts
-    tabs/backlinks.ts
+    graph.ts              the graph tab: Cytoscape, toolbar, click handling
     webview.css           theme variables only
   test/
     unit/                 vitest, renderer and protocol
@@ -579,6 +587,9 @@ Unit tests (vitest, jsdom) MUST include:
   claim is about a tree, so faking the tree would test nothing (issue 0108).
 - CSP: the generated shell HTML contains a nonce, and every `<script>` carries
   it.
+- The tab strip carries the tabs this build has and no others, so a retired tab
+  cannot survive in the shell after its renderer is gone. What the graph itself
+  draws is covered by HMD-0025.
 
 Integration tests (`@vscode/test-cli`) MUST include:
 
@@ -636,6 +647,12 @@ npm run -w tools/hmd-vsc-ext package
   depends on the published `@hypermarkdown/core` by semver range, satisfied
   from the workspace during development and inlined by the esbuild bundle at
   package time. Closes the Open Question that asked between the two.
+- 2026-09-14: the graph tab replaces backlinks rather than joining it — a
+  strip carrying both would offer the same thing twice, since the retired list
+  is the card scope pointed at what links here. The tab's own design moved out
+  to HMD-0025, which a bundled layout engine, a node cap, and a scope model
+  earned; what stays here is the message it arrives on and the policy it draws
+  under. Only the mind map is still deferred. See issue 0109.
 - 2026-09-14: §5 — create-card never prompts. The link's own form picks the
   path: bare is a sibling, absolute is under the root, relative is where it
   points, and the author moves the file or writes the link relative instead of

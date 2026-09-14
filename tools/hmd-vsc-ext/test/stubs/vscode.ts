@@ -196,6 +196,11 @@ export class WebviewPanelStub {
     this.revealed += 1;
   }
 
+  /** Deliver a message as the webview would have posted it. */
+  receive(message: unknown): void {
+    this.receivedMessage.fire(message);
+  }
+
   /** Drive focus the way VS Code would when the user clicks another tab. */
   setActive(active: boolean): void {
     this.active = active;
@@ -250,7 +255,14 @@ export const languages = {
   }),
 };
 
-export const commands = { executeCommand: async () => undefined };
+/** Every command the extension ran, so a test can assert what it asked for. */
+export const commands = {
+  executed: [] as string[],
+  executeCommand: async (command: string, ..._args: unknown[]): Promise<undefined> => {
+    commands.executed.push(command);
+    return undefined;
+  },
+};
 export const FileType = { File: 1, Directory: 2 } as const;
 export const ViewColumn = { Active: -1, One: 1, Beside: 2 } as const;
 export const TextEditorRevealType = { AtTop: 1 } as const;

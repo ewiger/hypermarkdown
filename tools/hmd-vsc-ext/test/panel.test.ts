@@ -15,11 +15,16 @@ import { PreviewPanel } from "../src/preview/panel.js";
 import type { Vault } from "../src/vault.js";
 
 const stub = vscode as unknown as {
-  createdPanels: { showOptions: { viewColumn: number }; panel: { dispose(): void } }[];
+  createdPanels: {
+    showOptions: { viewColumn: number };
+    panel: { dispose(): void; receive(message: unknown): void };
+  }[];
   window: {
     activeTextEditor: { document: { uri: unknown } } | undefined;
     activeEditorChanged: { fire(value: void): void };
+    tabGroups: { all: { viewColumn: number }[] };
   };
+  commands: { executed: string[] };
   ViewColumn: { Active: number; Beside: number };
 };
 
@@ -71,6 +76,8 @@ function openPanels(): { showOptions: { viewColumn: number }; panel: { dispose()
 beforeEach(() => {
   for (const created of stub.createdPanels.splice(0)) created.panel.dispose();
   stub.window.activeTextEditor = undefined;
+  stub.window.tabGroups.all = [];
+  stub.commands.executed.length = 0;
 });
 
 describe("opening a preview", () => {
@@ -209,5 +216,81 @@ describe("which card a panel holds", () => {
     PreviewPanel.restore(panel, catalog, extensionUri, { card: "notes/gamma.hmd", vault: null });
     await settle();
     expect(panel.title).toBe("HyperMarkDown Preview");
+  });
+});
+
+describe("full screen", () => {
+  /** The graph asking for the window, and giving it back. */
+  function open(): { dispose(): void; receive(message: unknown): void } {
+    PreviewPanel.open(fakeCatalog(), extensionUri, { column: vscode.ViewColumn.Active });
+    stub.commands.executed.length = 0;
+    return stub.createdPanels[0]!.panel;
+  }
+
+  it("stands the editor's own chrome down, not only the preview's", async () => {
+    open().receive({ type: "fullScreen", on: true });
+    await settle();
+
+    // Hiding the preview's tab strip leaves the editor's tab bar, side bar,
+    // panel, and status bar between the reader and the graph.
+    expect(stub.commands.executed).toContain("workbench.action.toggleZenMode");
+    // Zen mode centres the layout, which gives the width back.
+    expect(stub.commands.executed).toContain("workbench.action.toggleCenteredLayout");
+  });
+
+  it("maximises a split group, and only then has one to restore", async () => {
+    stub.window.tabGroups.all = [{ viewColumn: 1 }, { viewColumn: 2 }];
+    const panel = open();
+
+    panel.receive({ type: "fullScreen", on: true });
+    await settle();
+    expect(stub.commands.executed).toContain("workbench.action.toggleMaximizeEditorGroup");
+
+    stub.commands.executed.length = 0;
+    panel.receive({ type: "fullScreen", on: false });
+    await settle();
+    expect(stub.commands.executed).toEqual([
+      "workbench.action.toggleMaximizeEditorGroup",
+      "workbench.action.toggleZenMode",
+    ]);
+  });
+
+  it("leaves a single group alone in both directions", async () => {
+    const panel = open();
+
+    panel.receive({ type: "fullScreen", on: true });
+    await settle();
+    expect(stub.commands.executed).not.toContain("workbench.action.toggleMaximizeEditorGroup");
+
+    stub.commands.executed.length = 0;
+    panel.receive({ type: "fullScreen", on: false });
+    await settle();
+    expect(stub.commands.executed).toEqual(["workbench.action.toggleZenMode"]);
+  });
+
+  it("ignores a second request to enter, which would toggle back out", async () => {
+    const panel = open();
+
+    panel.receive({ type: "fullScreen", on: true });
+    await settle();
+    stub.commands.executed.length = 0;
+    panel.receive({ type: "fullScreen", on: true });
+    await settle();
+
+    expect(stub.commands.executed).toEqual([]);
+  });
+
+  it("gives the editor back when the preview is closed while it holds it", async () => {
+    const panel = open();
+    panel.receive({ type: "fullScreen", on: true });
+    await settle();
+
+    stub.commands.executed.length = 0;
+    panel.dispose();
+    await settle();
+
+    // A closed preview that kept the window would leave an editor with no tabs
+    // and nothing on screen explaining why.
+    expect(stub.commands.executed).toContain("workbench.action.toggleZenMode");
   });
 });

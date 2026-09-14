@@ -21,6 +21,39 @@ against
 
 ## [Unreleased]
 
+**The vault has a picture.** A **Graph** tab draws the cards and the edges
+between them — link edges thin, embed edges heavy, both arrowed — and clicking
+a node moves the preview to that card with its source alongside, exactly as
+clicking a link does. Read it as the whole network, or as the card you are on
+and its neighbours in one direction: what it links to, or what links to it.
+Zoom, fit, re-run the layout, and go **full screen** from the toolbar over the
+canvas. Full screen means the window, not the panel: the editor drops into zen
+mode with the tab bar, side bar, and status bar gone, the centred layout undone
+so the canvas keeps the width, and a split maximised — what is left on screen is
+the graph and its toolbar. `Escape` gives the editor back, and so does the
+button. A large network is the case this exists for.
+
+**The Backlinks tab is gone, replaced by that graph.** It listed the cards with
+an edge into the current one, which is the card scope pointed at what links
+here — the same answer drawn instead of listed. Two tabs offering it once each
+was the arrangement worth removing, not the answer.
+
+Two things the graph deliberately does not do. A link that does not resolve is
+not drawn, because there is no card at the other end to draw it to; those are
+reported in the rendered preview and in the Problems panel where a work item
+belongs. And the network view stops at 400 cards, keeping those nearest the one
+you are reading and saying how many it left out — a hairball nobody can read is
+not a more honest picture than a bounded one that names what is missing.
+
+The drawing is [Cytoscape.js](https://js.cytoscape.org), compiled into the
+extension rather than fetched: the preview's content security policy forbids
+remote script, and the graph works with no network at all. It costs about 400 KB
+in the VSIX.
+
+The tab is specified in
+[HMD-0025](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0025/README.md),
+which is where its bounds and its rules about what is not drawn are argued.
+
 ## [0.3.0] — 2026-09-14
 
 **A repository can hold more than one vault.** Open a folder carrying a

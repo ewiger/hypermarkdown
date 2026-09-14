@@ -14,12 +14,12 @@ import {
   Renderer,
   SUFFIX,
   Workspace,
-  backlinks,
+  buildGraph,
   check,
   parse,
-  type BacklinkEntry,
   type Diagnostic,
   type DocumentIR,
+  type Graph,
   type ProjectConfig,
 } from "@hypermarkdown/core";
 
@@ -106,8 +106,15 @@ export class Vault implements vscode.Disposable {
     return new Renderer(this.workspace).render(rel);
   }
 
-  backlinksFor(rel: string): BacklinkEntry[] {
-    return this.workspace === null ? [] : backlinks(this.workspace, rel);
+  /**
+   * The whole vault as nodes and edges, for the graph tab.
+   *
+   * The same data `hmd graph --format json` emits, off the index the vault
+   * maintains anyway — so the graph is a query against what is already there,
+   * not a second traversal of the tree.
+   */
+  graph(): Graph {
+    return this.workspace === null ? { nodes: [], edges: [] } : buildGraph(this.workspace);
   }
 
   // -- writes ----------------------------------------------------------
