@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 
 import { SUFFIX } from "@hypermarkdown/core";
 
-import type { Store } from "../store.js";
+import type { VaultCatalog } from "../catalog.js";
 import { PreviewController } from "./controller.js";
 import { shellFor } from "./html.js";
 
@@ -22,14 +22,17 @@ const UNTITLED = "HyperMarkDown Preview";
 /**
  * State persisted by the webview and handed back on window reload.
  *
- * The card only. Persisting `pinned` meant a preview could come back frozen
+ * The card and the vault that claims it. Persisting `pinned` meant a preview could come back frozen
  * from storage written by an older build, with nothing on screen to explain
  * why it had stopped following — and no way to tell deliberate state from
  * stale state. A restored preview always follows; re-pinning is one click
  * (issue 0105).
  */
 export interface PanelState {
+  /** The card's path inside its vault. */
   card: string | null;
+  /** The vault that claimed it, which may not be indexed yet on restore. */
+  vault: string | null;
 }
 
 export interface OpenOptions {
@@ -49,7 +52,7 @@ export class PreviewPanel implements vscode.Disposable {
 
   private constructor(
     private readonly panel: vscode.WebviewPanel,
-    store: Store,
+    catalog: VaultCatalog,
     extensionUri: vscode.Uri,
   ) {
     panel.iconPath = vscode.Uri.joinPath(extensionUri, "media", "logo.svg");
@@ -57,7 +60,7 @@ export class PreviewPanel implements vscode.Disposable {
 
     // The panel is the only object that knows which column it occupies, and
     // the controller must not reveal source into it.
-    this.controller = new PreviewController(store, panel.webview, () => panel.viewColumn);
+    this.controller = new PreviewController(catalog, panel.webview, () => panel.viewColumn);
     this.disposables.push(
       this.controller,
       this.controller.onDidChangeCard((card) => this.retitle(card)),
@@ -73,7 +76,7 @@ export class PreviewPanel implements vscode.Disposable {
     this.retitle(this.controller.card);
   }
 
-  static open(store: Store, extensionUri: vscode.Uri, options: OpenOptions): PreviewPanel {
+  static open(catalog: VaultCatalog, extensionUri: vscode.Uri, options: OpenOptions): PreviewPanel {
     const preserveFocus = options.preserveFocus ?? false;
 
     // Two unpinned previews in one column are indistinguishable — both show
@@ -96,7 +99,7 @@ export class PreviewPanel implements vscode.Disposable {
     // Opens following the active editor. Pinning on open froze the preview for
     // the life of the tab, because pinning is the absence of following rather
     // than a weaker form of it (issue 0105).
-    return new PreviewPanel(panel, store, extensionUri);
+    return new PreviewPanel(panel, catalog, extensionUri);
   }
 
   private static reusableIn(column: vscode.ViewColumn | undefined): PreviewPanel | undefined {
@@ -109,15 +112,19 @@ export class PreviewPanel implements vscode.Disposable {
   /** Rebuild a panel VS Code restored from a previous window (§3). */
   static restore(
     panel: vscode.WebviewPanel,
-    store: Store,
+    catalog: VaultCatalog,
     extensionUri: vscode.Uri,
     state: PanelState | null,
   ): PreviewPanel {
     panel.webview.options = webviewOptions(extensionUri);
-    const preview = new PreviewPanel(panel, store, extensionUri);
+    const preview = new PreviewPanel(panel, catalog, extensionUri);
     // Show the card it held so the tab is not blank before the first editor
-    // change, but leave it following.
-    if (state !== null && state.card !== null) preview.controller.show(state.card);
+    // change, but leave it following. A path alone is not a card any more:
+    // without its vault there is nothing to resolve it against, so a state
+    // written by an older build restores blank and follows the next editor.
+    if (state !== null && state.card !== null && state.vault !== null) {
+      void preview.controller.restore(state.vault, state.card);
+    }
     return preview;
   }
 

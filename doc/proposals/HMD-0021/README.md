@@ -351,21 +351,67 @@ Click-through:
 - Diagnostics for a document MUST be recomputed from the in-memory buffer, so
   the Problems panel and the preview never disagree about unsaved text.
 
-### 8. Workspace index and watching
+### 8. The vault catalog, the index, and watching
 
-- On activation the host resolves the namespace root per HMD-0020 §5, honouring
-  `hyperMarkdown.root` when set, and builds the index.
-- A `FileSystemWatcher` on `**/*.hmd` under the root handles create, change,
-  and delete, including changes made outside VS Code. A change to
-  `.hmd/config.toml` triggers a full rebuild, since it can move the root.
+A **vault** is a directory tree that carries its own `.hmd/`, together with the
+namespace root its `wiki` setting names. One folder open in the editor may hold
+several, and they nest: this repository holds `doc/wiki` plus one vault per
+example tree. The host therefore holds a **catalog** of vaults rather than one
+project, and a card is named by the vault that claims it as well as by its path
+— the same path means different cards in two vaults.
+
+- **Discovery is per card, not per window.** From the card's own URI the host
+  walks up through its parents to the nearest directory carrying `.hmd/`; that
+  directory is the card's project root, and `wiki` resolved against it is the
+  namespace root, exactly as HMD-0020 §5 defines. This is what the canonical
+  implementation's `find_project_root` has always done, so the two agree about
+  what "the project" is for a file on disk.
+- **The walk stops at the containing workspace folder.** An editor may not read
+  arbitrary ancestors of the user's disk, and the `.git` fallback the CLI uses
+  is a convenience a workspace folder already provides. It stops at the
+  *containing* folder, not the first one, so a multi-root workspace resolves
+  each card against its own folder.
+- **A marker that does not claim the card does not stop the walk.** A `.hmd/`
+  whose `wiki` resolves to a tree the card is not in is some other vault's
+  marker; the walk continues above it.
+- **The folder itself is the vault of last resort.** With no `.hmd/` anywhere
+  above the card, the workspace folder's own root applies — `hyperMarkdown.root`
+  when set, else `wiki` from the folder's `.hmd/config.toml`, else `doc/wiki`,
+  else the folder. This is what keeps a repository with no marker at its root,
+  and a bare directory of cards with no setup at all, working (VSX-061). An
+  explicit `hyperMarkdown.root` is an instruction rather than a hint, and wins
+  for the folder it is set in.
+- **Vaults are built lazily and live for the window.** The first card that asks
+  for a vault builds it; it is disposed with the window. One index per vault is
+  the honest model — the alternative, re-initialising a single index on every
+  crossing, throws the index away each time the user clicks between `doc/wiki`
+  and an example tree, and makes diagnostics, backlinks, and the watcher lie
+  about which knowledge base they describe.
+- **Resolution never crosses a vault boundary.** Two vaults are two namespaces:
+  a `[[wikilink]]`, an embed, or a backlink that resolved into a neighbouring
+  vault would make the same card render differently depending on what else
+  happened to be checked out. Every path in a host/webview message is relative
+  to the vault of the card that produced it.
+- Each vault owns a `FileSystemWatcher` on `**/*.hmd` under its own namespace
+  root, handling create, change, and delete, including changes made outside VS
+  Code. A change to `.hmd/config.toml` triggers a full rebuild, since it can
+  move the root.
 - Index updates MUST be incremental: an edit re-parses one document and
   re-resolves that document and its inbound neighbours (HMD-0020 §6). Rebuilding
   the tree on a keystroke would make VSX-051 unreachable on any real wiki.
-- Budgets, as SHOULD: a cold index of 1 000 cards within **2 s**; parse,
-  resolve, and render of a 100 KiB card within **100 ms**.
-- Multi-root workspaces: v1 indexes the first workspace folder containing a
-  namespace root and states so in the view header. Silently indexing one folder
-  out of several with no indication is worse than the limitation itself.
+- Budgets, as SHOULD, and per vault: a cold index of 1 000 cards within **2 s**;
+  parse, resolve, and render of a 100 KiB card within **100 ms**. A window
+  holding several vaults pays the cold cost once per vault, when a card in it is
+  first opened.
+- **The empty state names the cause.** A preview with no card says so; a preview
+  looking at an open `.hmd` file that no vault claims MUST say *that* instead,
+  and say what would claim it. Telling someone to open a card while they are
+  looking at one is accurate about the extension's state and misleading about
+  theirs (issue 0108).
+- `diagnostics.scope: "workspace"` means every card in the index, and there is
+  one index per vault — so it publishes every vault the window has opened a card
+  in, and grows as the user moves between them. `"open"` is unchanged and is the
+  setting for anyone who wants a fixed scope.
 
 ### 9. Backlinks
 
@@ -480,8 +526,9 @@ tools/hmd-vsc-ext/
   syntaxes/hmd.tmLanguage.json
   src/
     extension.ts          activation, commands, disposables
-    workspaceHost.ts      WorkspaceHost over vscode.workspace.fs
-    index.ts              index lifecycle, watchers, debounce
+    workspaceHost.ts      WorkspaceHost over vscode.workspace.fs, discovery
+    catalog.ts            the vault catalog: which vault claims a URI
+    vault.ts              one vault's index, watcher, and unsaved buffers
     diagnostics.ts        core diagnostics → DiagnosticCollection
     preview/
       view.ts             WebviewViewProvider
@@ -512,6 +559,9 @@ Unit tests (vitest, jsdom) MUST include:
   between them; the echo lockout suppresses a synthetic round trip.
 - Protocol: a malformed inbound message is rejected; an `openSource` for a path
   outside the root is rejected.
+- Discovery: a folder holding a nested vault resolves a card in each to
+  different roots, over a real directory tree rather than a stubbed one — the
+  claim is about a tree, so faking the tree would test nothing (issue 0108).
 - CSP: the generated shell HTML contains a nonce, and every `<script>` carries
   it.
 

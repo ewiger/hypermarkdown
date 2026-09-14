@@ -21,6 +21,28 @@ against
 
 ## [Unreleased]
 
+### Added
+
+- **One folder can hold several vaults.** A vault is a directory carrying its
+  own `.hmd/`, and the vault a card belongs to is now discovered from the card —
+  walking up to the nearest `.hmd/` and stopping at the workspace folder, the
+  way `git` finds its repository and the way the `hmd` CLI already finds a
+  project root. Each vault gets its own index, file watcher, and diagnostics,
+  built the first time you open a card in it. Cards in a repository holding a
+  `doc/wiki` and a self-contained example tree now all preview; before this,
+  every card outside the one root chosen at startup showed an empty state.
+- Resolution stays inside a vault: a `[[wikilink]]`, an embed, and a backlink
+  never cross into a neighbouring one, because two vaults are two namespaces.
+
+### Changed
+
+- `hyperMarkdown.diagnostics.scope: "workspace"` means every vault the window
+  has opened a card in, which is what "every card in the index" comes to once a
+  folder can hold more than one index.
+- A preview looking at a `.hmd` file that no vault claims says so and says what
+  would claim it, instead of asking you to open a card while you are looking at
+  one.
+
 ## [0.2.0] — 2026-09-14
 
 **Diagrams now work on a fresh install.** The extension is published as one

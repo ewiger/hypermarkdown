@@ -61,10 +61,11 @@ window.addEventListener("message", (event: MessageEvent<HostMessage>) => {
       mode = message.mode;
       document.body.classList.toggle("is-pinned", message.pinned);
       // The host cannot see this; a restored panel is handed back only what
-      // the webview persisted for itself. The card only — a persisted `pinned`
-      // outlives the build that wrote it and comes back as a frozen preview
-      // with nothing on screen to explain it (issue 0105).
-      vscode.setState({ card: message.document.path });
+      // the webview persisted for itself. The card and the vault that claims
+      // it, and nothing else — a persisted `pinned` outlives the build that
+      // wrote it and comes back as a frozen preview with nothing on screen to
+      // explain it (issue 0105).
+      vscode.setState({ card: message.document.path, vault: message.vault });
       renderBreadcrumb(breadcrumb, message.document);
       patchBlocks(content, message.document.blocks, settings);
       anchors = collectAnchors(content);

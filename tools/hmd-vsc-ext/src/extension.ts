@@ -9,44 +9,44 @@
 
 import * as vscode from "vscode";
 
+import { VaultCatalog } from "./catalog.js";
 import { createCard } from "./commands/createCard.js";
 import { DiagnosticPublisher } from "./diagnostics.js";
 import { PreviewPanel, VIEW_TYPE, type PanelState } from "./preview/panel.js";
-import { Store } from "./store.js";
 
-/** Gates the editor title-bar button: this workspace is a knowledge base. */
+/** Gates the editor title-bar button: this window holds at least one vault. */
 const HAS_ROOT = "hyperMarkdown.hasRoot";
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  const store = new Store(context.extensionUri);
-  context.subscriptions.push(store, { dispose: () => PreviewPanel.disposeAll() });
+  const catalog = new VaultCatalog(context.extensionUri);
+  context.subscriptions.push(catalog, { dispose: () => PreviewPanel.disposeAll() });
 
-  const diagnostics = new DiagnosticPublisher(store);
+  const diagnostics = new DiagnosticPublisher(catalog);
   context.subscriptions.push(diagnostics);
 
   const publishHasRoot = (): void => {
-    void vscode.commands.executeCommand("setContext", HAS_ROOT, store.ready);
+    void vscode.commands.executeCommand("setContext", HAS_ROOT, catalog.ready);
   };
   context.subscriptions.push(
-    store.onDidChange((rel) => {
-      if (rel === null) publishHasRoot();
+    catalog.onDidChange((card) => {
+      if (card === null) publishHasRoot();
     }),
   );
 
   context.subscriptions.push(
     vscode.window.registerWebviewPanelSerializer(VIEW_TYPE, {
       async deserializeWebviewPanel(panel, state: unknown): Promise<void> {
-        PreviewPanel.restore(panel, store, context.extensionUri, panelState(state));
+        PreviewPanel.restore(panel, catalog, context.extensionUri, panelState(state));
       },
     }),
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("hyperMarkdown.openPreview", () => {
-      PreviewPanel.open(store, context.extensionUri, { column: vscode.ViewColumn.Active });
+      PreviewPanel.open(catalog, context.extensionUri, { column: vscode.ViewColumn.Active });
     }),
     vscode.commands.registerCommand("hyperMarkdown.openPreviewToSide", () => {
-      PreviewPanel.open(store, context.extensionUri, {
+      PreviewPanel.open(catalog, context.extensionUri, {
         column: vscode.ViewColumn.Beside,
         preserveFocus: true,
       });
@@ -63,7 +63,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       );
     }),
     vscode.commands.registerCommand("hyperMarkdown.refreshIndex", async () => {
-      await store.rebuild();
+      await catalog.rebuild();
       diagnostics.refresh();
     }),
     vscode.commands.registerCommand("hyperMarkdown.createCardFromLink", async () => {
@@ -73,22 +73,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         prompt: "Card to create, as it would be written in a [[wikilink]]",
       });
       if (target === undefined || target.trim() === "") return;
-      await createCard(store, store.relFor(editor.document.uri), target.trim());
+      await createCard(catalog, await catalog.openCard(editor.document.uri), target.trim());
     }),
   );
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("hyperMarkdown.root")) void store.rebuild();
+      if (event.affectsConfiguration("hyperMarkdown.root")) void catalog.rebuild();
       else if (event.affectsConfiguration("hyperMarkdown.diagram.d2Path")) {
-        store.refreshDiagramEngine();
+        catalog.refreshDiagramEngine();
       } else if (event.affectsConfiguration("hyperMarkdown")) diagnostics.refresh();
     }),
-    vscode.workspace.onDidChangeWorkspaceFolders(() => void store.rebuild()),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => void catalog.rebuild()),
   );
 
   try {
-    await store.initialize();
+    await catalog.initialize();
   } catch (exc) {
     void vscode.window.showErrorMessage(
       `HyperMarkDown could not index this workspace: ${
@@ -108,7 +108,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 function panelState(raw: unknown): PanelState | null {
   if (typeof raw !== "object" || raw === null) return null;
   const state = raw as Record<string, unknown>;
-  return { card: typeof state["card"] === "string" ? state["card"] : null };
+  return {
+    card: typeof state["card"] === "string" ? state["card"] : null,
+    vault: typeof state["vault"] === "string" ? state["vault"] : null,
+  };
 }
 
 export function deactivate(): void {

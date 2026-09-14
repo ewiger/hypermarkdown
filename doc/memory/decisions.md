@@ -442,3 +442,49 @@ claim that can go stale — settings, commands, the ledger of divergences — st
 in the extension's own README, which is also what the marketplace renders. The
 listing and the site page say the same thing twice only where the sentence is
 "install this", which cannot drift.
+
+## A window holds a catalog of vaults, not a project
+
+The extension used to resolve one namespace root at startup, from the first
+workspace folder, which made *one workspace, one vault* an assumption in the
+shape of the code rather than a decision anyone had taken. The vault model
+never said that: a directory tree is a vault because it carries `.hmd/`, and
+vaults nest — this repository has `doc/wiki` plus one per example tree, with no
+marker at its own root. So every card under `examples/` was invisible to an
+editor that could lint the same file from the command line without being told
+anything.
+
+What replaced it is the git rule the canonical implementation already followed:
+walk up from the card to the nearest `.hmd/`. The walk stops at the containing
+workspace folder rather than continuing to the disk root, because `hmd`'s `.git`
+fallback is a convenience for a CLI that starts in a directory, and an editor
+already has a better answer to the same question.
+
+Three things were genuinely open, and the reasons are worth keeping:
+
+**One index per vault, not one index re-initialised.** The cheap version — keep
+a single index and rebuild it whenever the user crosses a boundary — is a much
+smaller change, and it throws the whole index away every time someone clicks
+between `doc/wiki` and an example. The expensive part is not the rebuild; it is
+that the watcher, the diagnostics, and the backlinks all describe whichever
+vault was touched last, so every one of them would be answering about a
+knowledge base the user is no longer looking at. A catalog of vaults, built
+lazily and disposed with the window, is the model the format already has.
+
+**Nothing resolves across a boundary.** A link that reached into a neighbouring
+vault would make a card render differently depending on what else happened to be
+checked out — the same card, the same bytes, a different meaning per clone. Two
+vaults are two namespaces, and that is the whole content of the claim.
+
+**`diagnostics.scope: "workspace"` was redefined rather than joined by a third
+value.** It means "every card in the index", and once there is an index per
+vault it means every vault the window has opened a card in — so the scope grows
+as the user moves. A third value would be a setting nobody can predict the
+meaning of without knowing the discovery rule.
+
+The part that took the longest to see: a path stopped being a card's name. The
+same path names different cards in two vaults, so the preview, its persisted
+state, and every message crossing the webview boundary carry the vault as well.
+The webview's persisted state is the place that shows: a state written by an
+older build has a path and no vault, and is dropped rather than guessed at,
+which costs a restored tab one editor click to find its way back.

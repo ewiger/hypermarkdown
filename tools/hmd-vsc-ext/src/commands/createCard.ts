@@ -10,8 +10,8 @@ import * as vscode from "vscode";
 
 import { SUFFIX, dirnameRel, joinRel, split, withHmdSuffix } from "@hypermarkdown/core";
 
+import type { CardRef, VaultCatalog } from "../catalog.js";
 import { isSafeRelativePath } from "../protocol.js";
-import type { Store } from "../store.js";
 
 /**
  * Where the resolver would next have looked: the source card's own directory
@@ -36,11 +36,18 @@ export function suggestedPath(sourceRel: string | null, target: string): string 
   return joinRel(directory, ...parts.slice(0, -1), withHmdSuffix(last));
 }
 
+/**
+ * Create the card in the source card's own vault.
+ *
+ * A red link belongs to the vault that rendered it, so there is no choice to
+ * make here: with no source card there is no namespace to create in either.
+ */
 export async function createCard(
-  store: Store,
-  sourceRel: string | null,
+  catalog: VaultCatalog,
+  source: CardRef | null,
   target: string,
 ): Promise<void> {
+  if (source === null) return;
   if (!vscode.workspace.isTrusted) {
     void vscode.window.showWarningMessage(
       "HyperMarkDown: creating a card requires a trusted workspace.",
@@ -48,7 +55,7 @@ export async function createCard(
     return;
   }
 
-  const rel = suggestedPath(sourceRel, target);
+  const rel = suggestedPath(source.rel, target);
   if (rel === null || !isSafeRelativePath(rel) || !rel.endsWith(SUFFIX)) {
     void vscode.window.showWarningMessage(
       `HyperMarkDown: cannot derive a path for ${target}.`,
@@ -56,8 +63,7 @@ export async function createCard(
     return;
   }
 
-  const uri = store.uriFor(rel);
-  if (uri === null) return;
+  const uri = source.vault.uriFor(rel);
 
   const title = titleFor(target);
   const edit = new vscode.WorkspaceEdit();

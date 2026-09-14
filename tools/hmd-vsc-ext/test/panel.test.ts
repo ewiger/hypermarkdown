@@ -10,8 +10,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import * as vscode from "vscode";
 
+import type { VaultCatalog } from "../src/catalog.js";
 import { PreviewPanel } from "../src/preview/panel.js";
-import type { Store } from "../src/store.js";
+import type { Vault } from "../src/vault.js";
 
 const stub = vscode as unknown as {
   createdPanels: { showOptions: { viewColumn: number }; panel: { dispose(): void } }[];
@@ -24,18 +25,39 @@ const stub = vscode as unknown as {
 
 const extensionUri = { path: "/ext", toString: () => "/ext" } as unknown as vscode.Uri;
 
+/** One vault, named the way the catalog names it. */
+const vault = { key: "file:///vault" } as unknown as Vault;
+
 /**
- * A store that knows paths and nothing else.
+ * A catalog that knows paths and nothing else.
  *
  * `ready` is false, so the controller stops before rendering — every property
  * under test is about which card a preview holds, not what it draws.
  */
-function fakeStore(): Store {
+function fakeCatalog(): VaultCatalog {
+  const cardFor = (uri: unknown): { vault: Vault; rel: string } | null => {
+    const rel = (uri as { rel: string | null }).rel;
+    return rel === null ? null : { vault, rel };
+  };
   return {
     ready: false,
     onDidChange: () => ({ dispose: () => undefined }),
-    relFor: (uri: unknown) => (uri as { rel: string | null }).rel,
-  } as unknown as Store;
+    cardFor,
+    openCard: async (uri: unknown) => cardFor(uri),
+    vaultAt: (key: string) => (key === vault.key ? vault : undefined),
+  } as unknown as VaultCatalog;
+}
+
+/**
+ * Let the catalog answer.
+ *
+ * Following an editor is asynchronous now: the vault that claims a card is
+ * discovered from the card, and discovery reads the file system (issue 0108).
+ */
+async function settle(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
 }
 
 function editorFor(rel: string | null): { document: { uri: unknown } } {
@@ -53,24 +75,24 @@ beforeEach(() => {
 
 describe("opening a preview", () => {
   it("lands in the column that asked for it, not beside it", () => {
-    const store = fakeStore();
-    PreviewPanel.open(store, extensionUri, { column: vscode.ViewColumn.Active });
+    const catalog = fakeCatalog();
+    PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
 
     expect(openPanels()).toHaveLength(1);
     expect(openPanels()[0]?.showOptions.viewColumn).toBe(stub.ViewColumn.Active);
   });
 
   it("still offers the side-by-side column for the palette command", () => {
-    const store = fakeStore();
-    PreviewPanel.open(store, extensionUri, { column: vscode.ViewColumn.Beside });
+    const catalog = fakeCatalog();
+    PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Beside });
 
     expect(openPanels()[0]?.showOptions.viewColumn).toBe(stub.ViewColumn.Beside);
   });
 
   it("reveals the unpinned preview already in that column", () => {
-    const store = fakeStore();
-    const first = PreviewPanel.open(store, extensionUri, { column: vscode.ViewColumn.Active });
-    const second = PreviewPanel.open(store, extensionUri, { column: vscode.ViewColumn.Active });
+    const catalog = fakeCatalog();
+    const first = PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
+    const second = PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
 
     // Two unpinned previews in one column both show the active card, so the
     // second is only a way to lose track of the first.
@@ -80,86 +102,112 @@ describe("opening a preview", () => {
   });
 
   it("creates a second panel once the first is pinned", () => {
-    const store = fakeStore();
+    const catalog = fakeCatalog();
     stub.window.activeTextEditor = editorFor("notes/alpha.hmd");
-    const first = PreviewPanel.open(store, extensionUri, { column: vscode.ViewColumn.Active });
+    const first = PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
     first.togglePin();
 
-    const second = PreviewPanel.open(store, extensionUri, { column: vscode.ViewColumn.Active });
+    const second = PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
 
     expect(second).not.toBe(first);
     expect(openPanels()).toHaveLength(2);
   });
 
   it("does not reuse a preview living in a different column", () => {
-    const store = fakeStore();
-    PreviewPanel.open(store, extensionUri, { column: 1 as vscode.ViewColumn });
-    PreviewPanel.open(store, extensionUri, { column: 2 as vscode.ViewColumn });
+    const catalog = fakeCatalog();
+    PreviewPanel.open(catalog, extensionUri, { column: 1 as vscode.ViewColumn });
+    PreviewPanel.open(catalog, extensionUri, { column: 2 as vscode.ViewColumn });
 
     expect(openPanels()).toHaveLength(2);
   });
 });
 
 describe("which card a panel holds", () => {
-  it("follows the active editor even when opened over a card", () => {
-    const store = fakeStore();
+  it("follows the active editor even when opened over a card", async () => {
+    const catalog = fakeCatalog();
     stub.window.activeTextEditor = editorFor("notes/alpha.hmd");
 
-    PreviewPanel.open(store, extensionUri, { column: vscode.ViewColumn.Active });
+    PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
     const tab = openPanels()[0]?.panel as unknown as { title: string };
+    await settle();
     expect(tab.title).toBe("alpha");
 
     // Pinning on open froze the preview for the life of the tab (issue 0105).
     stub.window.activeTextEditor = editorFor("notes/beta.hmd");
     stub.window.activeEditorChanged.fire();
+    await settle();
     expect(tab.title).toBe("beta");
   });
 
-  it("stops following once pinned, and resumes when unpinned", () => {
-    const store = fakeStore();
+  it("stops following once pinned, and resumes when unpinned", async () => {
+    const catalog = fakeCatalog();
     stub.window.activeTextEditor = editorFor("notes/alpha.hmd");
 
-    const preview = PreviewPanel.open(store, extensionUri, {
+    const preview = PreviewPanel.open(catalog, extensionUri, {
       column: vscode.ViewColumn.Active,
     });
     const tab = openPanels()[0]?.panel as unknown as { title: string };
+    await settle();
 
     expect(preview.togglePin()).toBe(true);
     stub.window.activeTextEditor = editorFor("notes/beta.hmd");
     stub.window.activeEditorChanged.fire();
+    await settle();
     expect(tab.title).toBe("alpha");
 
     expect(preview.togglePin()).toBe(false);
     stub.window.activeEditorChanged.fire();
+    await settle();
     expect(tab.title).toBe("beta");
   });
 
-  it("follows the active editor when it was opened from a non-card", () => {
-    const store = fakeStore();
+  it("follows the active editor when it was opened from a non-card", async () => {
+    const catalog = fakeCatalog();
     stub.window.activeTextEditor = editorFor(null);
 
-    PreviewPanel.open(store, extensionUri, { column: vscode.ViewColumn.Active });
+    PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
     const tab = openPanels()[0]?.panel as unknown as { title: string };
+    await settle();
     expect(tab.title).toBe("HyperMarkDown Preview");
 
     stub.window.activeTextEditor = editorFor("notes/beta.hmd");
     stub.window.activeEditorChanged.fire();
+    await settle();
     expect(tab.title).toBe("beta");
   });
 
-  it("comes back on its card after a reload, and still following", () => {
-    const store = fakeStore();
+  it("comes back on its card after a reload, and still following", async () => {
+    const catalog = fakeCatalog();
     const panel = new (vscode as unknown as {
       WebviewPanelStub: new (title: string) => unknown;
     }).WebviewPanelStub("HyperMarkDown Preview") as vscode.WebviewPanel;
 
-    PreviewPanel.restore(panel, store, extensionUri, { card: "notes/gamma.hmd" });
+    PreviewPanel.restore(panel, catalog, extensionUri, {
+      card: "notes/gamma.hmd",
+      vault: vault.key,
+    });
+    await settle();
     expect(panel.title).toBe("gamma");
 
     // Restoring a persisted `pinned` resurrected the frozen preview from
     // storage an older build had written (issue 0105).
     stub.window.activeTextEditor = editorFor("notes/beta.hmd");
     stub.window.activeEditorChanged.fire();
+    await settle();
     expect(panel.title).toBe("beta");
+  });
+
+  it("ignores a card persisted without its vault", async () => {
+    // A path alone named a card only while one vault could exist; state
+    // written by such a build has to be dropped rather than guessed at
+    // (issue 0108).
+    const catalog = fakeCatalog();
+    const panel = new (vscode as unknown as {
+      WebviewPanelStub: new (title: string) => unknown;
+    }).WebviewPanelStub("HyperMarkDown Preview") as vscode.WebviewPanel;
+
+    PreviewPanel.restore(panel, catalog, extensionUri, { card: "notes/gamma.hmd", vault: null });
+    await settle();
+    expect(panel.title).toBe("HyperMarkDown Preview");
   });
 });

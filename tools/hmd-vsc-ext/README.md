@@ -82,10 +82,10 @@ rendering without it.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| `hyperMarkdown.root` | `""` | Namespace root. Empty discovers it from `.hmd/config.toml`, falling back to `doc/wiki`. |
+| `hyperMarkdown.root` | `""` | Namespace root for the workspace folder itself, for cards no vault claims. Empty discovers it from `.hmd/config.toml`, falling back to `doc/wiki`. |
 | `hyperMarkdown.preview.scrollSync` | `true` | Keep preview and editor on the same source line. |
 | `hyperMarkdown.preview.embeds` | `expanded` | Whether embed cards start expanded. |
-| `hyperMarkdown.diagnostics.scope` | `workspace` | Publish diagnostics for every indexed card, or only open ones. |
+| `hyperMarkdown.diagnostics.scope` | `workspace` | Publish diagnostics for every indexed card — in every vault opened this session — or only for open ones. |
 
 ## Commands
 
@@ -94,7 +94,25 @@ group you are in
 - **HyperMarkDown: Open Preview to the Side** — the same, in the group beside it
 - **HyperMarkDown: Pin Preview to This Card** — stop following the active editor
 - **HyperMarkDown: Create Missing Card** — write the card a red link points at
-- **HyperMarkDown: Rebuild Index** — re-scan the namespace root
+- **HyperMarkDown: Rebuild Index** — drop every vault and re-scan from scratch
+
+## Several vaults in one folder
+
+A **vault** is a directory carrying a `.hmd/` directory, and one folder open in
+the editor may hold several — a `doc/wiki` alongside a self-contained example
+tree, say. The vault a card belongs to is found from the card: the extension
+walks up from it to the nearest `.hmd/`, stopping at the workspace folder, the
+way `git` finds its repository. Each vault is indexed, watched, and linted on
+its own the first time you open a card in it.
+
+Nothing resolves across a boundary. Two vaults are two namespaces, so a
+`[[wikilink]]`, an embed, and a backlink all stay inside the vault of the card
+that wrote them.
+
+A card with no `.hmd/` above it belongs to the workspace folder itself, whose
+root is `hyperMarkdown.root` when set, else `wiki` from the folder's
+`.hmd/config.toml`, else `doc/wiki`, else the folder — so a bare directory of
+cards works with no setup at all.
 
 ## Where the preview appears
 

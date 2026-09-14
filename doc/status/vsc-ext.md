@@ -20,21 +20,20 @@ to the linter's, and math, callouts, and D2 diagrams — the `d2` binary travels
 inside the extension, so a diagram draws on a fresh install with nothing
 configured. Releases publish from CI with no stored credential.
 
-**Two things stand between it and dropping the preview label.** The graph tab
-does not exist yet, which is the feature the label is waiting on. And a
-repository holding more than one vault — this one does — shows an empty state
-for every card outside the first vault, which is the first thing a new user of
-this repository hits.
+**One thing stands between it and dropping the preview label:** the graph tab
+does not exist yet, which is the feature the label is waiting on.
 
-Nothing is being worked on right now: the last release shipped, and the next
-piece of work has not started.
+**Vaults are now discovered from the card.** A window holds a catalog of
+vaults rather than one project, so a repository carrying several — this one
+carries `doc/wiki` plus a vault per example tree — previews a card in any of
+them. Unreleased: it is on the branch, gated by tests, and ships with the next
+version.
 
 ## Open
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
 | todo | **The graph tab.** A directed graph of the vault drawn inside the preview, replacing the backlinks tab rather than joining it — backlinks is one view of one direction of the graph, and a tab strip carrying both would offer the same thing twice. | The release stops being a preview when this lands. Specified only in outline, so the proposal is amended in the same change | [[hmd-0021#10-deferred-tabs]] |
-| todo | **Per-card vault discovery.** One folder open in the editor can hold several vaults, each marked by its own `.hmd/`, and this repository does: `doc/wiki` plus a vault per example tree. Walk up from the card to the nearest `.hmd/`, stopping at the workspace folder, and hold one index per vault — the way git finds its repository, and the way the canonical implementation already finds a project root. | Fixes the empty state under Broken. Needs the proposal's one-vault-per-workspace model rewritten [issue 0108] | [[hmd-0021#8-workspace-index-and-watching]] |
 | blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | blocked | **Drop the preview label** from the manifest and the gallery copy. Waits on the graph tab, which is the only milestone that ever claimed it | One line in the manifest, once the graph is in | [[hmd-0021#12-packaging-and-ci]] |
 | parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
@@ -68,9 +67,7 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Broken
 
-| Status | Defect | Symptom | References |
-| --- | --- | --- | --- |
-| todo | **A card in a nested vault cannot be previewed.** The extension picks one namespace root at startup, from the first workspace folder, and every card outside it is invisible to the index | Open `examples/cs-alg-sorting/complexity.hmd` in a checkout of this repository and the preview says *"Open a .hmd card to preview it."* The card is a card, it is open, and it is in the workspace — the message is accurate about the extension's state and misleading about the cause. Fixed by per-card vault discovery above, which should also make the message say that no vault claims the card | [[hmd-0021#8-workspace-index-and-watching]] |
+Nothing known.
 
 ## Limitations (known gaps)
 
@@ -100,6 +97,13 @@ about 300 MB on first run, which is why it is not in the default test command.
   shipped inside the VSIX — one build per platform, each gated on the binary
   being there.
 - **Syntax highlighting** for `.hmd` as its own language.
+- **Several vaults in one folder** — a vault is discovered by walking up from
+  the card to the nearest `.hmd/`, stopping at the containing workspace folder,
+  and the window holds one index, watcher, and diagnostic scope per vault, built
+  the first time a card asks for it. Nothing resolves across a boundary: two
+  vaults are two namespaces. A card no vault claims is told so, in place of the
+  old message that asked the reader to open a card while they were looking at
+  one [issue 0108].
 - **Released** — `0.1.0` on both galleries in August, `0.2.0` on 2026-09-14 for
   six platform targets, published from CI by federated credential with no stored
   token, with a landing page on the website.
@@ -117,14 +121,15 @@ npm run -w tools/hmd-vsc-ext package
 | Question | References |
 | --- | --- |
 | Does the graph tab land as a proposal amendment first, or as an implementation the amendment then describes? The proposal fixes only the data source and the module shape and says nothing about interaction | [[hmd-0021#10-deferred-tabs]] |
-| One index per vault, or one index re-initialised whenever the user crosses between vaults? Per vault is the honest model and makes diagnostics, backlinks, and the file watcher per vault; re-initialising is a much smaller change that throws the index away on every crossing (issue 0108) | [[hmd-0021#8-workspace-index-and-watching]] |
-| Do links and graph edges cross a vault boundary? They almost certainly should not — two vaults are two namespaces, and a link resolving into a neighbour would make the same card render differently depending on what else is checked out — but the proposal needs to say so either way | [[hmd-0004#namespace-a-named-tree-not-a-folder]] |
-| The diagnostics setting offers "every card in the index" or "open cards only", and with several vaults the first would come to mean "every vault this session has opened a card in". A third value, or a redefinition? | [[hmd-0021#7-diagnostics]] |
 | What does the graph show at rest for a large vault? Nothing bounds the node count, and the layout is recomputed every time the tab is shown | [[hmd-0021#10-deferred-tabs]] |
 | The publisher is not domain-verified, and re-submitting will not help: the gallery grants it by manual review after roughly six months of continuous release history. First release was 2026-08-11, so the earliest worth raising again is around February 2027, and only if releases have kept coming. Do not reach for DNS — the TXT record on the apex is Open VSX's claim, not the gallery's — and re-check by querying the public extension API rather than by looking at the portal | [[hmd-0005#the-extensions-identity-on-both-galleries]] |
 
 ## Changelog
 
+- 2026-09-14: per-card vault discovery landed. The three open questions it
+  carried are answered in the proposal rather than here: one index per vault,
+  no resolution across a boundary, and `diagnostics.scope: "workspace"`
+  redefined as every vault the window has opened a card in.
 - 2026-09-14: rewritten in the shape the trackers now use — status first in
   prose, then open work, broken, gaps, and done last. Work-point numbers are
   gone: a row is named by what it is. The graph tab gained its design, and it

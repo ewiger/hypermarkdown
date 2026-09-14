@@ -158,7 +158,7 @@
         "hyperMarkdown.root": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Namespace root, relative to the workspace folder. Empty means discover it from `.hmd/config.toml`, falling back to `doc/wiki`."
+          "markdownDescription": "Namespace root for the workspace folder itself, relative to it. Vaults are otherwise discovered from the card, by walking up to the nearest `.hmd/` directory; this setting names the root for cards no vault claims, and wins for the folder it is set in. Empty means discover it from the folder's `.hmd/config.toml`, falling back to `doc/wiki`."
         },
         "hyperMarkdown.preview.scrollSync": {
           "type": "boolean",
@@ -186,7 +186,7 @@
             "workspace"
           ],
           "default": "workspace",
-          "markdownDescription": "Publish diagnostics for open documents only, or for every card in the index. A red link in a card nobody has opened is still a work item."
+          "markdownDescription": "Publish diagnostics for open documents only, or for every card in the index — which means every vault this window has opened a card in. A red link in a card nobody has opened is still a work item."
         }
       }
     }

@@ -11,7 +11,9 @@ import * as vscode from "vscode";
 
 import type { Diagnostic as HmdDiagnostic } from "@hypermarkdown/core";
 
-import { debounce, type Store } from "./store.js";
+import type { VaultCatalog } from "./catalog.js";
+import { debounce } from "./debounce.js";
+import type { Vault } from "./vault.js";
 
 /** Milliseconds after the last keystroke before diagnostics publish. */
 export const DIAGNOSTIC_DEBOUNCE_MS = 500;
@@ -21,9 +23,9 @@ export class DiagnosticPublisher implements vscode.Disposable {
   private readonly disposables: vscode.Disposable[] = [];
   private readonly schedule = debounce(DIAGNOSTIC_DEBOUNCE_MS, () => this.publish());
 
-  constructor(private readonly store: Store) {
+  constructor(private readonly catalog: VaultCatalog) {
     this.disposables.push(
-      store.onDidChange(() => this.schedule()),
+      catalog.onDidChange(() => this.schedule()),
       vscode.window.onDidChangeTextEditorSelection(() => this.schedule()),
     );
   }
@@ -38,41 +40,52 @@ export class DiagnosticPublisher implements vscode.Disposable {
     this.schedule();
   }
 
+  /**
+   * Publish every indexed vault.
+   *
+   * `"workspace"` means every card in the index, and the index is now one per
+   * vault — so the scope is every vault a card has been opened in this session,
+   * which is the honest reading of the setting once a folder can hold several
+   * (issue 0108). Vaults are published one at a time because a path names a
+   * card only within its own vault.
+   */
   private publish(): void {
     const scope = vscode.workspace
       .getConfiguration("hyperMarkdown")
       .get<"open" | "workspace">("diagnostics.scope", "workspace");
 
+    this.collection.clear();
+    for (const vault of this.catalog.loaded()) this.publishVault(vault, scope);
+  }
+
+  private publishVault(vault: Vault, scope: "open" | "workspace"): void {
     const open = new Set(
       vscode.workspace.textDocuments
-        .map((d) => this.store.relFor(d.uri))
+        .map((d) => vault.relFor(d.uri))
         .filter((rel): rel is string => rel !== null),
     );
 
-    const suppressed = cursorLines(this.store);
+    const suppressed = cursorLines(vault);
     const byPath = new Map<string, vscode.Diagnostic[]>();
 
-    for (const diagnostic of this.store.diagnostics()) {
+    for (const diagnostic of vault.diagnostics()) {
       if (scope === "open" && !open.has(diagnostic.path)) continue;
       if (suppressed.get(diagnostic.path) === diagnostic.line) continue;
       push(byPath, diagnostic.path, toVsCode(diagnostic));
     }
 
-    this.collection.clear();
-    for (const rel of this.store.pages()) {
-      const uri = this.store.uriFor(rel);
-      if (uri === null) continue;
+    for (const rel of vault.pages()) {
       if (scope === "open" && !open.has(rel)) continue;
-      this.collection.set(uri, byPath.get(rel) ?? []);
+      this.collection.set(vault.uriFor(rel), byPath.get(rel) ?? []);
     }
   }
 }
 
-/** The line each visible editor's cursor sits on, per card. */
-function cursorLines(store: Store): Map<string, number> {
+/** The line each visible editor's cursor sits on, per card of one vault. */
+function cursorLines(vault: Vault): Map<string, number> {
   const out = new Map<string, number>();
   for (const editor of vscode.window.visibleTextEditors) {
-    const rel = store.relFor(editor.document.uri);
+    const rel = vault.relFor(editor.document.uri);
     if (rel === null) continue;
     out.set(rel, editor.selection.active.line + 1);
   }

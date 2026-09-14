@@ -27,9 +27,6 @@ board:
   last_id: 108 # highest assigned overall; per stream — Python 8, editor 108
   items:
     backlog:
-      - id: "0108"
-        title: "One editor root folder should hold several HMD vaults"
-        file: 0108-vault-root-discovery-per-card.md
       - id: "0008"
         title: "A public card linking to a private one needs a policy"
         file: "0008-private-card-link-policy.md"
@@ -54,6 +51,9 @@ board:
         file: 0100-callout-open-state-lost.md
     doing: []
     done:
+      - id: "0108"
+        title: "One editor root folder should hold several HMD vaults"
+        file: 0108-vault-root-discovery-per-card.md
       - id: "0107"
         title: "Native binaries want a toolchain repository with d2"
         file: "0107-toolchain-repository-for-native-binaries.md"

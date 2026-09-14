@@ -1,6 +1,6 @@
 # 0108 — One editor root folder should hold several HMD vaults
 
-**Column**: backlog
+**Column**: done
 **Opened**: 2026-09-14
 
 ## What

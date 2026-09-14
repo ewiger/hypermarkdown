@@ -3,15 +3,21 @@
  *
  * Several of these are alive at once — one per preview tab — so a controller
  * owns only what is per-preview: which card it holds, whether it is pinned,
- * and its scroll bookkeeping. Anything shared, including the index and the
- * unsaved-buffer overrides, belongs to the `Store`.
+ * and its scroll bookkeeping. Anything shared — the vaults, their indexes, and
+ * the unsaved-buffer overrides — belongs to the `VaultCatalog`.
+ *
+ * A card is named by the vault that claims it as well as by its path, because
+ * one window may hold several vaults and the same path means different cards
+ * in two of them.
  */
 
 import * as vscode from "vscode";
 
 import { IR_VERSION, SUFFIX } from "@hypermarkdown/core";
 
+import { sameCard, type CardRef, type VaultCatalog } from "../catalog.js";
 import { createCard } from "../commands/createCard.js";
+import { REPARSE_DEBOUNCE_MS, debounce } from "../debounce.js";
 import {
   isSafeRelativePath,
   parseWebviewMessage,
@@ -19,7 +25,6 @@ import {
   type PreviewMode,
   type PreviewSettings,
 } from "../protocol.js";
-import { REPARSE_DEBOUNCE_MS, debounce, type Store } from "../store.js";
 
 /** How long to ignore the other side's scroll after applying one (§6). */
 export const ECHO_LOCKOUT_MS = 250;
@@ -29,8 +34,10 @@ export const SCROLL_THROTTLE_MS = 50;
 export class PreviewController implements vscode.Disposable {
   private mode: PreviewMode = "rendered";
   private pinned = false;
-  private current: string | null = null;
+  private current: CardRef | null = null;
   private lastAppliedScroll = 0;
+  /** An open `.hmd` file no vault claims, so the empty state can say which. */
+  private unclaimed: vscode.Uri | null = null;
   private readonly disposables: vscode.Disposable[] = [];
   private readonly refresh = debounce(REPARSE_DEBOUNCE_MS, () => this.send());
   private readonly cardChanged = new vscode.EventEmitter<string | null>();
@@ -39,20 +46,20 @@ export class PreviewController implements vscode.Disposable {
   readonly onDidChangeCard = this.cardChanged.event;
 
   constructor(
-    private readonly store: Store,
+    private readonly catalog: VaultCatalog,
     private readonly webview: vscode.Webview,
     /** The column this preview occupies, so source never opens on top of it. */
     private readonly hostColumn: () => vscode.ViewColumn | undefined = () => undefined,
   ) {
     this.disposables.push(
       webview.onDidReceiveMessage((raw: unknown) => this.receive(raw)),
-      store.onDidChange((rel) => {
-        if (rel === null || rel === this.current) this.refresh();
+      catalog.onDidChange((card) => {
+        if (card === null || sameCard(card, this.current)) this.refresh();
       }),
-      vscode.window.onDidChangeActiveTextEditor(() => this.follow()),
+      vscode.window.onDidChangeActiveTextEditor(() => void this.follow()),
       vscode.window.onDidChangeTextEditorVisibleRanges((event) => this.onEditorScroll(event)),
     );
-    this.follow();
+    void this.follow();
   }
 
   dispose(): void {
@@ -61,8 +68,9 @@ export class PreviewController implements vscode.Disposable {
     this.cardChanged.dispose();
   }
 
+  /** The path of the card on screen, for the tab title. */
   get card(): string | null {
-    return this.current;
+    return this.current?.rel ?? null;
   }
 
   get isPinned(): boolean {
@@ -81,9 +89,9 @@ export class PreviewController implements vscode.Disposable {
    * `show` alone would not survive the next active-editor change, and a tab
    * opened from a card is expected to keep showing that card.
    */
-  pinTo(rel: string): void {
+  pinTo(card: CardRef): void {
     this.pinned = true;
-    this.setCard(rel);
+    this.setCard(card);
     this.send();
   }
 
@@ -93,34 +101,79 @@ export class PreviewController implements vscode.Disposable {
   }
 
   /** Point the preview at one card, regardless of the active editor. */
-  show(rel: string): void {
-    this.setCard(rel);
+  show(card: CardRef): void {
+    this.setCard(card);
     this.send();
+  }
+
+  /**
+   * Point the preview at the card a reloaded window handed back.
+   *
+   * The vault behind the persisted key need not be indexed yet — the catalog
+   * builds vaults when a card asks for one, and a restored tab is exactly that
+   * ask arriving before any editor has been clicked. The persisted state
+   * survived a window reload and a possible extension update, so the path is
+   * checked here the way an inbound message would be.
+   */
+  async restore(vaultKey: string, rel: string): Promise<void> {
+    if (!isSafeRelativePath(rel) || !rel.endsWith(SUFFIX)) return;
+
+    const indexed = this.catalog.vaultAt(vaultKey);
+    if (indexed !== undefined) {
+      this.show({ vault: indexed, rel });
+      return;
+    }
+
+    let uri: vscode.Uri;
+    try {
+      uri = vscode.Uri.parse(`${vaultKey}/${rel.split("/").map(encodeURIComponent).join("/")}`, true);
+    } catch {
+      return;
+    }
+    const card = await this.catalog.openCard(uri);
+    if (card !== null) this.show(card);
   }
 
   // -- editor -> preview -----------------------------------------------
 
-  private follow(): void {
+  /**
+   * Move to the active editor's card, indexing its vault the first time.
+   *
+   * Asynchronous because discovery walks the file system: the vault that
+   * claims a card is found by walking up from the card itself, and a click
+   * into an example tree is the first time this window has heard of it.
+   */
+  private async follow(): Promise<void> {
     if (this.pinned) return;
     const editor = vscode.window.activeTextEditor;
     if (editor === undefined) return;
-    const rel = this.store.relFor(editor.document.uri);
-    if (rel === null) return;
-    this.setCard(rel);
+    const uri = editor.document.uri;
+    const card = await this.catalog.openCard(uri);
+    if (card === null) {
+      // Say so only while that editor is still the active one: the answer
+      // arrived late, and the user may have clicked on.
+      if (vscode.window.activeTextEditor?.document.uri.toString() === uri.toString()) {
+        this.unclaimed = uri;
+        this.send();
+      }
+      return;
+    }
+    this.unclaimed = null;
+    this.setCard(card);
     this.send();
   }
 
-  private setCard(rel: string | null): void {
-    if (this.current === rel) return;
-    this.current = rel;
-    this.cardChanged.fire(rel);
+  private setCard(card: CardRef | null): void {
+    if (sameCard(this.current, card)) return;
+    this.current = card;
+    this.cardChanged.fire(card?.rel ?? null);
   }
 
   private onEditorScroll(event: vscode.TextEditorVisibleRangesChangeEvent): void {
     if (!this.settings().scrollSync) return;
     if (Date.now() - this.lastAppliedScroll < ECHO_LOCKOUT_MS) return;
-    const rel = this.store.relFor(event.textEditor.document.uri);
-    if (rel === null || rel !== this.current) return;
+    const card = this.catalog.cardFor(event.textEditor.document.uri);
+    if (!sameCard(card, this.current)) return;
     const range = event.visibleRanges[0];
     if (range === undefined) return;
     this.post({ type: "revealLine", line: range.start.line + 1 });
@@ -153,7 +206,7 @@ export class PreviewController implements vscode.Disposable {
         void this.open(message.path, null, message.fragment, { follow: true });
         return;
       case "createCard":
-        void createCard(this.store, this.current, message.target);
+        void createCard(this.catalog, this.current, message.target);
         return;
       default:
         return;
@@ -162,8 +215,8 @@ export class PreviewController implements vscode.Disposable {
 
   private applyScroll(line: number): void {
     if (!this.settings().scrollSync) return;
-    const editor = vscode.window.visibleTextEditors.find(
-      (e) => this.store.relFor(e.document.uri) === this.current,
+    const editor = vscode.window.visibleTextEditors.find((e) =>
+      sameCard(this.catalog.cardFor(e.document.uri), this.current),
     );
     if (editor === undefined) return;
     this.lastAppliedScroll = Date.now();
@@ -180,21 +233,25 @@ export class PreviewController implements vscode.Disposable {
     fragment: string | null,
     options: { follow: boolean },
   ): Promise<void> {
+    // Every path in a message is relative to the vault of the card that
+    // produced it: a link never leaves its own namespace, so there is no
+    // discovery to do here.
+    const source = this.current;
+    if (source === null) return;
+
     // An empty path means "the card being previewed", which is what a
     // click-to-reveal on ordinary rendered content asks for (VSX-021).
-    const path = requested === "" ? this.current : requested;
-    if (path === null) return;
+    const path = requested === "" ? source.rel : requested;
 
     // The renderer only sends paths the core produced, so this can only fire on
     // a defect — which is exactly when a file-read primitive would be worth
     // having (§4).
     if (!isSafeRelativePath(path) || !path.endsWith(SUFFIX)) return;
-    const uri = this.store.uriFor(path);
-    if (uri === null) return;
+    const uri = source.vault.uriFor(path);
 
     // Move this preview itself rather than waiting for the active editor to
     // change, which is what lets focus stay in the webview (issue 0105).
-    if (options.follow && !this.pinned) this.show(path);
+    if (options.follow && !this.pinned) this.show({ vault: source.vault, rel: path });
 
     const document = await vscode.workspace.openTextDocument(uri);
     const editor = await vscode.window.showTextDocument(document, {
@@ -234,7 +291,7 @@ export class PreviewController implements vscode.Disposable {
 
   private lineOfFragment(path: string, fragment: string | null): number | null {
     if (fragment === null) return null;
-    const ir = this.store.render(path);
+    const ir = this.current?.vault.render(path) ?? null;
     if (ir === null) return null;
     const heading = ir.headings.find((h) => h.slug === fragment || h.text === fragment);
     return heading?.line ?? null;
@@ -258,9 +315,9 @@ export class PreviewController implements vscode.Disposable {
    * read what they wrote (§5.1).
    */
   private send(): void {
-    if (!this.store.ready) return;
+    if (!this.catalog.ready) return;
     if (this.current === null) {
-      this.post({ type: "error", message: "Open a .hmd card to preview it." });
+      this.post({ type: "error", message: this.emptyState() });
       return;
     }
 
@@ -268,14 +325,14 @@ export class PreviewController implements vscode.Disposable {
       this.post({
         type: "backlinks",
         irVersion: IR_VERSION,
-        items: this.store.backlinksFor(this.current),
+        items: this.current.vault.backlinksFor(this.current.rel),
       });
       return;
     }
 
     let document;
     try {
-      document = this.store.render(this.current);
+      document = this.current.vault.render(this.current.rel);
     } catch (exc) {
       this.post({
         type: "error",
@@ -285,7 +342,7 @@ export class PreviewController implements vscode.Disposable {
     }
 
     if (document === null) {
-      this.post({ type: "error", message: `${this.current} is not in the index.` });
+      this.post({ type: "error", message: `${this.current.rel} is not in the index.` });
       return;
     }
 
@@ -296,17 +353,31 @@ export class PreviewController implements vscode.Disposable {
 
     // Reading diagram artifacts is the one asynchronous step; the guard below
     // drops the result if the preview moved on while it was in flight.
-    void this.store.attachDiagrams(document).then((withDiagrams) => {
-      if (this.current !== card) return;
+    void this.catalog.attachDiagrams(document).then((withDiagrams) => {
+      if (!sameCard(this.current, card)) return;
       this.post({
         type: "render",
         irVersion: IR_VERSION,
+        vault: card.vault.key,
         document: withDiagrams,
         mode,
         settings,
         pinned,
       });
     });
+  }
+
+  /**
+   * What to say when there is nothing to draw.
+   *
+   * "Open a .hmd card to preview it" was told to people looking straight at an
+   * open card: what it meant was that no vault claimed the file, which is a
+   * different fact and the one they can act on (issue 0108).
+   */
+  private emptyState(): string {
+    if (this.unclaimed === null) return "Open a .hmd card to preview it.";
+    const name = this.unclaimed.path.slice(this.unclaimed.path.lastIndexOf("/") + 1);
+    return `No HyperMarkDown vault claims ${name}. A vault is a directory carrying a .hmd/ directory; add one at the root of this card's tree, or set hyperMarkdown.root.`;
   }
 
   private post(message: HostMessage): void {

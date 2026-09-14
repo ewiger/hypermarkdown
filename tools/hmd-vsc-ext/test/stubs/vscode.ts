@@ -67,19 +67,87 @@ export class WorkspaceEdit {
   }
 }
 
-export const Uri = {
-  joinPath: (base: { path: string }, ...parts: string[]) => ({
-    path: [base.path, ...parts].join("/"),
-    toString: () => [base.path, ...parts].join("/"),
-  }),
-};
+/**
+ * A URI with a scheme, because vault identity is a URI string.
+ *
+ * The catalog keys vaults by `root.toString()` and decides containment by
+ * string prefix, so a stub that returned a bare path would let a test pass
+ * against addressing the real editor does not have.
+ */
+export class Uri {
+  private constructor(
+    readonly scheme: string,
+    readonly path: string,
+  ) {}
 
+  static file(path: string): Uri {
+    return new Uri("file", path);
+  }
+
+  static parse(value: string, _strict?: boolean): Uri {
+    const cut = value.indexOf("://");
+    if (cut === -1) throw new Error(`not a URI: ${value}`);
+    return new Uri(value.slice(0, cut), decodeURIComponent(value.slice(cut + 3)));
+  }
+
+  static joinPath(base: { scheme?: string; path: string }, ...parts: string[]): Uri {
+    return new Uri(base.scheme ?? "file", [base.path, ...parts].join("/"));
+  }
+
+  get fsPath(): string {
+    return this.path;
+  }
+
+  toString(): string {
+    return `${this.scheme}://${this.path}`;
+  }
+}
+
+/** A workspace folder, as `getWorkspaceFolder` hands one back. */
+export interface WorkspaceFolderStub {
+  uri: Uri;
+  name: string;
+  index: number;
+}
+
+export class FileSystemWatcherStub {
+  readonly created = new EventEmitter<Uri>();
+  readonly changed = new EventEmitter<Uri>();
+  readonly deleted = new EventEmitter<Uri>();
+  onDidCreate = this.created.event;
+  onDidChange = this.changed.event;
+  onDidDelete = this.deleted.event;
+  dispose(): void {
+    this.created.dispose();
+    this.changed.dispose();
+    this.deleted.dispose();
+  }
+}
+
+/**
+ * `workspace.fs` over the real file system.
+ *
+ * Discovery is a walk over directories, so the one thing a test of it must not
+ * stub is the directory tree. `fs` is filled in by `test/stubs/fs.ts` on the
+ * suites that need it, and left unset elsewhere so nothing reads a disk by
+ * accident.
+ */
 export const workspace = {
   isTrusted: true,
   getConfiguration: () => ({ get: <T>(_key: string, fallback: T): T => fallback }),
   textDocuments: [] as unknown[],
+  workspaceFolders: undefined as WorkspaceFolderStub[] | undefined,
   applyEdit: async () => true,
   openTextDocument: async () => ({}),
+  fs: undefined as unknown,
+  getWorkspaceFolder: (uri: { toString(): string }): WorkspaceFolderStub | undefined =>
+    workspace.workspaceFolders?.find((folder) =>
+      uri.toString().startsWith(`${folder.uri.toString()}/`),
+    ),
+  createFileSystemWatcher: (_pattern: unknown): FileSystemWatcherStub =>
+    new FileSystemWatcherStub(),
+  onDidChangeTextDocument: (_listener: unknown) => ({ dispose: () => undefined }),
+  onDidCloseTextDocument: (_listener: unknown) => ({ dispose: () => undefined }),
 };
 
 /** Every `createWebviewPanel` call, so a test can assert where a tab landed. */

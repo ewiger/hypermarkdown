@@ -19,6 +19,8 @@ export type HostMessage =
   | {
       type: "render";
       irVersion: number;
+      /** The vault this card belongs to, which the webview persists with it. */
+      vault: string;
       document: DocumentIR;
       mode: PreviewMode;
       settings: PreviewSettings;
