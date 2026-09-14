@@ -21,6 +21,13 @@ against
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-09-14
+
+**A repository can hold more than one vault.** Open a folder carrying a
+`doc/wiki` and a self-contained example tree and every card in both previews;
+before this, one namespace root was chosen at startup and everything outside it
+showed an empty state.
+
 ### Added
 
 - **One folder can hold several vaults.** A vault is a directory carrying its
@@ -167,6 +174,7 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.2.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.3.0...HEAD
+[0.3.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.2.0...vsc-ext-v0.3.0
 [0.2.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.1.0...vsc-ext-v0.2.0
 [0.1.0]: https://github.com/ewiger/hypermarkdown/releases/tag/vsc-ext-v0.1.0

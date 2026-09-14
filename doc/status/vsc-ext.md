@@ -12,13 +12,14 @@ embeds in [`ts-core.md`](ts-core.md), and the website in [`pages.md`](pages.md).
 
 ## Status
 
-**`0.2.0` is live on both galleries for all six platform targets, and it is
-still labelled a preview release.** Everything it claims to do works and is
-gated by tests: the rendered tab, embeds as collapsible cards, scroll sync both
-ways, red links with a create-the-card action, backlinks, diagnostics identical
-to the linter's, and math, callouts, and D2 diagrams — the `d2` binary travels
-inside the extension, so a diagram draws on a fresh install with nothing
-configured. Releases publish from CI with no stored credential.
+**`0.2.0` is live on both galleries for all six platform targets, `0.3.0` is cut
+and waiting on its tag, and both are still labelled a preview release.**
+Everything the extension claims to do works and is gated by tests: the rendered
+tab, embeds as collapsible cards, scroll sync both ways, red links with a
+create-the-card action, backlinks, diagnostics identical to the linter's, and
+math, callouts, and D2 diagrams — the `d2` binary travels inside the extension,
+so a diagram draws on a fresh install with nothing configured. Releases publish
+from CI with no stored credential.
 
 **One thing stands between it and dropping the preview label:** the graph tab
 does not exist yet, which is the feature the label is waiting on.
@@ -26,8 +27,8 @@ does not exist yet, which is the feature the label is waiting on.
 **Vaults are now discovered from the card.** A window holds a catalog of
 vaults rather than one project, so a repository carrying several — this one
 carries `doc/wiki` plus a vault per example tree — previews a card in any of
-them. Unreleased: it is on the branch, gated by tests, and ships with the next
-version.
+them. It is on `main`, gated by tests, and is what `0.3.0` ships; the release
+starts when the `vsc-ext-v0.3.0` tag is pushed.
 
 ## Open
 
