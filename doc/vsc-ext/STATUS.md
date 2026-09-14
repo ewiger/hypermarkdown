@@ -155,9 +155,13 @@ the next blocks.
   settles the mechanism.
 
   **The remaining step is that CI's app registration is a different principal
-  and needs its own grant.** `.github/workflows/ado-profile-id.yml` is a
-  throwaway that signs in as it and prints its profile id; that GUID is added as
-  a Contributor the same way, once, in a browser. Delete the workflow afterwards.
+  and needs its own grant.** App `hypermarkdown-vsce-publish`
+  (`ddea9a06-accf-4772-9479-11dc9cbb0b83`, no client secret and none possible
+  without adding one) authenticates from CI and reports Azure DevOps profile id
+  **`3e09813b-4c7c-6612-9b06-160401c25aeb`**. That GUID is what goes into the
+  publisher's Members → Add, as Contributor, once, in a browser.
+  `.github/workflows/ado-profile-id.yml` is the throwaway that produced it;
+  delete it once the grant is made.
 
   One detail that is easy to get wrong: `azure/login@v2` is required rather than
   setting the Azure environment variables directly. `EnvironmentCredential` is
@@ -166,9 +170,25 @@ the next blocks.
   `az login` itself, and `AzureCliCredential`, next in the chain, picks the
   session up. Microsoft documents only the Azure Pipelines route, through a
   user-assigned managed identity; from GitHub the app registration federates
-  directly and no managed identity exists. The credential is bound to subject
-  `repo:<owner>/<repo>:environment:vscode-marketplace`, so only a job in that
-  gated environment can mint a token — the `environment:` key is load-bearing.
+  directly and no managed identity exists. An app registration is also the right
+  object rather than a managed identity because it lives in the directory rather
+  than in a subscription, so it outlives `Azure subscription 1`; both are free.
+
+  The credential is bound to `...:environment:vscode-marketplace`, so only a job
+  in that gated environment can mint a token — the `environment:` key is
+  load-bearing rather than a deployment label.
+
+  **And the subject is the immutable form.** This repository has
+  `use_immutable_subject` on, so GitHub presents
+  `repo:<owner>@<owner_id>/<repo>@<repo_id>:environment:...` rather than
+  `repo:<owner>/<repo>:environment:...`. The first CI run failed on exactly
+  that, with `AADSTS700213: No matching federated identity record found for
+  presented assertion subject` — which names the subject it presented, so the
+  error carries its own fix. Both spellings are now registered on the app, so
+  the setting can be flipped either way without a dead pipeline.
+  `gh api repos/<owner>/<repo>/actions/oidc/customization/sub` reports which is
+  live. The ID-qualified form is the better one to be on: it survives a rename
+  of the owner or the repository, where the plain form silently stops matching.
 
   Still worth taking and neither blocking: verifying the domain
   `hypermarkdown.org` on the publisher, which reports `verified: false` today

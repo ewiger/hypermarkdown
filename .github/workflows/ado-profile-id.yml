@@ -9,10 +9,15 @@ name: Print the Azure DevOps profile id
 # registration's is to run a job that signs in as it and asks.
 #
 # It must run in `vscode-marketplace`: the federated credential is bound to
-# subject `repo:<owner>/<repo>:environment:vscode-marketplace`, so no other
-# environment can mint a token for this app. That makes this a live test
-# of the federation as well — if it prints a GUID, `azure/login` works and only
-# the publisher grant is left.
+# `...:environment:vscode-marketplace`, so no other environment can mint a token
+# for this app. That makes this a live test of the federation as well — if it
+# prints a GUID, `azure/login` works and only the publisher grant is left.
+#
+# The subject is the **immutable** form, `repo:<owner>@<owner_id>/<repo>@<repo_id>`,
+# because `use_immutable_subject` is on for this repository. The first run of
+# this workflow failed on exactly that: a credential registered against the
+# plain `repo:<owner>/<repo>` spelling is never matched, and Entra answers
+# `AADSTS700213: No matching federated identity record`.
 on:
   workflow_dispatch:
 

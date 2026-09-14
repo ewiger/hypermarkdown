@@ -119,9 +119,14 @@ jobs:
       # other five down twice in a row. Separate calls make the failure
       # granular, and `--skip-duplicate` makes every retry cheap: whatever
       # already landed is skipped, so the loop converges instead of restarting.
-      # The federated credential is bound to subject
-      # `repo:<owner>/<repo>:environment:vscode-marketplace`, so this token can
-      # only be minted from the environment declared above.
+      # The federated credential is bound to
+      # `...:environment:vscode-marketplace`, so this token can only be minted
+      # from the environment declared above — in the **immutable** subject form
+      # `repo:<owner>@<owner_id>/<repo>@<repo_id>:...`, which is what GitHub
+      # presents while `use_immutable_subject` is on. A credential registered
+      # against the plain spelling is never matched and Entra answers
+      # `AADSTS700213`. Both are registered on the app.
+      #
       # `allow-no-subscriptions` because publishing touches no Azure resource.
       - uses: azure/login@v2
         with:
