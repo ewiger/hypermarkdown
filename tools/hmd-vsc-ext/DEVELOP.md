@@ -51,13 +51,16 @@ window is the integration suite, which is parked — see the bottom of this file
 ```bash
 npm run example            # examples/cs-alg-sorting — callouts, math, diagrams
 npm run example:small      # examples/small — namespaces, imports, a red link
-npm run example:wiki       # this repository's own doc/wiki
+npm run example:repo       # this whole repository — several vaults at once
+npm run example:wiki       # the same target, under its older name
 ```
 
 Each builds both bundles, then opens a second VS Code window with the example as
-its workspace and every other extension disabled. The same four scripts exist on
-the workspace root and on this package, so they run from either directory. Add
-`--print` to see the command without running it:
+its workspace and every other extension disabled — including the released build
+of this extension, which is why a marketplace install is no obstacle to testing
+a working tree. The same scripts exist on the workspace root and on this
+package, so they run from either directory. Add `--print` to see the command
+without running it:
 
 ```bash
 npm run example:small -- --print
@@ -74,6 +77,12 @@ The script passes `-n`. Without it `code` hands its arguments to an
 already-running instance, which ignores `--extensionDevelopmentPath` and quietly
 opens an ordinary window — the most likely reason a manual
 `code --extensionDevelopmentPath=…` appears to do nothing.
+
+**`example:repo` is the only target that holds more than one vault**, and so the
+only one that exercises discovery: the repository has no `.hmd/` at its root, a
+vault in `doc/wiki`, and one per example tree. Open
+`examples/cs-alg-sorting/complexity.hmd` and `doc/wiki/index.hmd` in the same
+window and both must render, against different roots (issue 0108).
 
 **Do not target `examples/` itself.** `examples/small` uses absolute refs such as
 `/shared/tokens`, which are absolute to *its own* root. A root one level up turns

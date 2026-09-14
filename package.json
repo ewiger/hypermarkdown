@@ -18,6 +18,7 @@
     "example": "node scripts/launch-example.mjs cs-alg-sorting",
     "example:sorting": "node scripts/launch-example.mjs cs-alg-sorting",
     "example:small": "node scripts/launch-example.mjs small",
+    "example:repo": "node scripts/launch-example.mjs repo",
     "example:wiki": "node scripts/launch-example.mjs wiki"
   },
   "devDependencies": {

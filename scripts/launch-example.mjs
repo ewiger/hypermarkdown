@@ -8,8 +8,11 @@
  *
  *   node scripts/launch-example.mjs <name> [--print]
  *
- * `<name>` is a directory under examples/, or `wiki` for this repository's own
- * doc/wiki. `--print` shows the command without running it.
+ * `<name>` is a directory under examples/, or `repo` for this whole repository
+ * — which is the target that holds several vaults at once, `doc/wiki` plus one
+ * per example tree, and so the only one that exercises discovery (issue 0108).
+ * `wiki` is kept as an older name for the same target. `--print` shows the
+ * command without running it.
  */
 
 import { spawn, spawnSync } from "node:child_process";
@@ -24,12 +27,14 @@ const args = process.argv.slice(2);
 const dryRun = args.includes("--print");
 const name = args.find((a) => !a.startsWith("--")) ?? "cs-alg-sorting";
 
-const target = name === "wiki" ? repoRoot : join(repoRoot, "examples", name);
+// `repo` and `wiki` both mean the repository itself: a workspace folder with
+// no `.hmd/` of its own, holding a vault in `doc/wiki` and one per example.
+const target = name === "repo" || name === "wiki" ? repoRoot : join(repoRoot, "examples", name);
 
 if (!existsSync(target)) {
   console.error(`launch-example: no such example: ${name}`);
   console.error(`  looked for ${target}`);
-  console.error("  try one of: cs-alg-sorting, small, wiki");
+  console.error("  try one of: cs-alg-sorting, small, repo");
   process.exit(2);
 }
 
