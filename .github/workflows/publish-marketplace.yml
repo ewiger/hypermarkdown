@@ -1,0 +1,110 @@
+name: Publish to the VS Marketplace
+
+# Publish the VSIXes of an *existing* release to the VS Marketplace.
+#
+# `release-vsc-ext.yml` publishes to all three destinations from one tag, and it
+# is the normal path. This workflow exists for the case that one destination
+# fails while the others succeed, which stopped being hypothetical with 0.2.0:
+# the six platform VSIXes reached Open VSX and the GitHub release, and the
+# Marketplace upload had no credential to run with. Re-tagging is not a remedy —
+# the registries refuse a version they already hold — and neither is re-running
+# the release, which would repackage and put different bytes in the gallery than
+# the ones already on the release and Open VSX.
+#
+# So this takes the assets *from the release* and uploads exactly those. It
+# builds nothing, packages nothing, and reads nothing but the tag it is given.
+#
+# Once the Marketplace catches up, this workflow is dormant until the next time
+# one registry is up and another is not.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The extension release tag to publish, e.g. vsc-ext-v0.2.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# A publication in flight is never cancelled, and two uploads of one version
+# must not race: both registries refuse to replace a version they have accepted.
+concurrency:
+  group: publish-marketplace-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  marketplace:
+    name: publish ${{ inputs.tag }}
+    runs-on: ubuntu-latest
+    environment:
+      name: vscode-marketplace
+      url: https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd
+    steps:
+      # The tag has to name an extension release. Without this a typo like
+      # `v0.2.0` — the Python tool's tag, which exists — would download a wheel
+      # and hand it to `vsce`, and the error would be about the package rather
+      # than about the input that was wrong.
+      - name: Check the tag is an extension tag
+        run: |
+          case "${{ inputs.tag }}" in
+            vsc-ext-v*) ;;
+            *) echo "::error::${{ inputs.tag }} is not an extension tag (vsc-ext-v*)" >&2; exit 1 ;;
+          esac
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      # From the release, not from a build. These are the bytes the release
+      # workflow gated, attached to the release, and published to Open VSX; the
+      # gallery gets the same ones or the three destinations disagree.
+      - name: Download the release VSIXes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p vsix
+          gh release download "${{ inputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern '*.vsix' \
+            --dir vsix
+          ls -l vsix
+          count=$(ls -1 vsix/*.vsix | wc -l)
+          [ "$count" -gt 0 ] || { echo "::error::no VSIX assets on ${{ inputs.tag }}" >&2; exit 1; }
+
+      # Every VSIX must still carry the binary it promises. The release gated
+      # this before publishing, but this workflow can be pointed at any tag, and
+      # a release predating the bundled `d2` would otherwise be republished here
+      # as though it were current.
+      - name: Check every VSIX carries its d2
+        run: |
+          set -euo pipefail
+          for vsix in vsix/*.vsix; do
+            case "$vsix" in
+              *win32*) expected="extension/toolchain/bin/d2.exe" ;;
+              *)       expected="extension/toolchain/bin/d2" ;;
+            esac
+            if ! unzip -l "$vsix" | grep -q "$expected"; then
+              echo "::error::$vsix does not contain $expected" >&2
+              exit 1
+            fi
+          done
+          echo "every VSIX carries its d2"
+
+      # `--no` runs the lockfile's `@vscode/vsce`. Bare `npx vsce` resolves the
+      # deprecated standalone `vsce` package instead, which is a different tool
+      # several majors behind and does not understand these flags.
+      #
+      # `--skip-duplicate` makes this idempotent: pointing it at a tag the
+      # gallery already has is a no-op rather than a failure, which is what lets
+      # it be the recovery tool it exists to be.
+      - name: Publish
+        run: npx --no vsce publish --no-dependencies --skip-duplicate --packagePath vsix/*.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}

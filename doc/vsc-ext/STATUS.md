@@ -110,49 +110,57 @@ the next blocks.
 | E8.1 | Gallery metadata: `preview`, `galleryBanner`, `badges`, `qna`, `homepage` | §1 | done |
 | E8.2 | README and CHANGELOG as the Details and Changelog tabs, links absolute | HMD-0024 | done |
 | E8.3 | `release-vsc-ext.yml`: one VSIX to Marketplace, Open VSX, and the release | §12 | done |
-| E8.4 | Publisher accounts, Marketplace trusted publishing, the `OVSX_PAT` secret | — | **blocked** — see below |
+| E8.4 | Publisher accounts, Marketplace publishing, the `OVSX_PAT` secret | — | **done** — by PAT, expires 2026-12-01 |
 | E8.5 | `hypermarkdown.org/tools/vscode/` landing page | — | done |
 | E9.1 | `scripts/toolchain.mjs` — fetch the pinned archive, check its digest, unpack it | issue 0107 | done |
 | E9.2 | `diagram/options.ts` — configured path, then bundled, then `PATH`, then placeholder | issue 0107 | done |
 | E9.3 | `hyperMarkdown.diagram.d2Path`; the Docker fallback removed | issue 0107 | done |
 | E9.4 | One VSIX per `--target`, each carrying `toolchain/bin/d2`, gate asserts it is there | HMD-0021 §12 | done |
-| E9.5 | `0.2.0` on the Marketplace and Open VSX | — | **wip** — tag not yet cut |
+| E9.5 | `0.2.0` on the Marketplace and Open VSX | — | **wip** — Open VSX live; gallery pending |
 
 ## Open
 
-- **E8.4 — Marketplace automation is blocked on the Marketplace.**
+- **E8.4 — the Marketplace publishes by PAT, and that expires 2026-12-01.**
 
-  - OIDC automation is **implemented** here: the `marketplace` job runs
-    `@vscode/vsce@3.9.3-4 publish --oidc` with `id-token: write`, no stored
-    credential.
-  - Marketplace-side **Trusted Publishing is not publicly configurable** for the
-    `HyperMarkDown` publisher. `vsce` shipped its half; the gallery has not
-    exposed the policy UI, so the token exchange cannot complete.
-  - The `marketplace` job is therefore **skipped**, gated on the repository
-    variable `MARKETPLACE_TRUSTED_PUBLISHING`.
-  - **Manual VSIX upload is the release procedure** until then: take the VSIX
-    from the GitHub release the same workflow cuts and upload it on the
-    publisher page.
-  - **Re-enable** by setting `MARKETPLACE_TRUSTED_PUBLISHING` to `true`. No code
-    change, no release.
+  The decision to wait for trusted publishing was reversed on 2026-09-14. What
+  changed is that the reason for waiting stopped being true:
 
-  This is an external platform limitation, not unfinished work here. **Do not
-  route around it** with a `VSCE_PAT`, an Azure DevOps organisation, an Azure
-  subscription, or a service principal: global PATs are retired on
-  **2026-12-01**, so any of those would be built, used a release or two, and
-  then unwound. Waiting costs one manual upload per release and has no deadline.
+  - **Trusted publishing never shipped.** microsoft/vsmarketplace#1422 has been
+    open since August 2025 and the gallery still exposes no policy UI.
+  - **`--oidc` is gone.** No released `vsce` carries it — 3.9.2, the lockfile's,
+    offers `--pat` and `--azure-credential`. The old job pinned the single
+    prerelease that had the flag, so "set `MARKETPLACE_TRUSTED_PUBLISHING` to
+    `true`, no code change" had quietly become false.
+  - **The manual fallback died with 0.2.0.** Bundling `d2` turned one universal
+    VSIX into six platform-specific ones, and the publisher hub takes one
+    package per upload with no way to say "these six are one version". The
+    documented route for platform-specific packages is the CLI. The same commit
+    that created the need removed the workaround.
 
-  Open VSX is unaffected and publishes automatically; it still needs a GitHub
-  login, the signed publisher agreement, and `ovsx create-namespace
-  HyperMarkDown`, stored as `OVSX_PAT`. Until that secret exists a tag fails in
-  the Open VSX job rather than in the build — the VSIX is still built, gated,
-  and attached to the release, so a tag pushed early is recoverable.
+  So `release-vsc-ext.yml` now publishes with `VSCE_PAT`, a repository secret,
+  and `publish-marketplace.yml` can push an existing release's VSIXes to the
+  gallery without rebuilding them.
 
-  Two things worth taking at the same time and neither blocking: verifying the
-  domain `hypermarkdown.org` on the publisher, which is what puts the check
-  beside the name on the listing; and deciding whether the `preview` flag comes
-  off at E6 (the graph tab) or at C4.2 (the publication model). Today it names
-  both.
+  **`--azure-credential` is the successor and is blocked on authorisation, not
+  tooling.** `vsce` 3.9.2 already supports it. What fails is the grant: the
+  publisher is owned by a personal Microsoft account, `az login` authenticates
+  as an Entra user in the tenant that came with an Azure subscription, and the
+  gallery rejects that principal with `InvalidAccessException`. Making it work
+  needs that identity added as a member of the `hypermarkdown` publisher — a
+  browser step, once. After that, CI becomes an `azure/login` step with a
+  federated credential and no stored secret, which is what `--oidc` promised.
+
+  **This has a deadline.** Global PATs — scoped to "all accessible
+  organizations", which is what the Marketplace requires — stop working on
+  **2026-12-01**. The PAT path is a bridge to that date, not a resting place.
+
+  Two things still worth taking and neither blocking: verifying the domain
+  `hypermarkdown.org` on the publisher, which reports `verified: false` today
+  and is what puts the check beside the name on the listing; and deciding
+  whether the `preview` flag comes off at E6 (the graph tab) or at C4.2 (the
+  publication model). Today it names both.
+
+  Open VSX is unaffected and publishes automatically from `OVSX_PAT`.
 
 - **E5.2 — integration tests.** Written, compiling, and **parked on
   `feat/vsc-ext-1`** (commit `cb8c6e4`). Two blockers, neither in our code:

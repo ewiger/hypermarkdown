@@ -161,73 +161,82 @@ jobs:
           path: dist-vsix/*.vsix
           if-no-files-found: error
 
-  # TEMPORARILY SKIPPED — waiting on Microsoft, not on us.
+  # Published with a Personal Access Token, deliberately, and on a deadline.
   #
-  # This job is complete and believed correct. `--oidc` asks GitHub for a token
-  # scoped to the `marketplace.visualstudio.com` audience and trades it for a
-  # short-lived publishing credential, which is why `id-token: write` is here —
-  # job-level permissions replace the workflow's block outright, so
-  # `contents: read` has to be restated. No credential is stored anywhere.
+  # This was a skipped `--oidc` job waiting on Marketplace trusted publishing.
+  # The wait ended without the feature: microsoft/vsmarketplace#1422 has been
+  # open since August 2025, the gallery exposes no policy UI, and `--oidc` is in
+  # no released `vsce` — 3.9.2, the lockfile's, offers `--pat` and
+  # `--azure-credential` and nothing else. The old job pinned the one prerelease
+  # carrying the flag, so "set a variable to re-enable, no code change" had
+  # quietly stopped being true.
   #
-  # What it cannot do yet is authenticate end to end: the exchange requires a
-  # trusted publishing policy on the publisher naming this repository *and this
-  # workflow file*, and the Marketplace does not currently expose that
-  # configuration for `hypermarkdown`. `vsce` has shipped its half; the gallery
-  # has not shipped the other. There is deliberately no PAT fallback, so this
-  # would fail the release rather than quietly publishing.
+  # 0.2.0 forced the decision. Bundling `d2` turned one universal VSIX into six
+  # platform-specific ones, and the manual browser upload that released 0.1.0
+  # cannot express "these six are one version" — the publisher hub takes one
+  # package, and the documented route for platform-specific packages is the CLI.
+  # The fallback that justified waiting no longer existed, so the choice became
+  # a stored credential or no Marketplace release at all.
   #
-  # Until then the Marketplace is released to by hand — upload the VSIX this
-  # workflow attaches to the GitHub release. Do NOT reintroduce a `VSCE_PAT`, an
-  # Azure DevOps organisation, or a service principal to route around this: those
-  # credentials are retired on 2026-12-01 and would have to be unwound again.
+  # `--azure-credential` was tried first and is the better answer, but it is
+  # blocked on authorisation rather than on tooling: the publisher is owned by a
+  # personal Microsoft account, an `az login` authenticates as an Entra user in
+  # a different tenant, and the gallery rejects that principal with
+  # `InvalidAccessException`. Granting a publisher membership is a browser step
+  # nobody has taken yet.
   #
-  # The manual workaround is exercised and fine, not a hole in the release path.
-  # 0.1.0 went up that way on 2026-08-11 and the listing is live. It costs one
-  # browser upload per release and needs no credential at all, which is a better
-  # trade than any of the alternatives above. Leave it alone until the gallery
-  # offers the policy.
-  #
-  # TO RE-ENABLE, once the policy can be configured: set the repository variable
-  # `MARKETPLACE_TRUSTED_PUBLISHING` to `true`. No code change, no release.
+  # THIS EXPIRES 2026-12-01. Global PATs — scoped to "all accessible
+  # organizations", which is what the Marketplace requires — stop working that
+  # day. The successor is `--azure-credential` once the grant exists: a
+  # credential swap and an `azure/login` step, not a rewrite. The date is a
+  # deadline, not a note.
   marketplace:
     name: publish to the VS Marketplace
     needs: build
-    if: >-
-      startsWith(github.ref, 'refs/tags/vsc-ext-v')
-      && vars.MARKETPLACE_TRUSTED_PUBLISHING == 'true'
+    if: startsWith(github.ref, 'refs/tags/vsc-ext-v')
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     environment:
       name: vscode-marketplace
       url: https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd
     steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
       - uses: actions/download-artifact@v4
         with:
           name: vsix
           path: vsix/
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      # Pinned, not `@next`. `--oidc` ships only in a prerelease today, and
-      # `next` is a tag that moves — resolving it at release time would let an
-      # untested vsce decide whether a version reaches the gallery. Bump this
-      # deliberately, and drop the range once a stable carries the flag.
+      # `--no` runs the `vsce` in the lockfile and fails rather than fetching
+      # one — the reasoning the Open VSX job spells out, and it holds here for
+      # the same reason: this job is past every gate, and what is on the line is
+      # a version number no registry will let us reuse. Bare `npx vsce` would
+      # also resolve the *deprecated standalone* `vsce` package rather than
+      # `@vscode/vsce`, which is a different tool several majors behind.
       #
-      # The artifacts from `build`, not a fresh package: publishing a second
-      # build would ship bytes no gate ran against. `--no-dependencies` and
-      # `--packagePath` make this a pure upload, so the repository itself is not
-      # needed here — no checkout, no `npm ci`.
+      # The artifacts from `build`, not a fresh package: packaging again here
+      # would ship bytes no gate ran against, and would put different bytes in
+      # the gallery than the ones on the GitHub release and Open VSX.
       #
       # Every platform-specific VSIX in one invocation (issue 0107). The gallery
-      # treats them as one version with several builds, and the client installs
-      # the one matching its platform; uploading only some would leave the rest
+      # treats them as one version with several builds and each client installs
+      # the one matching its platform; uploading only some would strand the rest
       # of the platforms on the previous version.
+      #
+      # `--skip-duplicate` because a release can now be half-published and has
+      # to be re-runnable. 0.2.0 reached Open VSX and not the gallery; a re-run
+      # that died on the registry already holding the version would leave no way
+      # forward but a version bump nobody needed.
       - name: Publish
-        run: npx @vscode/vsce@3.9.3-4 publish --oidc --no-dependencies --packagePath vsix/*.vsix
+        run: npx --no vsce publish --no-dependencies --skip-duplicate --packagePath vsix/*.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
   openvsx:
     name: publish to Open VSX
@@ -273,7 +282,7 @@ jobs:
       # Every platform-specific VSIX, for the same reason as the Marketplace
       # job above: one version, one build per target.
       - name: Publish
-        run: npx --no ovsx publish --packagePath vsix/*.vsix
+        run: npx --no ovsx publish --skip-duplicate --packagePath vsix/*.vsix
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
