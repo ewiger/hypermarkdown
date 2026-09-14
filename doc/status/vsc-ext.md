@@ -37,6 +37,7 @@ starts when the `vsc-ext-v0.3.0` tag is pushed.
 | todo | **The graph tab.** A directed graph of the vault drawn inside the preview, replacing the backlinks tab rather than joining it — backlinks is one view of one direction of the graph, and a tab strip carrying both would offer the same thing twice. | The release stops being a preview when this lands. Specified only in outline, so the proposal is amended in the same change | [[hmd-0021#10-deferred-tabs]] |
 | blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | blocked | **Drop the preview label** from the manifest and the gallery copy. Waits on the graph tab, which is the only milestone that ever claimed it | One line in the manifest, once the graph is in | [[hmd-0021#12-packaging-and-ci]] |
+| todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
 | parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
 
 **The graph tab, in parts.** One item, not seven:
@@ -127,6 +128,7 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-09-14: create-card's path rule is settled in the proposal — the action never prompts, and the link's own form picks the path. The gap it exposed, relative targets being refused, is open above.
 - 2026-09-14: per-card vault discovery landed. The three open questions it
   carried are answered in the proposal rather than here: one index per vault,
   no resolution across a boundary, and `diagnostics.scope: "workspace"`

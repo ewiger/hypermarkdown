@@ -254,6 +254,13 @@ The renderer walks HMD-0020 §7 and does no markdown parsing of its own.
   create-card. Creating writes exactly one file at the path the resolver would
   next have searched, seeded with an `# H1` matching the link text, and the
   write MUST go through `WorkspaceEdit` so it lands in the undo stack (VSX-054).
+- The action MUST NOT prompt for that path. The link already says where the
+  card goes: a bare target becomes a sibling of the card holding the link, an
+  absolute one lands under the namespace root, and a relative one lands where
+  it points. The path is a starting point rather than a commitment — a card is
+  a file and moves like one, and an author who wants it elsewhere from the
+  start writes the link relative. A modal between a red link and a card would
+  charge for the common case to spare the rare one.
 - `a.hmd-ambiguous` renders distinctly from both resolved and red links, and
   its hover lists the candidates from `Resolution.candidates`. `HMD002` is an
   error the author must arbitrate; showing it as an ordinary broken link would
@@ -604,9 +611,6 @@ npm run -w tools/hmd-vsc-ext package
   but noisy.
 - What is the marketplace publisher identity, and does the extension ID match
   the npm scope?
-- Does the create-card action pick the target path itself, or always prompt?
-  Picking is faster and occasionally lands the card in a namespace the author
-  did not intend.
 
 ## Changelog
 
@@ -632,3 +636,8 @@ npm run -w tools/hmd-vsc-ext package
   depends on the published `@hypermarkdown/core` by semver range, satisfied
   from the workspace during development and inlined by the esbuild bundle at
   package time. Closes the Open Question that asked between the two.
+- 2026-09-14: §5 — create-card never prompts. The link's own form picks the
+  path: bare is a sibling, absolute is under the root, relative is where it
+  points, and the author moves the file or writes the link relative instead of
+  answering a dialog. Closes the Open Question that asked between picking and
+  prompting.
