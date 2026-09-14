@@ -7,7 +7,6 @@
  */
 
 import type {
-  BacklinkEntry,
   Block,
   DiagramBlock,
   DocumentIR,
@@ -224,43 +223,6 @@ export function renderBreadcrumb(container: HTMLElement, ir: DocumentIR): void {
     crumb.textContent = segment;
     container.append(crumb);
   });
-}
-
-export function renderBacklinks(container: HTMLElement, items: readonly BacklinkEntry[]): void {
-  container.textContent = "";
-  if (items.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "hmd-empty";
-    empty.textContent = "Nothing links here yet.";
-    container.append(empty);
-    return;
-  }
-
-  const list = document.createElement("ul");
-  list.className = "hmd-backlinks";
-  for (const item of items) {
-    const row = document.createElement("li");
-    row.className = "hmd-backlink";
-
-    const link = document.createElement("a");
-    link.className = "hmd-link";
-    link.dataset["hmdPath"] = item.path;
-    link.dataset["line"] = String(item.line);
-    link.textContent = `${item.path}:${item.line}`;
-
-    const kind = document.createElement("span");
-    kind.className = "hmd-backlink-kind";
-    // "This card is quoted here" and "mentioned here" are different facts.
-    kind.textContent = item.kind;
-
-    const snippet = document.createElement("div");
-    snippet.className = "hmd-backlink-snippet";
-    snippet.textContent = item.snippet;
-
-    row.append(link, kind, snippet);
-    list.append(row);
-  }
-  container.append(list);
 }
 
 // -- scroll sync ---------------------------------------------------------

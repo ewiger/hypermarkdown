@@ -204,9 +204,11 @@
     "package": "npm run build && node ../../scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain && vsce package --no-dependencies"
   },
   "dependencies": {
-    "@hypermarkdown/core": "^0.1.0"
+    "@hypermarkdown/core": "^0.1.0",
+    "cytoscape": "^3.34.3"
   },
   "devDependencies": {
+    "@types/cytoscape": "^3.21.9",
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.90.0",
     "@vscode/vsce": "^3.9.2",

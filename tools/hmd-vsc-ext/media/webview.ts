@@ -8,12 +8,12 @@
 import { IR_VERSION } from "@hypermarkdown/core";
 
 import type { HostMessage, PreviewMode, WebviewMessage } from "../src/protocol.js";
+import { GraphTab } from "./graph.js";
 import {
   collectAnchors,
   lineForOffset,
   offsetForLine,
   patchBlocks,
-  renderBacklinks,
   renderBreadcrumb,
   type Anchor,
   type RenderSettings,
@@ -33,6 +33,18 @@ const vscode = acquireVsCodeApi();
 const content = document.getElementById("hmd-content") as HTMLElement;
 const breadcrumb = document.getElementById("hmd-breadcrumb") as HTMLElement;
 const status = document.getElementById("hmd-status") as HTMLElement;
+const chrome = document.querySelector(".hmd-chrome") as HTMLElement;
+
+const graph = new GraphTab(
+  document.getElementById("hmd-graph") as HTMLElement,
+  {
+    // A node opens the card it stands for, which is the same request a link in
+    // the rendered tab makes.
+    open: (path) => vscode.postMessage({ type: "openTarget", path, fragment: null }),
+    setView: (view) => vscode.postMessage({ type: "graphView", view }),
+  },
+  { scope: "card", direction: "downstream" },
+);
 
 let mode: PreviewMode = "rendered";
 let settings: RenderSettings = { embeds: "expanded" };
@@ -58,8 +70,8 @@ window.addEventListener("message", (event: MessageEvent<HostMessage>) => {
       clearStatus();
       settings = { embeds: message.settings.embeds };
       scrollSync = message.settings.scrollSync;
-      mode = message.mode;
       document.body.classList.toggle("is-pinned", message.pinned);
+      applyMode(message.mode);
       // The host cannot see this; a restored panel is handed back only what
       // the webview persisted for itself. The card and the vault that claims
       // it, and nothing else — a persisted `pinned` outlives the build that
@@ -71,11 +83,11 @@ window.addEventListener("message", (event: MessageEvent<HostMessage>) => {
       anchors = collectAnchors(content);
       return;
     }
-    case "backlinks": {
+    case "graph": {
       if (message.irVersion !== IR_VERSION) return;
       clearStatus();
-      renderBacklinks(content, message.items);
-      anchors = [];
+      applyMode("graph");
+      graph.update(message.graph);
       return;
     }
     case "revealLine": {
@@ -104,21 +116,51 @@ window.addEventListener("message", (event: MessageEvent<HostMessage>) => {
 
 // -- tabs ----------------------------------------------------------------
 
-function selectTab(next: PreviewMode): void {
+/**
+ * Show one tab.
+ *
+ * Both tabs keep their DOM — the rendered card is patched rather than rebuilt,
+ * and the graph's canvas costs a layout to recreate — so switching is a matter
+ * of which one is on screen (HMD-0025).
+ */
+function applyMode(next: PreviewMode): void {
   mode = next;
   for (const tab of Array.from(document.querySelectorAll<HTMLElement>(".hmd-tab"))) {
     const active = tab.dataset["mode"] === next;
     tab.classList.toggle("is-active", active);
     tab.setAttribute("aria-selected", String(active));
   }
+  content.hidden = next !== "rendered";
+  if (next === "graph") {
+    measureChrome();
+    graph.show();
+  } else {
+    graph.hide();
+  }
+}
+
+/** Switch tabs on the reader's behalf, and tell the host what to send. */
+function selectTab(next: PreviewMode): void {
+  applyMode(next);
   vscode.postMessage({ type: "modeChanged", mode: next });
 }
 
 for (const tab of Array.from(document.querySelectorAll<HTMLElement>(".hmd-tab"))) {
   tab.addEventListener("click", () => {
     const next = tab.dataset["mode"];
-    if (next === "rendered" || next === "backlinks") selectTab(next);
+    if (next === "rendered" || next === "graph") selectTab(next);
   });
+}
+
+/**
+ * Tell the stylesheet how tall the chrome is.
+ *
+ * The graph fills everything below it and cannot scroll with the page — a
+ * canvas that scrolls away is a canvas you cannot pan — so it is positioned
+ * against the viewport and needs the one measurement CSS cannot take.
+ */
+function measureChrome(): void {
+  document.body.style.setProperty("--hmd-chrome-height", `${chrome.offsetHeight}px`);
 }
 
 // -- clicks --------------------------------------------------------------
@@ -181,6 +223,10 @@ window.addEventListener("scroll", () => {
 
 window.addEventListener("resize", () => {
   anchors = collectAnchors(content);
+  if (mode === "graph") {
+    measureChrome();
+    graph.show();
+  }
 });
 
 // -- status --------------------------------------------------------------

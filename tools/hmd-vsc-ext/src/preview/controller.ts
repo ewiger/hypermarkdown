@@ -21,10 +21,12 @@ import { REPARSE_DEBOUNCE_MS, debounce } from "../debounce.js";
 import {
   isSafeRelativePath,
   parseWebviewMessage,
+  type GraphView,
   type HostMessage,
   type PreviewMode,
   type PreviewSettings,
 } from "../protocol.js";
+import { DEFAULT_GRAPH_VIEW, buildGraphView } from "./graphView.js";
 
 /** How long to ignore the other side's scroll after applying one (§6). */
 export const ECHO_LOCKOUT_MS = 250;
@@ -33,6 +35,13 @@ export const SCROLL_THROTTLE_MS = 50;
 
 export class PreviewController implements vscode.Disposable {
   private mode: PreviewMode = "rendered";
+  /**
+   * Which cut of the graph this preview is showing.
+   *
+   * Per preview and not persisted: it is a way of looking at the card on
+   * screen, and the card changes under it as the reader moves.
+   */
+  private graphView: GraphView = DEFAULT_GRAPH_VIEW;
   private pinned = false;
   private current: CardRef | null = null;
   private lastAppliedScroll = 0;
@@ -190,7 +199,15 @@ export class PreviewController implements vscode.Disposable {
         this.send();
         return;
       case "modeChanged":
+        // Tabs are switched in the webview, so the host hears about the switch
+        // rather than causing it — and the new tab has nothing to draw until
+        // this sends it.
         this.mode = message.mode;
+        this.send();
+        return;
+      case "graphView":
+        this.graphView = message.view;
+        this.send();
         return;
       case "scrolled":
         this.applyScroll(message.line);
@@ -321,11 +338,11 @@ export class PreviewController implements vscode.Disposable {
       return;
     }
 
-    if (this.mode === "backlinks") {
+    if (this.mode === "graph") {
       this.post({
-        type: "backlinks",
+        type: "graph",
         irVersion: IR_VERSION,
-        items: this.current.vault.backlinksFor(this.current.rel),
+        graph: buildGraphView(this.current.vault.graph(), this.current.rel, this.graphView),
       });
       return;
     }

@@ -7,7 +7,8 @@ manual walkthrough for the things unit tests cannot see.
 implementation this extension renders with — a preview bug is as likely to live
 there as here.
 
-Specified by [HMD-0021](../../doc/proposals/HMD-0021/README.md); work points are
+Specified by [HMD-0021](../../doc/proposals/HMD-0021/README.md), with the graph
+tab in [HMD-0025](../../doc/proposals/HMD-0025/README.md); work points are
 tracked in [`doc/status/vsc-ext.md`](../../doc/status/vsc-ext.md).
 
 ## Prerequisites
@@ -131,8 +132,12 @@ In order, against `examples/small`. These are the behaviours no unit test sees:
    squiggle appears on the cursor's line. Move away and wait ~500 ms — the
    diagnostic then arrives.
 7. **Scroll either pane.** They track each other without fighting.
-8. **Backlinks tab** on `glossary/token.hmd`: inbound cards listed, link and
-   embed edges labelled differently.
+8. **Graph tab** on `glossary/token.hmd`: the card and the cards linking to it,
+   embed edges drawn heavier than link edges, and the note under the canvas
+   naming what is on screen. Switch to **Links to** and the picture turns
+   around; switch to **Network** and the direction control greys out. Click a
+   node: the preview moves there and the source opens alongside. **Full screen**
+   hides the tab strip and gives the graph the panel; `Escape` gives it back.
 9. **Collapse an embed card, then edit the source.** The card stays collapsed and
    the preview does not jump to the top. This is keyed DOM patching, and it is the
    behaviour most likely to regress silently.

@@ -52,11 +52,36 @@ export function buildShell(options: ShellOptions): string {
 <header class="hmd-chrome">
   <nav class="hmd-tabs" role="tablist">
     <button class="hmd-tab is-active" role="tab" data-mode="rendered" aria-selected="true">Rendered</button>
-    <button class="hmd-tab" role="tab" data-mode="backlinks" aria-selected="false">Backlinks</button>
+    <button class="hmd-tab" role="tab" data-mode="graph" aria-selected="false">Graph</button>
   </nav>
   <div class="hmd-breadcrumb" id="hmd-breadcrumb"></div>
 </header>
 <main id="hmd-content" class="hmd-content" tabindex="-1"></main>
+<section id="hmd-graph" class="hmd-graph" hidden>
+  <div class="hmd-graph-toolbar" role="toolbar" aria-label="Graph controls">
+    <div class="hmd-graph-group" role="radiogroup" aria-label="Scope">
+      <button class="hmd-graph-button" role="radio" data-scope="card" aria-checked="true">Card</button>
+      <button class="hmd-graph-button" role="radio" data-scope="network" aria-checked="false">Network</button>
+    </div>
+    <div class="hmd-graph-group" role="radiogroup" aria-label="Direction">
+      <button class="hmd-graph-button" role="radio" data-direction="upstream" aria-checked="false">Links to</button>
+      <button class="hmd-graph-button" role="radio" data-direction="downstream" aria-checked="true">Linked from</button>
+    </div>
+    <div class="hmd-graph-legend" aria-hidden="true">
+      <span class="hmd-graph-swatch is-link"></span>link
+      <span class="hmd-graph-swatch is-embed"></span>embed
+    </div>
+    <div class="hmd-graph-group hmd-graph-zoom">
+      <button class="hmd-graph-button" data-action="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+      <button class="hmd-graph-button" data-action="zoom-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
+      <button class="hmd-graph-button" data-action="fit" title="Fit to the view">Fit</button>
+      <button class="hmd-graph-button" data-action="layout" title="Re-run the layout">Relayout</button>
+      <button class="hmd-graph-button" data-action="fullscreen" title="Fill the panel (Escape to leave)" aria-pressed="false">Full screen</button>
+    </div>
+  </div>
+  <div class="hmd-graph-canvas"></div>
+  <p class="hmd-graph-note"></p>
+</section>
 <div id="hmd-status" class="hmd-status" hidden></div>
 <script nonce="${options.nonce}" src="${options.scriptUri}"></script>
 </body>

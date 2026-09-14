@@ -20,10 +20,16 @@ describe("inbound messages", () => {
       path: "a.hmd",
       fragment: "x",
     });
-    expect(parseWebviewMessage({ type: "modeChanged", mode: "backlinks" })).toEqual({
+    expect(parseWebviewMessage({ type: "modeChanged", mode: "graph" })).toEqual({
       type: "modeChanged",
-      mode: "backlinks",
+      mode: "graph",
     });
+    expect(
+      parseWebviewMessage({
+        type: "graphView",
+        view: { scope: "network", direction: "upstream" },
+      }),
+    ).toEqual({ type: "graphView", view: { scope: "network", direction: "upstream" } });
   });
 
   it("rejects anything malformed rather than throwing", () => {
@@ -36,8 +42,13 @@ describe("inbound messages", () => {
       { type: "nope" },
       { type: "openSource", path: 5, line: 1 },
       { type: "scrolled", line: "twelve" },
-      { type: "modeChanged", mode: "graph" },
+      // The backlinks tab is gone, and a message from a webview that predates
+      // its removal names a mode this build does not have.
+      { type: "modeChanged", mode: "backlinks" },
       { type: "createCard" },
+      { type: "graphView" },
+      { type: "graphView", view: { scope: "network" } },
+      { type: "graphView", view: { scope: "everything", direction: "upstream" } },
     ]) {
       expect(parseWebviewMessage(bad)).toBeNull();
     }
@@ -82,6 +93,39 @@ describe("content security policy", () => {
     const scripts = [...shell.matchAll(/<script\b[^>]*>/g)].map((m) => m[0]);
     expect(scripts.length).toBeGreaterThan(0);
     for (const tag of scripts) expect(tag).toContain('nonce="deadbeef"');
+  });
+
+  it("carries a tab strip of exactly the tabs this build has", () => {
+    expect(shell).toContain('data-mode="rendered"');
+    expect(shell).toContain('data-mode="graph"');
+    // Backlinks is one direction of the card scope, and a strip offering both
+    // would offer the same thing twice (HMD-0025).
+    expect(shell).not.toContain("backlinks");
+  });
+
+  it("carries the elements the graph tab wires itself to", () => {
+    // The tab reaches into the shell by selector, so the two are one contract:
+    // a renamed class here is a tab that silently never draws.
+    const shellDocument = new DOMParser().parseFromString(shell, "text/html");
+    const graph = shellDocument.getElementById("hmd-graph");
+
+    expect(graph?.querySelector(".hmd-graph-canvas")).not.toBeNull();
+    expect(graph?.querySelector(".hmd-graph-note")).not.toBeNull();
+    expect(
+      Array.from(graph!.querySelectorAll(`[data-scope]`), (node) =>
+        node.getAttribute("data-scope"),
+      ),
+    ).toEqual(["card", "network"]);
+    expect(
+      Array.from(graph!.querySelectorAll(`[data-direction]`), (node) =>
+        node.getAttribute("data-direction"),
+      ),
+    ).toEqual(["upstream", "downstream"]);
+    expect(
+      Array.from(graph!.querySelectorAll(`[data-action]`), (node) =>
+        node.getAttribute("data-action"),
+      ),
+    ).toEqual(["zoom-in", "zoom-out", "fit", "layout", "fullscreen"]);
   });
 
   it("mints a fresh nonce per load", () => {

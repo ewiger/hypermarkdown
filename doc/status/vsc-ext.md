@@ -16,13 +16,18 @@ embeds in [`ts-core.md`](ts-core.md), and the website in [`pages.md`](pages.md).
 and waiting on its tag, and both are still labelled a preview release.**
 Everything the extension claims to do works and is gated by tests: the rendered
 tab, embeds as collapsible cards, scroll sync both ways, red links with a
-create-the-card action, backlinks, diagnostics identical to the linter's, and
+create-the-card action, the graph, diagnostics identical to the linter's, and
 math, callouts, and D2 diagrams — the `d2` binary travels inside the extension,
 so a diagram draws on a fresh install with nothing configured. Releases publish
 from CI with no stored credential.
 
-**One thing stands between it and dropping the preview label:** the graph tab
-does not exist yet, which is the feature the label is waiting on.
+**The graph tab is in, and backlinks is gone.** The feature the preview label
+was waiting on is on this branch: two scopes, a direction, link and embed edges
+drawn apart, click-to-navigate, full screen, and a toolbar, drawn with a
+bundled Cytoscape.js and specified in its own record [[hmd-0025]]. The cut it
+draws is taken in the extension host and is gated by tests; what it looks like
+running is not, so the label comes off after a pass through the by-hand checks
+rather than in the same commit [issue 0109].
 
 **Vaults are now discovered from the card.** A window holds a catalog of
 vaults rather than one project, so a repository carrying several — this one
@@ -34,30 +39,11 @@ starts when the `vsc-ext-v0.3.0` tag is pushed.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **The graph tab.** A directed graph of the vault drawn inside the preview, replacing the backlinks tab rather than joining it — backlinks is one view of one direction of the graph, and a tab strip carrying both would offer the same thing twice. | The release stops being a preview when this lands. Specified only in outline, so the proposal is amended in the same change | [[hmd-0021#10-deferred-tabs]] |
+| todo | **Read the graph in a running editor** and then drop the preview label. The by-hand list in the extension's `DEVELOP.md` covers the tab; nothing automated can say whether the layout is legible on a real vault, and the live-editing checks are unautomated across the board [issue 0101] | The last step of the graph tab, and what the manifest's `preview` flag now waits on [issue 0109] | [[hmd-0025]] |
 | blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
-| blocked | **Drop the preview label** from the manifest and the gallery copy. Waits on the graph tab, which is the only milestone that ever claimed it | One line in the manifest, once the graph is in | [[hmd-0021#12-packaging-and-ci]] |
+| todo | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | A network view of a large vault is where this stops being a nicety [VSX-024] | [[hmd-0025]] |
 | todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
 | parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
-
-**The graph tab, in parts.** One item, not seven:
-
-- A **Network** scope showing every card in the vault, link edges and embed
-  edges drawn distinctly.
-- A **Card** scope showing one card and its neighbours, with a choice of
-  **upstream** — the cards this one links to — or **downstream**, the cards that
-  link to it, which is what the backlinks tab showed.
-- **Clicking a node navigates**: the preview moves to that card and its source
-  opens alongside, exactly as clicking a link in the preview already does.
-- Drawn with a bundled **Cytoscape.js**. The webview may not reach a CDN and may
-  not evaluate code, so the library is compiled into the extension's own script;
-  the layout is recomputed whenever the tab is shown, because a hidden webview
-  keeps no state.
-- A **toolbar** over the canvas: zoom in and out, fit to the view, re-run the
-  layout, and the scope and direction controls — the standard set a graph view
-  is expected to have, taken from what the library already offers rather than
-  rebuilt.
-- The backlinks tab and its renderer are deleted in the same change.
 
 **Why the integration suite is parked**, neither reason in our code: the test
 harness spawns `Contents/MacOS/Electron` and current VS Code ships that binary
@@ -81,6 +67,8 @@ Nothing known.
 | A link to a heading written with an underline lands at the top of the card | Neither implementation indexes underlined headings, which is a decision the format has not taken. Write `##` headings | [[hmd-0001#3-heading-anchors]] |
 | Completion, rename, and hover are absent | They arrive with the language server, which lives with the canonical implementation. The preview keeps rendering without it either way | [[hmd-0024#the-language-server-is-python-on-pygls]] |
 | The integration suite is not in the default test command | Its harness downloads about 300 MB on first run | [[hmd-0021#12-packaging-and-ci]] |
+| The graph draws only what resolved, and stops at 400 cards | A red link has no card at the other end to draw it to, and is reported in the rendered tab and the Problems panel instead. Past the cap the view keeps the cards nearest the one being read and says how many it dropped: a hairball is not a more honest picture than a bounded one that names what is missing | [[hmd-0025]] |
+| The webview bundle is about 400 KB, nearly all of it Cytoscape | The policy forbids remote script, so a graph library is either compiled in or absent | [[hmd-0025]], [[hmd-0021#11-webview-hardening]] |
 
 ## Done
 
@@ -91,8 +79,13 @@ Nothing known.
   from, collapsible, nested, and navigating to the embedded card.
 - **Red links** for targets that do not resolve, with an action that writes the
   missing card.
-- **Backlinks** for the current card, link and embed edges listed separately.
-  (Retired when the graph tab lands.)
+- **The graph tab** — the vault as nodes and edges, in a network scope or a card
+  scope pointed at what this card links to or at what links to it, link and
+  embed edges drawn apart, a node opening its card, and a toolbar for zoom, fit,
+  and re-running the layout. Which cards are in the picture is decided in the
+  extension host, so it is under test without a canvas. Full screen gives it the
+  panel and `Escape` gives the chrome back. It replaced the backlinks tab, whose
+  renderer went with it [issue 0109].
 - **Diagnostics** in the Problems panel, byte-identical to the linter's, at 500
   ms and suppressed on the line the cursor is in.
 - **Math, callouts, and D2 diagrams**, with KaTeX and a pinned `d2` build
@@ -122,12 +115,21 @@ npm run -w tools/hmd-vsc-ext package
 
 | Question | References |
 | --- | --- |
-| Does the graph tab land as a proposal amendment first, or as an implementation the amendment then describes? The proposal fixes only the data source and the module shape and says nothing about interaction | [[hmd-0021#10-deferred-tabs]] |
-| What does the graph show at rest for a large vault? Nothing bounds the node count, and the layout is recomputed every time the tab is shown | [[hmd-0021#10-deferred-tabs]] |
+| Should the graph filter by namespace and tag? The index carries both on every node; the question the filter raises is what it does to the node cap — filtering before the cap and filtering after it are different pictures | [[hmd-0025]] |
+| Should a card with no resolved edges in either direction be reported somewhere other than the graph? The graph draws an island, which is honest and easy to miss | [[hmd-0025]] |
 | The publisher is not domain-verified, and re-submitting will not help: the gallery grants it by manual review after roughly six months of continuous release history. First release was 2026-08-11, so the earliest worth raising again is around February 2027, and only if releases have kept coming. Do not reach for DNS — the TXT record on the apex is Open VSX's claim, not the gallery's — and re-check by querying the public extension API rather than by looking at the portal | [[hmd-0005#the-extensions-identity-on-both-galleries]] |
 
 ## Changelog
 
+- 2026-09-14: the graph tab landed and the backlinks tab was deleted. It answers
+  both questions the tracker was carrying about it: the specification was
+  written from the implementation rather than ahead of it, and a large vault is
+  bounded — the network scope draws the 400 cards nearest the one being read and
+  says how many it left out. The design went to a record of its own [[hmd-0025]]
+  rather than staying a section of the preview surface: a bundled layout engine,
+  a node cap, and a scope model are a decision, not a detail of the surface they
+  sit on. What is still open is the live look at it, which is what the preview
+  label now waits on [issue 0109].
 - 2026-09-14: create-card's path rule is settled in the proposal — the action never prompts, and the link's own form picks the path. The gap it exposed, relative targets being refused, is open above.
 - 2026-09-14: per-card vault discovery landed. The three open questions it
   carried are answered in the proposal rather than here: one index per vault,

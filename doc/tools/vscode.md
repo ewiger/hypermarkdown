@@ -29,7 +29,10 @@ diagram.](../assets/hmd-vsc-ext-screenshot-1.png)
   one they are in. A preview that flattens an embed into anonymous prose has
   hidden the only thing worth seeing.
 - **Red links**, with an action that writes the missing card.
-- **Backlinks** for the card you are on, link and embed edges listed apart.
+- **A graph of the vault**, cards as nodes and link and embed edges drawn apart,
+  clicking one to move the preview there. The whole network, or the card you are
+  on and what it links to — or what links to it — and a full-screen button for
+  when a preview column is too narrow to read a graph in.
 - **The same diagnostics as `hmd lint`** in the Problems panel, under the same
   `HMD001`–`HMD016` rule IDs.
 - **Math, callouts, and D2 diagrams**, and `.hmd` as its own language with its
@@ -55,10 +58,11 @@ its source when neither is.
 
 ## This is a preview release
 
-The preview surface is built and gated by tests. The graph tab is specified and
-unstarted, and `HMD017` — the rule about a published card linking to a private
-one — is not ported yet, so the extension never reports it. The listing carries
-a *preview* flag until both land.
+The preview surface is built and gated by tests. `HMD017` — the rule about a
+published card linking to a private one — is not ported yet, so the extension
+never reports it. The graph tab — the milestone the flag was actually waiting
+on — is built, with the cut it draws under test; the flag comes off once it has
+been through the by-hand checks a unit test cannot stand in for.
 
 The full list of divergences from the CLI, each with its reason, is in the
 extension's

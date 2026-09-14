@@ -10,7 +10,6 @@ import {
   lineForOffset,
   offsetForLine,
   patchBlocks,
-  renderBacklinks,
   renderBreadcrumb,
   type Anchor,
 } from "../media/render.js";
@@ -193,23 +192,6 @@ describe("breadcrumb", () => {
     const document_ = await ir({ "specs/auth/login.hmd": "# Login\n" }, "specs/auth/login.hmd");
     renderBreadcrumb(container, document_);
     expect(container.textContent).toBe("specs/auth/login.hmd");
-  });
-});
-
-describe("backlinks", () => {
-  it("lists inbound links with their kind and a snippet", () => {
-    renderBacklinks(container, [
-      { path: "a.hmd", line: 3, kind: "link", snippet: "see [[target]]" },
-      { path: "b.hmd", line: 1, kind: "embed", snippet: "![[target]]" },
-    ]);
-    expect(container.querySelectorAll(".hmd-backlink").length).toBe(2);
-    expect(container.textContent).toContain("a.hmd:3");
-    expect(container.textContent).toContain("embed");
-  });
-
-  it("says so when nothing links here", () => {
-    renderBacklinks(container, []);
-    expect(container.textContent).toContain("Nothing links here");
   });
 });
 

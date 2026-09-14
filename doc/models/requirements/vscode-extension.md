@@ -39,7 +39,7 @@ allows it, and the activity bar otherwise — derived from sketch 87's
 
 **VSX-002** (MUST) The webview presents its views as a tab strip drawn inside
 the single webview, not as sibling VS Code views. v1 ships `rendered` and
-`backlinks`; `graph` and `mind map` join the same strip later (88).
+`graph`; `mind map` joins the same strip later (88).
 
 **VSX-003** (MUST) A command opens the same preview content as an editor tab
 beside the source document, for readers who want the full column width.
@@ -117,12 +117,14 @@ produced from (94).
 **VSX-022** (MUST) An embed card's header navigates to the embedded card's
 source, not to the embedding card.
 
-**VSX-023** (MUST) The `backlinks` tab lists every card linking to the current
-one, each with a one-line context snippet, and navigates on click (25, 97).
+**VSX-023** (MUST) The cards linking to the current one are reachable from the
+preview and navigate on click (25, 97). A `backlinks` tab answered this until
+the graph arrived; the graph's card scope, pointed at what links here, is the
+same answer drawn rather than listed, and carrying both would offer it twice.
 
 **VSX-024** (SHOULD) A `graph` tab renders the resolved link graph, clickable
-for navigation and filterable by namespace and tag, with an n-hop local mode
-centred on the current card (90, 92). Deferred past v1.
+for navigation and filterable by namespace and tag, with a local mode centred
+on the current card (90, 92).
 
 **VSX-025** (MAY) A `mind map` tab renders the namespace hierarchy or the link
 hierarchy as a tree (91). Deferred past v1.

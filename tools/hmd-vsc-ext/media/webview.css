@@ -320,39 +320,111 @@ body.is-pinned .hmd-breadcrumb::after {
   opacity: 0.85;
 }
 
-/* -- backlinks --------------------------------------------------------- */
+/* -- graph ------------------------------------------------------------- */
 
-.hmd-backlinks {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/*
+ * The canvas is positioned against the viewport rather than laid out in the
+ * flow: a graph you pan is a graph that must not scroll away, and the page
+ * scrolls for the rendered tab. The chrome's height is the one measurement CSS
+ * cannot take, so the webview sets it.
+ */
+.hmd-graph {
+  position: fixed;
+  top: var(--hmd-chrome-height, 4rem);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.hmd-backlink {
+[hidden] {
+  display: none !important;
+}
+
+/* Full screen is the graph keeping the panel and the chrome standing down. */
+body.is-graph-fullscreen .hmd-chrome {
+  display: none;
+}
+
+body.is-graph-fullscreen .hmd-graph {
+  top: 0;
+}
+
+.hmd-graph-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem var(--hmd-gap);
   border-bottom: 1px solid var(--vscode-panel-border);
-  padding: 0.5rem 0;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.25rem 0.5rem;
 }
 
-.hmd-backlink-kind {
-  opacity: 0.6;
-  font-size: 0.8em;
-  align-self: start;
+.hmd-graph-group {
+  display: flex;
+  gap: 0.15rem;
 }
 
-.hmd-backlink-snippet {
-  grid-column: 1 / -1;
-  opacity: 0.8;
-  font-family: var(--vscode-editor-font-family);
+.hmd-graph-zoom {
+  margin-left: auto;
+}
+
+.hmd-graph-button {
+  appearance: none;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: var(--hmd-radius);
+  background: transparent;
+  color: var(--vscode-foreground);
+  font: inherit;
   font-size: 0.85em;
-  white-space: pre-wrap;
-  word-break: break-word;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
 }
 
-.hmd-empty {
-  opacity: 0.6;
+.hmd-graph-button:hover:not(:disabled) {
+  background: var(--vscode-toolbar-hoverBackground);
+}
+
+.hmd-graph-button.is-active {
+  border-color: var(--vscode-focusBorder);
+  color: var(--vscode-focusBorder);
+}
+
+.hmd-graph-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.hmd-graph-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+.hmd-graph-swatch {
+  display: inline-block;
+  width: 1.2rem;
+  height: 0;
+  border-top: 1px solid var(--vscode-panel-border);
+}
+
+.hmd-graph-swatch.is-embed {
+  border-top: 2px solid var(--vscode-textLink-foreground);
+}
+
+.hmd-graph-canvas {
+  flex: 1;
+  min-height: 0;
+}
+
+.hmd-graph-note {
+  margin: 0;
+  padding: 0.35rem var(--hmd-gap);
+  border-top: 1px solid var(--vscode-panel-border);
+  font-size: 0.85em;
+  opacity: 0.7;
 }
 
 /* -- status ------------------------------------------------------------ */
