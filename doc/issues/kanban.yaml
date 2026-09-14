@@ -24,9 +24,12 @@ board:
   ]
   # One counter per stream, because the numbering is split (see the header):
   # the Python line's next issue is 0009, the editor line's is 0108.
-  last_id: 107 # highest assigned overall; per stream — Python 8, editor 107
+  last_id: 108 # highest assigned overall; per stream — Python 8, editor 108
   items:
     backlog:
+      - id: "0108"
+        title: "One editor root folder should hold several HMD vaults"
+        file: 0108-vault-root-discovery-per-card.md
       - id: "0008"
         title: "A public card linking to a private one needs a policy"
         file: "0008-private-card-link-policy.md"
