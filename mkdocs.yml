@@ -28,19 +28,17 @@ edit_uri: edit/main/doc/
 # build together; only the wiki is a namespace.
 docs_dir: doc
 
-# The working memory of the project, not part of the published book. The
-# STATUS.md trackers are excluded for the same reason the issues are: they are
-# where the work is argued, not what the book teaches. `vsc-ext/` holds one such
-# tracker and nothing else — it is the editor line's shared one, which sits here
-# rather than under a proposal because its milestones span two tools.
+# The working memory of the project, not part of the published book. `status/`
+# is excluded for the same reason the issues are: it is where the work is
+# argued, not what the book teaches. It holds one tracker per tool, plus one for
+# the language and one for this site.
 exclude_docs: |
   *.hmd
   models/
   issues/
   memory/
-  vsc-ext/
+  status/
   proposals/TEMPLATE.md
-  proposals/*/STATUS.md
 
 # A card and its folder note share one URL, so directory URLs are required
 # rather than merely preferred (HMD-0002 §1).

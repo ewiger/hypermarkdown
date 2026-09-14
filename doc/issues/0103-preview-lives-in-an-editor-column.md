@@ -84,4 +84,4 @@ blocks the other.
 - `PreviewController` no longer touches `vscode.workspace`'s document-change
   event, and `test/panel.test.ts` covers the column, the count, and the pin.
 - HMD-0021 §3 is rewritten around the editor tab, its secondary-side-bar Open
-  Question is deleted, and `doc/vsc-ext/STATUS.md` loses its **V1** entry.
+  Question is deleted, and `doc/status/vsc-ext.md` loses its **V1** entry.

@@ -78,7 +78,7 @@ diagnostics on `examples/small` and `doc/wiki`. Known divergences are listed in
 passing fails the build.
 
 Work points are tracked in
-[`doc/vsc-ext/STATUS.md`](https://github.com/ewiger/hypermarkdown/blob/main/doc/vsc-ext/STATUS.md), and what has changed is
+[`doc/status/ts-core.md`](https://github.com/ewiger/hypermarkdown/blob/main/doc/status/ts-core.md), and what has changed is
 in [CHANGELOG.md](https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd-ts-core/CHANGELOG.md).
 
 ## Working on it

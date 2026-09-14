@@ -127,7 +127,7 @@ about while you write:
 What has changed is in
 [CHANGELOG.md](https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd-vsc-ext/CHANGELOG.md);
 work points are tracked in
-[`doc/vsc-ext/STATUS.md`](https://github.com/ewiger/hypermarkdown/blob/main/doc/vsc-ext/STATUS.md).
+[`doc/status/vsc-ext.md`](https://github.com/ewiger/hypermarkdown/blob/main/doc/status/vsc-ext.md).
 Bugs and questions go to
 [the issue tracker](https://github.com/ewiger/hypermarkdown/issues).
 

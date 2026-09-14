@@ -21,17 +21,23 @@ Treat `doc/` as a modular knowledge base:
   behavior lenses.
 - `doc/wiki/` contains HyperMarkDown (`.hmd`) cards.
 - `doc/issues/` is just a kanban board of work items with cards.
+- `doc/status/` holds the trackers, one per tool plus the language and the site.
 - `doc/proposals/` holds numbered ADR/RFC-style technical specifications.
 - `doc/memory/` holds small real-time decisions.
 - `.grem/` contains dormant grem control data and copyable prompts.
 
 Keep L0, L1, and L2 lens files directly under `doc/models/`.
 
-Track progress **per proposal**, in `doc/proposals/HMD-NNNN/STATUS.md`. That
-file is the only place work is tracked: Done, then a TODO split into planned
-work, broken, limitations, and open questions/blockers. Never record progress in
-`doc/memory/`, in `doc/wiki/` cards, or in a proposal's `README.md` — a decision
-that needs discussion becomes an open question in the tracker.
+Track progress **per tool**, in `doc/status/`: `lang.md` for the format itself,
+`hmd.md`, `ts-core.md`, and `vsc-ext.md` for the three tools, and `pages.md` for
+the website. Those files are the only place work is tracked: Done, then a TODO
+split into planned work, broken, limitations, and open questions/blockers, with
+every row carrying a state (`done`, `ready`, `blocked`, `parked`, `open`,
+`deferred`, `standing`). A proposal is a record and carries no tracker; its rows
+go to whichever tracker owns the code, citing the proposal. Never record
+progress in `doc/memory/`, in `doc/wiki/` cards, in a proposal's `README.md`, or
+in a tool's `README.md` — a decision that needs discussion becomes an open
+question in the tracker.
 
 At the start of every agent invocation, read every file under `doc/memory/` and
 include that context in the work.

@@ -33,7 +33,7 @@ appears on the second keystroke.
 ## Done when
 
 - The integration suite is unparked and running in CI (see
-  `doc/vsc-ext/STATUS.md`, E5.2).
+  `doc/status/vsc-ext.md`, E5.2).
 - It covers each row above end to end: edit an unsaved buffer, assert what the
   preview holds.
 - `tools/hmd-vsc-ext/DEVELOP.md`'s manual walkthrough shrinks to the things a

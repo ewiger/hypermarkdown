@@ -30,8 +30,9 @@ landed, because a language is worked on continuously and released rarely.
 for.
 
 A tool release never implies a language version and a language version never waits
-for one. Progress is not tracked here either — every proposal has a `STATUS.md`
-beside it, and that is the only place work is recorded.
+for one. Progress is not tracked here either — the trackers under
+`doc/status/` are the only place work is recorded, one per tool plus one for the
+language itself.
 
 ## [0.1] — drafted
 

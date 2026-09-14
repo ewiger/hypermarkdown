@@ -86,7 +86,7 @@ The repository gains a JavaScript half that never touches the Python half.
 package.json                 npm workspaces root, private
 tools/hmd-ts-core/           @hypermarkdown/core
 tools/hmd-vsc-ext/           the extension (HMD-0021)
-doc/vsc-ext/STATUS.md        implementation status, JS side
+doc/status/ts-core.md        implementation status, JS side
 examples/conformance/cases/  the shared corpus (§10)
 ```
 

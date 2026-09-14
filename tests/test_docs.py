@@ -508,12 +508,17 @@ RETIRED_NAME_ALLOWED = {
     "doc/memory/decisions.md",
     "doc/memory/2026-08-06-typescript-editor-line.md",
     "doc/memory/2026-08-10-hypermarkdown-identity.md",
+    # The trackers for the Python line and the site, which carry the rows about
+    # the retired domain and the PyPI project left abandoned under it: what is
+    # broken and what is deliberately not being fixed are both named by the old
+    # spelling, because that is the thing they are about.
+    "doc/status/hmd.md",
+    "doc/status/pages.md",
     # Names the retired VS Marketplace publisher, which is deliberately kept
     # registered and unused: a publisher name returned to the pool is one an
     # impostor can publish under. The setup table has to say which one that is.
     "tools/hmd-vsc-ext/DEVELOP.md",
     "doc/proposals/HMD-0005/README.md",
-    "doc/proposals/HMD-0005/STATUS.md",
     # This guard names the thing it forbids.
     "tests/test_docs.py",
 }

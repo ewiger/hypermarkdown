@@ -44,7 +44,7 @@ not re-escaped:
 
 Applied to `doc/public/format.md`, `doc/wiki/hmd-format-specification.hmd`,
 `doc/models/requirements/initial_sketch.md`, and
-`doc/proposals/HMD-0001/STATUS.md`.
+`doc/status/hmd.md`.
 
 ## Guard
 

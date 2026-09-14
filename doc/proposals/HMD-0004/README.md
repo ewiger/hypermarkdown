@@ -44,7 +44,7 @@ this record to exist now, even unbuilt:
 - **The gap is not hypothetical.** HQL's own tracker already asks how a query
   imports from another namespace, with no answer available because no such
   namespace has been defined anywhere in the project. See
-  [HMD-0003 Q5](../HMD-0003/STATUS.md#open-questions-and-blockers).
+  [HQL's Q5](../../status/lang.md#hql-hmd-0003).
 - **The shape matters as much as the existence.** The obvious precedent for
   cross-project linking is MediaWiki's interwiki namespace — one flat
   namespace per wiki, long articles rather than folders. That is the wrong
@@ -253,19 +253,19 @@ before it adds a new one:
 ## Open Questions
 
 Every mechanism question is open by design. They are tracked in
-[STATUS.md](STATUS.md#open-questions-and-blockers) and only there, following
+[the language tracker](../../status/lang.md#the-hyper-web-hmd-0004) and only there, following
 the same departure from `TEMPLATE.md` that [HMD-0003](../HMD-0003/README.md)
 took: a list mirrored in two files drifts, and then neither copy can be
 trusted without opening both.
 
 ## See also
 
-- [STATUS.md](STATUS.md) — work points, limitations, and the open questions.
+- [`doc/status/lang.md`](../../status/lang.md) — work points, limitations, and the open questions.
 - [HMD-0001](../HMD-0001/README.md) — the module boundary, the namespace root,
   the containment check, and the `import` mechanism this record builds on and
   extends outward.
 - [HMD-0003](../HMD-0003/README.md), specifically
-  [Q5 of its tracker](../HMD-0003/STATUS.md#open-questions-and-blockers) — the
+  [HQL's Q5](../../status/lang.md#hql-hmd-0003) — the
   cross-namespace query question this record's binding mechanism, once
   designed, is expected to answer.
 - [Namespaces](../../public/namespaces.md) — the settled vocabulary for a

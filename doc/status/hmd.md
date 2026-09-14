@@ -43,7 +43,7 @@ workspace index — is a patch to a single class rather than a rewrite.
 | M1 | `scan.py`, `parse.py` — masking, the grammar, heading slugs from `markdown.extensions.toc` | §1–§4 |
 | M2 | `resolve.py` — two-phase spine walk, root sweep, folder-note binding, both import forms | §5 |
 | M3 | `hmd lint` — sixteen rules with stable IDs, JSON output, CI exit codes | §8 |
-| M4 | `embed.py` and `render/flat.py` — expansion, the shared depth constant, `hmd render PATH --to markdown\|html` | §6–§7 |
+| M4 | `embed.py` and `render/flat.py` — expansion, the shared depth constant, <code>hmd render PATH --to markdown&#124;html</code> | §6–§7 |
 | M6 | `hmd init` — writes `.hmd/config.toml` with every setting at its default, creates the namespace root it names, refuses to replace an existing config without `--force`, and reports an enclosing project on stderr | §4, §7 (an amendment) |
 | M6.7 | A `[namespace]` section written but **not read**, with both facts gated — the tempting next commit is the one that reads it | HMD-0004 |
 

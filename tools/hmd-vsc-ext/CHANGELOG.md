@@ -15,7 +15,7 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The extension carries **its own version**, independent of the language's and of
 the `hmd` tool's, and is released on its own tag — `vsc-ext-vX.Y.Z`, where the
 Python tool uses `vX.Y.Z`. Implementation state is tracked per work point in
-[`doc/vsc-ext/STATUS.md`](https://github.com/ewiger/hypermarkdown/blob/main/doc/vsc-ext/STATUS.md),
+[`doc/status/vsc-ext.md`](https://github.com/ewiger/hypermarkdown/blob/main/doc/status/vsc-ext.md),
 against
 [HMD-0021](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0021/README.md).
 

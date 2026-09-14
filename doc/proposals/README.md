@@ -13,31 +13,35 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 
 | ID | Status | Title | Progress |
 | --- | --- | --- | --- |
-| [HMD-0001](HMD-0001/README.md) | drafted | MVP — grammar, resolver, and `hmd lint` | [STATUS](HMD-0001/STATUS.md) |
-| [HMD-0002](HMD-0002/README.md) | drafted | MkDocs book-mode rendering | [STATUS](HMD-0002/STATUS.md) |
-| [HMD-0003](HMD-0003/README.md) | drafted | HQL — the Hyper Query Language (stub, no syntax) | [STATUS](HMD-0003/STATUS.md) |
-| [HMD-0004](HMD-0004/README.md) | drafted | The hyper web — namespaces beyond one tree (stub, no mechanism) | [STATUS](HMD-0004/STATUS.md) |
-| [HMD-0005](HMD-0005/README.md) | drafted | The HyperMarkDown rename — domain, repository, and registries | [STATUS](HMD-0005/STATUS.md) |
-| [HMD-0020](HMD-0020/README.md) | drafted | `@hypermarkdown/core` — the TypeScript document model | [STATUS](../vsc-ext/STATUS.md) |
-| [HMD-0021](HMD-0021/README.md) | drafted | The VS Code extension — the HyperMarkDown preview surface | [STATUS](../vsc-ext/STATUS.md) |
-| [HMD-0022](HMD-0022/README.md) | drafted | Diagrams as committed artifacts | [STATUS](../vsc-ext/STATUS.md) |
+| [HMD-0001](HMD-0001/README.md) | drafted | MVP — grammar, resolver, and `hmd lint` | [lang](../status/lang.md), [hmd](../status/hmd.md) |
+| [HMD-0002](HMD-0002/README.md) | drafted | MkDocs book-mode rendering | [hmd](../status/hmd.md), [pages](../status/pages.md) |
+| [HMD-0003](HMD-0003/README.md) | drafted | HQL — the Hyper Query Language (stub, no syntax) | [lang](../status/lang.md) |
+| [HMD-0004](HMD-0004/README.md) | drafted | The hyper web — namespaces beyond one tree (stub, no mechanism) | [lang](../status/lang.md) |
+| [HMD-0005](HMD-0005/README.md) | drafted | The HyperMarkDown rename — domain, repository, and registries | [hmd](../status/hmd.md) |
+| [HMD-0020](HMD-0020/README.md) | drafted | `@hypermarkdown/core` — the TypeScript document model | [ts-core](../status/ts-core.md) |
+| [HMD-0021](HMD-0021/README.md) | drafted | The VS Code extension — the HyperMarkDown preview surface | [vsc-ext](../status/vsc-ext.md) |
+| [HMD-0022](HMD-0022/README.md) | drafted | Diagrams as committed artifacts | [ts-core](../status/ts-core.md), [vsc-ext](../status/vsc-ext.md) |
 | HMD-0023 | reserved | Searching the wiki from the preview | — |
-| [HMD-0024](HMD-0024/README.md) | drafted | The `tools/` layout, and a Python language server | [STATUS](HMD-0024/STATUS.md) |
+| [HMD-0024](HMD-0024/README.md) | drafted | The `tools/` layout, and a Python language server | [hmd](../status/hmd.md) |
 
-## Progress is tracked per proposal
+## Progress is tracked per tool
 
-Each proposal carries a sibling `STATUS.md` — what is done, what is broken, what
-is a known limitation, and what is an open question or blocker. Those files are
-the **only** place work is tracked; there is no repository-wide task list and no
-board. A task that belongs to no proposal has nowhere to live, which usually
-means it is a decision nobody has taken yet, and belongs under a tracker's open
-questions.
+Work is tracked in [`doc/status/`](../status/), one file per thing that ships:
+[`lang.md`](../status/lang.md) for the format itself, [`hmd.md`](../status/hmd.md)
+for the canonical Python line, [`ts-core.md`](../status/ts-core.md) and
+[`vsc-ext.md`](../status/vsc-ext.md) for the TypeScript implementation and its
+editor, and [`pages.md`](../status/pages.md) for the site. Those files are the
+**only** place work is tracked; there is no repository-wide task list and no
+board.
 
-The `README.md` / `STATUS.md` split is decision versus state: the record changes
-when the design changes, the tracker changes with the commits. See
+A proposal is a *record* and carries no tracker of its own. The split is
+decision versus state: the record changes when the design changes, and the
+tracker changes with the commits. A proposal's rows are spread across whichever
+trackers own the code — the Progress column above says which — because a
+proposal is an argument and a tool is a thing you can ship, and the second is
+what a reader wants the state of. See
 [`doc/wiki/tracking.hmd`](../wiki/tracking.hmd) for the convention in full.
 
-The editor line varies this in one way: `HMD-0020`+ share a single
-[`doc/vsc-ext/STATUS.md`](../vsc-ext/STATUS.md) rather than one tracker each,
-because the milestones interleave across the two packages, and it keeps a board
-in [`doc/issues/`](../issues/) for defects found against a running extension.
+The editor line also keeps a board in [`doc/issues/`](../issues/) for defects
+found against a running extension; a card there becomes a tracked row when it is
+picked up.

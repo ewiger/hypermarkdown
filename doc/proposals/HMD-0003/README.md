@@ -220,14 +220,14 @@ authored input, so the resource bounds are the security surface.
 Every syntactic decision is open by design, and the grammar blocks all of them.
 They must be resolved before this record moves from `drafted` to `accepted`.
 
-The questions are tracked in [STATUS.md](STATUS.md#open-questions-and-blockers)
+The questions are tracked in [the language tracker](../../status/lang.md#hql-hmd-0003)
 and only there. The template asks a record to carry the list and mirror it into
 the tracker; this record does not, because the mirror drifts and then a reader
 has to open both files to find out which copy is current.
 
 ## See also
 
-- [STATUS.md](STATUS.md) — work points, limitations, and the open questions.
+- [`doc/status/lang.md`](../../status/lang.md) — work points, limitations, and the open questions.
 - [HMD-0001](../HMD-0001/README.md) — the grammar and resolver HQL reads from.
 - [HMD-0002](../HMD-0002/README.md) — MkDocs rendering, which evaluates fences.
 - [The initial sketch, §9](../../models/requirements/initial_sketch.md) — where
@@ -241,7 +241,7 @@ has to open both files to find out which copy is current.
   reserved; no grammar specified.
 - 2026-08-07: fence modes decided — `hmq#eval` evaluates, a bare `hmq` fence
   highlights without evaluating. The only syntax this record fixes.
-- 2026-08-07: open questions moved wholly into [STATUS.md](STATUS.md); this
+- 2026-08-07: open questions moved wholly into the tracker; this
   record points at the tracker rather than mirroring it.
 - 2026-08-07: rewritten as continuous prose. Feature IDs, section numbers, and
   sketch requirement numbers were removed from the body and collected under

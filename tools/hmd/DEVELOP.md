@@ -99,7 +99,7 @@ Two invariants worth preserving:
   is a buffer that has never been saved. The leaf functions honour this already;
   `Workspace` is the one layer that still reads from disk, tracked as a
   limitation in
-  [the HMD-0024 tracker](../../doc/proposals/HMD-0024/STATUS.md#limitations).
+  [the Python tracker](../../doc/status/hmd.md#limitations).
 
 ## Dependencies
 

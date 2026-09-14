@@ -383,7 +383,7 @@ uv run mkdocs build --strict
 
 ## Open Questions
 
-These are worked in [the tracker](STATUS.md#open-questions-and-blockers), which
+These are worked in [the tracker](../../status/hmd.md#open-questions-and-blockers), which
 holds the only copy.
 
 - When is the `hyper-markdown` MkDocs entry-point alias withdrawn, and what

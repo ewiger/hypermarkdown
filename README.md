@@ -105,8 +105,10 @@ diagram.](https://raw.githubusercontent.com/ewiger/hypermarkdown/main/doc/assets
 - **[`doc/proposals/`](doc/proposals/)** — numbered specifications. A change to
   the format or the tooling starts as one; reserve its number in
   [`doc/proposals/README.md`](doc/proposals/README.md).
-- **Progress is tracked per proposal**, in `doc/proposals/HMD-NNNN/STATUS.md`,
-  and updated in the same commit that changes the code.
+- **[`doc/status/`](doc/status/)** — progress, tracked per tool: `lang.md` for
+  the format, `hmd.md`, `ts-core.md`, and `vsc-ext.md` for the three tools, and
+  `pages.md` for the site. Updated in the same commit that changes the code, and
+  the only place work is tracked.
 - **Kanban board** - in `doc/issues/**`, for the repository's own work, and for the language and the
   website, as well as the tools. The board is public, but the issues are owned by the contributors team.
 - **[CONTRIBUTORS.md](CONTRIBUTORS.md)** — add yourself in the same commit as

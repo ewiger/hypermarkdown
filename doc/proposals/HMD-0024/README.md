@@ -90,7 +90,7 @@ tools/hmd-vsc-ext/    the VS Code extension
 
 Nothing else sits at `tools/`. The tracker the two TypeScript tools share is
 documentation about the work rather than a shippable unit, so it lives at
-`doc/vsc-ext/STATUS.md` with the rest of `doc/`.
+`doc/status/` with the rest of `doc/`.
 
 - A directory under `tools/` MUST be a single shippable unit with its own
   project file — `pyproject.toml` or `package.json` — and MUST NOT be a
@@ -358,9 +358,12 @@ uv build --package HyperMarkDown
 - Does canonicity move if a Rust implementation ever appears, and what is the
   procedure for moving it? This is inherited unresolved and the `tools/` layout
   does not settle it.
-- Should `doc/vsc-ext/STATUS.md` be split into per-proposal trackers, which is the
-  convention every other proposal follows, or does the interleaving of
-  milestones across the two TypeScript tools genuinely justify the exception?
+- ~~Should the editor line's shared tracker be split into per-proposal
+  trackers?~~ **Answered 2026-09-14: neither.** Tracking moved per tool, to
+  `doc/status/`, with one file for the language and one for the site beside the
+  three tools. Per-proposal tracking had the same defect from the other
+  direction: a reader asking what the extension can do had to visit three
+  trackers, and a proposal spanning two tools had to choose one of them.
 
 ## See also
 

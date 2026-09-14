@@ -16,7 +16,7 @@ released on its own tag — `ts-core-vX.Y.Z`, where the extension uses
 this package from the workspace and bundles it, so a version here is not
 something the extension waits for. Implementation state is tracked per work
 point in
-[`doc/vsc-ext/STATUS.md`](../../doc/vsc-ext/STATUS.md), against
+[`doc/status/ts-core.md`](../../doc/status/ts-core.md), against
 [HMD-0020](../../doc/proposals/HMD-0020/README.md).
 
 ## [Unreleased]

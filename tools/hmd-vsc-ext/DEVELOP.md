@@ -8,7 +8,7 @@ implementation this extension renders with — a preview bug is as likely to liv
 there as here.
 
 Specified by [HMD-0021](../../doc/proposals/HMD-0021/README.md); work points are
-tracked in [`doc/vsc-ext/STATUS.md`](../../doc/vsc-ext/STATUS.md).
+tracked in [`doc/status/vsc-ext.md`](../../doc/status/vsc-ext.md).
 
 ## Prerequisites
 

@@ -22,6 +22,9 @@ Every tool lives under `tools/`, one directory each:
   conformance contract. A second implementation, not extension code.
 - **`tools/hmd-vsc-ext`** — the VS Code extension.
 
-Implementation status for the two TypeScript tools is
-[`doc/vsc-ext/STATUS.md`](vsc-ext/STATUS.md); everything else is tracked per
-proposal, in `doc/proposals/HMD-NNNN/STATUS.md`.
+Progress is tracked per tool, in [`doc/status/`](status/): the format itself in
+[`lang.md`](status/lang.md), the three tools in [`hmd.md`](status/hmd.md),
+[`ts-core.md`](status/ts-core.md), and [`vsc-ext.md`](status/vsc-ext.md), and
+the site in [`pages.md`](status/pages.md). Proposals under
+[`doc/proposals/`](proposals/) record the decisions; they carry no trackers of
+their own.

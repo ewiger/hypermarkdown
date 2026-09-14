@@ -103,14 +103,14 @@ The digests come from that release's `SHA256SUMS`.
 
 Three conventions that are easy to get wrong:
 
-- **Progress is tracked per proposal**, in `doc/proposals/HMD-NNNN/STATUS.md`,
-  and nowhere else — not in `doc/memory/`, not in a wiki card, not in a
-  proposal's own `README.md`. Update the tracker in the same commit that changes
+- **Progress is tracked per tool**, in [`doc/status/`](doc/status/), and nowhere
+  else — not in `doc/memory/`, not in a wiki card, not in a proposal's own
+  `README.md`, not in a tool's `README.md`. One file each: `lang.md` for the
+  format, `hmd.md`, `ts-core.md`, and `vsc-ext.md` for the three tools, and
+  `pages.md` for the site. A proposal's rows go to whichever tracker owns the
+  code, citing the proposal. Update the tracker in the same commit that changes
   the code. A decision that needs discussion becomes an open question in the
-  tracker. One standing exception:
-  [`doc/vsc-ext/STATUS.md`](doc/vsc-ext/STATUS.md) covers `HMD-0020`+ in a
-  single file, because those milestones interleave across `tools/hmd-ts-core`
-  and `tools/hmd-vsc-ext` and neither tool owns half a row.
+  tracker, with a state on the row saying so.
 - **A proposal is a complete text**, readable start to finish by someone who has
   opened no other file. Do not thread prose with identifiers standing in for the
   claim (`F21`, `Q7`, `§5.3`); restate the constraint instead, and put surviving

@@ -108,5 +108,5 @@ reuse resolves them against `tabGroups.activeTabGroup` before comparing.
   test encodes the defect and has to be inverted rather than deleted.
 - A preview restored from workspace storage follows, whatever the stored state
   says, and clicking the ⚡ twice in one column leaves one preview open.
-- HMD-0021 §3, `doc/vsc-ext/STATUS.md` E7.3, and the extension README stop
+- HMD-0021 §3, `doc/status/vsc-ext.md` E7.3, and the extension README stop
   describing pin-on-open as intended.

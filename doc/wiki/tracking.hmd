@@ -4,23 +4,29 @@ tags: [area/process, status/canonical]
 
 # Tracking
 
-Progress lives in **one place per proposal**: a `STATUS.md` sitting beside the
-proposal it tracks, at `doc/proposals/HMD-NNNN/STATUS.md`. There is no
-repository-wide task list. A repo-root `STATUS.md` that indexed every work point
-for every proposal at once was removed once it became clear what two overlapping
-trackers cost — a task could hide in either, and neither was wrong to omit it.
+Progress lives in **one place per thing that ships**: a file under
+`doc/status/`, one for the language, one for each tool, and one for the site.
+There is no repository-wide task list. Two overlapping trackers were tried
+twice — a repo-root index of every work point, and a tracker beside each
+proposal — and both failed the same way: a task could hide in either, and
+neither was wrong to omit it.
 
-A proposal owns its own state.
+A tool owns its own state, because a tool is what a reader wants the state of. A
+proposal is an argument, and one argument is often settled across two tools
+while another tool is settled by three proposals at once.
 
 ## Decision versus state
 
-Each proposal folder holds two files, and the split between them is the whole
-convention:
+Two kinds of file, and the split between them is the whole convention:
 
 | File | Answers | Changes when |
 | --- | --- | --- |
-| `README.md` | What was decided, and why | The design changes |
-| `STATUS.md` | How far the code has got | The commits change |
+| `doc/proposals/HMD-NNNN/README.md` | What was decided, and why | The design changes |
+| `doc/status/<tool>.md` | How far the code has got | The commits change |
+
+A proposal carries no tracker of its own. Its rows are spread across whichever
+trackers own the code it touches, each citing it, and the proposal index says
+which ones those are.
 
 A record that carries a to-do list stops being a record, because every reader
 then has to work out which sentences are still true. Move the work point to the
@@ -37,7 +43,12 @@ Then a TODO split four ways, and the split matters more than it looks:
 - **Limitations** — known, accepted, not being fixed now. Each carries *why it
   stands*, which is what stops it being rediscovered as a bug.
 - **Open questions and blockers** — what must be resolved before the proposal
-  moves from `drafted` to `accepted`.
+  behind the row moves from `drafted` to `accepted`, and anything else genuinely
+  undecided.
+
+Every row carries a **state** — `done`, `ready`, `blocked`, `parked`, `open`,
+`deferred`, `standing` — because a table of rows that all look alike is a list,
+not a tracker. The reader must be able to see which rows are moving.
 
 A defect and a limitation look identical in a bug report and are opposites in a
 tracker: one is a promise to fix, the other is a decision not to. Keeping them
@@ -60,28 +71,30 @@ including this card, a claim is restated rather than cited.
 ## Where progress may not live
 
 Not in `doc/memory/`, which holds small real-time decisions and no state. Not in
-a wiki card, including this one. Not in a proposal's own `README.md`. A decision
-that needs discussion becomes an **open question** in the tracker and is argued
-wherever it belongs.
+a wiki card, including this one. Not in a proposal's own `README.md`. Not in a
+tool's `README.md`, which is a page for the people who use it rather than a
+place to keep a list of what it cannot do yet. A decision that needs discussion
+becomes an **open question** in the tracker and is argued wherever it belongs.
 
-Work that belongs to no proposal has nowhere to live — which is usually the
-signal that a decision has not been taken yet, rather than that the tracker is
-missing a row.
+Work that belongs to no tool and to no proposal has nowhere to live — which is
+usually the signal that a decision has not been taken yet, rather than that the
+tracker is missing a row.
 
 ## The board is not the tracker
 
 [[kanban]] indexes the numbered issues under `doc/issues/`: work currently in
-flight, one flat file each. The tracker answers *how far this proposal has got*;
-the board answers *what is being worked on right now*. An issue is usually the
-short-lived thing, and the tracker row it moves is the durable one.
+flight, one flat file each. The tracker answers *how far this tool has got*; the
+board answers *what is being worked on right now*. An issue is usually the
+short-lived thing, and the tracker row it moves is the durable one — a card
+picked up becomes a row, and the card stops being the record of it.
 
 See [[hmd-feature-list]] for the same distinction applied to the format itself:
-that card tracks what the *format* has, a tracker tracks what one proposal's
+that card tracks what the *format* has, a tracker tracks what one
 *implementation* has, and they answer different questions.
 
 ## Place in the knowledge base
 
 The models under `doc/models/` declare what the system is; proposals record
-decisions; the board carries work in flight; trackers say how far each decision
-has been implemented. See [[hypermarkdown]] for the card format this convention
+decisions; the board carries work in flight; trackers say how far each tool has
+implemented them. See [[hypermarkdown]] for the card format this convention
 is written in.
