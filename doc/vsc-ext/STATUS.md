@@ -123,9 +123,18 @@ the next blocks.
 
 ## Open
 
-- **The publisher is not domain-verified.** `hypermarkdown.org` reports
-  `verified: false`, which is what puts the check beside the name on the
-  listing. Not blocking anything.
+- **The publisher is not domain-verified, and the request is queued.**
+  `isDomainVerified` is `false` for `hypermarkdown.org`; that flag is what puts
+  the check beside the name on the listing and affects nothing else. Verification
+  was requested on 2026-09-14 and the portal answered *"Your request to verify
+  the domain is submitted to the marketplace team for processing."*
+
+  **There is nothing further to do — do not re-submit.** The gallery verifies
+  domains by manual review, not by a DNS record. Open VSX is the one that works
+  the other way, and the `EclipseFdn/open-vsx.org` issue URL sitting in a TXT
+  record on the apex is its claim, not the gallery's; adding a second TXT record
+  does nothing here. Re-check with `isDomainVerified` on the public
+  `extensionquery` API rather than by looking at the portal.
 - **The `preview` flag has no agreed removal point.** Today it names both E6
   (the graph tab) and C4.2 (the publication model) as the release it comes off
   at. One of them has to own it.
