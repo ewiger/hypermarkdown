@@ -18,14 +18,16 @@ and the one this file is the standing exception to.
 `ready` specified, unblocked, not started · `blocked` waiting on a decision ·
 `unspec` no normative text exists yet.
 
-**Snapshot** (2026-08-10): C1–C7, E1–E5, E7 done; E8 — the first marketplace
-release — is wip and waits only on the two publisher accounts, which cannot be
-created from CI. C1–C7 and E1–E5, E7 as of 2026-08-08: 151 tests green, including
-diagnostic parity with `hmd lint` on `examples/small`, `examples/cs-alg-sorting`
-and `doc/wiki` — byte-identical on every rule except HMD017, which is ledgered
-as unimplemented and currently fires nowhere (see below). Callouts, math, and D2
-diagrams render (HMD-0022). E6 (graph tab), the publication model, and the
-Python corpus runner are the next blocks.
+**Snapshot** (2026-09-14): C1–C7, E1–E5, E7, E8 done; E9 — the bundled-`d2`
+release — is prepared and waits only on its tag. 158 tests green: 107 in
+`@hypermarkdown/core`, 51 in the extension. That includes diagnostic parity with
+`hmd lint` on `examples/small`, `examples/cs-alg-sorting` and `doc/wiki` —
+byte-identical on every rule except HMD017, which is ledgered as unimplemented
+and currently fires nowhere (see below). Callouts, math, and D2 diagrams render
+(HMD-0022), and `d2` now travels inside the extension from a pinned toolchain
+release, so a diagram draws on a fresh install with nothing configured (issue
+0107). E6 (graph tab), the publication model, and the Python corpus runner are
+the next blocks.
 
 ---
 
@@ -47,7 +49,8 @@ Python corpus runner are the next blocks.
 | E5 | Packaging | **done** | `npm run -w tools/hmd-vsc-ext package` |
 | E6 | Graph tab | **ready** | HMD-0021 §10 |
 | E7 | Editor-column surface, logo | **done** | `test/panel.test.ts` |
-| E8 | First marketplace release, `0.1.0` | **wip** | `release-vsc-ext.yml` on `vsc-ext-v*` |
+| E8 | First marketplace release, `0.1.0` | **done** | live on both registries, 2026-08-11 |
+| E9 | Bundled `d2`, one build per platform, `0.2.0` | **wip** | `test/engine.test.ts`; tag `vsc-ext-v0.2.0` |
 
 ## Work points
 
@@ -109,6 +112,11 @@ Python corpus runner are the next blocks.
 | E8.3 | `release-vsc-ext.yml`: one VSIX to Marketplace, Open VSX, and the release | §12 | done |
 | E8.4 | Publisher accounts, Marketplace trusted publishing, the `OVSX_PAT` secret | — | **blocked** — see below |
 | E8.5 | `hypermarkdown.org/tools/vscode/` landing page | — | done |
+| E9.1 | `scripts/toolchain.mjs` — fetch the pinned archive, check its digest, unpack it | issue 0107 | done |
+| E9.2 | `diagram/options.ts` — configured path, then bundled, then `PATH`, then placeholder | issue 0107 | done |
+| E9.3 | `hyperMarkdown.diagram.d2Path`; the Docker fallback removed | issue 0107 | done |
+| E9.4 | One VSIX per `--target`, each carrying `toolchain/bin/d2`, gate asserts it is there | HMD-0021 §12 | done |
+| E9.5 | `0.2.0` on the Marketplace and Open VSX | — | **wip** — tag not yet cut |
 
 ## Open
 

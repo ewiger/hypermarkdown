@@ -1,27 +1,27 @@
 {
   "$comment": "The one pin for every native binary HyperMarkDown runs. See doc/issues/0107. Bumping d2 happens in the toolchain repository; here only `version` and the digests move, together, in one commit.",
   "repo": "ewiger/hypermarkdown-toolchain",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "archives": {
     "linux-x86_64": {
-      "name": "hypermarkdown-toolchain-0.1.0-linux-x86_64.tar.gz",
-      "sha256": "18c7a10d38a01cab75577ed1e2f499a42d53c958106f95d3678cf23dd39408f4"
+      "name": "hypermarkdown-toolchain-0.1.1-linux-x86_64.tar.gz",
+      "sha256": "fa7c964877a8932594588c8057f2ece5d798d892ce45b5330cbb11595d90eb52"
     },
     "linux-arm64": {
-      "name": "hypermarkdown-toolchain-0.1.0-linux-arm64.tar.gz",
-      "sha256": "3e3478c23f9ae31eb10bc1f9629c0a34c9ad40070b60bf869ad95738d1f9d59d"
+      "name": "hypermarkdown-toolchain-0.1.1-linux-arm64.tar.gz",
+      "sha256": "895f2e1874408d4c62542af7f8603931b62f32c711a4f8411c27f1dfbea9ca3e"
     },
     "macos-x86_64": {
-      "name": "hypermarkdown-toolchain-0.1.0-macos-x86_64.tar.gz",
-      "sha256": "a7b76b57b90535b973c41264422f6dfd1e61dc823068871e53165a0dfd9e3650"
+      "name": "hypermarkdown-toolchain-0.1.1-macos-x86_64.tar.gz",
+      "sha256": "caff61ec0310503985d203ff5478a125bf45fa6789d520f203b680dc67ef8c18"
     },
     "macos-arm64": {
-      "name": "hypermarkdown-toolchain-0.1.0-macos-arm64.tar.gz",
-      "sha256": "9f3b2100ab4fe7aa36919d7ff79355427eeb85df51b0f3adb7a146ccf0019eaa"
+      "name": "hypermarkdown-toolchain-0.1.1-macos-arm64.tar.gz",
+      "sha256": "e73b631e19c0af71fb3c4d981f670aab5bcb4847a0962445e547fb7917f06513"
     },
     "windows-x86_64": {
-      "name": "hypermarkdown-toolchain-0.1.0-windows-x86_64.zip",
-      "sha256": "ac2c07dfcdf6f63d4f4b267d2a75173b532ccbf2957123c91f792501b0e2a2a2"
+      "name": "hypermarkdown-toolchain-0.1.1-windows-x86_64.zip",
+      "sha256": "06a49d5eb0496a5ee8e3c6db680b08689f601f9365a22cd3bb9be3542c84774b"
     }
   }
 }
