@@ -123,15 +123,6 @@ about while you write:
 - **Raw HTML in a card is escaped** rather than passed through. Deliberate, and
   a divergence from the MkDocs build: a webview rendering HTML out of a
   workspace is a script-injection surface reachable from any cloned repository.
-- **`HMD017` is never reported.** The publication model behind it —
-  `nav.visibility`, which the CLI inherits down a subtree and defaults to
-  private — is unported, so nothing here knows whether a card is published.
-- **A setext heading** (a title underlined with `=====`) gets a slug here and
-  none in the CLI, so `[[Card#Section]]` against one resolves in the preview and
-  not in a build. Write ATX headings.
-- **Math is typeset by KaTeX** rather than by the site's MathJax, and `~x~`
-  subscript is unsupported.
-- **The graph tab** is specified and not built yet.
 
 What has changed is in
 [CHANGELOG.md](https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd-vsc-ext/CHANGELOG.md);
@@ -140,17 +131,16 @@ work points are tracked in
 Bugs and questions go to
 [the issue tracker](https://github.com/ewiger/hypermarkdown/issues).
 
-## Working on it
+## Contributing
 
-The extension is specified by
-[HMD-0021](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0021/README.md);
-the parser, resolver, and renderer come from
+The extension lives in
+[the HyperMarkDown repository](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-vsc-ext);
+its parser, resolver, and renderer come from
 [`@hypermarkdown/core`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-ts-core),
-specified by
-[HMD-0020](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0020/README.md).
+so a rendering fix usually belongs there rather than here.
 [DEVELOP.md](https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd-vsc-ext/DEVELOP.md)
-is the contributor's guide: the two bundles, the Extension Development Host,
-what to walk through by hand, and how the VSIX is built and published.
+is the contributor's guide — how to build, run, and test the extension, and how
+the VSIX is published — and links on to the specification behind it.
 
 ## License
 

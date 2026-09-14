@@ -121,7 +121,14 @@ the next blocks.
 | E9.4 | One VSIX per `--target`, each carrying `toolchain/bin/d2`, gate asserts it is there | HMD-0021 §12 | done |
 | E9.5 | `0.2.0` on the Marketplace and Open VSX | — | **done** — all six validated on both, 2026-09-14 |
 
-## Open
+## Open and gaps
+
+Blockers and open questions first, then the standing divergences from the
+canonical `hmd` CLI. Every divergence is ledgered with its reason in
+[`conformance-xfail.json`](../../tools/hmd-ts-core/conformance-xfail.json), and a
+ledgered entry that stops diverging fails the build. This section is the prose
+behind that ledger; the extension README carries only the short user-facing
+version of it.
 
 - **The publisher is not domain-verified, and the request is queued.**
   `isDomainVerified` is `false` for `hypermarkdown.org`; that flag is what puts
