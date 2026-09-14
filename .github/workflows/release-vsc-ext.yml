@@ -5,9 +5,10 @@ name: Release (VS Code extension)
 # own tag prefix: `vsc-ext-vX.Y.Z` here, `vX.Y.Z` for the Python tool in
 # `release.yml`. Neither triggers the other.
 #
-# Open VSX publishes automatically. The Marketplace job is written and skipped —
-# see the block above `marketplace:` — so a tag today ships to Open VSX and the
-# GitHub release, and the Marketplace upload is done by hand from that release.
+# Both registries publish automatically. Open VSX authenticates with a stored
+# `OVSX_PAT`; the Marketplace authenticates with no stored credential at all —
+# an OIDC `azure/login` and `vsce --azure-credential`, see the block above
+# `marketplace:`.
 #
 # `workflow_dispatch` runs the whole build — gates, tag-free — and publishes
 # nowhere, so the packaging path can be exercised without minting a tag.
@@ -161,40 +162,53 @@ jobs:
           path: dist-vsix/*.vsix
           if-no-files-found: error
 
-  # Published with a Personal Access Token, deliberately, and on a deadline.
+  # Published with no stored credential: a federated OIDC token, exchanged for
+  # an Entra token, spent on the gallery by `vsce --azure-credential`.
   #
-  # This was a skipped `--oidc` job waiting on Marketplace trusted publishing.
-  # The wait ended without the feature: microsoft/vsmarketplace#1422 has been
-  # open since August 2025, the gallery exposes no policy UI, and `--oidc` is in
-  # no released `vsce` — 3.9.2, the lockfile's, offers `--pat` and
-  # `--azure-credential` and nothing else. The old job pinned the one prerelease
-  # carrying the flag, so "set a variable to re-enable, no code change" had
-  # quietly stopped being true.
+  # This was a PAT job for one day, and a skipped `--oidc` job before that. The
+  # wait for Marketplace trusted publishing ended without the feature —
+  # microsoft/vsmarketplace#1422 has been open since August 2025, the gallery
+  # exposes no policy UI, and `--oidc` is in no released `vsce`. The PAT that
+  # replaced it never published anything: two runs died on
+  # `Request timeout: /_apis/gallery`, and global PATs — the "all accessible
+  # organizations" scope the Marketplace requires — stop working 2026-12-01
+  # anyway. Neither path is coming back.
   #
-  # 0.2.0 forced the decision. Bundling `d2` turned one universal VSIX into six
-  # platform-specific ones, and the manual browser upload that released 0.1.0
-  # cannot express "these six are one version" — the publisher hub takes one
-  # package, and the documented route for platform-specific packages is the CLI.
-  # The fallback that justified waiting no longer existed, so the choice became
-  # a stored credential or no Marketplace release at all.
+  # What was actually blocking `--azure-credential` was authorisation, not
+  # tooling. `vsce` builds a `ChainedTokenCredential` and asks it for the Azure
+  # DevOps scope — a well-known public resource id, not a secret — and the
+  # gallery answers `InvalidAccessException` unless *that* principal is a member
+  # of the publisher. The grant is by Azure DevOps **profile id** — not a client
+  # id, object id, or resource id — and is a browser step on the publisher's
+  # Members page, once per identity. The human user was granted Contributor on
+  # 2026-09-14 and published `0.2.0 darwin-arm64` by hand in seconds; this app
+  # registration is a different principal and carries its own grant.
   #
-  # `--azure-credential` was tried first and is the better answer, but it is
-  # blocked on authorisation rather than on tooling: the publisher is owned by a
-  # personal Microsoft account, an `az login` authenticates as an Entra user in
-  # a different tenant, and the gallery rejects that principal with
-  # `InvalidAccessException`. Granting a publisher membership is a browser step
-  # nobody has taken yet.
+  # `azure/login@v2` rather than the environment variables directly:
+  # `EnvironmentCredential`, first in the chain, does not read
+  # `AZURE_FEDERATED_TOKEN_FILE`, so the federated token never reaches it.
+  # `azure/login` performs the OIDC `az login` itself and `AzureCliCredential`,
+  # next in the chain, picks the session up. Microsoft documents only the Azure
+  # Pipelines path, via a user-assigned managed identity; from GitHub the app
+  # registration is federated directly and no managed identity exists.
   #
-  # THIS EXPIRES 2026-12-01. Global PATs — scoped to "all accessible
-  # organizations", which is what the Marketplace requires — stop working that
-  # day. The successor is `--azure-credential` once the grant exists: a
-  # credential swap and an `azure/login` step, not a rewrite. The date is a
-  # deadline, not a note.
+  # `allow-no-subscriptions` because publishing touches no Azure resource — the
+  # app is an identity, not a tenant role, and has no subscription to select.
+  #
+  # The federated credential is bound to subject
+  # `repo:<owner>/<repo>:environment:vscode-marketplace`, so the token can only
+  # be minted by a job running in that environment. `environment:` below is
+  # therefore load-bearing, not just a deployment label.
   marketplace:
     name: publish to the VS Marketplace
     needs: build
     if: startsWith(github.ref, 'refs/tags/vsc-ext-v')
     runs-on: ubuntu-latest
+    # `id-token: write` is what lets the job ask GitHub for the OIDC token
+    # `azure/login` exchanges. Without it the login fails before `vsce` runs.
+    permissions:
+      contents: read
+      id-token: write
     environment:
       name: vscode-marketplace
       url: https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd
@@ -233,10 +247,17 @@ jobs:
       # to be re-runnable. 0.2.0 reached Open VSX and not the gallery; a re-run
       # that died on the registry already holding the version would leave no way
       # forward but a version bump nobody needed.
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      # No `VSCE_PAT`: `--azure-credential` and a PAT are mutually exclusive and
+      # `vsce` errors when both are present, so leaving the secret in the
+      # environment would break this step rather than back it up.
       - name: Publish
-        run: npx --no vsce publish --no-dependencies --skip-duplicate --packagePath vsix/*.vsix
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx --no vsce publish --no-dependencies --skip-duplicate --azure-credential --packagePath vsix/*.vsix
 
   openvsx:
     name: publish to Open VSX

@@ -1,0 +1,59 @@
+name: Print the Azure DevOps profile id
+
+# A throwaway. Delete it once the grant it exists to enable has been made.
+#
+# The Marketplace authorises publishers by Azure DevOps **profile id**, and the
+# publisher's Members → Add search accepts nothing else — not a client id, not
+# an object id, not a resource id. A profile id can only be read by asking Azure
+# DevOps *as the identity in question*, so the only way to learn the app
+# registration's is to run a job that signs in as it and asks.
+#
+# It must run in `vscode-marketplace`: the federated credential is bound to
+# subject `repo:<owner>/<repo>:environment:vscode-marketplace`, so no other
+# environment can mint a token for this app. That makes this a live test
+# of the federation as well — if it prints a GUID, `azure/login` works and only
+# the publisher grant is left.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  profile:
+    name: profile id
+    runs-on: ubuntu-latest
+    environment:
+      name: vscode-marketplace
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      # `499b84ac-...` is Azure DevOps' well-known resource id — a public
+      # Microsoft constant, identical in every tenant and hardcoded in `vsce`
+      # too. It is the scope `--azure-credential` asks the credential chain
+      # for, and a token for it is what makes the profile endpoint answer
+      # about *this* identity rather than about nobody.
+      - name: Ask Azure DevOps who we are
+        run: |
+          set -euo pipefail
+          tok=$(az account get-access-token \
+            --resource 499b84ac-1321-427f-aa17-267ca6975798 \
+            --query accessToken -o tsv)
+          profile=$(curl -sfH "Authorization: Bearer $tok" \
+            'https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=7.1')
+          id=$(echo "$profile" | jq -r .id)
+          [ -n "$id" ] && [ "$id" != "null" ] || {
+            echo "::error::no profile id in the response: $profile" >&2; exit 1; }
+          echo "$profile" | jq -r '{id, displayName, emailAddress}'
+          echo "::notice::Azure DevOps profile id: $id"
+          echo "### Azure DevOps profile id" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "$id" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "Add it as a Contributor on publisher \`hypermarkdown\`." \
+            >> "$GITHUB_STEP_SUMMARY"

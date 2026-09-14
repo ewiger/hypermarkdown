@@ -14,6 +14,9 @@ name: Publish to the VS Marketplace
 # So this takes the assets *from the release* and uploads exactly those. It
 # builds nothing, packages nothing, and reads nothing but the tag it is given.
 #
+# It authenticates the same way `release-vsc-ext.yml` does: an OIDC
+# `azure/login` and `vsce --azure-credential`, with no stored credential.
+#
 # Once the Marketplace catches up, this workflow is dormant until the next time
 # one registry is up and another is not.
 on:
@@ -24,8 +27,12 @@ on:
         required: true
         type: string
 
+# `id-token: write` is what lets `azure/login` mint the federated token; the
+# job reads the release through `github.token`, which needs nothing more than
+# `contents: read`.
 permissions:
   contents: read
+  id-token: write
 
 # A publication in flight is never cancelled, and two uploads of one version
 # must not race: both registries refuse to replace a version they have accepted.
@@ -112,9 +119,19 @@ jobs:
       # other five down twice in a row. Separate calls make the failure
       # granular, and `--skip-duplicate` makes every retry cheap: whatever
       # already landed is skipped, so the loop converges instead of restarting.
+      # The federated credential is bound to subject
+      # `repo:<owner>/<repo>:environment:vscode-marketplace`, so this token can
+      # only be minted from the environment declared above.
+      # `allow-no-subscriptions` because publishing touches no Azure resource.
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      # No `VSCE_PAT`: `--azure-credential` and a PAT are mutually exclusive and
+      # `vsce` errors when both are present.
       - name: Publish
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: |
           set -uo pipefail
           failed=""
@@ -123,7 +140,7 @@ jobs:
             for attempt in 1 2 3 4 5; do
               echo "::group::$(basename "$vsix") attempt $attempt"
               if npx --no vsce publish --no-dependencies --skip-duplicate \
-                   --packagePath "$vsix"; then
+                   --azure-credential --packagePath "$vsix"; then
                 published="yes"
                 echo "::endgroup::"
                 break
