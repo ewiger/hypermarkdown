@@ -129,12 +129,19 @@ the next blocks.
   was requested on 2026-09-14 and the portal answered *"Your request to verify
   the domain is submitted to the marketplace team for processing."*
 
-  **There is nothing further to do — do not re-submit.** The gallery verifies
-  domains by manual review, not by a DNS record. Open VSX is the one that works
-  the other way, and the `EclipseFdn/open-vsx.org` issue URL sitting in a TXT
-  record on the apex is its claim, not the gallery's; adding a second TXT record
-  does nothing here. Re-check with `isDomainVerified` on the public
-  `extensionquery` API rather than by looking at the portal.
+  **The marketplace team wants roughly six months of continuous release history
+  before they will verify.** So this is not a queue to wait a few days on and
+  not something a re-submission moves — it is gated on the project shipping
+  regularly for a while. First release was 2026-08-11, so the earliest this is
+  worth raising again is around **2027-02**, and only if releases have kept
+  coming. Parked until then.
+
+  **Do not re-submit, and do not reach for DNS.** The gallery verifies domains
+  by manual review, not by a record. Open VSX is the one that works the other
+  way, and the `EclipseFdn/open-vsx.org` issue URL sitting in a TXT record on
+  the apex is its claim, not the gallery's; a second TXT record does nothing
+  here. Re-check with `isDomainVerified` on the public `extensionquery` API
+  rather than by looking at the portal.
 - **The `preview` flag has no agreed removal point.** Today it names both E6
   (the graph tab) and C4.2 (the publication model) as the release it comes off
   at. One of them has to own it.
