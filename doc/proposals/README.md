@@ -8,7 +8,7 @@ as `HMD-0001`, with the proposal itself at `HMD-0001/README.md`.
 
 `HMD-0002` through `HMD-0019` are reserved for the Python and MkDocs line of
 work. Editor and JavaScript proposals start at `HMD-0020`, so the two streams
-can reserve numbers without coordinating. When the Python line exhausts `0019`
+can reserve numbers without coordinating. When the Python numbering exhausts `0019`
 it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 
 | ID | Status | Title | Progress |
@@ -28,7 +28,7 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 
 Work is tracked in [`doc/status/`](../status/), one file per thing that ships:
 [`lang.md`](../status/lang.md) for the format itself, [`hmd.md`](../status/hmd.md)
-for the canonical Python line, [`ts-core.md`](../status/ts-core.md) and
+for the canonical Python implementation, [`ts-core.md`](../status/ts-core.md) and
 [`vsc-ext.md`](../status/vsc-ext.md) for the TypeScript implementation and its
 editor, and [`pages.md`](../status/pages.md) for the site. Those files are the
 **only** place work is tracked; there is no repository-wide task list and no

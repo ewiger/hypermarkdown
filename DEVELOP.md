@@ -123,7 +123,7 @@ Three conventions that are easy to get wrong:
 Proposal numbers are allocated in fixed ranges so two lines of work can reserve
 them without coordinating: `HMD-0002`–`HMD-0019` for the Python and MkDocs line,
 now merged and continuing on `main`; `HMD-0020`–`HMD-0099` for the editor and
-TypeScript line on `feat/vsc-ext`; and `HMD-0100`+ when the first range is
+TypeScript work on `feat/vsc-ext`; and `HMD-0100`+ when the first range is
 exhausted. Reserve the number in
 [`doc/proposals/README.md`](doc/proposals/README.md) before creating the folder.
 

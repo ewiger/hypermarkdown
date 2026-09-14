@@ -15,7 +15,7 @@ the moment they live in different directories.
 
 Every tool lives under `tools/`, one directory each:
 
-- **`tools/hmd`** — the Python line: parser, resolver, linter, graph checker, and
+- **`tools/hmd`** — the Python implementation: parser, resolver, linter, graph checker, and
   the MkDocs plugin, published to PyPI as `HyperMarkDown`. Canonical for the
   format's semantics, and the future home of the `pygls` language server.
 - **`tools/hmd-ts-core`** — `@hypermarkdown/core`, the TypeScript half of the

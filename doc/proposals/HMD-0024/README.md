@@ -9,7 +9,7 @@
 This proposal fixes the repository as a monorepo of tools, one directory each
 under `tools/`, and decides that the language server will be written in Python
 against `pygls` and will live with the Python implementation. `tools/hmd` is
-the Python line — parser, resolver, linter, graph checker, MkDocs plugin, and
+the Python implementation — parser, resolver, linter, graph checker, MkDocs plugin, and
 the future language server — and owns the `pyproject.toml` that builds the
 `HyperMarkDown` distribution. `tools/hmd-ts-core` is the TypeScript
 implementation of the same format. `tools/hmd-vsc-ext` is the VS Code

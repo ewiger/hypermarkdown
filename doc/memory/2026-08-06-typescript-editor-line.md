@@ -9,7 +9,7 @@ are derivable from the code or the git history.
 
 `HMD-0002`–`HMD-0019` belong to the Python and MkDocs work; editor and
 JavaScript proposals start at `HMD-0020`. **Issues split the same way**: the
-Python line numbers from 1, this line from 100. The two streams live on separate
+the Python side numbers from 1, this one from 100. The two streams live on separate
 branches and reserve numbers without talking to each other, and a shared counter
 would collide on every merge.
 

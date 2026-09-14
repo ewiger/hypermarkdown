@@ -48,7 +48,7 @@ above it, with `wiki = "."`. Nothing looks for it.
 
 ## Why it is a design limitation, not a defect in one function
 
-The Python line already does the git-like thing, and has from the start —
+The Python implementation already does the git-like thing, and has from the start —
 `find_project_root` in `tools/hmd/src/hypermarkdown/config.py` walks `start`
 and its parents for `.hmd/`, then for `.git/`, and `hmd lint` on a card inside
 `examples/cs-alg-sorting/` finds that vault without being told. The two

@@ -84,7 +84,7 @@ jobs:
       - name: Build the wiki
         run: uv run mkdocs build --strict
 
-  # The TypeScript line (HMD-0020, HMD-0021). It runs independently of the
+  # The TypeScript implementation (HMD-0020, HMD-0021). It runs independently of the
   # Python matrix so neither half can block the other's merge, and it installs
   # Python anyway: the conformance gate below is only meaningful when it can
   # ask the canonical implementation what the right answer is.

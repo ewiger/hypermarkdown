@@ -3,7 +3,7 @@
 What HyperMarkDown the *format* has settled and what it has not: the grammar,
 resolution, the frontmatter keys, the rule IDs, publication, and the two
 reserved languages that extend it. Implementation progress is tracked per tool
-beside this file — [`hmd.md`](hmd.md) for the canonical Python line,
+beside this file — [`hmd.md`](hmd.md) for the canonical Python implementation,
 [`ts-core.md`](ts-core.md) for `@hypermarkdown/core`, and
 [`vsc-ext.md`](vsc-ext.md) for the VS Code extension.
 

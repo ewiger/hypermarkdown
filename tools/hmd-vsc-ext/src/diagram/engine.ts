@@ -22,7 +22,7 @@
  *   3. `d2` on `PATH` — for a source checkout, where nothing is bundled.
  *   4. no renderer; the placeholder says so.
  *
- * Bounds and cache size are shared with the Python line's `diagram.py`, so a
+ * Bounds and cache size are shared with the Python implementation's `diagram.py`, so a
  * diagram refused in a site build is refused here for the same stated reason.
  */
 

@@ -18,7 +18,7 @@ configuration but not actually working on the site.
 
 ## What HMD-0022 contributes
 
-HMD-0022 belongs to the TypeScript line and its §1 no-subprocess rule does not
+HMD-0022 belongs to the TypeScript implementation and its §1 no-subprocess rule does not
 apply here: a site build has a build step and no webview, so the `d2` binary
 stays the engine. What carries across is the semantics its §7 fixes, so the two
 lines do not drift into disagreeing about what a diagram *is*:

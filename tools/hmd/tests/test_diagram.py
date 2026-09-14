@@ -1,4 +1,4 @@
-"""D2 diagrams (HMD-0022 §4-§7, as they apply to the Python line)."""
+"""D2 diagrams (HMD-0022 §4-§7, as they apply to the Python implementation)."""
 
 from __future__ import annotations
 

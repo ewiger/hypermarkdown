@@ -150,7 +150,7 @@ There are three of them, one directory each under `tools/` in the repository,
 each carrying its own version, README, and changelog:
 
 * **[`hmd`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd)** —
-  the Python line, published to PyPI as
+  the Python implementation, published to PyPI as
   [`hypermarkdown`](https://pypi.org/project/hypermarkdown/): the CLI
   (`lint`, `render`, `graph`), the library beneath it, and the MkDocs plugin
   that builds this site. Canonical — where two implementations disagree, this

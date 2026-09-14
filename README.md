@@ -43,7 +43,7 @@ Each carries its own version, README, changelog, and license.
 [![Python versions](https://img.shields.io/pypi/pyversions/hypermarkdown?color=blue&label=python)](https://pypi.org/project/hypermarkdown/)
 [![Changelog](https://img.shields.io/badge/changelog-tools%2Fhmd-informational)](tools/hmd/CHANGELOG.md)
 
-The Python line, published to PyPI as
+The Python implementation, published to PyPI as
 [`hypermarkdown`](https://pypi.org/project/hypermarkdown/): the `hmd` command
 (`lint`, `render`, `graph`), the library under it, and a MkDocs plugin that
 builds a tree of cards into a website. **Canonical** — where two implementations

@@ -2,7 +2,7 @@
 
 Every tool lives in its own directory under `tools/`:
 
-- `tools/hmd/` — the Python line, published to PyPI as `HyperMarkDown`. Owns
+- `tools/hmd/` — the Python implementation, published to PyPI as `HyperMarkDown`. Owns
   its own `pyproject.toml`; the repository root is a uv workspace root, not a
   distribution. Build the wheel with `uv build --package HyperMarkDown` —
   a bare `uv build` at the root silently produces an empty `unknown-0.0.0`.

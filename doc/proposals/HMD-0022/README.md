@@ -24,7 +24,7 @@ and has the consumer that *can* run a process render it — `d2` on `PATH`, then
 source with a stated reason when neither is installed. Rendered SVG reaches the
 DOM as a `data:` URI `<img>`, so diagram source from a cloned repository cannot
 execute script in a webview. Source size, render timeout, and cache size are
-pinned and shared with the Python line. The interactive graph view stays a
+pinned and shared with the Python implementation. The interactive graph view stays a
 separate renderer with a separate job.
 
 ## Motivation
@@ -65,7 +65,7 @@ and never as a defect in the card.
 - **A committed-artifact convention.** No `.hmd/diagrams/`, no digest stamps, no
   staleness detection, no render command. Considered and dropped as more
   machinery than the problem has.
-- **Changing the Python line**, which renders through the same binary at build
+- **Changing the Python implementation**, which renders through the same binary at build
   time.
 - **The interactive graph view.** HMD-0021 §10 owns it; §5 fixes the boundary.
 - **Mermaid**, rejected by the source sketch as superseded by D2.
@@ -140,8 +140,8 @@ in the editor for the same stated reason.
 use, which cannot complete in two seconds. That path alone takes a **20-second**
 ceiling. It is a property of the fallback, not of the format.
 
-The Python line implements these in `tools/hmd/src/hypermarkdown/diagram.py`; the
-TypeScript line exports them from `@hypermarkdown/core`. Both MUST name the
+The Python implementation implements these in `tools/hmd/src/hypermarkdown/diagram.py`; the
+TypeScript implementation exports them from `@hypermarkdown/core`. Both MUST name the
 same numbers in the same units, so a change here is a change to two files.
 
 ### 5. The boundary with the graph view
@@ -188,7 +188,7 @@ SVG, which is a scripting context.
   open a card, it works — is unchanged. What changes is that one block kind
   draws only when a tool is present, and says so plainly when it is not.
 
-### 8. Parity with the Python line
+### 8. Parity with the Python implementation
 
 - Both lines agree that a ```` ```d2 ```` fence is a diagram, that its body is
   opaque to the resolver, and that it produces no links and no graph edges.

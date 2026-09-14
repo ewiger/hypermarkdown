@@ -1,6 +1,6 @@
-"""D2 diagrams for the Python line (HMD-0022 §5-§7).
+"""D2 diagrams for the Python implementation (HMD-0022 §5-§7).
 
-HMD-0022 is a proposal of the TypeScript line and does not change this one: a
+HMD-0022 is a proposal of the TypeScript implementation and does not change this one: a
 site build has a build step and no webview, so the no-subprocess rule of its §1
 does not apply here and the `d2` binary stays the engine. What this module
 takes from it is the part that *is* shared — the semantics.
@@ -30,7 +30,7 @@ from dataclasses import dataclass
 #: The fence info strings this module claims.
 LANGUAGES = frozenset({"d2"})
 
-#: Bounds on a single render (HMD-0022 §4). Shared with the TypeScript line so
+#: Bounds on a single render (HMD-0022 §4). Shared with the TypeScript implementation so
 #: that a diagram refused there is refused here.
 TIMEOUT_SECONDS = 2
 MAX_SOURCE_BYTES = 64 * 1024

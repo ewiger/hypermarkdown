@@ -1,11 +1,36 @@
-# STATUS — the Python line
+# STATUS — the Python implementation
 
-`tools/hmd` — the canonical implementation: the `hmd` command, the resolver and
-linter behind it, the MkDocs plugin, and the distribution published to PyPI as
-`HyperMarkDown`. What the *format* owes an answer for is in
-[`lang.md`](lang.md); what the *site* says is in [`pages.md`](pages.md); the
-second implementation and its editor are in [`ts-core.md`](ts-core.md) and
-[`vsc-ext.md`](vsc-ext.md).
+HyperMarkDown is ordinary markdown plus links into a knowledge graph: a card
+names another card and the name is resolved, a card can be built out of other
+cards, and a linter checks the whole graph rather than one file at a time.
+`tools/hmd` is the **canonical implementation** of that — where a disagreement
+between implementations is settled, and where a diagnostic's exact wording is
+decided.
+
+It is Python because the format is read and written alongside a documentation
+build, and that is where the ecosystem it has to live in already is: MkDocs and
+Python-Markdown render the site, `markdown.extensions.toc` supplies the slug
+algorithm the format normatively adopts, and a language server has a mature
+library (`pygls`) waiting for it. A knowledge base is edited by people who are
+not necessarily programmers, and `pip install HyperMarkDown` is a lower step
+than a toolchain.
+
+What the package contains:
+
+- **The core** — scanner, parser, heading slugs, frontmatter, the resolver, the
+  sixteen diagnostics, embed expansion, and the flat-markdown and HTML
+  renderers. Everything the format means, with no editor and no site attached.
+- **The `hmd` command** — `lint`, `render`, `graph`, and `init` over that core.
+- **The MkDocs plugin** — the same core wired into a site build, so a tree of
+  cards becomes a book.
+- **The distribution** — published to PyPI as `HyperMarkDown`.
+- **The language server, in future** — a `pygls` server, so the editor stops
+  being the only place language features can live and every editor can have
+  them. It is decided and unbuilt; W5 through W7 below are what it waits on.
+
+What the *format* owes an answer for is in [`lang.md`](lang.md); what the *site*
+says is in [`pages.md`](pages.md); the second implementation and its editor are
+in [`ts-core.md`](ts-core.md) and [`vsc-ext.md`](vsc-ext.md).
 
 **This file is the only place work on the Python tool is tracked.** Not the
 memos under `doc/memory/`, not the cards under `doc/wiki/`, not the proposals

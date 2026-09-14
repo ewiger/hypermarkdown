@@ -12,7 +12,7 @@ import { sha256 } from "./sha256.js";
 export const DIAGRAM_LANGUAGES: ReadonlySet<string> = new Set(["d2"]);
 
 /**
- * Bounds on one render, shared with the Python line so that a diagram refused
+ * Bounds on one render, shared with the Python implementation so that a diagram refused
  * in a site build is refused in the editor.
  */
 export const MAX_SOURCE_BYTES = 64 * 1024;
