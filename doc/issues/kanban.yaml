@@ -49,11 +49,11 @@ board:
       - id: "0100"
         title: "A ??? callout snaps shut on every re-render"
         file: 0100-callout-open-state-lost.md
-    doing:
+    doing: []
+    done:
       - id: "0109"
         title: "The preview shows what links here, but never the shape of the vault"
         file: 0109-the-graph-tab.md
-    done:
       - id: "0108"
         title: "One editor root folder should hold several HMD vaults"
         file: 0108-vault-root-discovery-per-card.md

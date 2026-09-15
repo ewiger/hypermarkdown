@@ -24,9 +24,18 @@ or withdrawn — including the one that mattered: the ordering property claimed
 for wildcard imports, which was a resolver-design question wearing a
 documentation costume.
 
-**Nothing is planned.** What is open is one decision deliberately not being
-taken — which successor to follow when the site generator's 2.0 arrives without
-a plugin system — and a handful of accepted constraints, of which the one worth
+**A second audit, of a different kind, followed.** That one read the prose
+against itself; this one read it against the registries. Writing the roadmap
+meant stating every tool's version in one place, and doing so found the site
+still calling the project pre-release, the extension in development, and the
+TypeScript package unpublished — months after all three stopped being true. A
+statement of state decays silently, because nothing builds against it. The
+roadmap is now the one page that carries those claims, which is what makes them
+cheap to keep true.
+
+**What remains open** is one decision deliberately not being taken — which
+successor to follow when the site generator's 2.0 arrives without a plugin
+system — and a handful of accepted constraints, of which the one worth
 revisiting is that maths loads from a CDN at view time.
 
 ## Open
@@ -54,6 +63,11 @@ revisiting is that maths loads from a CDN at view time.
 
 ## Done
 
+- **A roadmap, and one place that carries the version numbers** — news, the
+  current version of all four release lines, where the project stands, and the
+  epics being aimed at. The cover stops making status claims and points here.
+  The page is now the only prose on the site that states a version, so a release
+  updates one thing rather than five.
 - **The book** — the whole documentation tree builds as one site with the wiki
   as a section inside it, the namespace root living in a subtree, and a
   placeholder marking where the derived wiki section belongs in an authored
@@ -100,6 +114,9 @@ run permanently.
 
 ## Changelog
 
+- 2026-09-15: the roadmap page, replacing the cover's status section, and the
+  stale state claims the audit for it found across the site, the READMEs, and
+  the trackers.
 - 2026-09-14: rewritten in the shape the trackers now use — status first in
   prose, then open work, broken, gaps, and done last.
 - 2026-09-14: created. The site's rows moved out of the rendering proposal's

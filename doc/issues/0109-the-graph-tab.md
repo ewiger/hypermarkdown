@@ -1,6 +1,6 @@
 # 0109 — The preview shows what links here, but never the shape of the vault
 
-**Column**: doing
+**Column**: done
 **Opened**: 2026-09-14
 
 ## What

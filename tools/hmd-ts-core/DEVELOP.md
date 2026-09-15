@@ -127,16 +127,12 @@ git push origin ts-core-v0.1.0
 gates, checks the tag against `package.json`, packs **one** tarball, and
 publishes that file — packing twice would ship bytes no gate ran against.
 
-**The first version is published by hand.** npm's trusted publishing is
-configured per package and the package has to exist before it can be configured,
-so the bootstrap cannot be tokenless:
-
-```bash
-npm publish -w @hypermarkdown/core --access public
-```
-
-Then set the trusted publisher on the package's npm settings, naming this
-repository and `release-ts-core.yml`, and every later version comes through the
+**The first version was published by hand, on 2026-08-10**, and that is the
+only version that ever will be: npm configures trusted publishing per package
+and a package has to exist before it can be configured, so the bootstrap could
+not be tokenless. It was `npm publish -w @hypermarkdown/core --access public`,
+followed by setting the trusted publisher on the package's npm settings, naming
+this repository and `release-ts-core.yml`. Every version since comes through the
 workflow with no credential stored anywhere. There is deliberately no
 `NPM_TOKEN` fallback — a missing policy fails the release rather than quietly
 reaching for a stored token, which is the stance `release.yml` takes with PyPI.

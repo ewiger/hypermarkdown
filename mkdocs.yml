@@ -162,6 +162,7 @@ nav:
       - hmd — Python: https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd
       - hmd-ts-core — TypeScript core: https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-ts-core
       - hmd-vsc-ext — VS Code extension: tools/vscode.md
+  - Roadmap: public/roadmap.md
 
 # The numbered proposals are *internal* specifications: how the tools around the
 # format are built, not what the language is. They used to occupy a
