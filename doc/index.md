@@ -94,9 +94,10 @@ note: "The two upper layers are what HyperMarkDown adds, and a specification is 
   the VS Code extension are implementations around it; they conform to it rather
   than define it.
 
-* **Version 0.x is a stage, not the scope.** The resolver, linter, embed
-  expander, renderer, and MkDocs plugin work today. Queries over the document
-  graph and namespaces beyond one tree are specified in outline and unbuilt.
+* **What ships today is not the whole of it.** The resolver, linter, embed
+  expander, renderer, and MkDocs plugin are released and in use. Queries over
+  the document graph and namespaces beyond one tree are specified in outline and
+  unbuilt; where they are going is the [Roadmap](public/roadmap.md).
 
 ## Language
 
@@ -129,7 +130,8 @@ Wiki links to documents, headings, and named blocks; transclusion of any of
 them; filesystem-shaped modules with explicit imports; TeX mathematics, D2
 diagrams, callouts, collapsible sections, footnotes, tables, and the GitHub-
 flavoured Markdown baseline. HQL, a query language over the document graph, is
-reserved and not yet designed.
+reserved, and the grammar is not fixed — what it is wanted for is the
+[Roadmap](public/roadmap.md).
 
 What a page can carry, shown working rather than described, is
 [Features](public/features.md). How a bare name becomes a page — the spine walk,
@@ -163,8 +165,8 @@ each carrying its own version, README, and changelog:
   the canonical tool does.
 
 * **[`hmd-vsc-ext`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-vsc-ext)**
-  — the VS Code extension, in development: live preview that keeps the embed
-  boundary visible, plus backlinks, red links, and diagnostics.
+  — the VS Code extension: live preview that keeps the embed boundary visible,
+  plus a graph of the vault, red links, and diagnostics.
 
 Those are the sources. Getting them running — the extension, then the package,
 and what each one is for — is the [Quick start](tools/index.md).
@@ -222,12 +224,13 @@ authored and independently served HyperMarkDown, named across the gap, read from
 the same source by humans, tools, and AI. That argument, and how much of it is
 still unbuilt, is [Vision](public/vision.md).
 
-## Status
+## Where this is going
 
-Pre-release. The scanner, resolver, linter, embed expander, renderer, and MkDocs
-plugin are implemented and tested. The language specification is at 0.1 and will
-still move. The
-living example is [the wiki](wiki/README.md), generated from `.hmd` cards in this
-repository; the exhaustive inventory of every feature, where the idea came from,
-and what is deferred or turned down is
-[the feature list](wiki/hmd-feature-list.hmd).
+The tools are released and installable, and the specification is at 0.1 and
+still moving. Which version of what is out, what the writing still owes the
+code, and the large features being aimed at next — semantic search over a
+collection of cards, and the query language underneath it — are the
+[Roadmap](public/roadmap.md).
+
+The living example is [the wiki](wiki/README.md), generated from `.hmd` cards in
+this repository.
