@@ -1,0 +1,297 @@
+# A Universe of Knowledge
+
+Keyword `knowledge` is the epistemic universe over which HQL reasons.
+
+It is not the set of facts believed to be true, nor merely the graph formed by HMD links. It contains the entire space of epistemically relevant concepts: claims, evidence, relations, constraints, proofs, contradictions, derivations, certifications, and assessments.
+
+Conflicting claims may coexist inside this universe. Evidence may support or weaken them. Constraints may reveal incompatibilities. Inference may derive new claims. Proofs or certifications may establish stronger forms of justification. Trust is therefore not necessarily a property stored on an individual claim, but an assessment emerging from its position in the whole knowledge environment.
+
+The atomic addressable unit of this universe is a [[Concept]].
+
+
+## Concept
+
+**`Concept` can be the fundamental unit of the knowledge universe, but it must be richer than “an entity/node.”**
+
+A concept is an abstract thing that can be referred to, described, related, claimed about, supported, challenged, or proved. A `Card` is only one possible representation of it.
+
+So I would now start with:
+
+```text
+Concept
+```
+
+as the fundamental semantic type, and:
+
+```text
+knowledge : KnowledgeUniverse
+```
+
+where conceptually:
+
+```text
+KnowledgeUniverse ≈ Set<Concept>
+```
+
+But “set” here should be understood mathematically as the population of concepts, not as saying the universe has no structure.
+
+For example:
+
+```text
+Concept
+├── identity
+├── descriptions
+├── references
+├── claims
+├── evidence
+├── relations
+├── proofs
+├── constraints
+└── derived properties
+```
+
+A card might describe one such concept:
+
+```hql
+alice : Card = resolve([[alice]])
+```
+
+but semantically there is something more abstract:
+
+```text
+aliceConcept : Concept
+```
+
+and perhaps:
+
+```text
+describes(alice, aliceConcept)
+```
+
+or, depending on syntax:
+
+```text
+conceptOf(alice) : Concept
+```
+
+This is an important separation:
+
+```text
+Card ≠ Concept
+```
+
+because a concept can exist without a dedicated card, and potentially several cards, external references, claims, or documents could describe the same concept.
+
+For example, the abstract concept:
+
+```text
+"general relativity"
+```
+
+could be described by a card, referenced by ten other cards, associated with papers, mathematical statements, proofs, historical claims, competing interpretations, etc. None of those artifacts *is* the concept itself.
+
+### Then claims become statements about concepts
+
+Suppose we have:
+
+```text
+john  : Concept
+alice : Concept
+father : Concept
+```
+
+Then:
+
+```text
+fatherOf(john, alice)
+```
+
+is not merely another arbitrary edge. It is a proposition constructed using concepts.
+
+Conceptually:
+
+```text
+fatherOf : Concept -> Concept -> Prop
+```
+
+and John declaring:
+
+```hql
+relatedTo -> [[alice]] { kind = father }
+```
+
+produces something like:
+
+```text
+Claim<fatherOf(john, alice)>
+```
+
+That claim itself is epistemically meaningful and may perhaps also be addressable as a concept if we want reification.
+
+This gives us a useful hierarchy:
+
+```text
+Concept                  abstract semantic unit
+
+Proposition              something that can hold about concepts
+
+Claim<P>                 an assertion that proposition P holds
+
+Evidence<P>              something bearing on P
+
+Proof<P>                 formal justification of P
+
+Assessment<P>            epistemic evaluation of P
+```
+
+### The interesting question is whether claims are also concepts
+
+I think eventually the answer should probably be **yes, through reification**, but not by erasing their static types.
+
+We don't want:
+
+```text
+Concept =
+    Person
+  | Claim
+  | Proof
+  | Evidence
+  | Relation
+  | ...
+```
+
+followed by everything becoming an untyped bag.
+
+Instead there can be a universal identity layer:
+
+```text
+ConceptId
+```
+
+while values retain precise types:
+
+```text
+PersonConcept
+RelationConcept<A, B>
+Claim<P>
+Evidence<P>
+Proof<P>
+```
+
+and each may be addressable within the conceptual universe.
+
+In other words:
+
+```text
+conceptual identity ≠ static type
+```
+
+A `Proof<P>` can have conceptual identity without ceasing to be a `Proof<P>`.
+
+That matters a lot for HQL's eventual type system.
+
+### Then `knowledge` really does become a universe of concepts
+
+I would define it approximately as:
+
+> **The knowledge universe is the set of concepts recognized by the current HQL environment together with the typed epistemic relationships between them.**
+
+Or even more compactly:
+
+```text
+knowledge = concepts + epistemic structure
+```
+
+because strictly saying:
+
+```text
+knowledge = Set<Concept>
+```
+
+misses something important: the relations, claims, provenance and evidence connecting those concepts carry most of the knowledge.
+
+Mathematically you could still say that everything is ultimately reified as a concept, making it literally:
+
+```text
+K = { c | c : Concept }
+```
+
+and then relationships themselves are concepts too.
+
+For example:
+
+```text
+Alice
+John
+Fatherhood
+Claim #381
+Birth certificate #17
+Constraint #4
+Proof #12
+```
+
+are all concepts in `K`, while their **types determine what operations are valid**.
+
+That could be quite elegant.
+
+So there are really two layers:
+
+```text
+Concept
+```
+
+is the universal ontological identity — *something we can know/talk about*.
+
+Then:
+
+```text
+Person
+Claim<P>
+Evidence<P>
+Proof<P>
+Relation<A,B>
+Constraint<P>
+...
+```
+
+are typed forms of concepts.
+
+That gives a potentially beautiful root relation:
+
+```text
+Concept : Type
+```
+
+and then something like:
+
+```text
+Card        : Type
+Person      <: Concept
+Claim<P>    <: Concept
+Evidence<P> <: Concept
+Proof<P>    <: Concept
+```
+
+whether HQL eventually expresses that through subtyping, traits, dependent types, or another mechanism.
+
+And the role of a card becomes very clean:
+
+```text
+Card --describes--> Concept
+```
+
+rather than:
+
+```text
+Card == Concept
+```
+
+A card is an authored representation. A concept is what the representation is **about**.
+
+I think that is a much stronger foundation. It also gives `knowledge` a beautifully simple meaning:
+
+```text
+knowledge : Universe<Concept>
+```
+
+where the universe contains not merely “facts,” but **everything epistemically meaningful that HQL can reason about**.

@@ -1,0 +1,305 @@
+---
+type: concept
+tags:
+  - hql
+  - knowledge
+  - epistemology
+  - type-system
+---
+
+# Concept
+
+A `Concept` is the fundamental semantic unit of HQL.
+
+It is an abstract, identifiable thing that can participate in [[knowledge]].
+
+A concept may be referred to, described, related to other concepts, claimed about, supported by evidence, contradicted, inferred, constrained, certified, or proved.
+
+```text
+Concept : Type
+```
+
+A concept is not merely a node in a graph and it is not necessarily a document.
+
+## Concept and Card
+
+A [[Card]] is an authored HMD document.
+
+A `Concept` is the abstract thing that a card may describe.
+
+```text
+Card != Concept
+```
+
+For example:
+
+```hql
+aliceCard : Card = resolve([[alice]])
+```
+
+may describe the concept:
+
+```text
+Alice : Person
+```
+
+Conceptually:
+
+```text
+aliceCard --describes--> Alice
+```
+
+The distinction is important because the same concept may be represented by many different artifacts:
+
+```text
+Alice
+├── alice.hmd
+├── external document
+├── database record
+├── photograph
+├── claims about Alice
+└── references from other cards
+```
+
+None of these representations is identical to the concept itself.
+
+A concept may also exist without having a dedicated card.
+
+## Concepts have identity
+
+A concept must be addressable independently of any particular representation.
+
+Two references may therefore resolve to the same concept even when they originate from different cards or external sources.
+
+Conceptual identity answers:
+
+> What thing are these statements about?
+
+rather than:
+
+> Which document contains the text?
+
+This gives two separate identities:
+
+```text
+Card identity
+Concept identity
+```
+
+They may often correspond one-to-one, but HQL should not require that.
+
+## Concepts remain typed
+
+`Concept` is a common semantic root, not an untyped container.
+
+Specific concepts retain more precise types.
+
+For example:
+
+```text
+Alice       : Person
+Fatherhood  : Relation<Person, Person>
+Claim #42   : Claim
+Proof #7    : Proof
+```
+
+Conceptually:
+
+```text
+Person      <: Concept
+Relation    <: Concept
+Claim       <: Concept
+Evidence    <: Concept
+Proof       <: Concept
+Constraint  <: Concept
+```
+
+The exact type-system mechanism is still open. HQL may eventually express this through subtyping, traits, type classes, dependent types, or another mechanism.
+
+The important rule is:
+
+```text
+conceptual identity != loss of static type
+```
+
+Everything may participate in the same knowledge universe while still preserving its precise type.
+
+## Relations are concepts
+
+A relation can itself be a concept.
+
+For example:
+
+```text
+fatherOf : Relation<Person, Person>
+```
+
+`fatherOf` is the abstract relation.
+
+Applying it to concrete concepts produces a proposition:
+
+```text
+fatherOf(john, alice)
+```
+
+So these are different:
+
+```text
+fatherOf
+```
+
+the relation concept,
+
+and:
+
+```text
+fatherOf(john, alice)
+```
+
+a proposition involving concepts.
+
+This distinction prevents HQL from reducing knowledge to anonymous graph edges.
+
+## Claims are concepts
+
+A claim is also something that may need identity.
+
+Suppose John's card declares:
+
+```hql#declare
+relatedTo -> [[alice]] { kind = father }
+```
+
+This does not directly establish:
+
+```text
+fatherOf(john, alice)
+```
+
+as truth.
+
+It introduces a claim equivalent to:
+
+```text
+John claims that fatherOf(john, alice)
+```
+
+That claim can itself participate in knowledge:
+
+```text
+Claim #42
+├── declared by John's card
+├── supported by Evidence #3
+├── contradicted by Claim #81
+└── evaluated by Assessment #6
+```
+
+Making claims first-class concepts allows HQL to reason not only about people and things, but also about assertions concerning them.
+
+## Evidence, proofs, and constraints can be concepts
+
+The same principle extends to other epistemic objects.
+
+For example:
+
+```text
+Birth Certificate #17 : Evidence
+Proof #12              : Proof
+Constraint #4          : Constraint
+Assessment #8          : Assessment
+```
+
+These objects may themselves be referenced and related.
+
+```text
+Evidence #17
+    --supports-->
+Claim #42
+```
+
+```text
+Proof #12
+    --proves-->
+Claim #91
+```
+
+```text
+Constraint #4
+    --conflicts-with-->
+Claim #42
+```
+
+This makes the epistemic structure itself part of the knowledge model.
+
+## Not every temporary value is necessarily a concept
+
+HQL may evaluate values that do not need permanent conceptual identity.
+
+For example:
+
+```text
+42
+true
+"alice"
+fatherOf(john, alice)
+```
+
+may exist temporarily during evaluation.
+
+A value becomes a concept when it is epistemically addressable: when HQL needs to identify it, reference it, describe it, attach provenance to it, relate other concepts to it, or reason about it as an object.
+
+Therefore:
+
+```text
+Value != Concept
+```
+
+and:
+
+```text
+Concept != every runtime value
+```
+
+`Concept` belongs to the semantic knowledge model, not merely to the evaluator's object model.
+
+## Concept and knowledge
+
+The [[A Universe of Knowledge|knowledge universe]] is formed from concepts and the typed relationships between them.
+
+Conceptually:
+
+```text
+knowledge : Universe<Concept>
+```
+
+A concept is therefore the atomic addressable unit of that universe.
+
+Examples include:
+
+```text
+a person
+a place
+an idea
+a theorem
+a relation
+a claim
+a document
+a piece of evidence
+a proof
+a constraint
+an assessment
+```
+
+What makes them concepts is not that they share the same data structure.
+
+What they share is that HQL can treat them as identifiable participants in knowledge.
+
+## Definition
+
+> A `Concept` is an abstract, identifiable, epistemically addressable thing that can participate in the HQL knowledge universe while retaining its own precise type.
+
+Or more compactly:
+
+```text
+Concept = something knowledge can be about
+```
