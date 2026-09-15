@@ -64,7 +64,8 @@ nobody has committed · `deferred` explicitly postponed to a later spec ·
 | F23 | Mermaid diagrams | ` ```mermaid ` | Mermaid | — | rejected |
 | F24 | Templates | — | Confluence, MediaWiki | — ([HMD-0003](../proposals/HMD-0003/README.md) §5) | deferred |
 | F25 | HQL — query language | — | Obsidian Dataview, Confluence CQL, SQL | — ([HMD-0003](../proposals/HMD-0003/README.md)) | nice to have |
-| F26 | Backlinks and category pages | — | Wikipedia, Obsidian | — | nice to have |
+| F26 | Graph of the vault | — | Obsidian | the VS Code extension | shipped |
+| F30 | Category pages | — | Wikipedia, MediaWiki | — | nice to have |
 | F27 | Escapes for reserved characters | — | — | — | nice to have |
 | F28 | A literal `[[` outside a code span | — | — | — | nice to have |
 | F29 | Publication gate | `nav:` / `visibility: public` | MediaWiki namespaces, Notion page sharing | the format, [HMD-0002](../proposals/HMD-0002/README.md) §2 | shipped |
@@ -97,7 +98,7 @@ addresses sections but never blocks. F6 splits — the `![[…]]` spelling is
 Obsidian's, the idea of transcluding one page into another is MediaWiki's
 (`{{Template}}`, 2004), which is the same lineage F24 cites.
 
-Note that F26 already credited Wikipedia while F1–F3 credited Obsidian for that
+Note that F30 already credited Wikipedia while F1–F3 credited Obsidian for that
 same inheritance; the rows now agree.
 
 Where the format *does* diverge from Obsidian is the part that matters most:
@@ -138,7 +139,7 @@ This layer is **erasure**: the output is flat HTML in which the boundary between
 a card and the content it embedded is gone, along with the provenance of every
 link. That is correct for a shipping format and fatal for a preview — see
 [[md-hmd-interop]], which is where the argument lives. **Book mode only**;
-backlinks and category pages are F26.
+the graph is F26 and category pages are F30.
 
 One structural property is worth stating, because it is what keeps the layer
 cheap: MkDocs touches exactly one file. `parse`, `resolve`, `embed`, `urls`, and
@@ -176,7 +177,7 @@ tracked against Layer 2 by its own proposals.
 | F10 | `nav.order` | orders the site nav | no meaning |
 | F29 | `nav.visibility` | decides whether a page exists at all | no meaning — the editor shows every card |
 | F18 | D2 diagrams | `data:` URI `<img>` | `data:` URI under the webview CSP |
-| F26 | Backlinks | out of scope | the natural home for it |
+| F26 | Graph of the vault | out of scope | the tab that shipped in `0.3.0` |
 
 ## Changing this card
 
