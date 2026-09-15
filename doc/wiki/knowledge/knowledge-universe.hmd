@@ -1,297 +1,240 @@
+---
+title: A Universe of Knowledge
+type: concept
+tags:
+  - hql
+  - knowledge
+  - epistemology
+  - trust
+---
+
 # A Universe of Knowledge
 
-Keyword `knowledge` is the epistemic universe over which HQL reasons.
-
-It is not the set of facts believed to be true, nor merely the graph formed by HMD links. It contains the entire space of epistemically relevant concepts: claims, evidence, relations, constraints, proofs, contradictions, derivations, certifications, and assessments.
-
-Conflicting claims may coexist inside this universe. Evidence may support or weaken them. Constraints may reveal incompatibilities. Inference may derive new claims. Proofs or certifications may establish stronger forms of justification. Trust is therefore not necessarily a property stored on an individual claim, but an assessment emerging from its position in the whole knowledge environment.
-
-The atomic addressable unit of this universe is a [[Concept]].
-
-
-## Concept
-
-**`Concept` can be the fundamental unit of the knowledge universe, but it must be richer than “an entity/node.”**
-
-A concept is an abstract thing that can be referred to, described, related, claimed about, supported, challenged, or proved. A `Card` is only one possible representation of it.
-
-So I would now start with:
-
-```text
-Concept
-```
-
-as the fundamental semantic type, and:
-
-```text
-knowledge : KnowledgeUniverse
-```
-
-where conceptually:
-
-```text
-KnowledgeUniverse ≈ Set<Concept>
-```
-
-But “set” here should be understood mathematically as the population of concepts, not as saying the universe has no structure.
-
-For example:
-
-```text
-Concept
-├── identity
-├── descriptions
-├── references
-├── claims
-├── evidence
-├── relations
-├── proofs
-├── constraints
-└── derived properties
-```
-
-A card might describe one such concept:
-
-```hql
-alice : Card = resolve([[alice]])
-```
-
-but semantically there is something more abstract:
-
-```text
-aliceConcept : Concept
-```
-
-and perhaps:
-
-```text
-describes(alice, aliceConcept)
-```
-
-or, depending on syntax:
-
-```text
-conceptOf(alice) : Concept
-```
-
-This is an important separation:
-
-```text
-Card ≠ Concept
-```
-
-because a concept can exist without a dedicated card, and potentially several cards, external references, claims, or documents could describe the same concept.
-
-For example, the abstract concept:
-
-```text
-"general relativity"
-```
-
-could be described by a card, referenced by ten other cards, associated with papers, mathematical statements, proofs, historical claims, competing interpretations, etc. None of those artifacts *is* the concept itself.
-
-### Then claims become statements about concepts
-
-Suppose we have:
-
-```text
-john  : Concept
-alice : Concept
-father : Concept
-```
-
-Then:
-
-```text
-fatherOf(john, alice)
-```
-
-is not merely another arbitrary edge. It is a proposition constructed using concepts.
-
-Conceptually:
-
-```text
-fatherOf : Concept -> Concept -> Prop
-```
-
-and John declaring:
-
-```hql
-relatedTo -> [[alice]] { kind = father }
-```
-
-produces something like:
-
-```text
-Claim<fatherOf(john, alice)>
-```
-
-That claim itself is epistemically meaningful and may perhaps also be addressable as a concept if we want reification.
-
-This gives us a useful hierarchy:
-
-```text
-Concept                  abstract semantic unit
-
-Proposition              something that can hold about concepts
-
-Claim<P>                 an assertion that proposition P holds
-
-Evidence<P>              something bearing on P
-
-Proof<P>                 formal justification of P
-
-Assessment<P>            epistemic evaluation of P
-```
-
-### The interesting question is whether claims are also concepts
-
-I think eventually the answer should probably be **yes, through reification**, but not by erasing their static types.
-
-We don't want:
-
-```text
-Concept =
-    Person
-  | Claim
-  | Proof
-  | Evidence
-  | Relation
-  | ...
-```
-
-followed by everything becoming an untyped bag.
-
-Instead there can be a universal identity layer:
-
-```text
-ConceptId
-```
-
-while values retain precise types:
-
-```text
-PersonConcept
-RelationConcept<A, B>
-Claim<P>
-Evidence<P>
-Proof<P>
-```
-
-and each may be addressable within the conceptual universe.
-
-In other words:
-
-```text
-conceptual identity ≠ static type
-```
-
-A `Proof<P>` can have conceptual identity without ceasing to be a `Proof<P>`.
-
-That matters a lot for HQL's eventual type system.
-
-### Then `knowledge` really does become a universe of concepts
-
-I would define it approximately as:
-
-> **The knowledge universe is the set of concepts recognized by the current HQL environment together with the typed epistemic relationships between them.**
-
-Or even more compactly:
-
-```text
-knowledge = concepts + epistemic structure
-```
-
-because strictly saying:
-
-```text
-knowledge = Set<Concept>
-```
-
-misses something important: the relations, claims, provenance and evidence connecting those concepts carry most of the knowledge.
-
-Mathematically you could still say that everything is ultimately reified as a concept, making it literally:
-
-```text
-K = { c | c : Concept }
-```
-
-and then relationships themselves are concepts too.
-
-For example:
-
-```text
-Alice
-John
-Fatherhood
-Claim #381
-Birth certificate #17
-Constraint #4
-Proof #12
-```
-
-are all concepts in `K`, while their **types determine what operations are valid**.
-
-That could be quite elegant.
-
-So there are really two layers:
-
-```text
-Concept
-```
-
-is the universal ontological identity — *something we can know/talk about*.
-
-Then:
-
-```text
-Person
-Claim<P>
-Evidence<P>
-Proof<P>
-Relation<A,B>
-Constraint<P>
-...
-```
-
-are typed forms of concepts.
-
-That gives a potentially beautiful root relation:
-
-```text
-Concept : Type
-```
-
-and then something like:
-
-```text
-Card        : Type
-Person      <: Concept
-Claim<P>    <: Concept
-Evidence<P> <: Concept
-Proof<P>    <: Concept
-```
-
-whether HQL eventually expresses that through subtyping, traits, dependent types, or another mechanism.
-
-And the role of a card becomes very clean:
-
-```text
-Card --describes--> Concept
-```
-
-rather than:
-
-```text
-Card == Concept
-```
-
-A card is an authored representation. A concept is what the representation is **about**.
-
-I think that is a much stronger foundation. It also gives `knowledge` a beautifully simple meaning:
+**`knowledge` is the epistemic universe over which HQL reasons.** It is not the
+set of facts believed to be true, and it is not merely the graph formed by HMD
+links. It is the entire space of epistemically relevant material: claims,
+evidence, relations, constraints, proofs, contradictions, derivations,
+certifications, and assessments.
 
 ```text
 knowledge : Universe<Concept>
 ```
 
-where the universe contains not merely “facts,” but **everything epistemically meaningful that HQL can reason about**.
+Conflicting claims may coexist inside it. Evidence may support or weaken them.
+Constraints may reveal that they cannot all hold. Inference may derive new
+claims from the ones already present. Proofs and certifications may establish
+stronger forms of justification. Trust is therefore not necessarily a property
+stored on an individual claim, but an assessment emerging from that claim's
+position in the whole environment.
+
+The atomic addressable unit of this universe is a [[concept|Concept]], which has
+its own card. This card is about the universe those concepts populate.
+
+**The HQL in this card is illustrative.** The surface syntax belongs to the HQL
+design and is not frozen here; what this card commits to is the shape of the
+universe those queries run over.
+
+## What the universe contains
+
+The universe is populated by epistemic material of several kinds:
+
+```text
+knowledge
+├── entities and ideas
+├── claims
+├── evidence
+├── relations
+├── constraints
+├── proofs
+├── derivations
+├── contradictions
+├── certifications
+└── assessments
+```
+
+These are not fields hanging off some containing record. Each is itself a
+concept — addressable, typed, and able to be claimed about in turn. A piece of
+evidence can be referenced, disputed, and superseded exactly as a person can;
+an assessment is a thing in the universe, not an annotation on the margin of
+one.
+
+That is what makes the epistemic structure part of the knowledge rather than
+part of the machinery reading it. A store that keeps facts and treats support,
+conflict, and justification as bookkeeping has put most of the interesting
+material outside its own model.
+
+## Knowledge includes uncertainty
+
+This is the conceptual heart of the design.
+
+The universe holds, at the same time and without contradiction *of itself*:
+
+```text
+claim(P)
+claim(not P)
+evidence(P)
+evidence(not P)
+conflict(...)
+```
+
+A universe containing both `claim(P)` and `claim(not P)` is not broken. It is
+recording something true: that two assertions have been made and the matter is
+not settled. Only a universe that had to choose one of them in order to store
+either would be losing information.
+
+Therefore:
+
+```text
+knowledge != set of accepted truths
+```
+
+Accepted truth is something you can *ask* this universe for. It is not what the
+universe is made of.
+
+## The investigation before its resolution
+
+Suppose two men each claim to be Alice's father.
+
+```text
+John claims fatherOf(john, alice)
+Bob  claims fatherOf(bob, alice)
+
+constraint: a person has at most one biological father
+
+evidence supports one claim, or the other, or both
+```
+
+Every line of that is knowledge. The two claims, the constraint they cannot
+jointly satisfy, the evidence bearing on each, and the conflict the constraint
+exposes are all concepts in the universe, held simultaneously.
+
+Nothing here has been resolved, and the representation does not suffer for it.
+A model that could only store the outcome would have nothing to say until the
+question was already answered — and would be unable to record how it came to be
+answered, or to revise the answer when a later document arrives.
+
+The knowledge universe represents the investigation, not only its verdict.
+
+## Reasoning derives new concepts
+
+The universe is not passive storage. Its material combines to produce more of
+itself:
+
+```text
+claims + evidence + rules + constraints
+    -> contradictions
+    -> inferred claims
+    -> assessments
+    -> proofs
+    -> certifications
+```
+
+A constraint meeting two claims yields a contradiction that no author wrote
+down. An assessment weighing evidence yields a judgement that was not asserted
+by anyone. Each of those is a concept like any other, and each may in turn be
+supported, disputed, or proved.
+
+So the universe evolves under reasoning rather than only under authoring. What
+is in it is not limited to what somebody typed into a card.
+
+## Trust is a function of the universe
+
+Trust is one of the motivating reasons for modelling knowledge this way.
+
+The tempting shape is a field:
+
+```text
+claim.trust
+```
+
+The accurate shape is a function:
+
+```text
+trust = f(knowledge)
+```
+
+How much a claim deserves to be believed depends on who asserted it, what
+evidence bears on it, which constraints touch it, what contradicts it, whether
+anything proves it, and what is known about the reliability of every one of
+those — in other words, on the claim's position in the whole environment.
+
+A number stapled to the claim cannot answer that, because the answer changes
+when nothing about the claim changes. New evidence elsewhere in the universe
+raises or lowers it. An assessment is the universe's answer at a moment, and it
+is itself a concept that can be recorded, cited, and disagreed with.
+
+## Accepted knowledge is a projection
+
+Because the universe is larger than what is believed, what is believed is a
+*view* of it.
+
+```hql
+knowledge
+| accepted
+```
+
+is not equivalent to `knowledge`. It is one projection, and there are others
+over the same material:
+
+```hql
+knowledge
+| disputed
+```
+
+```hql
+knowledge
+| contradicted
+```
+
+```hql
+knowledge
+| proven
+```
+
+Each answers a different epistemic question, and none of them is the universe.
+Reading a projection as the whole is the mistake this model exists to prevent:
+`accepted` silently discards every open question, and a system that only ever
+shows you `accepted` cannot tell you that it did.
+
+## A graph is one projection among many
+
+Graph structure is subordinate to knowledge, not identical with it.
+
+```hql
+knowledge
+| graph
+```
+
+should be read as: *project some part of this epistemic universe as a graph*.
+Which part is a choice, and different choices give genuinely different graphs
+over the same universe:
+
+```text
+entity graph
+claim graph
+evidence graph
+contradiction graph
+proof graph
+trust graph
+```
+
+The links an author writes between cards form one of these and only one. Taking
+that graph to *be* the knowledge is the position this card rejects — it is a
+projection that keeps the relations somebody chose to write down and drops the
+claims, the evidence, the constraints, and every conflict between them.
+
+## Definition
+
+> The **knowledge universe** is the population of concepts recognized by an HQL
+> environment together with the typed epistemic structure relating them:
+> everything that may be asserted, questioned, supported, contradicted,
+> inferred, constrained, assessed, proved, or certified.
+
+Or more compactly:
+
+```text
+knowledge = concepts + epistemic structure
+```
+
+Everything narrower — the accepted facts, the authored graph, the settled
+answers — is something the universe can be asked for.

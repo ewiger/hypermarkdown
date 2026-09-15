@@ -1,4 +1,5 @@
 ---
+title: Concept
 type: concept
 tags:
   - hql
@@ -11,7 +12,7 @@ tags:
 
 A `Concept` is the fundamental semantic unit of HQL.
 
-It is an abstract, identifiable thing that can participate in [[knowledge]].
+It is an abstract, identifiable thing that can participate in [[knowledge-universe|knowledge]].
 
 A concept may be referred to, described, related to other concepts, claimed about, supported by evidence, contradicted, inferred, constrained, certified, or proved.
 
@@ -21,9 +22,13 @@ Concept : Type
 
 A concept is not merely a node in a graph and it is not necessarily a document.
 
+**The HQL in this card is illustrative.** The surface syntax belongs to the HQL
+design and is not frozen here; what this card commits to is that a concept is
+addressable independently of whatever represents it.
+
 ## Concept and Card
 
-A [[Card]] is an authored HMD document.
+A [[hypermarkdown|card]] is an authored HMD document.
 
 A `Concept` is the abstract thing that a card may describe.
 
@@ -264,7 +269,7 @@ Concept != every runtime value
 
 ## Concept and knowledge
 
-The [[A Universe of Knowledge|knowledge universe]] is formed from concepts and the typed relationships between them.
+The [[knowledge-universe|knowledge universe]] is formed from concepts and the typed relationships between them.
 
 Conceptually:
 
