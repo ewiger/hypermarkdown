@@ -21,28 +21,78 @@ The central model is:
 
 ```text
 Card
-├── L0  short semantic abstract
-├── L1  richer semantic overview
-└── L2  original HMD source
+├── D0  short semantic abstract
+├── D1  richer semantic overview
+└── D2  original HMD source
 ```
 
-The three levels have different purposes:
+`D` stands for *depth*: how much semantic information about the card a
+representation retains. The three depths have different purposes:
 
-| Level | Representation                        | Purpose                                |
+| Depth | Representation                        | Purpose                                |
 | ----- | ------------------------------------- | -------------------------------------- |
-| L0    | short abstract, roughly 1–3 sentences | fast semantic retrieval                |
-| L1    | richer structured summary             | understanding and reranking candidates |
-| L2    | original `.hmd` card                  | authoritative content                  |
+| D0    | short abstract, roughly 1–3 sentences | fast semantic retrieval                |
+| D1    | richer structured summary             | understanding and reranking candidates |
+| D2    | original `.hmd` card                  | authoritative content                  |
 
 A useful mental model is:
 
 ```text
-L0 = find me
-L1 = understand whether I am relevant
-L2 = actually use me
+D0 = find me
+D1 = understand whether I am relevant
+D2 = actually use me
 ```
 
-The generated L0 and L1 representations are derived data. They are not authored HMD content and should normally live in a hidden sidecar directory rather than beside the source cards.
+The generated D0 and D1 representations are derived data. They are not authored HMD content and should normally live in a hidden sidecar directory rather than beside the source cards.
+
+## Depth and lens are two different axes
+
+**`D` is vertical depth within one card. `L` is an orthogonal viewpoint over
+knowledge.** That separation is the foundational claim of this design, and every
+naming decision below follows from it.
+
+*Depth* asks how much semantic information about a given card a representation
+retains: D2 is the card entire, D1 keeps enough to judge relevance, D0 keeps
+only enough to be found. Every depth is a representation of **that one card**,
+and it introduces no viewpoint of its own.
+
+A *lens* asks according to what viewpoint knowledge is represented at all. A
+requirements lens and an architecture lens over the same material discard
+different particulars, draw on many cards at once, and legitimately say things
+in a vocabulary no source card used. That is a different operation from
+compressing one card, and it is one this project means to pursue on its own
+terms rather than fold into this one.
+
+The two axes compose rather than compete:
+
+```text
+                   D0              D1              D2
+          ──────────────────────────────────────────────────
+  lens    L(req,  D0)     L(req,  D1)
+  lens    L(arch, D0)     L(arch, D1)      the authored card
+```
+
+### Depth is compression, not truncation
+
+D0 is not D2 with words deleted. A generator may legitimately describe a card as
+being about *bearer-token authorization* when that phrase occurs nowhere in the
+source — the summary interprets as it compresses. The relation is:
+
+```text
+D1 = semanticCompression(D2)
+D0 = semanticCompression(D1)
+```
+
+What each step must preserve is the card's own subject, not its wording. What
+it must **not** do is adopt a viewpoint the card did not have; that is the lens
+operation, and it belongs on the other axis.
+
+### Why the letter had to move
+
+`L0`/`L1`/`L2` are reserved by **len**, the metaprogramming language, where they
+already name levels of something else, and within this repository `L0`/`L1`/`L2`
+are the lens files under `doc/models/`. Both the collision and the conceptual
+distinction point the same way, and the distinction is the reason worth keeping.
 
 ## Card as the semantic unit
 
@@ -58,18 +108,18 @@ knowledge/
 └── kubernetes.hmd
 ```
 
-each card independently receives an L0 and L1 representation:
+each card independently receives a D0 and D1 representation:
 
 ```text
 oauth.hmd
-├── L0
-├── L1
-└── L2 = oauth.hmd
+├── D0
+├── D1
+└── D2 = oauth.hmd
 
 jwt.hmd
-├── L0
-├── L1
-└── L2 = jwt.hmd
+├── D0
+├── D1
+└── D2 = jwt.hmd
 ```
 
 This differs from systems that primarily construct semantic summaries around filesystem directories.
@@ -93,17 +143,17 @@ knowledge/
 └── .hmd/
     ├── semantic/
     │   ├── oauth/
-    │   │   ├── l0.md
-    │   │   ├── l1.md
+    │   │   ├── d0.md
+    │   │   ├── d1.md
     │   │   └── state.json
     │   ├── jwt/
-    │   │   ├── l0.md
-    │   │   ├── l1.md
+    │   │   ├── d0.md
+    │   │   ├── d1.md
     │   │   └── state.json
     │   └── security/
     │       └── oidc/
-    │           ├── l0.md
-    │           ├── l1.md
+    │           ├── d0.md
+    │           ├── d1.md
     │           └── state.json
     │
     └── index/
@@ -131,8 +181,8 @@ For example:
 └── semantic/
     └── 2f/
         └── 2f78ab91.../
-            ├── l0.md
-            ├── l1.md
+            ├── d0.md
+            ├── d1.md
             └── state.json
 ```
 
@@ -153,9 +203,9 @@ A state file could contain information such as:
 
 The sidecars are cacheable semantic projections of the original card rather than independent documents.
 
-## L2: the original card
+## D2: the original card
 
-L2 is simply the authoritative HMD card.
+D2 is simply the authoritative HMD card.
 
 For example:
 
@@ -177,7 +227,7 @@ It is closely related to [[oidc]] and commonly uses [[access-token]].
 
 This source remains authoritative.
 
-Semantic indexing must never require the generated L0 or L1 files to become canonical knowledge.
+Semantic indexing must never require the generated D0 or D1 files to become canonical knowledge.
 
 Deleting `.hmd/` should therefore be equivalent to deleting a build cache:
 
@@ -188,9 +238,9 @@ hmd index
 
 should reconstruct the semantic state from the cards.
 
-## L1: semantic overview
+## D1: semantic overview
 
-L1 is a richer machine-generated interpretation of a card.
+D1 is a richer machine-generated interpretation of a card.
 
 It should not merely summarize rendered Markdown text.
 
@@ -203,14 +253,58 @@ The generator should receive the parsed HMD `Card` model and therefore understan
 * headings;
 * body;
 * outgoing links;
-* incoming links where useful;
 * transclusions;
 * block references;
 * namespaces;
 * imports;
 * HMD structural objects.
 
-For example, the OAuth card might generate an L1 representation such as:
+### D0 and D1 are source-local
+
+Every depth is a compression of what the card itself contains or declares:
+
+```text
+D2(Card) = the authored card
+
+D1(Card) = semantic compression of the information
+           contained or declared by that card
+
+D0(Card) = semantic compression of D1(Card)
+```
+
+Nothing a card does not say enters its own depths. This is a deliberate v1
+boundary, and inbound links are the case that shows why. If `alice.hmd` says
+nothing about Bob, but fifty other cards link to Alice with interesting
+relationship labels, then a D1 that folded those in would no longer be a summary
+of `alice.hmd` — it would be a summary of *Alice*, knowledge and all, and it
+would have to be regenerated every time any of those fifty cards changed. That
+is the cascading-invalidation problem described under dependency invalidation,
+bought for nothing.
+
+The graph stays beside the depths rather than inside them:
+
+```text
+Card
+├── D0
+├── D1
+├── D2
+└── graph neighbourhood
+```
+
+which leaves the surrounding knowledge separately queryable, and composable on
+demand:
+
+```text
+resolve([[alice]])
+| graph(depth = 1)
+| ...
+```
+
+A deliberately *contextual* D1 can be introduced later as its own thing, with
+its own invalidation rules. It should not arrive by accident through a generator
+that quietly reads inbound edges.
+
+For example, the OAuth card might generate a D1 representation such as:
 
 ```markdown
 # OAuth
@@ -241,11 +335,11 @@ Referenced cards:
 - [[jwt]]
 ```
 
-This does not imply that L1 itself needs a stable public schema initially.
+This does not imply that D1 itself needs a stable public schema initially.
 
 It is primarily a semantic representation intended for machine consumption, debugging, reranking and potentially agent inspection.
 
-However, producing L1 from structured HMD information rather than arbitrary source text gives HyperMarkDown a significant advantage over generic Markdown retrieval systems.
+However, producing D1 from structured HMD information rather than arbitrary source text gives HyperMarkDown a significant advantage over generic Markdown retrieval systems.
 
 The system already knows that:
 
@@ -267,9 +361,9 @@ It knows which values came from frontmatter and which came from the body.
 
 The semantic generator can therefore preserve structure instead of reconstructing it heuristically.
 
-## L0: semantic abstract
+## D0: semantic abstract
 
-L0 is a very small description of what the card is fundamentally about.
+D0 is a very small description of what the card is fundamentally about.
 
 For example:
 
@@ -292,21 +386,21 @@ PostgreSQL is a relational database system covering SQL, transactions,
 indexing, extensions, concurrency and persistent application data.
 ```
 
-L0 should be small enough that thousands or millions of cards can be represented cheaply and searched efficiently.
+D0 should be small enough that thousands or millions of cards can be represented cheaply and searched efficiently.
 
 The intended generation direction is:
 
 ```text
-L2
+D2
  ↓
-L1
+D1
  ↓
-L0
+D0
 ```
 
-rather than independently generating L0 and L1.
+rather than independently generating D0 and D1.
 
-Generating L1 first and deriving L0 from L1 helps maintain semantic consistency:
+Generating D1 first and deriving D0 from D1 helps maintain semantic consistency:
 
 ```text
 Card
@@ -318,7 +412,7 @@ compact semantic identity
 
 ## Embeddings
 
-L0 is human-readable text.
+D0 is human-readable text.
 
 A vector embedding is not.
 
@@ -365,7 +459,35 @@ It is merely a mathematical representation that supports efficient similarity co
 
 ## What gets embedded
 
-The simplest embedding input should not necessarily be the raw L0 string alone.
+**The D0 file is not the string handed to the embedding model.** These are three
+separate objects, and conflating them is the mistake this section exists to
+prevent:
+
+```text
+D0(Card)             : Text     -- the authored-facing abstract
+embeddingInput(Card) : Text     -- what the model actually receives
+embedding(Card)      : Vector   -- what the index stores
+```
+
+related by:
+
+```text
+embeddingInput(card) =
+    card.name
+  + card.type
+  + selectedSemanticMetadata(card)
+  + D0(card)
+
+embedding(card) =
+    embed(embeddingInput(card))
+```
+
+Where this card says *D0 vector*, it means the vector of that card's embedding
+input, of which D0 is the largest part — not `embed(D0)` alone. The embedding
+input is free to change without D0 changing, which is one more reason the index
+carries its own version.
+
+The simplest embedding input should not necessarily be the raw D0 string alone.
 
 Useful semantic identity can be constructed from selected card properties:
 
@@ -374,7 +496,7 @@ embedding text =
     canonical card name
   + selected type information
   + selected tags
-  + L0
+  + D0
 ```
 
 For example:
@@ -428,16 +550,16 @@ Conceptually:
              │                     │
              └──────────┬──────────┘
                         ▼
-                  generate L1
+                  generate D1
                         │
                         ▼
-                   derive L0
+                   derive D0
                         │
                         ▼
                   embedding model
                         │
                         ▼
-                   L0 vector
+                   D0 vector
                         │
                         ▼
                   vector index
@@ -476,8 +598,9 @@ namespace
 type
 tags
 sourceHash
-l0Hash
-l1Hash
+d0Hash
+d1Hash
+embeddingInputHash
 embeddingModel
 embeddingVersion
 updatedAt
@@ -587,15 +710,15 @@ They are not necessarily the final search results.
 
 Embedding similarity is powerful but imperfect.
 
-A small L0 cannot represent every detail in a card, and vector similarity can sometimes retrieve broadly related material instead of the precise answer.
+A small D0 cannot represent every detail in a card, and vector similarity can sometimes retrieve broadly related material instead of the precise answer.
 
-The next stage therefore uses L1.
+The next stage therefore uses D1.
 
-## L1 reranking
+## D1 reranking
 
-Once perhaps 20 candidate cards have been found using cheap vector retrieval, the system loads their richer L1 summaries.
+Once perhaps 20 candidate cards have been found using cheap vector retrieval, the system loads their richer D1 summaries.
 
-It does not need to load L1 for every card in the repository.
+It does not need to load D1 for every card in the repository.
 
 For example:
 
@@ -605,13 +728,13 @@ Query:
 "how are bearer tokens used for authorization?"
 
 Candidate [[oauth]]:
-<OAuth L1>
+<OAuth D1>
 
 Candidate [[jwt]]:
-<JWT L1>
+<JWT D1>
 
 Candidate [[api-security]]:
-<API security L1>
+<API security D1>
 ```
 
 A reranker can then evaluate the query against the richer descriptions.
@@ -631,20 +754,20 @@ query
   ↓
 embed query
   ↓
-vector search over L0 embeddings
+vector search over D0 embeddings
   ↓
 candidate Cards
   ↓
-load candidate L1 summaries
+load candidate D1 summaries
   ↓
 rerank
   ↓
 best matching Cards
 ```
 
-Only after this does the caller need to load the original L2 card.
+Only after this does the caller need to load the original D2 card.
 
-## Loading L2
+## Loading D2
 
 Suppose reranking determines that the strongest matches are:
 
@@ -665,15 +788,15 @@ The original HMD remains authoritative.
 This creates a staged retrieval architecture:
 
 ```text
-L0
+D0
  ↓
 cheap semantic discovery
 
-L1
+D1
  ↓
 candidate understanding and ranking
 
-L2
+D2
  ↓
 authoritative content
 ```
@@ -700,7 +823,7 @@ A single vector representing the whole document becomes a semantic average over 
 
 The card may contain one excellent paragraph about bearer-token expiration, but that concept may contribute very little to the overall card vector.
 
-L0 instead attempts to represent:
+D0 instead attempts to represent:
 
 ```text
 what is this card fundamentally about?
@@ -708,7 +831,7 @@ what is this card fundamentally about?
 
 This makes it useful for card-level discovery.
 
-L1 then preserves enough detail to distinguish superficially similar candidates.
+D1 then preserves enough detail to distinguish superficially similar candidates.
 
 Later, finer-grained embeddings can solve the remaining long-document problem.
 
@@ -721,11 +844,11 @@ natural-language query
         ↓
 query embedding
         ↓
-L0 vector index
+D0 vector index
         ↓
 nearest cards
         ↓
-L1 reranking
+D1 reranking
         ↓
 Card results
 ```
@@ -902,6 +1025,11 @@ This is more constrained than a repository-wide vector search.
 
 Vector retrieval should appear in HQL as an operation over typed HMD objects rather than exposing a separate vector-database query language.
 
+**The HQL in this card is illustrative.** The surface syntax belongs to the HQL
+design and is not frozen here; what this card commits to is that semantic
+retrieval yields typed HMD objects that ordinary HQL operations can continue to
+process.
+
 For example:
 
 ```hql
@@ -965,6 +1093,34 @@ Whether metadata filters are executed before or after vector retrieval is an imp
 
 Semantically they remain ordinary HQL operations.
 
+### Open: is `semantic` a transformation or an index lookup?
+
+Written as `cards | semantic(...)`, it reads as though every card must be
+produced before the query can start, which is the one thing an approximate
+nearest-neighbour index exists to avoid. One alternative is to make it an index
+lookup in its own right:
+
+```text
+semantic(String) : Stream<CardHit>
+```
+
+```hql
+semantic("bearer token authorization")
+| take(20)
+```
+
+Another is to name the universe explicitly, which becomes worth doing once there
+is more than one index or more than one vault:
+
+```hql
+knowledge
+| semantic("bearer token authorization")
+| take(20)
+```
+
+This is a question for the HQL design rather than for the semantic index, and
+the examples in this card stay with the `cards` form until it is settled.
+
 ## Semantic search plus graph expansion in HQL
 
 Because semantic retrieval returns HMD objects, it can feed graph operations:
@@ -975,6 +1131,10 @@ cards
 | take(5)
 | graph(depth = 1)
 ```
+
+Whether a `CardHit` can feed `graph` directly, or has to be unwrapped to its
+card first, depends on how `CardHit` is made to behave — a question for the HQL
+design.
 
 Conversely:
 
@@ -1004,7 +1164,7 @@ A mature search engine should eventually combine at least three forms of retriev
                       candidates
                          │
                          ▼
-                     L1 rerank
+                     D1 rerank
                          │
                          ▼
                        Cards
@@ -1040,11 +1200,11 @@ The semantic index should therefore not attempt to become a universal retrieval 
 
 ## Long cards and semantic chunks
 
-Card-level L0 search has an important limitation.
+Card-level D0 search has an important limitation.
 
 Consider a large database card containing a small section on predicate locking.
 
-Its L0 might say:
+Its D0 might say:
 
 ```text
 PostgreSQL is a relational database system covering transactions,
@@ -1057,7 +1217,7 @@ A query such as:
 predicate locking under serializable transactions
 ```
 
-might not strongly match the card-level L0.
+might not strongly match the card-level D0.
 
 The long-term solution is to add embeddings for structural objects inside cards.
 
@@ -1087,7 +1247,7 @@ A card could then have:
 
 ```text
 Card
-├── L0 card vector
+├── D0 card vector
 │
 └── structural vectors
     ├── section vector
@@ -1123,11 +1283,11 @@ chunk 1837
 
 but a meaningful HMD object.
 
-## L0 versus structural embeddings
+## D0 versus structural embeddings
 
 Card-level and structural embeddings answer different questions.
 
-A card-level L0 embedding asks:
+A card-level D0 embedding asks:
 
 ```text
 Which cards are broadly about this concept?
@@ -1172,13 +1332,13 @@ hash current source
         │
         ├── unchanged
         │      ↓
-        │   reuse L0/L1/vector
+        │   reuse D0/D1/vector
         │
         └── changed
                ↓
-          regenerate L1
+          regenerate D1
                ↓
-          regenerate L0
+          regenerate D0
                ↓
           regenerate vector
 ```
@@ -1201,7 +1361,7 @@ Consider:
 ![[foo#^definition]]
 ```
 
-If the referenced block changes, should the current card's L1 change as well?
+If the referenced block changes, should the current card's D1 change as well?
 
 That depends on what the semantic summary represents.
 
@@ -1209,13 +1369,13 @@ Two possible models are:
 
 ### Authored semantics
 
-L1 primarily represents the current card itself.
+D1 primarily represents the current card itself.
 
 Links and transclusions contribute structural information, but their complete resolved contents are not recursively inserted into the summary.
 
 ### Expanded semantics
 
-L1 represents the card after imports, transclusions and potentially other dependencies have been resolved.
+D1 represents the card after imports, transclusions and potentially other dependencies have been resolved.
 
 Expanded semantics can produce rich contextual summaries, but it creates cascading invalidation.
 
@@ -1226,11 +1386,11 @@ foo changes
  ↓
 bar transcludes foo
  ↓
-bar L1 changes
+bar D1 changes
  ↓
 baz transcludes bar
  ↓
-baz L1 changes
+baz D1 changes
  ...
 ```
 
@@ -1275,11 +1435,11 @@ For example:
 .hmd/
 ├── semantic/
 │   ├── oauth/
-│   │   ├── l0.md
-│   │   └── l1.md
+│   │   ├── d0.md
+│   │   └── d1.md
 │   └── jwt/
-│       ├── l0.md
-│       └── l1.md
+│       ├── d0.md
+│       └── d1.md
 │
 └── index/
     └── semantic.db
@@ -1347,13 +1507,13 @@ parse HMD
 Card AST
  │
  ▼
-generate L1
+generate D1
  │
  ▼
-derive L0
+derive D0
  │
  ▼
-embed L0
+embed D0
  │
  ▼
 store vector
@@ -1376,7 +1536,7 @@ nearest-neighbour search
 candidate Card IDs
  │
  ▼
-load candidate L1
+load candidate D1
  │
  ▼
 rerank
@@ -1391,7 +1551,7 @@ resolve actual Cards when needed
 In compact form:
 
 ```text
-Card ──→ L1 ──→ L0 ──→ Vector
+Card ──→ D1 ──→ D0 ──→ Vector
                          │
                          │
 Query ────────────────→ Vector
@@ -1403,7 +1563,7 @@ Query ────────────────→ Vector
                       Cards
 ```
 
-The essential property is that both L0 and the user's query are transformed using the same embedding model.
+The essential property is that both D0 and the user's query are transformed using the same embedding model.
 
 That places them in the same vector space.
 
@@ -1513,11 +1673,11 @@ The system performs:
 ```text
 query
  ↓
-L0 semantic recall
+D0 semantic recall
  ↓
-L1 inspection/reranking
+D1 inspection/reranking
  ↓
-selected L2 cards
+selected D2 cards
 ```
 
 Only a small amount of source content then enters the model context.
@@ -1618,10 +1778,10 @@ The first implementation does not need the complete architecture.
 A useful first version consists of:
 
 1. Parse every HMD file into a `Card`.
-2. Generate one L1 summary per card.
-3. Derive one compact L0 summary from L1.
-4. Store L0/L1 under `.hmd/semantic/`.
-5. Generate one embedding from each L0.
+2. Generate one D1 summary per card.
+3. Derive one compact D0 summary from D1.
+4. Store D0/D1 under `.hmd/semantic/`.
+5. Generate one embedding from each D0.
 6. Store embeddings in a local vector index.
 7. Embed a natural-language search query.
 8. Retrieve the nearest card vectors.
@@ -1638,7 +1798,7 @@ cards
 
 Everything else can evolve later:
 
-* L1 rerankers;
+* D1 rerankers;
 * hybrid BM25/vector ranking;
 * graph expansion;
 * typed filters;
@@ -1662,12 +1822,23 @@ The fundamental architecture is:
         │             │             │
         ▼             ▼             ▼
       Graph        Full-text     Semantic
-      index          index         index
+      index          index      index (D0/D1)
         │             │             │
         └─────────────┼─────────────┘
                       ▼
                      HQL
 ```
+
+and, on the other axis:
+
+```text
+Lens
+ ↓
+view / projection over Cards and knowledge
+```
+
+**D is vertical depth within one card; L is an orthogonal viewpoint over
+knowledge.** The semantic index lives entirely on the D axis.
 
 HyperMarkDown is not a vector database with Markdown files attached to it.
 
@@ -1675,11 +1846,11 @@ It is a system of structured, named, linkable cards.
 
 Vector embeddings provide a fuzzy semantic index over those cards.
 
-L0 allows inexpensive semantic discovery.
+D0 allows inexpensive semantic discovery.
 
-L1 allows richer candidate understanding and reranking.
+D1 allows richer candidate understanding and reranking.
 
-L2 remains the original authoritative HMD.
+D2 remains the original authoritative HMD.
 
 HQL then provides the language that composes semantic search with metadata, document structure, graph traversal, namespaces, typed knowledge and eventually stronger constraints.
 

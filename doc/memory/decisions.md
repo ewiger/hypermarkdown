@@ -488,3 +488,39 @@ state, and every message crossing the webview boundary carry the vault as well.
 The webview's persisted state is the place that shows: a state written by an
 older build has a path and no vault, and is dropped rather than guessed at,
 which costs a restored tab one editor click to find its way back.
+
+## Search depths are D0/D1/D2, and the letter is not free
+
+The semantic index over HMD cards names three representations of a card: a short
+abstract used for vector recall, a richer summary used for reranking, and the
+authoritative `.hmd` source. They are **D0**, **D1** and **D2**, where `D` is
+*depth* — how much of the card a representation still carries.
+
+They were written as L0/L1/L2 first, and [the semantic search
+card](../wiki/semantic-search.hmd) has been rewritten, note included. Two
+reasons, and the second one is the one worth keeping.
+
+**`L` is taken.** `L0`/`L1`/`L2` are reserved by *len*, the metaprogramming
+language, where they already name levels of something else. Two projects
+spending the same three tokens on two unrelated ladders is a collision that only
+gets more expensive the longer both notations circulate, so HyperMarkDown gives
+way while its semantic index is still on paper and costs one rewrite.
+
+**Depth and lens are two axes, not one.** That distinction is not a euphemism
+for the rename — it is the more accurate description, and it matters because the
+lens axis is one this project still means to pursue on its own terms. *Depth*
+says how much semantic information about **one card** a representation retains.
+A *lens* says according to what viewpoint knowledge is represented at all, over
+however many cards, in a vocabulary the sources need not have used. They
+compose — `L(requirements, D0)` is a sensible thing to want — which is exactly
+what collapsing them into one letter would have made unsayable.
+
+Note that depth is *compression*, not truncation: a D0 may legitimately call a
+card's subject "bearer-token authorization" when that phrase appears nowhere in
+it. What a depth must preserve is the card's own subject; what it must not do is
+adopt a viewpoint the card did not have, because that is the lens operation.
+
+**The `L0`/`L1`/`L2` lens files under `doc/models/` keep their names.** Those are
+grem's lenses, they are levels of abstraction in the sense grem means, and they
+have nothing to do with the search ladder. Where both notations meet, `L` is a
+lens over the system and `D` is a depth of one card.
