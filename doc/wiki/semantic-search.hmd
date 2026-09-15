@@ -1,0 +1,1718 @@
+---
+
+title: Semantic vector search over HMD cards
+type: concept
+tags:
+- hypermarkdown
+- hql
+- search
+- semantic-search
+- embeddings
+- vector-search
+---
+
+# Semantic vector search over HMD cards
+
+HyperMarkDown can provide semantic search across a collection of HMD cards by generating compact semantic representations for each card, embedding those representations into vectors, and using nearest-neighbour search to discover cards whose meaning is related to a natural-language query.
+
+The vector index is not intended to replace the HMD document model, filesystem, graph, frontmatter, full-text search, or HQL. It is an additional derived index over the existing `Card` model.
+
+The central model is:
+
+```text
+Card
+├── L0  short semantic abstract
+├── L1  richer semantic overview
+└── L2  original HMD source
+```
+
+The three levels have different purposes:
+
+| Level | Representation                        | Purpose                                |
+| ----- | ------------------------------------- | -------------------------------------- |
+| L0    | short abstract, roughly 1–3 sentences | fast semantic retrieval                |
+| L1    | richer structured summary             | understanding and reranking candidates |
+| L2    | original `.hmd` card                  | authoritative content                  |
+
+A useful mental model is:
+
+```text
+L0 = find me
+L1 = understand whether I am relevant
+L2 = actually use me
+```
+
+The generated L0 and L1 representations are derived data. They are not authored HMD content and should normally live in a hidden sidecar directory rather than beside the source cards.
+
+## Card as the semantic unit
+
+The natural semantic unit in HyperMarkDown is a `Card`.
+
+Given:
+
+```text
+knowledge/
+├── oauth.hmd
+├── jwt.hmd
+├── postgres.hmd
+└── kubernetes.hmd
+```
+
+each card independently receives an L0 and L1 representation:
+
+```text
+oauth.hmd
+├── L0
+├── L1
+└── L2 = oauth.hmd
+
+jwt.hmd
+├── L0
+├── L1
+└── L2 = jwt.hmd
+```
+
+This differs from systems that primarily construct semantic summaries around filesystem directories.
+
+HyperMarkDown already has an explicit document-level semantic object: the card. Directory structure may remain useful for namespaces, organization and resolution, but it does not need to define the semantic retrieval unit.
+
+## Hidden semantic sidecars
+
+Generated summaries and index state should be kept outside the authored HMD tree.
+
+For example:
+
+```text
+knowledge/
+├── oauth.hmd
+├── jwt.hmd
+├── postgres.hmd
+├── security/
+│   └── oidc.hmd
+│
+└── .hmd/
+    ├── semantic/
+    │   ├── oauth/
+    │   │   ├── l0.md
+    │   │   ├── l1.md
+    │   │   └── state.json
+    │   ├── jwt/
+    │   │   ├── l0.md
+    │   │   ├── l1.md
+    │   │   └── state.json
+    │   └── security/
+    │       └── oidc/
+    │           ├── l0.md
+    │           ├── l1.md
+    │           └── state.json
+    │
+    └── index/
+        └── semantic.db
+```
+
+The `.hmd/` directory is implementation state.
+
+It should normally be:
+
+* ignored by card resolution;
+* ignored by transclusion;
+* excluded from normal graph discovery;
+* rebuildable from the authored HMD sources;
+* optionally excluded from version control.
+
+During early implementation it is useful for the sidecar paths to mirror the source paths because the generated state remains easy to inspect manually.
+
+Internally this can later move to hash- or ID-based storage without changing the conceptual model.
+
+For example:
+
+```text
+.hmd/
+└── semantic/
+    └── 2f/
+        └── 2f78ab91.../
+            ├── l0.md
+            ├── l1.md
+            └── state.json
+```
+
+A state file could contain information such as:
+
+```json
+{
+  "card": "security/oauth.hmd",
+  "sourceHash": "sha256:...",
+  "semanticDependencyHash": "sha256:...",
+  "generator": "...",
+  "model": "...",
+  "embeddingModel": "...",
+  "embeddingVersion": 1,
+  "generatedAt": "..."
+}
+```
+
+The sidecars are cacheable semantic projections of the original card rather than independent documents.
+
+## L2: the original card
+
+L2 is simply the authoritative HMD card.
+
+For example:
+
+```hmd
+---
+tags:
+  - security
+  - identity
+---
+
+# OAuth
+
+OAuth provides delegated authorization.
+
+It is closely related to [[oidc]] and commonly uses [[access-token]].
+
+![[tokens#^bearer-token]]
+```
+
+This source remains authoritative.
+
+Semantic indexing must never require the generated L0 or L1 files to become canonical knowledge.
+
+Deleting `.hmd/` should therefore be equivalent to deleting a build cache:
+
+```text
+rm -rf .hmd/
+hmd index
+```
+
+should reconstruct the semantic state from the cards.
+
+## L1: semantic overview
+
+L1 is a richer machine-generated interpretation of a card.
+
+It should not merely summarize rendered Markdown text.
+
+The generator should receive the parsed HMD `Card` model and therefore understand information such as:
+
+* title;
+* frontmatter;
+* type;
+* tags;
+* headings;
+* body;
+* outgoing links;
+* incoming links where useful;
+* transclusions;
+* block references;
+* namespaces;
+* imports;
+* HMD structural objects.
+
+For example, the OAuth card might generate an L1 representation such as:
+
+```markdown
+# OAuth
+
+OAuth describes delegated authorization between clients,
+resource owners, authorization servers and resource servers.
+
+Important concepts:
+
+- delegated authorization
+- access tokens
+- bearer tokens
+- refresh tokens
+- scopes
+- authorization grants
+
+Relationships:
+
+- closely related to OIDC
+- references access tokens
+- access tokens may be represented using JWT
+- distinguishes authorization from authentication
+
+Referenced cards:
+
+- [[oidc]]
+- [[access-token]]
+- [[jwt]]
+```
+
+This does not imply that L1 itself needs a stable public schema initially.
+
+It is primarily a semantic representation intended for machine consumption, debugging, reranking and potentially agent inspection.
+
+However, producing L1 from structured HMD information rather than arbitrary source text gives HyperMarkDown a significant advantage over generic Markdown retrieval systems.
+
+The system already knows that:
+
+```text
+[[oidc]]
+```
+
+is a card reference rather than an arbitrary string.
+
+It knows that:
+
+```text
+![[tokens#^bearer-token]]
+```
+
+is a transclusion.
+
+It knows which values came from frontmatter and which came from the body.
+
+The semantic generator can therefore preserve structure instead of reconstructing it heuristically.
+
+## L0: semantic abstract
+
+L0 is a very small description of what the card is fundamentally about.
+
+For example:
+
+```text
+OAuth is a protocol for delegated authorization involving clients,
+resource servers, authorization servers, scopes and access tokens.
+```
+
+A JWT card might have:
+
+```text
+JWT is a compact signed token format used to represent claims and
+frequently used for authentication and authorization information.
+```
+
+A PostgreSQL card could have:
+
+```text
+PostgreSQL is a relational database system covering SQL, transactions,
+indexing, extensions, concurrency and persistent application data.
+```
+
+L0 should be small enough that thousands or millions of cards can be represented cheaply and searched efficiently.
+
+The intended generation direction is:
+
+```text
+L2
+ ↓
+L1
+ ↓
+L0
+```
+
+rather than independently generating L0 and L1.
+
+Generating L1 first and deriving L0 from L1 helps maintain semantic consistency:
+
+```text
+Card
+  ↓
+rich semantic understanding
+  ↓
+compact semantic identity
+```
+
+## Embeddings
+
+L0 is human-readable text.
+
+A vector embedding is not.
+
+An embedding model converts text into a numerical vector:
+
+```text
+embed(
+  "OAuth is a protocol for delegated authorization..."
+)
+```
+
+might produce something conceptually like:
+
+```text
+[
+   0.0182,
+  -0.1134,
+   0.0081,
+   ...
+]
+```
+
+The real vector might contain hundreds or thousands of dimensions.
+
+The vector should be understood as a coordinate in a learned semantic space.
+
+Cards with semantically related descriptions tend to receive vectors that are relatively close to one another.
+
+For example:
+
+```text
+OAuth
+JWT
+bearer tokens
+authorization
+OIDC
+```
+
+will generally occupy related regions of the embedding space, while an unrelated card about PostgreSQL query planning should be farther away.
+
+The vector does not contain a readable summary.
+
+It is merely a mathematical representation that supports efficient similarity comparison.
+
+## What gets embedded
+
+The simplest embedding input should not necessarily be the raw L0 string alone.
+
+Useful semantic identity can be constructed from selected card properties:
+
+```text
+embedding text =
+    canonical card name
+  + selected type information
+  + selected tags
+  + L0
+```
+
+For example:
+
+```text
+OAuth
+
+type: protocol
+tags: security identity authorization
+
+OAuth is a protocol for delegated authorization involving clients,
+resource servers, authorization servers, scopes and access tokens.
+```
+
+Not every property should enter the embedding.
+
+Values such as:
+
+* modification timestamps;
+* source hashes;
+* filesystem implementation paths;
+* cache metadata;
+* internal resolver information;
+
+are useful metadata but generally poor semantic input.
+
+Similarly, imports and links may be more useful as graph information than as blindly concatenated embedding text.
+
+Embedding input should therefore be explicitly selected rather than constructed by dumping all card metadata into the model.
+
+## Index-time processing
+
+Embedding generation happens primarily while building or updating the semantic index.
+
+Conceptually:
+
+```text
+               INDEX TIME
+
+                    .hmd Card
+                        │
+                        ▼
+                    HMD parser
+                        │
+                        ▼
+                     Card AST
+                        │
+             ┌──────────┴──────────┐
+             │                     │
+         structure               content
+             │                     │
+             └──────────┬──────────┘
+                        ▼
+                  generate L1
+                        │
+                        ▼
+                   derive L0
+                        │
+                        ▼
+                  embedding model
+                        │
+                        ▼
+                   L0 vector
+                        │
+                        ▼
+                  vector index
+```
+
+A command might eventually look like:
+
+```bash
+hmd index
+```
+
+or:
+
+```bash
+hmd index --rebuild
+```
+
+The vector index stores something conceptually like:
+
+```text
+CardId       Vector
+-----------  ---------------------------
+oauth        [0.018, -0.113, ...]
+jwt          [0.027, -0.095, ...]
+postgres     [-0.170, 0.031, ...]
+kubernetes   [0.050, -0.020, ...]
+```
+
+Additional metadata can include:
+
+```text
+CardId
+canonicalName
+path
+namespace
+type
+tags
+sourceHash
+l0Hash
+l1Hash
+embeddingModel
+embeddingVersion
+updatedAt
+```
+
+The vector store is an index.
+
+It should not become the primary database for HyperMarkDown knowledge.
+
+## Query-time embedding
+
+Suppose the user asks:
+
+```text
+how are bearer tokens used for authorization?
+```
+
+The same embedding model used during indexing converts the query to a vector:
+
+```text
+Q = embed(
+  "how are bearer tokens used for authorization?"
+)
+```
+
+giving:
+
+```text
+Q = [
+   0.021,
+  -0.104,
+   0.007,
+   ...
+]
+```
+
+Now the query and the cards exist in the same embedding space.
+
+The vector search engine asks:
+
+```text
+which indexed vectors are nearest to Q?
+```
+
+Conceptually it computes similarities such as:
+
+```text
+similarity(Q, OAuth)
+similarity(Q, JWT)
+similarity(Q, PostgreSQL)
+similarity(Q, Kubernetes)
+```
+
+A hypothetical result could be:
+
+```text
+oauth        0.91
+jwt          0.82
+kubernetes   0.43
+postgres     0.19
+```
+
+The exact score is model- and metric-dependent and should not generally be interpreted as a probability.
+
+Common similarity metrics include cosine similarity, dot product and Euclidean distance.
+
+For large indexes the system usually does not compare the query exhaustively with every stored vector.
+
+An approximate nearest-neighbour index such as HNSW can locate nearby vectors much more efficiently.
+
+Conceptually, however, the operation remains:
+
+```text
+find vectors geometrically close to the query vector
+```
+
+## Candidate retrieval
+
+Vector search should primarily be considered candidate discovery.
+
+For example:
+
+```text
+query
+ ↓
+embedding
+ ↓
+nearest-neighbour search
+ ↓
+top 20 cards
+```
+
+might return:
+
+```text
+[
+  CardCandidate([[oauth]], 0.91),
+  CardCandidate([[jwt]], 0.82),
+  CardCandidate([[api-security]], 0.79),
+  ...
+]
+```
+
+These are plausible semantic matches.
+
+They are not necessarily the final search results.
+
+Embedding similarity is powerful but imperfect.
+
+A small L0 cannot represent every detail in a card, and vector similarity can sometimes retrieve broadly related material instead of the precise answer.
+
+The next stage therefore uses L1.
+
+## L1 reranking
+
+Once perhaps 20 candidate cards have been found using cheap vector retrieval, the system loads their richer L1 summaries.
+
+It does not need to load L1 for every card in the repository.
+
+For example:
+
+```text
+Query:
+
+"how are bearer tokens used for authorization?"
+
+Candidate [[oauth]]:
+<OAuth L1>
+
+Candidate [[jwt]]:
+<JWT L1>
+
+Candidate [[api-security]]:
+<API security L1>
+```
+
+A reranker can then evaluate the query against the richer descriptions.
+
+The resulting ranking might become:
+
+```text
+oauth         0.97
+api-security  0.84
+jwt           0.74
+```
+
+The overall path is therefore:
+
+```text
+query
+  ↓
+embed query
+  ↓
+vector search over L0 embeddings
+  ↓
+candidate Cards
+  ↓
+load candidate L1 summaries
+  ↓
+rerank
+  ↓
+best matching Cards
+```
+
+Only after this does the caller need to load the original L2 card.
+
+## Loading L2
+
+Suppose reranking determines that the strongest matches are:
+
+```text
+[[oauth]]
+[[api-security]]
+[[jwt]]
+```
+
+If the caller needs the actual content, those cards are now resolved normally:
+
+```text
+resolve([[oauth]]) : Card
+```
+
+The original HMD remains authoritative.
+
+This creates a staged retrieval architecture:
+
+```text
+L0
+ ↓
+cheap semantic discovery
+
+L1
+ ↓
+candidate understanding and ranking
+
+L2
+ ↓
+authoritative content
+```
+
+## Why not embed the complete card?
+
+It is possible to embed the entire source card directly, but this becomes less useful as cards grow.
+
+Imagine a large card containing:
+
+```text
+OAuth history
+OAuth grant types
+security problems
+JWT
+browser redirects
+token expiration
+example code
+RFC details
+implementation notes
+```
+
+A single vector representing the whole document becomes a semantic average over all of these subjects.
+
+The card may contain one excellent paragraph about bearer-token expiration, but that concept may contribute very little to the overall card vector.
+
+L0 instead attempts to represent:
+
+```text
+what is this card fundamentally about?
+```
+
+This makes it useful for card-level discovery.
+
+L1 then preserves enough detail to distinguish superficially similar candidates.
+
+Later, finer-grained embeddings can solve the remaining long-document problem.
+
+## Semantic search across cards
+
+At its simplest, semantic search means:
+
+```text
+natural-language query
+        ↓
+query embedding
+        ↓
+L0 vector index
+        ↓
+nearest cards
+        ↓
+L1 reranking
+        ↓
+Card results
+```
+
+For example:
+
+```text
+"distributed identity and authentication"
+```
+
+may retrieve:
+
+```text
+[[oauth]]
+[[oidc]]
+[[identity-provider]]
+[[jwt]]
+[[service-identity]]
+```
+
+even when the exact words in the query do not occur in those cards.
+
+This differs from lexical search.
+
+A lexical query looks for matching text.
+
+A semantic query looks for nearby meaning according to the embedding model.
+
+Both are valuable.
+
+## Full-text search and semantic search
+
+Semantic vector search should not replace ordinary full-text search.
+
+Suppose a card contains the exact identifier:
+
+```text
+CTA-SHA256
+```
+
+A lexical search can locate it perfectly.
+
+An embedding search may be worse because the identifier itself contains little natural-language semantic information.
+
+On the other hand, a query such as:
+
+```text
+the context-sensitive hashing algorithm
+```
+
+may retrieve the corresponding card even if that exact phrase never appears in the source.
+
+The two retrieval mechanisms answer different questions:
+
+```text
+full-text:
+"where does this text occur?"
+
+semantic:
+"what content means something similar to this?"
+```
+
+HyperMarkDown should eventually support both.
+
+## HMD graph search
+
+HyperMarkDown additionally knows something generic vector systems do not necessarily know: explicit authored relationships between cards.
+
+For example:
+
+```text
+[[oauth]]
+   │
+   ├── [[oidc]]
+   ├── [[access-token]]
+   └── [[authorization-server]]
+
+[[access-token]]
+   │
+   └── [[jwt]]
+```
+
+A vector model may conclude that OAuth and JWT are related.
+
+The HMD graph can say exactly how authored cards reference one another.
+
+These are different kinds of evidence.
+
+Vector similarity answers:
+
+```text
+Which cards look semantically related?
+```
+
+The HMD graph answers:
+
+```text
+Which cards are explicitly related according to authored knowledge?
+```
+
+These mechanisms should be composable rather than competing.
+
+## Semantic recall followed by graph expansion
+
+One useful operation is:
+
+```text
+semantic retrieval
+        ↓
+[[oauth]]
+[[jwt]]
+        ↓
+graph expansion
+        ↓
+[[access-token]]
+[[refresh-token]]
+[[oidc]]
+[[identity-provider]]
+```
+
+A semantic search discovers entry points into the knowledge graph.
+
+Explicit HMD links then expand those results deterministically.
+
+This gives an agent both:
+
+* fuzzy semantic recall;
+* explicit structural context.
+
+## Graph restriction followed by semantic search
+
+The inverse operation can also be useful.
+
+Suppose the user starts with:
+
+```text
+[[oauth]]
+```
+
+The system can first traverse its HMD neighborhood:
+
+```text
+[[oauth]]
+├── [[oidc]]
+├── [[jwt]]
+├── [[access-token]]
+├── [[authorization-server]]
+├── [[client]]
+└── [[resource-server]]
+```
+
+and then run semantic ranking only within that subgraph.
+
+Conceptually:
+
+```text
+resolve([[oauth]])
+ ↓
+graph(depth = 2)
+ ↓
+semantic("token expiration")
+```
+
+This asks:
+
+```text
+Within the knowledge neighborhood around OAuth,
+which objects are semantically related to token expiration?
+```
+
+This is more constrained than a repository-wide vector search.
+
+## HQL integration
+
+Vector retrieval should appear in HQL as an operation over typed HMD objects rather than exposing a separate vector-database query language.
+
+For example:
+
+```hql
+cards
+| semantic("distributed identity and authentication")
+| take(20)
+```
+
+Conceptually this returns something such as:
+
+```haskell
+Stream<CardHit>
+```
+
+where:
+
+```haskell
+type CardHit = {
+    card: Card,
+    score: Float
+}
+```
+
+A result remains connected to the underlying card:
+
+```text
+CardHit
+ ├── card : Card
+ └── score : Float
+```
+
+The caller can therefore continue processing it using ordinary HQL operations.
+
+For example:
+
+```hql
+cards
+| semantic("distributed identity and authentication")
+| where(.score > 0.7)
+| take(10)
+```
+
+Semantic search can also be combined with typed metadata filtering:
+
+```hql
+cards
+| where(.type == "protocol")
+| semantic("machine identity")
+| take(10)
+```
+
+or:
+
+```hql
+cards
+| where(.frontmatter.tags contains "security")
+| semantic("machine identity")
+```
+
+Whether metadata filters are executed before or after vector retrieval is an implementation optimization.
+
+Semantically they remain ordinary HQL operations.
+
+## Semantic search plus graph expansion in HQL
+
+Because semantic retrieval returns HMD objects, it can feed graph operations:
+
+```hql
+cards
+| semantic("OAuth token validation")
+| take(5)
+| graph(depth = 1)
+```
+
+Conversely:
+
+```hql
+resolve([[oauth]])
+| graph(depth = 2)
+| semantic("token expiration")
+```
+
+This makes vector retrieval one part of a broader HQL knowledge-processing pipeline.
+
+## Hybrid retrieval
+
+A mature search engine should eventually combine at least three forms of retrieval:
+
+```text
+                       query
+                         │
+             ┌───────────┼───────────┐
+             │           │           │
+             ▼           ▼           ▼
+         full-text     vectors     HMD graph
+         / BM25        semantic    structure
+             │           │           │
+             └───────────┼───────────┘
+                         ▼
+                      candidates
+                         │
+                         ▼
+                     L1 rerank
+                         │
+                         ▼
+                       Cards
+```
+
+Each source contributes different evidence.
+
+Full-text search is strong for:
+
+* identifiers;
+* exact terminology;
+* code names;
+* quoted text;
+* unusual proper nouns.
+
+Vector search is strong for:
+
+* paraphrases;
+* natural-language questions;
+* conceptual similarity;
+* queries using different vocabulary from the source.
+
+Graph retrieval is strong for:
+
+* explicitly linked concepts;
+* neighborhood exploration;
+* namespaces;
+* transclusion relations;
+* typed relationships;
+* deterministic structural constraints.
+
+The semantic index should therefore not attempt to become a universal retrieval mechanism.
+
+## Long cards and semantic chunks
+
+Card-level L0 search has an important limitation.
+
+Consider a large database card containing a small section on predicate locking.
+
+Its L0 might say:
+
+```text
+PostgreSQL is a relational database system covering transactions,
+SQL, concurrency, indexing and extensions.
+```
+
+A query such as:
+
+```text
+predicate locking under serializable transactions
+```
+
+might not strongly match the card-level L0.
+
+The long-term solution is to add embeddings for structural objects inside cards.
+
+HyperMarkDown already provides more meaningful boundaries than arbitrary token chunking.
+
+Possible semantic targets include:
+
+```text
+Card
+Section
+NamedBlock
+ParagraphGroup
+CodeBlock
+Diagram
+```
+
+The first useful model could be:
+
+```haskell
+SemanticTarget =
+    Card
+  | Section
+  | Block
+```
+
+A card could then have:
+
+```text
+Card
+├── L0 card vector
+│
+└── structural vectors
+    ├── section vector
+    ├── section vector
+    ├── named block vector
+    └── ...
+```
+
+This is preferable to generic RAG chunking such as:
+
+```text
+800 tokens
+100-token overlap
+800 tokens
+100-token overlap
+...
+```
+
+because HMD already contains semantic document boundaries.
+
+Search results can resolve directly back to HMD references:
+
+```text
+[[postgresql#Transactions]]
+[[postgresql#^predicate-lock]]
+```
+
+A result is therefore not merely:
+
+```text
+chunk 1837
+```
+
+but a meaningful HMD object.
+
+## L0 versus structural embeddings
+
+Card-level and structural embeddings answer different questions.
+
+A card-level L0 embedding asks:
+
+```text
+Which cards are broadly about this concept?
+```
+
+A section or block embedding asks:
+
+```text
+Where exactly is this concept discussed?
+```
+
+A mature retrieval pipeline may use both:
+
+```text
+query
+ ↓
+card-level semantic recall
+ ↓
+candidate cards
+ ↓
+structural search inside those cards
+ ↓
+precise sections or blocks
+```
+
+or alternatively search both indexes in parallel.
+
+## Incremental indexing
+
+Generated semantic state should be incrementally rebuildable.
+
+Each card can have a source hash:
+
+```text
+sourceHash = hash(card source)
+```
+
+During indexing:
+
+```text
+hash current source
+        │
+        ├── unchanged
+        │      ↓
+        │   reuse L0/L1/vector
+        │
+        └── changed
+               ↓
+          regenerate L1
+               ↓
+          regenerate L0
+               ↓
+          regenerate vector
+```
+
+This makes:
+
+```bash
+hmd index
+```
+
+cheap after small edits.
+
+## Dependency invalidation
+
+HMD cards can reference and transclude other cards, which introduces a choice.
+
+Consider:
+
+```hmd
+![[foo#^definition]]
+```
+
+If the referenced block changes, should the current card's L1 change as well?
+
+That depends on what the semantic summary represents.
+
+Two possible models are:
+
+### Authored semantics
+
+L1 primarily represents the current card itself.
+
+Links and transclusions contribute structural information, but their complete resolved contents are not recursively inserted into the summary.
+
+### Expanded semantics
+
+L1 represents the card after imports, transclusions and potentially other dependencies have been resolved.
+
+Expanded semantics can produce rich contextual summaries, but it creates cascading invalidation.
+
+For example:
+
+```text
+foo changes
+ ↓
+bar transcludes foo
+ ↓
+bar L1 changes
+ ↓
+baz transcludes bar
+ ↓
+baz L1 changes
+ ...
+```
+
+For the initial implementation, authored semantics are preferable.
+
+The generator can still know that:
+
+```text
+![[foo#^definition]]
+```
+
+exists and can include the resolved target name and type without copying the complete target content.
+
+A state file can eventually track both:
+
+```text
+sourceHash
+semanticDependencyHash
+```
+
+allowing dependency-sensitive indexing to become more sophisticated later.
+
+## Vector storage
+
+Vectors do not need to live in Markdown files.
+
+The human-readable derived representations belong in:
+
+```text
+.hmd/semantic/
+```
+
+while the actual embedding vectors belong in an index:
+
+```text
+.hmd/index/
+```
+
+For example:
+
+```text
+.hmd/
+├── semantic/
+│   ├── oauth/
+│   │   ├── l0.md
+│   │   └── l1.md
+│   └── jwt/
+│       ├── l0.md
+│       └── l1.md
+│
+└── index/
+    └── semantic.db
+```
+
+Possible storage engines include:
+
+* SQLite with vector support;
+* HNSW-backed local indexes;
+* LanceDB;
+* Qdrant;
+* other interchangeable vector stores.
+
+The initial implementation does not require a distributed vector database.
+
+The important abstraction is:
+
+```text
+SemanticIndex
+```
+
+rather than any particular backend.
+
+## Search as an index over Cards
+
+The architecture should remain:
+
+```text
+             HyperMarkDown sources
+                      │
+                      ▼
+                  HMD parser
+                      │
+                      ▼
+                  Card model
+                      │
+          ┌───────────┼───────────┐
+          │           │           │
+          ▼           ▼           ▼
+       graph       full-text    semantic
+       index         index       index
+          │           │           │
+          └───────────┼───────────┘
+                      ▼
+                     HQL
+```
+
+The semantic index is therefore one projection of the `Card` model.
+
+The vector store should not become the architectural center of HyperMarkDown.
+
+## Query lifecycle
+
+The complete card-level semantic query can be summarized as:
+
+```text
+                 INDEX TIME
+
+Card
+ │
+ ▼
+parse HMD
+ │
+ ▼
+Card AST
+ │
+ ▼
+generate L1
+ │
+ ▼
+derive L0
+ │
+ ▼
+embed L0
+ │
+ ▼
+store vector
+
+
+                 QUERY TIME
+
+"bearer token authorization"
+ │
+ ▼
+embed query
+ │
+ ▼
+query vector
+ │
+ ▼
+nearest-neighbour search
+ │
+ ▼
+candidate Card IDs
+ │
+ ▼
+load candidate L1
+ │
+ ▼
+rerank
+ │
+ ▼
+best CardHit values
+ │
+ ▼
+resolve actual Cards when needed
+```
+
+In compact form:
+
+```text
+Card ──→ L1 ──→ L0 ──→ Vector
+                         │
+                         │
+Query ────────────────→ Vector
+                         │
+                         ▼
+                   nearest neighbours
+                         │
+                         ▼
+                      Cards
+```
+
+The essential property is that both L0 and the user's query are transformed using the same embedding model.
+
+That places them in the same vector space.
+
+Similarity search then finds nearby meanings.
+
+## Approximate geometry
+
+An extremely simplified two-dimensional picture might look like:
+
+```text
+                authorization
+                     ↑
+
+       OAuth ●
+
+             Query ●
+
+                  ● JWT
+
+
+--------------------------------→ database concepts
+
+
+                                  ● PostgreSQL
+```
+
+A query such as:
+
+```text
+bearer token authorization
+```
+
+lands closer to OAuth and JWT than PostgreSQL.
+
+Real embedding spaces contain hundreds or thousands of dimensions rather than two, but the conceptual operation is the same.
+
+## Semantic similarity is not proof
+
+Vector proximity must not be confused with logical truth or an authored relationship.
+
+A high vector score means approximately:
+
+```text
+the embedding model considers these texts semantically similar
+```
+
+It does not mean:
+
+```text
+A implies B
+```
+
+or:
+
+```text
+the author declared A relatedTo B
+```
+
+or:
+
+```text
+this proposition is true
+```
+
+This distinction is especially important for HQL because HyperMarkDown may later support much stronger typed knowledge, constraints and evidence.
+
+Vector retrieval should remain fuzzy evidence for discovery.
+
+Explicit HMD relations, HQL constraints and typed knowledge provide stronger forms of structure.
+
+Conceptually:
+
+```text
+vector similarity
+    =
+soft semantic evidence
+
+HMD link
+    =
+authored structural evidence
+
+typed HQL relation
+    =
+explicit semantic statement
+
+constraint satisfied
+    =
+checked logical property
+```
+
+These should not be collapsed into one mechanism.
+
+## Agent retrieval
+
+This architecture is also useful for AI agents.
+
+An agent does not need to receive the entire HMD repository as context.
+
+Instead it can ask:
+
+```text
+What cards are relevant to this task?
+```
+
+The system performs:
+
+```text
+query
+ ↓
+L0 semantic recall
+ ↓
+L1 inspection/reranking
+ ↓
+selected L2 cards
+```
+
+Only a small amount of source content then enters the model context.
+
+This reduces token use because most irrelevant cards never reach the language model.
+
+The agent can additionally traverse the explicit HMD graph when required.
+
+For example:
+
+```text
+agent question
+ ↓
+semantic search
+ ↓
+[[oauth]]
+ ↓
+graph expansion
+ ↓
+[[oidc]]
+[[access-token]]
+[[jwt]]
+ ↓
+load selected Cards
+```
+
+The agent therefore gets context through retrieval rather than through pretending the entire knowledge base is already in its prompt.
+
+## Semantic index as disposable derived state
+
+An important design principle is that:
+
+```text
+HMD sources are knowledge.
+The semantic index is acceleration.
+```
+
+Therefore:
+
+```text
+delete .hmd/
+```
+
+must not destroy authored knowledge.
+
+At worst it removes generated summaries and indexes which can be regenerated.
+
+Likewise, changing embedding models should be equivalent to rebuilding an index:
+
+```bash
+hmd index --rebuild
+```
+
+rather than migrating authored documents.
+
+## Possible CLI
+
+An initial interface could be:
+
+```bash
+hmd index
+```
+
+Update stale semantic entries.
+
+```bash
+hmd index --rebuild
+```
+
+Discard and rebuild all generated semantic state.
+
+```bash
+hmd search "bearer token authorization"
+```
+
+Perform semantic search.
+
+Potentially:
+
+```bash
+hmd search --semantic "bearer token authorization"
+```
+
+and:
+
+```bash
+hmd search --text "CTA-SHA256"
+```
+
+could distinguish semantic and lexical search explicitly.
+
+Later a hybrid default could combine both.
+
+## Minimal viable implementation
+
+The first implementation does not need the complete architecture.
+
+A useful first version consists of:
+
+1. Parse every HMD file into a `Card`.
+2. Generate one L1 summary per card.
+3. Derive one compact L0 summary from L1.
+4. Store L0/L1 under `.hmd/semantic/`.
+5. Generate one embedding from each L0.
+6. Store embeddings in a local vector index.
+7. Embed a natural-language search query.
+8. Retrieve the nearest card vectors.
+9. Return corresponding cards with similarity scores.
+10. Expose the operation to HQL.
+
+Conceptually:
+
+```hql
+cards
+| semantic("bearer token authorization")
+| take(10)
+```
+
+Everything else can evolve later:
+
+* L1 rerankers;
+* hybrid BM25/vector ranking;
+* graph expansion;
+* typed filters;
+* section embeddings;
+* block embeddings;
+* dependency-aware regeneration;
+* remote embedding models;
+* local embedding models;
+* multiple semantic indexes;
+* agent-specific retrieval;
+* semantic graph visualization.
+
+## Design principle
+
+The fundamental architecture is:
+
+```text
+                     Card
+                      │
+        ┌─────────────┼─────────────┐
+        │             │             │
+        ▼             ▼             ▼
+      Graph        Full-text     Semantic
+      index          index         index
+        │             │             │
+        └─────────────┼─────────────┘
+                      ▼
+                     HQL
+```
+
+HyperMarkDown is not a vector database with Markdown files attached to it.
+
+It is a system of structured, named, linkable cards.
+
+Vector embeddings provide a fuzzy semantic index over those cards.
+
+L0 allows inexpensive semantic discovery.
+
+L1 allows richer candidate understanding and reranking.
+
+L2 remains the original authoritative HMD.
+
+HQL then provides the language that composes semantic search with metadata, document structure, graph traversal, namespaces, typed knowledge and eventually stronger constraints.
+
+The resulting model is:
+
+```text
+semantic similarity
+        +
+explicit HMD graph
+        +
+structured Card data
+        +
+HQL
+```
+
+rather than vector search alone.
+
+That combination allows a query to move naturally from fuzzy discovery:
+
+```hql
+cards
+| semantic("bearer token authorization")
+```
+
+to deterministic knowledge traversal:
+
+```hql
+cards
+| semantic("bearer token authorization")
+| take(5)
+| graph(depth = 1)
+```
+
+and eventually to typed reasoning over the same underlying HMD knowledge model.
+
+Vector search is therefore best treated as another way to enter and navigate the HyperMarkDown knowledge space, not as the knowledge space itself.
