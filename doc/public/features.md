@@ -14,9 +14,9 @@
 
 * **Rich technical content** — TeX mathematics, D2 diagrams, callouts, collapsible sections, footnotes, heading permalinks, tables, code blocks, and other established Markdown extensions.
 
-* **Validation and tooling** — `hmd` lints a document tree, renders a card to markdown or HTML, and dumps the resolved link graph. A reference to a document that does not exist yet is a warning; malformed references and ambiguous autodiscovery are errors, while ordered import paths use declaration precedence. MkDocs integration ships today; VS Code tooling is in development.
+* **Validation and tooling** — `hmd` lints a document tree, renders a card to markdown or HTML, and dumps the resolved link graph. A reference to a document that does not exist yet is a warning; malformed references and ambiguous autodiscovery are errors, while ordered import paths use declaration precedence. MkDocs integration and the VS Code extension are both released.
 
-* **HQL — Hyper Query Language** *(experimental)* — a proposed query layer for deriving content and views from the document graph: backlinks, tags, relationships, collections, and other structured queries over HyperMarkDown knowledge.
+* **HQL — Hyper Query Language** *(proposed)* — a query layer for deriving content and views from the document graph: backlinks, tags, relationships, collections, and other structured queries over HyperMarkDown knowledge.
 
 
 ## A superset of CommonMark

@@ -10,7 +10,7 @@ each package keeps its own history:
 | Package | Changelog | Released as |
 | --- | --- | --- |
 | [`tools/hmd/`](tools/hmd/) | [CHANGELOG.md](tools/hmd/CHANGELOG.md) | [`hypermarkdown`](https://pypi.org/project/hypermarkdown/) on PyPI, tagged `vX.Y.Z` |
-| [`tools/hmd-ts-core/`](tools/hmd-ts-core/) | [CHANGELOG.md](tools/hmd-ts-core/CHANGELOG.md) | `@hypermarkdown/core` — not published yet |
+| [`tools/hmd-ts-core/`](tools/hmd-ts-core/) | [CHANGELOG.md](tools/hmd-ts-core/CHANGELOG.md) | [`@hypermarkdown/core`](https://www.npmjs.com/package/@hypermarkdown/core) on npm, tagged `ts-core-vX.Y.Z` |
 | [`tools/hmd-vsc-ext/`](tools/hmd-vsc-ext/) | [CHANGELOG.md](tools/hmd-vsc-ext/CHANGELOG.md) | [`hypermarkdown.hmd`](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd) on the VS Marketplace and Open VSX, tagged `vsc-ext-vX.Y.Z` |
 
 The dependency runs one way. A tool depends on the specification; the

@@ -48,8 +48,8 @@ leaks into the contract.
 
 - **TypeScript** — `tools/hmd-ts-core/test/corpus.test.ts`, part of
   `npm run -w @hypermarkdown/core test`.
-- **Python** — not yet written; it belongs to the branch that owns
-  `tools/hmd/src/hypermarkdown/` and `tools/hmd/tests/`.
+- **Python** — not yet written. It belongs in `tools/hmd/tests/`, beside the
+  implementation it would check, and is unclaimed rather than blocked.
 
 ## The ledger
 

@@ -124,7 +124,7 @@ blank space.
 - **[Tutorial](../wiki/hmd-tutorial.hmd)** — the whole language in one sitting,
   every construct with its source shown beside what it renders.
 - **[The VS Code extension](vscode.md)** — what the preview gives you, and the
-  gaps that still carry a *preview* flag.
+  gaps it still has.
 - **[Presentation](../public/presentation.md)** — the trade-offs between
   rendering a card in an editor, converting it, and publishing a tree of them.
 - **[Language Specification](../wiki/hmd-lang-spec.hmd)** — the normative text,

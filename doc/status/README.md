@@ -7,9 +7,9 @@ thing you care about; this page is the one-line version of each.
 | --- | --- | --- | --- |
 | [**language**](lang.md) | The format itself — grammar, resolution, frontmatter, diagnostics, publication | Specified and implemented twice, with the specification a single normative text | Decide whether headings written with an underline are addressable, since the tools and the website currently disagree |
 | [**hmd**](hmd.md) | The canonical implementation: the CLI, the core, the site plugin, the package | Complete and released; everything the format specifies is implemented | The language server, and the two index changes it needs |
-| [**@hypermarkdown/core**](ts-core.md) | The format in TypeScript, held to the canonical implementation by a shared corpus | Complete except publication, and byte-identical to the canonical linter on everything it implements | Port the publication model, once the specification says which proposal owns it here |
-| [**VS Code extension**](vsc-ext.md) | The hmd preview, diagnostics, and the graph, inside the editor | `0.2.0` live on both galleries and `0.3.0` cut, still labelled a preview release | The graph tab — the feature the preview label waits on |
-| [**website**](pages.md) | <https://hypermarkdown.org> — the book, the prose, the branding, the deploy | Live and building clean; the prose audit is finished | Nothing planned |
+| [**@hypermarkdown/core**](ts-core.md) | The format in TypeScript, held to the canonical implementation by a shared corpus | `0.1.1` on npm; complete except the card publication *model*, and byte-identical to the canonical linter on everything it implements | Port the publication model, once the specification says which proposal owns it here |
+| [**VS Code extension**](vsc-ext.md) | The hmd preview, diagnostics, and the graph, inside the editor | `0.3.0` live on both galleries, and the preview label is off | Automate the by-hand release checks |
+| [**website**](pages.md) | <https://hypermarkdown.org> — the book, the prose, the branding, the deploy | Live and building clean | The roadmap page, and the stale state claims the audit for it turned up |
 
 ## How these files work
 

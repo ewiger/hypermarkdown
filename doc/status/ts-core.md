@@ -13,14 +13,16 @@ implementation in [`hmd.md`](hmd.md), the editor that embeds this one in
 
 ## Status
 
-**Complete for everything except publication, and agreeing with the canonical
-implementation byte for byte on everything it implements.** Cards parse,
+**Released on npm at `0.1.1`, complete for everything except the card
+publication model, and agreeing with the canonical implementation byte for byte
+on everything it implements.** Cards parse,
 resolve, expand, and render; all sixteen diagnostics are there; callouts, math,
 and D2 diagrams work. 107 tests, and the agreement is checked by linting three
 real trees — the wiki and two example vaults — against the canonical linter and
 comparing the output exactly.
 
-**The one real gap is the publication model**: the frontmatter key that says
+**The one real gap is the card publication model** — the registry sense of the
+word is settled, and this is the other one: the frontmatter key that says
 whether a card is published, the rule that it inherits from folder notes, and
 the warning when a published card links to a private one. It is blocked, not
 forgotten — the proposal that specifies this implementation stops at sixteen
@@ -65,6 +67,11 @@ canonical side warns and this one stays silent.
 
 ## Done
 
+- **Released** — `0.1.0` and `0.1.1` on npm as `@hypermarkdown/core`, tagged
+  `ts-core-v0.1.1`. The first version was published by hand, because npm
+  configures trusted publishing per package and a package must exist before it
+  can be configured; every version since goes out from `release-ts-core.yml`
+  with provenance and no stored credential.
 - **Scanner and parser** — masking that preserves offsets, the link grammar, and
   a parser that never throws on half-written input.
 - **Heading slugs**, a hand port of the algorithm the format adopts from
@@ -104,6 +111,10 @@ environment variable is set, which CI does.
 
 ## Changelog
 
+- 2026-09-15: the npm release is stated here rather than only in the package's
+  own changelog, and "publication" is qualified everywhere it appears — the
+  tracker meant the card visibility model throughout, while the root changelog
+  was separately claiming the package was unpublished.
 - 2026-09-14: rewritten in the shape the trackers now use — status first in
   prose, then open work, broken, gaps, and done last. Work-point numbers are
   gone. Subscript, block-level LaTeX, and underlined headings became open work

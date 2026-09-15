@@ -242,15 +242,13 @@ two never trigger each other.
 
 Publication runs in
 [`release-vsc-ext.yml`](../../.github/workflows/release-vsc-ext.yml): it packages
-one VSIX, checks the tag against `package.json`, and uploads *that file* to Open
-VSX and to the GitHub release. Packaging twice would publish a build nobody
-verified.
+the VSIXes, checks the tag against `package.json`, and uploads *those files* to
+the VS Marketplace, to Open VSX, and to the GitHub release. Packaging twice would
+publish a build nobody verified.
 
-**The Marketplace step is currently skipped, and the last step of a release is
-manual.** See [below](#the-marketplace-job-is-temporarily-skipped) — the job is
-written and correct, but the gallery has not yet exposed the configuration it
-needs. Tag, let the workflow run, then upload the VSIX from the GitHub release
-by hand.
+**A release is one tag and nothing else.** Every gallery is reached from CI with
+no stored credential — see [below](#how-the-galleries-are-reached). Nothing is
+uploaded by hand.
 
 ```bash
 # 1. version, changelog, and a green tree
@@ -259,22 +257,19 @@ by hand.
 #    - add the two link references at the bottom of CHANGELOG.md
 npm run typecheck && HMD_REQUIRE_PARITY=1 npm test && npm run -w tools/hmd-vsc-ext package
 
-# 2. tag and push — Open VSX and the GitHub release are automatic
+# 2. tag and push — both galleries and the GitHub release are automatic
 git tag vsc-ext-v0.1.0 && git push origin vsc-ext-v0.1.0
+```
 
-# 3. the Marketplace, by hand, from the release the workflow just cut
+If a gallery has to be checked afterwards, download rather than repackage: the
+file on the release is the one every gate ran against, and a fresh `vsce package`
+is bytes nobody verified.
+
+```bash
 gh release download vsc-ext-v0.1.0 --pattern '*.vsix'
 ```
 
-Upload that file on
-[the publisher page](https://marketplace.visualstudio.com/manage/publishers/hypermarkdown)
-— **New extension → Visual Studio Code** for a listing that does not exist yet,
-the update flow thereafter. Download rather than repackage: the file on the
-release is the one every gate ran against, and a fresh `vsce package` is bytes
-nobody verified. The browser is the whole credential story here; nothing is
-logged in, nothing is stored, nothing expires.
-
-**Verifying the upload is not the same check as Open VSX's.** The Marketplace
+**Verifying a Marketplace upload is not the same check as Open VSX's.** The Marketplace
 re-zips what it serves, so the VSIX on the CDN never hashes to the asset on the
 release even when the upload was perfect — compare the *members*, not the file:
 
@@ -300,39 +295,62 @@ never got the chance to run — it takes a token from anywhere:
 npx ovsx publish --packagePath hmd-0.1.0.vsix -p "$OVSX_PAT"
 ```
 
-### The Marketplace job is temporarily skipped
+### How the galleries are reached
 
-**This is a limitation of the gallery, not of this repository.** The `marketplace`
-job is written, reviewed, and believed correct; what is missing is on Microsoft's
-side.
+**Neither gallery holds a credential of ours.** The Marketplace job mints a
+federated OIDC token, `azure/login@v2` exchanges it for an Entra session, and
+`vsce publish --azure-credential` spends that on the gallery. Open VSX takes an
+`OVSX_PAT`. There is no `VSCE_PAT` and there should never be one: a PAT and
+`--azure-credential` are mutually exclusive, and `vsce` errors when both are set.
 
-- `vsce publish --oidc` has shipped, and the workflow uses it.
-- The exchange requires a **trusted publishing policy** on the publisher, naming
-  this repository and `release-vsc-ext.yml`. The Marketplace does not currently
-  expose that configuration for the `hypermarkdown` publisher.
-- So the job is gated on the repository variable
-  `MARKETPLACE_TRUSTED_PUBLISHING` and does not run.
-- **To re-enable, once the policy can be configured:** set that variable to
-  `true` in the repository settings. No code change and no release — the job
-  underneath the gate is already the one that should run.
+Two earlier arrangements are recorded here because their remains are still
+findable and both are dead ends:
 
-Because a skipped job would otherwise take its dependents with it, the
-`github-release` job runs on `always()` and tolerates `marketplace` being
-skipped, refusing only when it actually failed. That release is where the manual
-upload gets its VSIX, so it is the one job that has to survive.
+- **Trusted publishing (`--oidc`) never shipped.** microsoft/vsmarketplace#1422
+  has been open since August 2025, the gallery exposes no policy UI, and the
+  flag is in no released `vsce` — 3.9.2 offers `--pat` and `--azure-credential`
+  and nothing else. Do not wait for it again.
+- **A PAT never published anything.** Two runs died on `Request timeout:
+  /_apis/gallery`. It was a bridge to 2026-12-01 in any case, when global PATs —
+  the "all accessible organizations" scope the Marketplace requires — stop
+  working.
 
-**`--oidc` cannot be run from a laptop, and that is not a gap to work around.**
-The flag asks the *runner* for a token — GitHub Actions injects
-`ACTIONS_ID_TOKEN_REQUEST_URL` under `id-token: write`, and the policy on the far
-side trusts a repository and a workflow file, not a person. A developer machine
-has no such claim to present, and `vsce` deliberately does not fall back to a PAT
-when the exchange fails. So the choice is CI or the browser, never local
-automation; until the policy exists, it is the browser.
+**What blocks `--azure-credential` is a grant, not tooling.** `vsce` builds a
+`ChainedTokenCredential` and asks it for the Azure DevOps scope; any Azure
+session in the job satisfies that. The gallery then answers
+`InvalidAccessException: The requested operation is not allowed` unless the
+*exact principal asking* is a member of the publisher. That grant is keyed on an
+Azure DevOps **profile id** — not a client id, object id, or resource id — and
+is a browser step on the publisher's Members page, once per identity. CI's app
+registration `hypermarkdown-vsce-publish` carries its own grant; a grant to a
+human user does not cover it.
 
-**Do not route around this** with a `VSCE_PAT`, an Azure DevOps organisation, an
-Azure subscription, or a service principal. Waiting costs one upload per release.
-The alternatives cost a credential that is retired on **2026-12-01** and would
-have to be unwound again — see below.
+**`azure/login@v2` is required, not decoration.** `EnvironmentCredential` is
+first in `vsce`'s chain and does not read `AZURE_FEDERATED_TOKEN_FILE`, so
+handing the job a bare federated token gets it nowhere. `azure/login` performs
+the OIDC `az login` itself and `AzureCliCredential`, next in the chain, picks the
+session up. `allow-no-subscriptions` because publishing touches no Azure
+resource.
+
+**The federated credential names a subject, and this repository has
+`use_immutable_subject` on**, so GitHub qualifies owner and repository with their
+numeric ids. A credential registered against the plain `repo:<owner>/<repo>`
+spelling is never matched and Entra answers `AADSTS700213` — naming, helpfully,
+the subject it received. Both spellings are registered on the app.
+`gh api repos/<owner>/<repo>/actions/oidc/customization/sub` reports which is
+live. The credential is bound to `...:environment:vscode-marketplace`, so a job
+outside that environment cannot mint the token at all.
+
+**Reading the gallery back: `flags: 1073` lies.** The `extensionquery` recipe in
+circulation sets `ExcludeNonValidated`, so a package still in validation is
+*absent* from the response rather than reported as pending — and absent reads
+identically to never uploaded. Use `flags: 17`. Open VSX has the mirror-image
+trap: its plain `/versions` endpoint serves a stale CDN copy, so add a cache
+buster before concluding anything is missing. Trust either gallery's API over
+`vsce`'s own output.
+
+The fuller account, including what it cost to find each of these, is
+[`doc/memory/2026-09-14-marketplace-federated-publishing.md`](../../doc/memory/2026-09-14-marketplace-federated-publishing.md).
 
 ### What has to exist first, once
 
@@ -341,16 +359,17 @@ created by CI:
 
 | Registry | Set up | Secret |
 | --- | --- | --- |
-| [VS Marketplace](https://marketplace.visualstudio.com/manage) | A publisher with ID `hypermarkdown` — done. The old `hyper-markdown` publisher is retained unused rather than released, because a publisher name returned to the pool is one an impostor can register under. Then a **trusted publishing** policy on the new one naming this repository and `release-vsc-ext.yml` — *not yet offered by the gallery*, which is why uploads are manual. | none |
+| [VS Marketplace](https://marketplace.visualstudio.com/manage) | A publisher with ID `hypermarkdown` — done. The old `hyper-markdown` publisher is retained unused rather than released, because a publisher name returned to the pool is one an impostor can register under. Then, in Entra, the app registration `hypermarkdown-vsce-publish` with a federated credential for this repository, and that app granted **Contributor** on the publisher's Members page by its Azure DevOps profile id. | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` — identifiers, not credentials |
 | [Open VSX](https://open-vsx.org/) | Log in with GitHub and sign the publisher agreement. No `ovsx create-namespace` is needed: `hypermarkdown` already exists — `hyper-markdown` never did — and as of 2026-08-10 it is **verified**, claimed through [open-vsx.org#12443](https://github.com/EclipseFdn/open-vsx.org/issues/12443) against a DNS TXT record on `hypermarkdown.org`. Verification closes the namespace to non-members, so `OVSX_PAT` MUST belong to the account that filed that claim. | `OVSX_PAT` |
 
-**The Marketplace holds no secret of ours, and that is the point.** `vsce
-publish --oidc` exchanges a GitHub-issued identity token for a credential that
-lives for minutes, so there is nothing to leak and nothing to rotate. What
-replaces the token is configuration on the publisher: the policy must name the
-workflow *file*, so renaming `release-vsc-ext.yml` breaks publication until the
-policy is updated. There is no PAT fallback — a policy that does not match fails
-the release rather than reaching for a stored token.
+**The Marketplace holds no secret of ours, and that is the point.** A
+GitHub-issued identity token is exchanged for an Entra session that lives for
+minutes, so there is nothing to leak and nothing to rotate. The app registration
+carries no client secret and no certificate, so nothing expires either. What
+replaces the token is configuration: an app registration in the directory rather
+than a managed identity in a resource group, because the directory outlives any
+subscription. There is no PAT fallback — a grant that does not match fails the
+release rather than reaching for a stored token.
 
 This project never had a `VSCE_PAT`, and should not acquire one. Azure DevOps
 retires global PATs on **2026-12-01**, which is the whole reason the older
@@ -360,11 +379,6 @@ until it abruptly does not. Microsoft's own
 [publishing docs](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 still document that route and an Entra ID managed-identity one, and both drag in
 an Azure DevOps organisation this repository has no other use for.
-
-**`--oidc` is pinned to a prerelease of `vsce`, on purpose.** The flag is not in
-a stable release yet, and the workflow names an exact version rather than
-`@next`, which is a tag that moves. Bumping it is a deliberate edit; when a
-stable `@vscode/vsce` carries the flag, drop the pin.
 
 **Optional, and it is what puts the blue check on the listing:** verify the
 publisher's domain. Marketplace → publisher settings → verify `hypermarkdown.org`

@@ -148,11 +148,11 @@ file and `mkdocs.yml`, not a re-specification.
 ### Layer 2 — preview mode, the editor surface
 
 The sibling line: a TypeScript document model and a VS Code webview that renders
-a card as you edit it. It is specified on the `feat/vsc-ext` branch by HMD-0020
-(`@hypermarkdown/core`, the document model), HMD-0021 (the extension and its
-preview surface), and HMD-0022 (D2 in the webview, under its content security
-policy). Those proposals are not on this branch yet — the branch merges soon,
-and the links belong here once it does.
+a card as you edit it. It is specified by
+[HMD-0020](../proposals/HMD-0020/README.md) (`@hypermarkdown/core`, the document
+model), [HMD-0021](../proposals/HMD-0021/README.md) (the extension and its
+preview surface), and [HMD-0022](../proposals/HMD-0022/README.md) (D2 in the
+webview, under its content security policy).
 
 The load-bearing difference from Layer 1 is that preview mode **keeps the embed
 boundary**. It renders F6 as visibly embedded content with its source attached,

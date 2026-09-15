@@ -35,16 +35,15 @@ you have to install to get it:
   [`tools/hmd-vsc-ext`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-vsc-ext),
   on the TypeScript document model in
   [`tools/hmd-ts-core`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-ts-core).
-  Under construction. It keeps that boundary, showing embedded content as
-  visibly embedded with its source attached.
+  It keeps that boundary, showing embedded content as visibly embedded with
+  its source attached.
 
 ![The VS Code extension previewing a card: source on the left, rendered card on
 the right, with resolved links, a table, a callout, and a d2
 diagram.](../assets/hmd-vsc-ext-screenshot-1.png){ .hmd-shot }
 
 *The extension previewing a card: `[[complexity]]` on the left arrives as a real
-link on the right, a fenced `d2` block as a drawn diagram, and the card's
-backlinks sit one tab away.*{ .hmd-caption }
+link on the right, and a fenced `d2` block as a drawn diagram.*{ .hmd-caption }
 
 Python stays canonical for semantics: the specification and its conformance
 corpus are the contract between surfaces, not a shared runtime.
@@ -180,8 +179,7 @@ For a site that is the correct answer.
 
 ### The editor — live preview
 
-The other viewer under construction is a VS Code extension, developed on the
-`feat/vsc-ext` branch: a TypeScript document model
+The other viewer is a VS Code extension: a TypeScript document model
 ([`tools/hmd-ts-core`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-ts-core),
 HMD-0020), the extension and its preview surface
 ([`tools/hmd-vsc-ext`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-vsc-ext),

@@ -65,8 +65,8 @@ same [conformance corpus](examples/conformance/) the canonical tool does.
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.90-007acc)](https://hypermarkdown.org/tools/vscode/)
 [![Changelog](https://img.shields.io/badge/changelog-tools%2Fhmd--vsc--ext-informational)](tools/hmd-vsc-ext/CHANGELOG.md)
 
-Live preview that keeps the embed boundary visible, backlinks, red links, and
-diagnostics. Today it is the preview and the viewer, rendered in TypeScript, so
+Live preview that keeps the embed boundary visible, a graph of the vault, red
+links, and diagnostics. Today it is the preview and the viewer, rendered in TypeScript, so
 there is nothing to install to see a card. Completion and the rest of the
 language-server features arrive with the Python server.
 
