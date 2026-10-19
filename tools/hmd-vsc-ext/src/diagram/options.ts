@@ -45,7 +45,7 @@ export function diagramOptions(extensionUri: vscode.Uri): DiagramEngineOptions {
  * unpinned behaviour issue 0107 removed, reappearing as a permissions bug. One
  * `chmod` at resolution time costs nothing and closes it.
  */
-function executable(path: string): boolean {
+export function executable(path: string): boolean {
   try {
     accessSync(path, constants.X_OK);
     return true;

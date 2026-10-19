@@ -179,13 +179,20 @@ brew install d2      # or see https://d2lang.com
 `npm run package` stages it for you. Everything but diagrams renders with no
 external tool.
 
+**Cells need `hql`, and a released build brings its own** on Linux x64 and
+macOS (issue 0111). The order mirrors `d2`'s: `hyperMarkdown.hql.path`, which
+never falls through; then `toolchain/bin/hql`, which the same toolchain
+archive carries beside `d2` wherever HQL publishes the platform; then `hql` on
+`PATH`. Staging the toolchain into a checkout, as above, gives the Extension
+Development Host the bundled `hql` too.
+
 **HQL cells.** `npm run example:notebook` opens `examples/notebook/`. In
 `contents.hmd` the preview should show three outputs — a list of links, a list
 of titles, a table — one hidden query cell, and no query text and no
 `hql:output` markers; the last fence, a plain `hql` listing, shows as code. Toggle **Code** on a cell and edit
-the source: the toggle stays, and the badge turns *stale*. **Run** needs `hql`:
-put it on `PATH` or set `hyperMarkdown.hql.path` to the binary — a shell alias
-does not count. Run one cell, then **Run all cells** from the code lens; undo
+the source: the toggle stays, and the badge turns *stale*. **Run** uses the
+staged `hql`, or one on `PATH`, or the one `hyperMarkdown.hql.path` names — a
+shell alias does not count. Run one cell, then **Run all cells** from the code lens; undo
 takes a run back. In an untrusted window, Run should refuse and say why. The
 engine's tests run against a real binary when `HQL_BIN` names one:
 

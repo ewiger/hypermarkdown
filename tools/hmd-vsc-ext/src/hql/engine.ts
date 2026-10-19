@@ -15,7 +15,8 @@
  * Resolution order for the binary, highest first:
  *
  *   1. `hyperMarkdown.hql.path` — an explicit path, which never falls through.
- *   2. the bundled toolchain in the VSIX, when it carries `hql`.
+ *   2. the `hql` the pinned toolchain puts in the VSIX — the default, on the
+ *      platforms HQL publishes.
  *   3. `hql` on `PATH`.
  *
  * Free of the `vscode` API, so it runs under a unit test with a path.
@@ -159,7 +160,7 @@ export class HqlEngine {
     const configured = this.options.configuredPath?.trim();
     return configured
       ? `hyperMarkdown.hql.path points at \`${configured}\`, which is not an executable`
-      : "no `hql` found — none is bundled with this build and none is on PATH. Install HQL from https://hql.hypermarkdown.org/ or set hyperMarkdown.hql.path";
+      : "no `hql` found — this build carries none for this platform, and none is on PATH. Install HQL from https://hql.hypermarkdown.org/ or set hyperMarkdown.hql.path";
   }
 
   /**

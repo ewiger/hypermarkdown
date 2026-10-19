@@ -113,6 +113,14 @@ jobs:
           npm ci
           uv sync --locked
 
+      # The pinned toolchain, for its `hql`: the extension's engine tests run
+      # against the real binary when `HQL_BIN` names one, and here it always
+      # does, so the bytes a cell's output is written in are checked against
+      # the HQL the extension ships (issue 0111).
+      - name: Install the pinned toolchain
+        id: toolchain
+        run: echo "bin=$(node scripts/toolchain.mjs)" >> "$GITHUB_OUTPUT"
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -133,6 +141,7 @@ jobs:
         run: npm test
         env:
           HMD_REQUIRE_PARITY: "1"
+          HQL_BIN: ${{ steps.toolchain.outputs.bin }}/hql
 
       - name: Package the extension
         run: npm run -w tools/hmd-vsc-ext package

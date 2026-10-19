@@ -2,7 +2,7 @@
 /**
  * Install the pinned `hypermarkdown-toolchain` release (issue 0107).
  *
- * `d2` is the project's only native binary, and before this script it was
+ * `d2` was the project's first native binary, and before this script it was
  * acquired three different ways — `docker create terrastruct/d2:latest` in
  * `ci.yml`, the same lines copy-pasted into `pages.yml`, and whatever happened
  * to be on `PATH` in the VS Code extension. `:latest` is not a pin: identical
@@ -123,8 +123,15 @@ if (manifest.toolchain !== pin.version) {
   fail(`archive manifest says toolchain ${manifest.toolchain}, pin says ${pin.version}`);
 }
 
+// Every tool the manifest lists must be where it says. `hql` is listed only
+// for the platforms HQL publishes, so its absence elsewhere is expected.
+for (const [tool, entry] of Object.entries(manifest.tools ?? {})) {
+  if (!existsSync(join(dest, entry.path))) fail(`${archive.name} lists ${tool} at ${entry.path}, which it does not contain`);
+}
+
 writeFileSync(join(dest, ".installed"), `${digest}\n`);
-console.error(`toolchain: d2 ${manifest.tools?.d2?.version ?? "?"} at ${exe}`);
+const tools = Object.entries(manifest.tools ?? {}).map(([tool, entry]) => `${tool} ${entry.version}`);
+console.error(`toolchain: ${tools.join(", ")} in ${bin}`);
 
 process.stdout.write(`${bin}\n`);
 if (flag("github-path")) appendFileSync(process.env.GITHUB_PATH, `${bin}\n`);

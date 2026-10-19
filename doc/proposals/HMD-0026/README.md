@@ -250,14 +250,22 @@ starts `hql`.
 - A run MUST be refused for a card that is not on the local disk, or that no
   vault claims. HQL reads a directory; a virtual file system offers none.
 
-**Which binary.** The first of these that exists is used, and remembered for
-the session:
+**Which binary.** By default, the one that ships with the extension. The
+pinned `hypermarkdown-toolchain` release carries `hql` beside `d2`, and a
+platform-specific VSIX carries the toolchain, so Run works on a fresh install
+with nothing configured — the way a diagram already draws on one. The first of
+these that exists is used, and remembered for the session:
 
-1. `hyperMarkdown.hql.path` — an explicit path. It never falls through: a
-   setting that names nothing is reported, not quietly replaced by another
-   binary.
-2. the `hql` bundled in the extension, when the build carries one.
-3. `hql` on `PATH`. A shell alias is not on `PATH`.
+1. `hyperMarkdown.hql.path` — an explicit path, overriding the default for
+   someone running cells with another HQL build deliberately. It never falls
+   through: a setting that names nothing is reported, not quietly replaced by
+   another binary.
+2. `toolchain/bin/hql` inside the extension — the default. The toolchain pins
+   an HQL release by version and digest, so every installation of one
+   extension version runs cells with the same HQL.
+3. `hql` on `PATH`, for a source checkout, and for the platforms HQL does not
+   publish a binary for — Linux ARM64 and Windows, as of HQL 0.4.2 — whose
+   VSIXes carry no `hql`. A shell alias is not on `PATH`.
 
 With none found, the message names what was looked for and where to get HQL.
 
@@ -482,7 +490,8 @@ reader's files.
    lenses, and the two commands.
 3. Ask HQL to treat a bare `hql` fence as a listing; remove the mask when it
    does.
-4. Decide whether the extension bundles `hql` the way it bundles `d2`.
+4. Ship `hql` in the toolchain release, and stage it into each VSIX for the
+   platforms HQL publishes.
 
 ## Reference Implementation
 
@@ -548,9 +557,6 @@ HQL_BIN=/path/to/hql npm run -w tools/hmd-vsc-ext test
 - Will HQL treat a bare `hql` fence as a listing and an `hql#query` cell as
   hidden, so that the mask goes and a card renders the same from a shell as
   from the editor?
-- Does the extension bundle `hql` from the toolchain release, as it does `d2`,
-  so Run works on a fresh install? HQL publishes binaries for Linux and macOS
-  only.
 - Does the site build run cells, show saved outputs as they are, or hide a
   cell's code the way the preview does? Today it shows the code and the output,
   and its renderer passes the markers through as invisible comments.
@@ -564,6 +570,8 @@ HQL_BIN=/path/to/hql npm run -w tools/hmd-vsc-ext test
 - 2026-10-19: drafted, with the core and extension implementation alongside.
 - 2026-10-19: `hql#query` is `hql#eval hidden`; the mask carries that rule to
   HQL as well as the listing rule.
+- 2026-10-19: `hql` ships in the toolchain release and is the default binary;
+  the setting overrides it, and `PATH` is the fallback.
 
 ## See also
 

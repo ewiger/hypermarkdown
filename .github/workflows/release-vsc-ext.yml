@@ -127,20 +127,28 @@ jobs:
       # edit or a staging step that silently no-ops would otherwise ship a
       # package that renders no diagrams and says nothing about why — the exact
       # failure this issue exists to remove, moved one layer down.
-      - name: Check every VSIX carries its d2
+      #
+      # `hql` is checked the same way on the targets HQL publishes — Linux x64
+      # and both macOS — and nowhere else; the others run cells with an `hql`
+      # on PATH or named in the setting (issue 0111).
+      - name: Check every VSIX carries its d2, and its hql where HQL ships one
         run: |
           set -euo pipefail
           for vsix in dist-vsix/*.vsix; do
             case "$vsix" in
-              *win32*) expected="extension/toolchain/bin/d2.exe" ;;
-              *)       expected="extension/toolchain/bin/d2" ;;
+              *win32*)                          expected="extension/toolchain/bin/d2.exe" ;;
+              *linux-x64*|*darwin-x64*|*darwin-arm64*)
+                                                expected="extension/toolchain/bin/d2 extension/toolchain/bin/hql" ;;
+              *)                                expected="extension/toolchain/bin/d2" ;;
             esac
-            if ! unzip -l "$vsix" | grep -q "$expected"; then
-              echo "::error::$vsix does not contain $expected" >&2
-              unzip -l "$vsix" >&2
-              exit 1
-            fi
-            echo "ok $vsix → $expected"
+            for file in $expected; do
+              if ! unzip -l "$vsix" | grep -q "$file"; then
+                echo "::error::$vsix does not contain $file" >&2
+                unzip -l "$vsix" >&2
+                exit 1
+              fi
+              echo "ok $vsix → $file"
+            done
           done
 
       # `vsce` rewrites relative links in the packaged README against the
