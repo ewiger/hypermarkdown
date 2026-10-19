@@ -69,6 +69,8 @@ export type HostMessage =
     }
   | { type: "graph"; irVersion: number; graph: GraphPayload }
   | { type: "revealLine"; line: number }
+  /** The card's cells being run now; `-1` stands for every cell (HMD-0026). */
+  | { type: "running"; cells: number[] }
   | { type: "setMode"; mode: PreviewMode }
   | { type: "error"; message: string };
 
@@ -80,7 +82,9 @@ export type WebviewMessage =
   | { type: "scrolled"; line: number }
   | { type: "modeChanged"; mode: PreviewMode }
   | { type: "graphView"; view: GraphView }
-  | { type: "fullScreen"; on: boolean };
+  | { type: "fullScreen"; on: boolean }
+  | { type: "runCell"; index: number }
+  | { type: "runAllCells" };
 
 const MODES: readonly PreviewMode[] = ["rendered", "graph"];
 const SCOPES: readonly GraphScope[] = ["network", "card"];
@@ -141,6 +145,12 @@ export function parseWebviewMessage(raw: unknown): WebviewMessage | null {
       const view = parseView(message["view"]);
       return view === null ? null : { type: "graphView", view };
     }
+    case "runCell":
+      return Number.isInteger(message["index"]) && Number(message["index"]) >= 0
+        ? { type: "runCell", index: Number(message["index"]) }
+        : null;
+    case "runAllCells":
+      return { type: "runAllCells" };
     case "fullScreen":
       return typeof message["on"] === "boolean"
         ? { type: "fullScreen", on: message["on"] }

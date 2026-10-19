@@ -159,20 +159,21 @@ cards
 | text
 ```
 
-Inside a `.hmd` file, HQL runs as **cells**. A cell is a fenced block with the
-info string `hql`. `id=<name>` makes the cell's value available to other
+Inside a `.hmd` file, HQL runs as **cells**. A cell is a fence with the info
+string `hql#eval` or `hql#query`. A fence marked plain `hql` is a listing:
+shown as code, never run. `id=<name>` makes the cell's value available to other
 cells; `hidden` evaluates the cell without printing its output. Cells run in
 dependency order. `hql render` writes the document with each cell replaced by
 its output:
 
 ````markdown
-```hql id=books hidden
+```hql#eval id=books hidden
 cards | filter(c => c.metadata.category == "book")
 ```
 
 ## Still to read
 
-```hql
+```hql#eval
 books | filter(c => c.metadata.status == "todo") | map(c => c.title)
 ```
 ````

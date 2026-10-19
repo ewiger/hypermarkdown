@@ -67,6 +67,12 @@ canonical side warns and this one stays silent.
 
 ## Done
 
+- **HQL cells in the IR** — `CellBlock` and `IR_VERSION` 3; cells found by
+  HQL's own line rule, the lexical `reads` rule and the cell hash ported and
+  pinned to hashes `hql` 0.4.2 wrote, saved outputs rendered as the card's own
+  Markdown with their markers gone, orphan outputs drawn without markers, and
+  the edit that writes one output back; `hql#query` is a hidden cell, and the
+  mask carries that and the listing rule to HQL [[hmd-0026]].
 - **Released** — `0.1.0` and `0.1.1` on npm as `@hypermarkdown/core`, tagged
   `ts-core-v0.1.1`. The first version was published by hand, because npm
   configures trusted publishing per package and a package must exist before it

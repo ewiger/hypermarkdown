@@ -53,20 +53,21 @@ is being written alongside it.
 ### Cards as notebooks
 
 [HQL](https://hql.hypermarkdown.org/) is a statically typed query and data transformation language
-and a separate project. Inside a `.hmd` file it runs as **cells**: fenced
-`hql` blocks. `id=<name>` makes a cell's value available to other cells;
-`hidden` evaluates a cell without printing its output. Cells run in dependency
-order, and `hql render` writes the document with each cell replaced by its
-output:
+and a separate project. Inside a `.hmd` file it runs as **cells**: fences
+marked `hql#eval` or `hql#query`. A fence marked plain `hql` is a listing,
+shown as code and never run. `id=<name>` makes a cell's value available to other
+cells; `hidden` evaluates a cell without printing its output. Cells run in
+dependency order, and `hql render` writes each cell's output into the page.
+[Cell output](cell-output.md) lists what each kind of value becomes:
 
 ````markdown
-```hql id=books hidden
+```hql#eval id=books hidden
 cards | filter(c => c.metadata.category == "book")
 ```
 
 ## Still to read
 
-```hql
+```hql#eval
 books | filter(c => c.metadata.status == "todo") | map(c => c.title)
 ```
 ````
@@ -87,7 +88,10 @@ cells for the content a wiki otherwise maintains by hand:
 - **Summaries.** A generated, cached one-line abstract per card, for use in
   indexes.
 
-Also planned: cell evaluation in the VS Code preview and in the MkDocs build.
+Next in the VS Code extension: cards as notebooks. The preview shows each
+cell's saved output, keeps the query behind a **Code** toggle, and runs a cell
+when you press **Run**. An `hql#query` cell is `hql#eval hidden`: it computes a
+value for other cells and shows nothing. Also planned: cells in the MkDocs build.
 Cell output is stored in the file, so a card renders without HQL installed.
 
 HQL is at major version 0. A minor release may change the language.

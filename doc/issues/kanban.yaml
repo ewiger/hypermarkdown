@@ -24,7 +24,7 @@ board:
   ]
   # One counter per stream, because the numbering is split (see the header):
   # the Python line's next issue is 0009, the editor line's is 0110.
-  last_id: 109 # highest assigned overall; per stream — Python 8, editor 109
+  last_id: 110 # highest assigned overall; per stream — Python 8, editor 110
   items:
     backlog:
       - id: "0008"
@@ -49,7 +49,10 @@ board:
       - id: "0100"
         title: "A ??? callout snaps shut on every re-render"
         file: 0100-callout-open-state-lost.md
-    doing: []
+    doing:
+      - id: "0110"
+        title: "HQL cells show as code, and their saved output shows its markers"
+        file: 0110-cards-as-notebooks.md
     done:
       - id: "0109"
         title: "The preview shows what links here, but never the shape of the vault"

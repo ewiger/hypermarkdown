@@ -1,0 +1,8 @@
+# Project config for the notebook example: cards that compute themselves.
+#
+# `contents.hmd` carries HQL cells whose saved outputs are the table of
+# contents and the reading list. Open it in the preview to see the outputs;
+# each cell's code is one click away. Lint it with
+#   hmd lint --root examples/notebook
+
+wiki = "."

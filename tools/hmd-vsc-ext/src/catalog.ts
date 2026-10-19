@@ -20,6 +20,7 @@ import { SUFFIX, type DocumentIR } from "@hypermarkdown/core";
 
 import { DiagramEngine } from "./diagram/engine.js";
 import { diagramOptions } from "./diagram/options.js";
+import { CellRunner } from "./hql/runner.js";
 import { Vault } from "./vault.js";
 import { discoverVault, folderRoot } from "./workspaceHost.js";
 
@@ -41,6 +42,8 @@ export class VaultCatalog implements vscode.Disposable {
   /** The vault of last resort per workspace folder, keyed by folder URI. */
   private readonly fallbacks = new Map<string, string>();
   private readonly diagrams: DiagramEngine;
+  /** Runs HQL cells (HMD-0026). Shared for the reason the diagram engine is. */
+  readonly cells: CellRunner;
   private readonly changed = new vscode.EventEmitter<CardRef | null>();
 
   /**
@@ -49,6 +52,7 @@ export class VaultCatalog implements vscode.Disposable {
    */
   constructor(private readonly extensionUri: vscode.Uri) {
     this.diagrams = new DiagramEngine(diagramOptions(extensionUri));
+    this.cells = new CellRunner(this, extensionUri);
   }
 
   /** Fires with the card that changed, or null when the catalog itself moved. */
@@ -57,6 +61,7 @@ export class VaultCatalog implements vscode.Disposable {
   dispose(): void {
     for (const vault of this.vaults.values()) vault.dispose();
     this.vaults.clear();
+    this.cells.dispose();
     this.changed.dispose();
   }
 
@@ -206,6 +211,12 @@ export class VaultCatalog implements vscode.Disposable {
       ir.blocks.map(async (block) => {
         if (block.kind === "embed" && block.document !== null) {
           return { ...block, document: await this.attachDiagrams(block.document) };
+        }
+        // A cell's output can carry a diagram — HQL writes a graph as a `d2`
+        // fence — and it is drawn like one written by hand.
+        if (block.kind === "cell" && block.output !== null) {
+          const inner = await this.attachDiagrams({ ...ir, blocks: block.output.blocks });
+          return { ...block, output: { ...block.output, blocks: inner.blocks } };
         }
         if (block.kind !== "diagram") return block;
         const { dataUri, failure } = await this.diagrams.render(block.source);

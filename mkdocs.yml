@@ -130,6 +130,7 @@ nav:
       - Tutorial: wiki/hmd-tutorial.md
       - Features: public/features.md
       - Presentation: public/presentation.md
+      - Cell output: public/cell-output.md
   - Language:
       - Language Specification: wiki/hmd-lang-spec.md
       - Namespaces: public/namespaces.md

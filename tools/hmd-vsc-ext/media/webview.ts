@@ -12,6 +12,7 @@ import { GraphTab } from "./graph.js";
 import {
   collectAnchors,
   lineForOffset,
+  markRunning,
   offsetForLine,
   patchBlocks,
   renderBreadcrumb,
@@ -105,6 +106,9 @@ window.addEventListener("message", (event: MessageEvent<HostMessage>) => {
     case "setMode":
       selectTab(message.mode);
       return;
+    case "running":
+      markRunning(content, message.cells);
+      return;
     case "error":
       // Never blank the panel: stale content plus a warning beats an empty one,
       // because the author can still read what they wrote (§5.1).
@@ -180,6 +184,29 @@ content.addEventListener("click", (event) => {
       anchors = collectAnchors(content);
     }
     event.preventDefault();
+    return;
+  }
+
+  const cellButton = target.closest<HTMLElement>(".hmd-cell-button");
+  if (cellButton !== null) {
+    event.preventDefault();
+    const cell = cellButton.closest<HTMLElement>(".hmd-cell");
+    if (cell === null) return;
+    if (cellButton.classList.contains("hmd-cell-code")) {
+      const shown = cell.classList.toggle("is-code-shown");
+      const source = cell.querySelector<HTMLElement>(":scope > .hmd-cell-source");
+      if (source !== null) source.hidden = !shown;
+      cellButton.setAttribute("aria-pressed", String(shown));
+      cellButton.textContent = shown ? "Hide code" : "Code";
+      anchors = collectAnchors(content);
+    } else if (cellButton.classList.contains("hmd-cell-edit")) {
+      // The first line of the code, which is where an edit starts.
+      const line = Number(cell.dataset["line"]) + 1;
+      if (Number.isFinite(line)) vscode.postMessage({ type: "openSource", path: "", line });
+    } else if (cellButton.classList.contains("hmd-cell-run")) {
+      const index = Number(cell.dataset["index"]);
+      if (Number.isInteger(index)) vscode.postMessage({ type: "runCell", index });
+    }
     return;
   }
 

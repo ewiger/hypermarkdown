@@ -437,3 +437,122 @@ body.is-graph-fullscreen .hmd-graph {
   border-top: 1px solid var(--vscode-panel-border);
   font-size: 0.85em;
 }
+
+/* -- HQL cells (HMD-0026) ----------------------------------------------- */
+
+/* The output is the content; the bar is furniture, quiet until it is wanted. */
+.hmd-cell {
+  position: relative;
+  margin: var(--hmd-gap) 0;
+  border-left: 2px solid transparent;
+  padding-left: 0.6rem;
+}
+
+.hmd-cell:hover,
+.hmd-cell:focus-within,
+.hmd-cell.is-code-shown,
+.hmd-cell.is-running {
+  border-left-color: var(--vscode-focusBorder);
+}
+
+.hmd-cell.is-stale {
+  border-left-color: var(--vscode-editorWarning-foreground);
+}
+
+.hmd-cell.is-error {
+  border-left-color: var(--vscode-editorError-foreground);
+}
+
+.hmd-cell-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85em;
+  opacity: 0.45;
+  transition: opacity 120ms ease-in-out;
+}
+
+.hmd-cell:hover > .hmd-cell-bar,
+.hmd-cell:focus-within > .hmd-cell-bar,
+.hmd-cell.is-code-shown > .hmd-cell-bar,
+.hmd-cell.is-running > .hmd-cell-bar,
+.hmd-cell.is-stale > .hmd-cell-bar,
+.hmd-cell.is-error > .hmd-cell-bar {
+  opacity: 1;
+}
+
+.hmd-cell-kind {
+  font-family: var(--vscode-editor-font-family);
+  color: var(--vscode-descriptionForeground);
+}
+
+.hmd-cell-state {
+  border-radius: var(--hmd-radius);
+  padding: 0 0.35rem;
+  border: 1px solid var(--vscode-panel-border);
+  color: var(--vscode-descriptionForeground);
+}
+
+.hmd-cell.is-stale .hmd-cell-state {
+  color: var(--vscode-editorWarning-foreground);
+  border-color: var(--vscode-editorWarning-foreground);
+}
+
+.hmd-cell.is-error .hmd-cell-state {
+  color: var(--vscode-editorError-foreground);
+  border-color: var(--vscode-editorError-foreground);
+}
+
+.hmd-cell-spacer {
+  flex: 1;
+}
+
+.hmd-cell-button {
+  appearance: none;
+  border: 1px solid var(--vscode-button-secondaryBackground, var(--vscode-panel-border));
+  background: var(--vscode-button-secondaryBackground, transparent);
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+  border-radius: var(--hmd-radius);
+  padding: 0.05rem 0.5rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hmd-cell-button:hover {
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
+}
+
+.hmd-cell-run {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border-color: var(--vscode-button-background);
+}
+
+.hmd-cell-run:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+.hmd-cell-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.hmd-cell-source {
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--hmd-radius);
+  background: var(--vscode-textCodeBlock-background);
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  overflow-x: auto;
+}
+
+.hmd-cell-output.is-empty {
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+  padding: 0.25rem 0;
+}
+
+.hmd-cell.is-running > .hmd-cell-output {
+  opacity: 0.55;
+}

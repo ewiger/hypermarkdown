@@ -71,6 +71,12 @@ export class PreviewController implements vscode.Disposable {
       }),
       vscode.window.onDidChangeActiveTextEditor(() => void this.follow()),
       vscode.window.onDidChangeTextEditorVisibleRanges((event) => this.onEditorScroll(event)),
+      catalog.cells.onDidChange((uri) => {
+        const card = this.current;
+        if (card !== null && card.vault.uriFor(card.rel).toString() === uri.toString()) {
+          this.post({ type: "running", cells: catalog.cells.runningIn(uri) });
+        }
+      }),
     );
     void this.follow();
   }
@@ -235,6 +241,16 @@ export class PreviewController implements vscode.Disposable {
       case "createCard":
         void createCard(this.catalog, this.current, message.target);
         return;
+      case "runCell":
+      case "runAllCells": {
+        // Only the card on screen runs: a cell inside an embed belongs to
+        // another card, and the preview offers no button for it.
+        const card = this.current;
+        if (card === null) return;
+        const index = message.type === "runCell" ? message.index : null;
+        void this.catalog.cells.run(card.vault.uriFor(card.rel), index);
+        return;
+      }
       default:
         return;
     }

@@ -21,7 +21,20 @@ against
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **HQL cells.** A `hql#eval` or `hql#query` fence draws as the output saved in
+  the card, with its code behind a **Code** toggle and **Edit** and **Run**
+  beside it, and a badge saying whether the output is current or stale. **Run**,
+  a code lens above each cell, and two commands — *Run HQL Cell* and *Run All HQL
+  Cells* — hand the card to `hql` and write its answer back as one undoable
+  edit. Runs need a trusted workspace and never happen on their own. An
+  `hql#query` cell is `hql#eval hidden`: it runs for the cells that read it and
+  keeps no output. A plain `hql` fence is a listing and never runs. New setting: `hyperMarkdown.hql.path`.
+
+### Fixed
+
+- A saved HQL output no longer shows its `<!-- hql:output -->` markers as text.
 
 ## [0.3.0] — 2026-09-14
 

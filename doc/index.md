@@ -137,7 +137,8 @@ flavoured Markdown baseline. [HQL](https://hql.hypermarkdown.org/), a statically
 transformation language, is a separate project with its own documentation. It
 queries a vault's cards, frontmatter, and links, and also JSON, YAML, and
 records, with lexical and semantic search and graph traversal. Inside a card
-it runs as cells: fenced `hql` blocks whose output replaces the block. What
+it runs as cells: fences marked `hql#eval`, whose output is written into the
+page, or `hql#query`, which compute a value for other cells. A plain `hql` fence is a listing and never runs. What
 is planned around cells is in the [Roadmap](public/roadmap.md).
 
 What a page can carry, shown working rather than described, is
