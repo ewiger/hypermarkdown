@@ -78,10 +78,15 @@ async function download(url) {
   return Buffer.from(await response.arrayBuffer());
 }
 
+// The marker records the digest of the archive that was unpacked, and is
+// written last, after the digest check and the unpack, so a run interrupted
+// midway does not leave a directory that looks complete. A directory staged
+// from another pin is not complete either: `--dest` names a fixed directory
+// for the VSIX, and after a pin bump it still holds the previous toolchain.
+const marker = join(dest, ".installed");
+const installed = existsSync(marker) ? readFileSync(marker, "utf8").trim() : null;
 if (!flag("force") && existsSync(exe)) {
-  // The marker is written last, after the digest check and the unpack, so a
-  // run interrupted midway does not leave a directory that looks complete.
-  if (existsSync(join(dest, ".installed"))) {
+  if (installed === archive.sha256) {
     process.stdout.write(`${bin}\n`);
     if (flag("github-path")) appendFileSync(process.env.GITHUB_PATH, `${bin}\n`);
     process.exit(0);
