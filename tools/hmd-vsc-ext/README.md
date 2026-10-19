@@ -88,8 +88,11 @@ between a keystroke and the preview. The
 [`hmd` CLI](https://pypi.org/project/hypermarkdown/) remains the canonical
 implementation and CI checks the two against a shared conformance corpus.
 
-Running an HQL cell needs the `hql` binary, on `PATH` or named by
-`hyperMarkdown.hql.path`. Reading a card's saved outputs needs nothing.
+Running an HQL cell needs the `hql` binary, and on Linux x64 and macOS the
+extension brings its own, from the same pinned toolchain as `d2`. On Linux ARM64
+and Windows, where HQL publishes no binary yet, put `hql` on `PATH`. Set
+`hyperMarkdown.hql.path` to run cells with a different `hql`. Reading a card's
+saved outputs needs nothing.
 
 Completion and the other language-server features are not here yet. They arrive
 with the Python language server, which lives with the canonical implementation
@@ -105,7 +108,7 @@ rendering without it.
 | `hyperMarkdown.preview.embeds` | `expanded` | Whether embed cards start expanded. |
 | `hyperMarkdown.diagnostics.scope` | `workspace` | Publish diagnostics for every indexed card — in every vault opened this session — or only for open ones. |
 | `hyperMarkdown.diagram.d2Path` | `""` | A `d2` to draw diagrams with instead of the bundled one. |
-| `hyperMarkdown.hql.path` | `""` | The `hql` to run cells with. Empty uses `hql` on `PATH`. A shell alias is not on `PATH`. |
+| `hyperMarkdown.hql.path` | `""` | An `hql` to run cells with instead of the bundled one. Empty uses the bundled `hql`, falling back to `hql` on `PATH`. A shell alias is not on `PATH`. |
 
 ## Commands
 

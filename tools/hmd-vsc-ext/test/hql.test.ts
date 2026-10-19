@@ -224,7 +224,13 @@ describe("the preview", () => {
 
 const HQL_BIN = process.env["HQL_BIN"];
 
-describe.skipIf(HQL_BIN === undefined || !existsSync(HQL_BIN ?? ""))("against the real hql", () => {
+// Skipped only when `HQL_BIN` is unset. CI sets it to the toolchain's `hql`,
+// and a path that names nothing there is a broken gate, not a reason to skip.
+describe.skipIf(HQL_BIN === undefined)("against the real hql", () => {
+  it("is given a binary that exists", () => {
+    expect(existsSync(HQL_BIN!)).toBe(true);
+  });
+
   it("writes one output exactly as hql render does", async () => {
     const vault = join(dir, "vault");
     mkdirSync(join(vault, ".hmd"), { recursive: true });

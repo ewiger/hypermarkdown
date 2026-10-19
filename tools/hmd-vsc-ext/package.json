@@ -2,7 +2,7 @@
   "name": "hmd",
   "displayName": "HyperMarkDown",
   "description": "Live preview, embeds, a graph of the vault, and diagnostics for HyperMarkDown (.hmd) knowledge bases.",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "MIT",
   "icon": "media/logo.png",
   "publisher": "hypermarkdown",
@@ -57,7 +57,7 @@
     },
     "virtualWorkspaces": {
       "supported": "limited",
-      "description": "Cards render from the workspace file system. D2 diagrams need a local `d2` binary, so they show their source instead."
+      "description": "Cards render from the workspace file system. D2 diagrams need a local `d2` binary, so they show their source instead, and HQL cells show their saved output and do not run."
     }
   },
   "activationEvents": [
@@ -203,7 +203,7 @@
           "type": "string",
           "default": "",
           "scope": "machine",
-          "markdownDescription": "Absolute path to an `hql` executable to run HQL cells with. Empty uses the `hql` bundled with this build when it carries one, falling back to `hql` on `PATH`. A shell alias is not on `PATH`: point this at the binary itself. A path that is not an executable is reported rather than silently ignored. See [HQL](https://hql.hypermarkdown.org/)."
+          "markdownDescription": "Absolute path to an `hql` executable to run HQL cells with, overriding the default. Empty uses the `hql` bundled with this build — a pinned [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain) release, on Linux x64 and macOS — falling back to `hql` on `PATH`. Set this only to run cells with a different build of HQL deliberately. A shell alias is not on `PATH`: point this at the binary itself. A path that is not an executable is reported rather than silently ignored. See [HQL](https://hql.hypermarkdown.org/)."
         },
         "hyperMarkdown.diagnostics.scope": {
           "type": "string",

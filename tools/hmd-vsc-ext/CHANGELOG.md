@@ -23,6 +23,17 @@ against
 
 Nothing yet.
 
+## [0.4.1] — 2026-10-19
+
+### Fixed
+
+- **Run works on a fresh install.** `0.4.0` ran cells only with an `hql` the
+  reader had installed by hand. The extension now carries `hql` 0.4.2 from the
+  same pinned [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain)
+  release as `d2`, on Linux x64 and macOS, and uses it by default.
+  `hyperMarkdown.hql.path` overrides it. On Linux ARM64 and Windows, where HQL
+  publishes no binary yet, Run uses `hql` on `PATH`.
+
 ## [0.4.0] — 2026-10-19
 
 **Cards are notebooks.** A card's HQL cells show their saved output, with the
@@ -234,7 +245,8 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.1...HEAD
+[0.4.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.0...vsc-ext-v0.4.1
 [0.4.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.3.0...vsc-ext-v0.4.0
 [0.3.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.2.0...vsc-ext-v0.3.0
 [0.2.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.1.0...vsc-ext-v0.2.0
