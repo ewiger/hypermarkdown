@@ -2,7 +2,7 @@
   "name": "hmd",
   "displayName": "HyperMarkDown",
   "description": "Live preview, embeds, a graph of the vault, and diagnostics for HyperMarkDown (.hmd) knowledge bases.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "icon": "media/logo.png",
   "publisher": "hypermarkdown",

@@ -2,6 +2,11 @@
 
 ## News and updates
 
+**2026-10-19 — VS Code extension 0.4.0.** Cards are notebooks. The preview shows
+each HQL cell's saved output, keeps the query behind a **Code** toggle, and runs
+a cell when you press **Run**. Running needs [`hql`](https://hql.hypermarkdown.org/)
+installed; reading a card does not.
+
 **2026-10-19 — HQL 0.4.2.** The query language is released as a separate
 project: `cargo install hql`, release binaries for Linux and macOS,
 documentation at [hql.hypermarkdown.org](https://hql.hypermarkdown.org/). It queries a vault with
@@ -21,7 +26,7 @@ type; the preview needs no Python.
 | **HyperMarkDown**, the language | 0.1 draft | [specification](../wiki/hmd-lang-spec.hmd) |
 | **`hmd`** — CLI, library, MkDocs plugin | 0.3.0 | [PyPI](https://pypi.org/project/hypermarkdown/) |
 | **`@hypermarkdown/core`** — TypeScript | 0.1.1 | [npm](https://www.npmjs.com/package/@hypermarkdown/core) |
-| **`hmd-vsc-ext`** — VS Code | 0.3.0 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
+| **`hmd-vsc-ext`** — VS Code | 0.4.0 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
 | **`hql`** — the query language, a sibling project | 0.4.2 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
 
 The **HMD language specification** versions independently of the tools, and
@@ -41,6 +46,8 @@ Released and out of preview. Installing is the [Quick start](../tools/index.md).
 - **Render** a card to Markdown or HTML, or dump the resolved graph.
 - **Preview live** in VS Code, with a graph of the vault, red links for pages
   you have not written yet, and diagnostics inline.
+- **Run HQL cells** in the VS Code preview: see each cell's output, show its
+  query, run it. [Cell output](cell-output.md) lists what a cell writes.
 - **Publish** a tree of cards as a site. This one is built that way.
 - **Query** a vault with [HQL](https://hql.hypermarkdown.org/): filter, sort, lexical and semantic
   search, graph traversal. A separate project.
@@ -88,10 +95,9 @@ cells for the content a wiki otherwise maintains by hand:
 - **Summaries.** A generated, cached one-line abstract per card, for use in
   indexes.
 
-Next in the VS Code extension: cards as notebooks. The preview shows each
-cell's saved output, keeps the query behind a **Code** toggle, and runs a cell
-when you press **Run**. An `hql#query` cell is `hql#eval hidden`: it computes a
-value for other cells and shows nothing. Also planned: cells in the MkDocs build.
+The VS Code preview runs cells as of extension 0.4.0. An `hql#query` cell is
+`hql#eval hidden`: it computes a value for other cells and shows nothing. Next:
+cells in the MkDocs build.
 Cell output is stored in the file, so a card renders without HQL installed.
 
 HQL is at major version 0. A minor release may change the language.

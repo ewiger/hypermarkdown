@@ -1,6 +1,6 @@
 # 0110 — HQL cells show as code, and their saved output shows its markers
 
-**Column**: doing
+**Column**: done
 **Opened**: 2026-10-19
 
 ## What

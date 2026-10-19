@@ -12,7 +12,7 @@ embeds in [`ts-core.md`](ts-core.md), and the website in [`pages.md`](pages.md).
 
 ## Status
 
-**`0.3.0` is released to both galleries, and the preview label is off.**
+**`0.4.0` is released to both galleries, and cards are notebooks.**
 Everything the extension claims to do works and is gated by tests: the rendered
 tab, embeds as collapsible cards, scroll sync both ways, red links with a
 create-the-card action, the graph, diagnostics identical to the linter's, and
@@ -26,15 +26,15 @@ drawn with a bundled Cytoscape.js and specified in its own record [[hmd-0025]].
 It was the last thing the `preview` flag was waiting on, and the flag came off
 with this release [issue 0109].
 
-**Cards are notebooks, unreleased.** A `hql#eval` or `hql#query` fence is a
-cell, and `hql#query` is `hql#eval hidden`: the preview draws the output saved
-in the card, with the code behind a
-**Code** toggle and **Edit** and **Run** beside it, and says whether the output
-is current or stale without running anything. Run hands the card to the `hql`
-binary and writes the answer back in the bytes `hql render` would, as one
-undoable edit; nothing runs on open, and nothing runs in an untrusted
-workspace. A plain `hql` fence is a listing and never runs [[hmd-0026]]. Tested
-against the real binary, not yet clicked through in a running editor.
+**Cells are in, as of `0.4.0`.** A `hql#eval` or `hql#query` fence is a cell,
+and `hql#query` is `hql#eval hidden`: the preview draws the output saved in the
+card, with the code behind a **Code** toggle and **Edit** and **Run** beside it,
+and says whether the output is current or stale without running anything. Run
+hands the card to the `hql` binary and writes the answer back in the bytes
+`hql render` would, as one undoable edit; nothing runs on open, and nothing
+runs in an untrusted workspace. A plain `hql` fence is a listing and never runs
+[[hmd-0026]]. Tested against the real binary and checked by hand in a running
+editor [issue 0110].
 
 **Vaults are now discovered from the card.** A window holds a catalog of
 vaults rather than one project, so a repository carrying several — this one
@@ -49,7 +49,6 @@ them.
 | blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | todo | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | A network view of a large vault is where this stops being a nicety [VSX-024] | [[hmd-0025]] |
 | todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
-| todo | **Click through cells in a running editor** before the next release: open `examples/notebook/contents.hmd`, toggle Code, Run one cell and all cells, edit a cell and watch it go stale, undo a run, and try Run in an untrusted window. The engine is tested against the real `hql`; the webview wiring has been exercised only under jsdom | The steps are in the by-hand list in `DEVELOP.md` [issue 0110] | [[hmd-0026]] |
 | blocked | **Drop the mask.** Before handing a card to HQL the extension renames a bare `hql` fence to `txt` and marks an `hql#query` fence `hidden`, because `hql render` runs bare `hql` fences as cells and writes outputs for queries, and this format says they are a listing and a hidden cell. Unblocks when HQL adopts both rules | One function and its call [`src/hql/engine.ts`, `maskForHql`] | [[hmd-0026#the-divergence-with-hql-render]] |
 | backlog | **Bundle `hql`** from the toolchain release the way `d2` is bundled, so Run works on a fresh install. The engine already looks for `toolchain/bin/hql`; nothing puts it there. HQL publishes Linux and macOS binaries only | Until then Run needs `hql` on `PATH` or `hyperMarkdown.hql.path` | [[hmd-0026#running-a-cell]] |
 | parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |

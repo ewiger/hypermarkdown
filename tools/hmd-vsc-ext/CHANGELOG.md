@@ -21,6 +21,13 @@ against
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.4.0] — 2026-10-19
+
+**Cards are notebooks.** A card's HQL cells show their saved output, with the
+query one click away and a Run button beside it.
+
 ### Added
 
 - **HQL cells.** A `hql#eval` or `hql#query` fence draws as the output saved in
@@ -227,7 +234,8 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.3.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.0...HEAD
+[0.4.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.3.0...vsc-ext-v0.4.0
 [0.3.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.2.0...vsc-ext-v0.3.0
 [0.2.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.1.0...vsc-ext-v0.2.0
 [0.1.0]: https://github.com/ewiger/hypermarkdown/releases/tag/vsc-ext-v0.1.0
