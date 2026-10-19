@@ -1,6 +1,6 @@
 # 0111 — Run needs `hql` installed by hand
 
-**Column**: doing
+**Column**: done
 **Opened**: 2026-10-19
 
 ## What

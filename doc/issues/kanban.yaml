@@ -49,11 +49,11 @@ board:
       - id: "0100"
         title: "A ??? callout snaps shut on every re-render"
         file: 0100-callout-open-state-lost.md
-    doing:
+    doing: []
+    done:
       - id: "0111"
         title: "Run needs `hql` installed by hand"
         file: 0111-hql-from-the-toolchain.md
-    done:
       - id: "0110"
         title: "HQL cells show as code, and their saved output shows its markers"
         file: 0110-cards-as-notebooks.md
