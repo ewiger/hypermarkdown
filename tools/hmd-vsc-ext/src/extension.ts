@@ -12,6 +12,7 @@ import * as vscode from "vscode";
 import { VaultCatalog } from "./catalog.js";
 import { createCard } from "./commands/createCard.js";
 import { DiagnosticPublisher } from "./diagnostics.js";
+import { CellLensProvider, cellAtCursor } from "./hql/runner.js";
 import { PreviewPanel, VIEW_TYPE, type PanelState } from "./preview/panel.js";
 
 /** Gates the editor title-bar button: this window holds at least one vault. */
@@ -66,6 +67,27 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await catalog.rebuild();
       diagnostics.refresh();
     }),
+    vscode.commands.registerCommand(
+      "hyperMarkdown.runCell",
+      async (uri?: vscode.Uri, index?: number) => {
+        const editor = vscode.window.activeTextEditor;
+        const target = uri ?? editor?.document.uri;
+        const cell = index ?? (editor === undefined ? null : cellAtCursor(editor));
+        if (target === undefined || cell === null) {
+          void vscode.window.setStatusBarMessage("HyperMarkDown: the cursor is not in an HQL cell", 2000);
+          return;
+        }
+        await catalog.cells.run(target, cell);
+      },
+    ),
+    vscode.commands.registerCommand("hyperMarkdown.runAllCells", async (uri?: vscode.Uri) => {
+      const target = uri ?? vscode.window.activeTextEditor?.document.uri;
+      if (target !== undefined) await catalog.cells.run(target, null);
+    }),
+    vscode.languages.registerCodeLensProvider(
+      { language: "hmd" },
+      new CellLensProvider(catalog.cells),
+    ),
     vscode.commands.registerCommand("hyperMarkdown.createCardFromLink", async () => {
       const editor = vscode.window.activeTextEditor;
       if (editor === undefined) return;
@@ -82,6 +104,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       if (event.affectsConfiguration("hyperMarkdown.root")) void catalog.rebuild();
       else if (event.affectsConfiguration("hyperMarkdown.diagram.d2Path")) {
         catalog.refreshDiagramEngine();
+      } else if (event.affectsConfiguration("hyperMarkdown.hql.path")) {
+        catalog.cells.refresh();
       } else if (event.affectsConfiguration("hyperMarkdown")) diagnostics.refresh();
     }),
     vscode.workspace.onDidChangeWorkspaceFolders(() => void catalog.rebuild()),

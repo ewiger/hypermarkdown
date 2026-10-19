@@ -13,8 +13,9 @@ import type { Span } from "./model.js";
  * version refuses to render rather than guessing — a stale webview after an
  * extension update is the ordinary case, not an exotic one.
  *
- * 2 — `DiagramBlock` joins the union (HMD-0022 §4). */
-export const IR_VERSION = 2;
+ * 2 — `DiagramBlock` joins the union (HMD-0022 §4).
+ * 3 — `CellBlock` joins the union (HMD-0026). */
+export const IR_VERSION = 3;
 
 export type ResolutionState = "resolved" | "unresolved" | "ambiguous" | "escapes";
 
@@ -82,7 +83,43 @@ export interface DiagramBlock {
   span: Span;
 }
 
-export type Block = HtmlBlock | EmbedBlock | DiagramBlock;
+/**
+ * An HQL cell (HMD-0026): code the `hql` binary runs, and the output a previous
+ * run saved in the card.
+ *
+ * Not an `HtmlBlock`, for the reason a diagram is not: the output is produced
+ * by a process the core cannot run, can be stale, and is drawn with the code
+ * hidden behind a toggle — none of which survives flattening into HTML.
+ */
+export interface CellBlock {
+  kind: "cell";
+  key: string;
+  /** Position among the cells of the card it was written in, from 0. */
+  index: number;
+  /** `hql#eval` or `hql#query`. */
+  language: string;
+  id: string | null;
+  /** Runs, and keeps no output: a cell that exists to be read by others. */
+  hidden: boolean;
+  /** The fence body, verbatim. */
+  source: string;
+  /** The cell's hash as HQL computes it from the card as it stands. */
+  hash: string;
+  output: CellOutputIR | null;
+  span: Span;
+}
+
+export interface CellOutputIR {
+  status: "ok" | "error" | "skipped" | null;
+  /** The hash the output was written from. */
+  hash: string | null;
+  /** Whether that hash is the cell's hash now: the output came from this code. */
+  current: boolean;
+  /** The saved Markdown, rendered like the rest of the card. */
+  blocks: readonly Block[];
+}
+
+export type Block = HtmlBlock | EmbedBlock | DiagramBlock | CellBlock;
 
 export interface HeadingRef {
   level: number;

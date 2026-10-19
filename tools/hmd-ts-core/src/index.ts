@@ -58,6 +58,27 @@ export {
   isDiagramFence,
   sha256,
 } from "./diagram/fence.js";
+export {
+  CELL_KINDS,
+  LISTING_KIND,
+  OUTPUT_CLOSE,
+  OUTPUT_OPEN,
+  QUERY_KIND,
+  cellKind,
+  cellReads,
+  isCurrent,
+  maskForHql,
+  normalizedSource,
+  outputBlock,
+  outputEdit,
+  scanCells,
+  type Cell,
+  type CellOutput,
+  type CellResult,
+  type CellScan,
+  type CellStatus,
+  type TextEdit,
+} from "./cell/cells.js";
 export { MemoryHost, type DirEntry, type WorkspaceHost } from "./host.js";
 export * from "./ir.js";
 export * from "./model.js";

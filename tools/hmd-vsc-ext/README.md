@@ -68,6 +68,15 @@ Requires VS Code 1.90 or newer.
   release, the same binary the documentation site is built with, so a `d2` fence
   draws on a fresh install with nothing to configure and nothing downloaded at
   run time. Set `hyperMarkdown.diagram.d2Path` to use a different `d2`.
+- **HQL cells, as a notebook.** A `hql#eval` or `hql#query` fence is a cell. The
+  preview shows the output saved in the card — a table of contents reads as a
+  table of contents — with the query behind **Code**, plus **Edit** and **Run**.
+  A badge says whether the output came from the code as it stands or is stale.
+  **Run** hands the card to [`hql`](https://hql.hypermarkdown.org/) and writes
+  the answer back into the card as one undoable edit. Nothing runs when a card
+  opens, and nothing runs in an untrusted workspace. An `hql#query` cell is
+  `hql#eval hidden`: it computes a value other cells read, and shows nothing. A
+  plain `hql` fence is a listing: shown as code, never run.
 - **Syntax highlighting** for `.hmd` as its own language.
 
 ## What it needs
@@ -78,6 +87,9 @@ card: no interpreter to find, no virtualenv to activate, and no subprocess
 between a keystroke and the preview. The
 [`hmd` CLI](https://pypi.org/project/hypermarkdown/) remains the canonical
 implementation and CI checks the two against a shared conformance corpus.
+
+Running an HQL cell needs the `hql` binary, on `PATH` or named by
+`hyperMarkdown.hql.path`. Reading a card's saved outputs needs nothing.
 
 Completion and the other language-server features are not here yet. They arrive
 with the Python language server, which lives with the canonical implementation
@@ -92,6 +104,8 @@ rendering without it.
 | `hyperMarkdown.preview.scrollSync` | `true` | Keep preview and editor on the same source line. |
 | `hyperMarkdown.preview.embeds` | `expanded` | Whether embed cards start expanded. |
 | `hyperMarkdown.diagnostics.scope` | `workspace` | Publish diagnostics for every indexed card — in every vault opened this session — or only for open ones. |
+| `hyperMarkdown.diagram.d2Path` | `""` | A `d2` to draw diagrams with instead of the bundled one. |
+| `hyperMarkdown.hql.path` | `""` | The `hql` to run cells with. Empty uses `hql` on `PATH`. A shell alias is not on `PATH`. |
 
 ## Commands
 
@@ -101,6 +115,9 @@ group you are in
 - **HyperMarkDown: Pin Preview to This Card** — stop following the active editor
 - **HyperMarkDown: Create Missing Card** — write the card a red link points at
 - **HyperMarkDown: Rebuild Index** — drop every vault and re-scan from scratch
+- **HyperMarkDown: Run HQL Cell** — run the cell under the cursor and write its
+output into the card
+- **HyperMarkDown: Run All HQL Cells** — the same, for every cell of the card
 
 ## Several vaults in one folder
 

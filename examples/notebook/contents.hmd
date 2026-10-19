@@ -1,0 +1,58 @@
+---
+tags: [notebook]
+---
+# Contents
+
+Every card in this vault, in title order. Nobody maintains this list: the
+cell below builds it, and the list you see is the output it saved. Open the
+preview to read it, press **Code** to see the query, and **Run** to rebuild it.
+
+```hql#eval id=books
+cards
+| filter(c => c.name != "contents")
+| sort(by = c => c.title)
+```
+<!-- hql:output id=books hash=7282fba97096 status=ok -->
+- [[dune]]
+- [[emma]]
+- [[middlemarch]]
+- [[the-hobbit]]
+<!-- /hql:output -->
+
+## Still to read
+
+A query cell runs so that other cells can read its value, and shows nothing of
+its own — `hql#query` is `hql#eval hidden`. This one reads `books` and names
+the result `todo`:
+
+```hql#query id=todo
+books | filter(c => c.metadata.status == "todo")
+```
+
+```hql#eval
+todo | map(c => c.title)
+```
+<!-- hql:output hash=71e5d63fff98 status=ok -->
+- Emma
+- The Hobbit
+<!-- /hql:output -->
+
+## How far along
+
+```hql#eval
+{books: books | size, to_read: todo | size}
+```
+<!-- hql:output hash=779c4eb751ef status=ok -->
+| key     | value |
+| ------- | ----- |
+| books   | 4     |
+| to_read | 2     |
+<!-- /hql:output -->
+
+## A code listing is not a cell
+
+A fence marked plain `hql` is shown as code and never runs:
+
+```hql
+cards | size
+```

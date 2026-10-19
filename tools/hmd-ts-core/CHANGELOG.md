@@ -21,6 +21,16 @@ point in
 
 ## [Unreleased]
 
+### Added
+
+- **HQL cells.** `CellBlock` joins the IR, which moves to version 3. A
+  `hql#eval` or `hql#query` fence becomes a cell carrying its source, its hash,
+  and the output saved after it, rendered as the card's own Markdown; a bare
+  `hql` fence stays a code block, and an `hql#query` cell is hidden.
+  `scanCells`, `maskForHql` and `outputEdit`
+  find cells by HQL's own rule, compute the hash HQL computes, and write an
+  output back in the bytes `hql render` writes.
+
 ## [0.1.1] — 2026-08-10
 
 ### Fixed

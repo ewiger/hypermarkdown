@@ -8,6 +8,7 @@
 
 import type {
   Block,
+  CellBlock,
   DiagramBlock,
   DocumentIR,
   EmbedBlock,
@@ -15,6 +16,11 @@ import type {
 
 export interface RenderSettings {
   embeds: "expanded" | "collapsed";
+  /**
+   * True inside an embed or a cell's output: the blocks belong to another
+   * card, or to a run, and a Run button there would run the wrong thing.
+   */
+  nested?: boolean;
 }
 
 /**
@@ -131,6 +137,11 @@ function updateBlock(
     return element;
   }
 
+  if (block.kind === "cell") {
+    renderCell(element, block, settings);
+    return element;
+  }
+
   renderEmbed(element, block, settings, fresh);
   return element;
 }
@@ -195,7 +206,7 @@ function renderEmbed(
   if (block.document !== null) {
     const inner = document.createElement("div");
     inner.className = "hmd-embed-inner";
-    patchBlocks(inner, block.document.blocks, settings);
+    patchBlocks(inner, block.document.blocks, { ...settings, nested: true });
     body.append(inner);
     return;
   }
@@ -206,6 +217,130 @@ function renderEmbed(
   failure.className = "hmd-embed-failure";
   failure.textContent = block.failure ?? "This embed does not resolve.";
   body.append(failure);
+}
+
+/**
+ * An HQL cell (HMD-0026): what it last produced, with its code one click away.
+ *
+ * The output is what a reader opened the card for — a table of contents, not
+ * the query that builds one — so it is shown and the code is not, until the
+ * reader asks. That choice is the reader's and survives a new output: it is
+ * read off the element before anything is rebuilt, as an embed's fold is.
+ */
+function renderCell(element: HTMLElement, block: CellBlock, settings: RenderSettings): void {
+  const codeShown = element.classList.contains("is-code-shown");
+  const running = element.classList.contains("is-running");
+  const output = block.output;
+  const state = cellState(block);
+
+  element.className = `hmd-cell is-${state.kind}`;
+  element.classList.toggle("is-code-shown", codeShown);
+  element.classList.toggle("is-running", running);
+  element.dataset["line"] = String(block.span.line);
+  element.dataset["index"] = String(block.index);
+
+  let bar = element.querySelector<HTMLElement>(":scope > .hmd-cell-bar");
+  let source = element.querySelector<HTMLElement>(":scope > .hmd-cell-source");
+  let body = element.querySelector<HTMLElement>(":scope > .hmd-cell-output");
+  if (bar === null || source === null || body === null) {
+    element.textContent = "";
+    bar = document.createElement("div");
+    bar.className = "hmd-cell-bar";
+    source = document.createElement("pre");
+    source.className = "hmd-cell-source";
+    body = document.createElement("div");
+    body.className = "hmd-cell-output";
+    element.append(bar, source, body);
+  }
+
+  bar.textContent = "";
+  const kind = document.createElement("span");
+  kind.className = "hmd-cell-kind";
+  kind.textContent = block.id === null ? block.language : `${block.language} · ${block.id}`;
+  const badge = document.createElement("span");
+  badge.className = "hmd-cell-state";
+  badge.textContent = state.label;
+  badge.title = state.title;
+  const spacer = document.createElement("span");
+  spacer.className = "hmd-cell-spacer";
+  bar.append(kind, badge, spacer);
+  bar.append(cellButton("hmd-cell-code", codeShown ? "Hide code" : "Code", "Show or hide this cell's HQL", codeShown));
+  bar.append(cellButton("hmd-cell-edit", "Edit", "Edit this cell in the source"));
+  if (settings.nested !== true) {
+    const run = cellButton("hmd-cell-run", running ? "Running…" : "▶ Run", "Run this cell and the cells it reads");
+    run.disabled = running;
+    bar.append(run);
+  }
+
+  const code = document.createElement("code");
+  code.className = "language-hql";
+  code.textContent = block.source;
+  source.textContent = "";
+  source.append(code);
+  source.hidden = !codeShown;
+
+  if (output !== null && output.blocks.length > 0) {
+    body.classList.remove("is-empty");
+    patchBlocks(body, output.blocks, { ...settings, nested: true });
+    return;
+  }
+  body.textContent = "";
+  body.classList.add("is-empty");
+  body.textContent = block.hidden
+    ? "A hidden cell: it runs so other cells can read its value, and shows nothing."
+    : output === null
+      ? "Not run yet. Run the cell to see its output here."
+      : "The cell ran and produced nothing.";
+}
+
+function cellButton(className: string, label: string, title: string, pressed?: boolean): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `hmd-cell-button ${className}`;
+  button.textContent = label;
+  button.title = title;
+  if (pressed !== undefined) button.setAttribute("aria-pressed", String(pressed));
+  return button;
+}
+
+interface CellState {
+  kind: "current" | "stale" | "error" | "none" | "hidden";
+  label: string;
+  title: string;
+}
+
+function cellState(block: CellBlock): CellState {
+  if (block.hidden && block.output === null) {
+    return { kind: "hidden", label: "hidden", title: "Runs for the cells that read it" };
+  }
+  const output = block.output;
+  if (output === null) return { kind: "none", label: "not run", title: "No output is saved in the card" };
+  if (!output.current) {
+    return {
+      kind: "stale",
+      label: "stale",
+      title: "The code changed since this output was written. Run the cell to bring it up to date.",
+    };
+  }
+  if (output.status === "error") return { kind: "error", label: "error", title: "The last run failed" };
+  if (output.status === "skipped") {
+    return { kind: "error", label: "skipped", title: "A cell this one reads failed" };
+  }
+  return { kind: "current", label: "current", title: "This output came from the code as it stands" };
+}
+
+/** Mark the cells being run, by index; `-1` marks every cell of the card. */
+export function markRunning(container: HTMLElement, cells: readonly number[]): void {
+  const all = cells.includes(-1);
+  for (const element of Array.from(container.querySelectorAll<HTMLElement>(":scope > .hmd-cell"))) {
+    const running = all || cells.includes(Number(element.dataset["index"]));
+    element.classList.toggle("is-running", running);
+    const run = element.querySelector<HTMLButtonElement>(":scope > .hmd-cell-bar > .hmd-cell-run");
+    if (run !== null) {
+      run.disabled = running;
+      run.textContent = running ? "Running…" : "▶ Run";
+    }
+  }
 }
 
 export function renderBreadcrumb(container: HTMLElement, ir: DocumentIR): void {

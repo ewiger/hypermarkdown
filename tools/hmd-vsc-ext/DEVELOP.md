@@ -179,6 +179,20 @@ brew install d2      # or see https://d2lang.com
 `npm run package` stages it for you. Everything but diagrams renders with no
 external tool.
 
+**HQL cells.** `npm run example:notebook` opens `examples/notebook/`. In
+`contents.hmd` the preview should show three outputs — a list of links, a list
+of titles, a table — one hidden query cell, and no query text and no
+`hql:output` markers; the last fence, a plain `hql` listing, shows as code. Toggle **Code** on a cell and edit
+the source: the toggle stays, and the badge turns *stale*. **Run** needs `hql`:
+put it on `PATH` or set `hyperMarkdown.hql.path` to the binary — a shell alias
+does not count. Run one cell, then **Run all cells** from the code lens; undo
+takes a run back. In an untrusted window, Run should refuse and say why. The
+engine's tests run against a real binary when `HQL_BIN` names one:
+
+```bash
+HQL_BIN=/path/to/hql npm test
+```
+
 **Expected rough edges.** `login.hmd` exercises callouts, math, task lists,
 tables, footnotes, code fences, all six link constructs, and a D2 diagram; all of
 them should render. What remains ledgered is narrower — `~x~` subscript, setext

@@ -47,6 +47,7 @@ function fakeCatalog(): VaultCatalog {
   return {
     ready: false,
     onDidChange: () => ({ dispose: () => undefined }),
+    cells: { onDidChange: () => ({ dispose: () => undefined }), runningIn: () => [] },
     cardFor,
     openCard: async (uri: unknown) => cardFor(uri),
     vaultAt: (key: string) => (key === vault.key ? vault : undefined),

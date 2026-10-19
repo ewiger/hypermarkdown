@@ -23,6 +23,26 @@ against
 
 Nothing yet.
 
+## [0.4.0] — 2026-10-19
+
+**Cards are notebooks.** A card's HQL cells show their saved output, with the
+query one click away and a Run button beside it.
+
+### Added
+
+- **HQL cells.** A `hql#eval` or `hql#query` fence draws as the output saved in
+  the card, with its code behind a **Code** toggle and **Edit** and **Run**
+  beside it, and a badge saying whether the output is current or stale. **Run**,
+  a code lens above each cell, and two commands — *Run HQL Cell* and *Run All HQL
+  Cells* — hand the card to `hql` and write its answer back as one undoable
+  edit. Runs need a trusted workspace and never happen on their own. An
+  `hql#query` cell is `hql#eval hidden`: it runs for the cells that read it and
+  keeps no output. A plain `hql` fence is a listing and never runs. New setting: `hyperMarkdown.hql.path`.
+
+### Fixed
+
+- A saved HQL output no longer shows its `<!-- hql:output -->` markers as text.
+
 ## [0.3.0] — 2026-09-14
 
 **The vault has a picture, and the preview label is off.** A **Graph** tab draws
@@ -214,7 +234,8 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.3.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.0...HEAD
+[0.4.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.3.0...vsc-ext-v0.4.0
 [0.3.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.2.0...vsc-ext-v0.3.0
 [0.2.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.1.0...vsc-ext-v0.2.0
 [0.1.0]: https://github.com/ewiger/hypermarkdown/releases/tag/vsc-ext-v0.1.0

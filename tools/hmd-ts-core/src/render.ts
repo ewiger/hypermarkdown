@@ -12,11 +12,13 @@ import MarkdownIt from "markdown-it";
 import footnote from "markdown-it-footnote";
 import taskLists from "markdown-it-task-lists";
 
+import { scanCells, type Cell, type CellScan } from "./cell/cells.js";
 import { DIAGRAM_LANGUAGES, fenceLanguage } from "./diagram/fence.js";
 import { bodySlice, expand, isFailure, type Slice } from "./expand.js";
 import {
   IR_VERSION,
   type Block,
+  type CellBlock,
   type DiagramBlock,
   type DocumentIR,
   type EmbedBlock,
@@ -138,6 +140,17 @@ export class Renderer {
       document.anchors.filter((a) => a.span.line >= firstLine && a.span.line <= lastLine),
     );
 
+    // Cells are found in the whole card, not the slice: a cell's hash depends
+    // on the cells it reads, which an embedded section may not contain.
+    const scan = this.cellsOf(document);
+    const cellsByLine = new Map<number, Cell>();
+    for (const cell of scan.cells) cellsByLine.set(cell.openLine + 1, cell);
+    const markerLines = new Set<number>();
+    for (const orphan of scan.orphans) {
+      markerLines.add(orphan.openLine + 1);
+      markerLines.add(orphan.closeLine + 1);
+    }
+
     const blocks: Block[] = [];
     let pending: string[] = [];
     let pendingRefs: Ref[] = [];
@@ -158,6 +171,24 @@ export class Renderer {
       const links = linksByLine.get(absolute) ?? [];
       const anchors = anchorsByLine.get(absolute) ?? [];
 
+      const cell = cellsByLine.get(absolute);
+      if (cell !== undefined) {
+        flush();
+        blocks.push(this.cellBlock(document, cell, lines, firstLine, linksByLine, anchorsByLine));
+        const last = (cell.output?.closeLine ?? cell.closeLine) + 1;
+        i = Math.min(last, lastLine) - firstLine;
+        pendingStart = absolute + 1;
+        continue;
+      }
+
+      // An output no cell owns is shown as what it is, Markdown, without the
+      // markers — which a renderer that escapes HTML would print as text.
+      if (markerLines.has(absolute)) {
+        if (pending.length === 0) pendingStart = absolute;
+        pending.push("");
+        continue;
+      }
+
       const blockEmbed = links.find((l) => l.isEmbed && raw.trim() === l.raw);
       if (blockEmbed !== undefined) {
         flush();
@@ -172,6 +203,67 @@ export class Renderer {
 
     flush();
     return blocks;
+  }
+
+  private readonly scans = new Map<string, { text: string; scan: CellScan }>();
+
+  private cellsOf(document: ParsedDocument): CellScan {
+    const cached = this.scans.get(document.path);
+    if (cached !== undefined && cached.text === document.text) return cached.scan;
+    const scan = scanCells(document.text);
+    this.scans.set(document.path, { text: document.text, scan });
+    return scan;
+  }
+
+  /** A cell, with its saved output rendered as the card's own Markdown. */
+  private cellBlock(
+    document: ParsedDocument,
+    cell: Cell,
+    lines: readonly string[],
+    firstLine: number,
+    linksByLine: ReadonlyMap<number, Link[]>,
+    anchorsByLine: ReadonlyMap<number, Anchor[]>,
+  ): CellBlock {
+    let output: CellBlock["output"] = null;
+    if (cell.output !== null) {
+      const from = cell.output.openLine + 2;
+      const to = cell.output.closeLine;
+      const refs: Ref[] = [];
+      const body: string[] = [];
+      for (let line = from; line <= to; line += 1) {
+        const raw = lines[line - firstLine];
+        if (raw === undefined) break;
+        if (line === to && raw.trim() === "<!-- /hql:output -->") break;
+        body.push(
+          this.substitute(
+            document,
+            raw,
+            linksByLine.get(line) ?? [],
+            anchorsByLine.get(line) ?? [],
+            refs,
+          ),
+        );
+      }
+      const text = body.join("\n");
+      output = {
+        status: cell.output.status,
+        hash: cell.output.hash,
+        current: cell.output.hash === cell.hash,
+        blocks: text.trim() === "" ? [] : assignKeys(this.htmlBlocks(text, from, refs)),
+      };
+    }
+    return {
+      kind: "cell",
+      key: "",
+      index: cell.index,
+      language: cell.kind,
+      id: cell.id,
+      hidden: cell.hidden,
+      source: cell.source,
+      hash: cell.hash,
+      output,
+      span: { start: 0, end: 0, line: cell.openLine + 1, column: 1 },
+    };
   }
 
   /**
@@ -458,7 +550,12 @@ function assignKeys(blocks: Block[]): Block[] {
         ? block.html
         : block.kind === "embed"
           ? `embed:${block.target.raw}`
-          : `diagram:${block.source}`;
+          : block.kind === "diagram"
+            ? `diagram:${block.source}`
+            : // By name, not content: running a cell changes its output, and
+              // the element — with the reader's choice to show the code — should
+              // survive that.
+              `cell:${block.id ?? `#${block.index}`}`;
     const digest = fnv1a(content);
     const nth = seen.get(digest) ?? 0;
     seen.set(digest, nth + 1);
