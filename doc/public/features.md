@@ -28,8 +28,11 @@
 
 * **Tooling.** A CLI, a MkDocs plugin, and a VS Code extension, all released.
 
-* **HQL** *(planned)* — a query language over cards, metadata, and the links
-  between them. See the [Roadmap](roadmap.md).
+* **HQL.** A statically typed query and data transformation language over a
+  vault's cards, frontmatter, and links, and over JSON, YAML, and records:
+  `filter`, `map`, `sort`, `group`, lexical and semantic search, graph
+  traversal. Inside a card it runs as cells whose output replaces the block.
+  Separate project: [hql.hypermarkdown.org](https://hql.hypermarkdown.org/).
 
 ## A superset of CommonMark
 

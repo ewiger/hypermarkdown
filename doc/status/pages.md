@@ -59,10 +59,20 @@ revisiting is that maths loads from a CDN at view time.
 | A missing link target is reported, not fatal | Cards link out to the repository with ordinary relative links whose targets are real files but not site pages. The cost is that a genuinely broken relative link also only warns — links between cards are checked by the linter instead | [[hmd-0002#4-red-links-and-md]] |
 | A diagram fence without the `d2` binary degrades to a labelled placeholder and the build stays green | Deliberate: a missing binary must not fail a build. The cost is that an environment without it ships placeholders silently | [[hmd-0022#2-what-the-consumer-does]] |
 | Directory-style URLs are required, and turning them off is a hard error | A card and its folder note share one URL, so this is a requirement rather than a preference | [[hmd-0002#1-output-urls]] |
-| Branding is configuration and CSS only — no template overrides | An override pins the site to the theme's internal template structure, which is exactly what the version pin already has to be careful about. The cost is that anything needing new markup is out of reach; the theme's own grid-card syntax is the escape hatch that stays inside this limit | — |
+| Branding is configuration, CSS, and one script — no template overrides | An override pins the site to the theme's internal template structure, which is exactly what the version pin already has to be careful about. The cost is that anything needing new markup is out of reach at build time; the theme's own grid-card syntax is one escape hatch, and the HQL tab's script is the other — it builds its per-letter markup from the link the theme emitted, so the theme's templates stay untouched and the tab is still a working link without it | — |
 
 ## Done
 
+- **The sibling project, everywhere the site lists its parts** — an HQL tab in
+  the top bar that links to its own site, styled as an outlined amber button
+  that stretches as the name spells itself out letter by letter on hover
+  (configuration, CSS, and one script; no template override), and HQL written
+  into the quick start as a fourth install, the Tools nav, the cover, the
+  features and vision chapters, and the roadmap's version table and news. The
+  roadmap no longer says HQL cannot read HyperMarkDown, which stopped being
+  true with its 0.2 line, and its "what is coming" now tells the notebook
+  story: cells that compute part of a card, and the wiki dynamics — contents,
+  related pages, status boards, indexes, health, summaries — they are for.
 - **A roadmap, and one place that carries the version numbers** — news, the
   current version of all four release lines, where the project stands, and the
   epics being aimed at. The cover stops making status claims and points here.
@@ -114,6 +124,8 @@ run permanently.
 
 ## Changelog
 
+- 2026-10-19: the HQL tab, linking the sibling project's site from the top bar,
+  and HQL written into every page that lists the project's tools.
 - 2026-09-15: the roadmap page, replacing the cover's status section, and the
   stale state claims the audit for it found across the site, the READMEs, and
   the trackers.

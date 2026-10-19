@@ -162,7 +162,18 @@ nav:
       - hmd — Python: https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd
       - hmd-ts-core — TypeScript core: https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-ts-core
       - hmd-vsc-ext — VS Code extension: tools/vscode.md
+      # Not a directory under `tools/`: the query language is a sibling
+      # repository with its own site, listed here because a reader looking for
+      # the tools around the format should find all of them in one place.
+      - hql — query language: https://hql.hypermarkdown.org/
   - Roadmap: public/roadmap.md
+  # The sibling project, on its own host. One external tab rather than a page
+  # here, for the same reason the tools link out to their READMEs: HQL has its
+  # own book, and a copy would be a second thing to keep true. The tab is
+  # styled as a button by `wiki/assets/hmd.css` and animated by
+  # `wiki/assets/hql.js`, both keyed on this host — change the URL here and
+  # change it there.
+  - HQL: https://hql.hypermarkdown.org/
 
 # The numbered proposals are *internal* specifications: how the tools around the
 # format are built, not what the language is. They used to occupy a
@@ -201,6 +212,11 @@ extra_css:
 # runtime dependency the site has on a network; the build itself stays offline.
 extra_javascript:
   - wiki/assets/mathjax.js
+  # The HQL tab's hover animation: the theme's tab template cannot carry
+  # per-letter markup, and an override would pin the site to that template, so
+  # the markup is built at load time instead. Local, so not a network
+  # dependency; the tab is a plain link without it.
+  - wiki/assets/hql.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 # Cards link out to the repository — proposals, styles, source — with ordinary

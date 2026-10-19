@@ -63,7 +63,7 @@ nobody has committed · `deferred` explicitly postponed to a later spec ·
 | F22 | Highlights | `==text==` | Obsidian, CriticMarkup | — | nice to have |
 | F23 | Mermaid diagrams | ` ```mermaid ` | Mermaid | — | rejected |
 | F24 | Templates | — | Confluence, MediaWiki | — ([HMD-0003](../proposals/HMD-0003/README.md) §5) | deferred |
-| F25 | HQL — query language | — | Obsidian Dataview, Confluence CQL, SQL | — ([HMD-0003](../proposals/HMD-0003/README.md)) | nice to have |
+| F25 | HQL — query language | ` ```hql ` cells | Obsidian Dataview, Confluence CQL, SQL, Jupyter | [HQL](https://hql.hypermarkdown.org/), a sibling project; `hql render` writes a page's cells, the site build and the preview do not yet | shipped as its own project |
 | F26 | Graph of the vault | — | Obsidian | the VS Code extension | shipped |
 | F30 | Category pages | — | Wikipedia, MediaWiki | — | nice to have |
 | F27 | Escapes for reserved characters | — | — | — | nice to have |

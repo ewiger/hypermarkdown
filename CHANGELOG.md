@@ -40,6 +40,19 @@ The first version of the language: the six constructs, resolution, the severitie
 and the publication model. Still `drafted`, which is what the `0.x` means — a
 construct may still change before `1.0`.
 
+### 2026-10-19
+
+#### Changed
+
+- **The query language is no longer reserved here.** HQL shipped as its own
+  project, with its own repository, releases, and documentation at
+  [hql.hypermarkdown.org](https://hql.hypermarkdown.org/). The record that reserved the name and fixed
+    constraints for it is superseded: the language that exists was not designed
+  from it, and HQL's own documentation is the authority on all of it — the
+  language, and the cells by which a card carries it. What the format still
+  owes is its tools rendering those cells, which is open.
+  [HMD-0003](doc/proposals/HMD-0003/README.md)
+
 ### 2026-08-08
 
 #### Added

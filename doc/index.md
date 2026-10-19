@@ -7,6 +7,9 @@ into a knowledge graph. Every `.md` file is already valid `.hmd`.
 
     - *Tools for HyperMarkDown*: the [Quick start](tools/index.md) is two
       installs — the VS Code-compatible editor extension, then the `hmd` command — and what each one gets you.
+        - *Querying it*: [HQL](https://hql.hypermarkdown.org/) is a typed query language over a vault of
+      cards, JSON, YAML, and records. A separate project with its own
+      documentation.
     - *How to write HyperMarkDown*: [The HMD Tutorial](wiki/hmd-tutorial.hmd) is the whole language in one go — every construct, with its source shown beside what it renders.
 
 ## TL;DR
@@ -95,9 +98,10 @@ note: "The two upper layers are what HyperMarkDown adds, and a specification is 
   than define it.
 
 * **What ships today is not the whole of it.** The resolver, linter, embed
-  expander, renderer, and MkDocs plugin are released and in use. Queries over
-  the document graph and namespaces beyond one tree are specified in outline and
-  unbuilt; where they are going is the [Roadmap](public/roadmap.md).
+    expander, renderer, and MkDocs plugin are released and in use. [HQL](https://hql.hypermarkdown.org/),
+  the query language, is released as a separate project at major version zero.
+  Namespaces beyond one tree are specified in outline and unbuilt; where it is
+  all going is the [Roadmap](public/roadmap.md).
 
 ## Language
 
@@ -129,9 +133,12 @@ the [HMD Tutorial](wiki/hmd-tutorial.hmd). What that page teaches, the
 Wiki links to documents, headings, and named blocks; transclusion of any of
 them; filesystem-shaped modules with explicit imports; TeX mathematics, D2
 diagrams, callouts, collapsible sections, footnotes, tables, and the GitHub-
-flavoured Markdown baseline. HQL, a query language over the document graph, is
-reserved, and the grammar is not fixed — what it is wanted for is the
-[Roadmap](public/roadmap.md).
+flavoured Markdown baseline. [HQL](https://hql.hypermarkdown.org/), a statically typed query and data
+transformation language, is a separate project with its own documentation. It
+queries a vault's cards, frontmatter, and links, and also JSON, YAML, and
+records, with lexical and semantic search and graph traversal. Inside a card
+it runs as cells: fenced `hql` blocks whose output replaces the block. What
+is planned around cells is in the [Roadmap](public/roadmap.md).
 
 What a page can carry, shown working rather than described, is
 [Features](public/features.md). How a bare name becomes a page — the spine walk,
@@ -145,11 +152,12 @@ graph. A missing target is a warning, because writing forward is how a wiki
 grows. Malformed references and multiple autodiscovery matches are errors;
 ordered wildcard imports resolve by declaration order and report shadowing.
 
-Installing rather than reading: the editor extension, the package, and what each
-one gets you is the [Quick start](tools/index.md).
+Installing rather than reading: the editor extension, the package, the query
+language, and what each one gets you is the [Quick start](tools/index.md).
 
-There are three of them, one directory each under `tools/` in the repository,
-each carrying its own version, README, and changelog:
+Three of them live here, one directory each under `tools/` in the repository,
+each carrying its own version, README, and changelog, and a fourth is a sibling
+repository:
 
 * **[`hmd`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd)** —
   the Python implementation, published to PyPI as
@@ -168,8 +176,17 @@ each carrying its own version, README, and changelog:
   — the VS Code extension: live preview that keeps the embed boundary visible,
   plus a graph of the vault, red links, and diagnostics.
 
+* **[`hql`](https://github.com/ewiger/hql)** — the Hyper Query Language, a
+  statically typed query and data transformation language, published on
+  [crates.io](https://crates.io/crates/hql) and documented at
+  [hql.hypermarkdown.org](https://hql.hypermarkdown.org/). Pipelines of `filter`, `map`, `sort`,
+  `group`, lexical and semantic search, and graph traversal over a vault's
+  cards, frontmatter, and links, and over JSON, YAML, and records. Inside a
+  card it runs as cells; `hql render` writes their output into the page.
+
 Those are the sources. Getting them running — the extension, then the package,
-and what each one is for — is the [Quick start](tools/index.md).
+then the query language, and what each one is for — is the
+[Quick start](tools/index.md).
 
 Presentation is not part of the language. A card is plain text, so an editor,
 GitHub, or a chat window already shows it. The MkDocs plugin builds a tree of
@@ -229,8 +246,8 @@ still unbuilt, is [Vision](public/vision.md).
 The tools are released and installable, and the specification is at 0.1 and
 still moving. Which version of what is out, what the writing still owes the
 code, and the large features being aimed at next — semantic search over a
-collection of cards, and the query language underneath it — are the
-[Roadmap](public/roadmap.md).
+collection of cards through [HQL](https://hql.hypermarkdown.org/), and names
+that cross repositories — are the [Roadmap](public/roadmap.md).
 
 The living example is [the wiki](wiki/README.md), generated from `.hmd` cards in
 this repository.

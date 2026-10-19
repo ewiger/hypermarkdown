@@ -69,11 +69,12 @@ in where you wrote it, `![[glossary/token#Rotation]]` one section,
 `![[glossary/token#^definition]]` one named block. Write a definition once and
 embed it everywhere it is needed — cards stop being pages and start being parts.
 
-The step after that is already reserved: **HQL**, a query language that lets a
-card *compute* its content from the graph — every card tagged `area/backend`,
-every page linking here — instead of listing it by hand. The design constraints
-are fixed in [HMD-0003](../proposals/HMD-0003/README.md); the syntax is
-not yet defined.
+The next step is computed content. [HQL](https://hql.hypermarkdown.org/) cells let a card contain a
+query whose result is written into the page: every card tagged
+`area/backend`, every card linking here, the three cards closest in meaning to
+a question, a table of contents. HQL is a separate project — a statically
+typed query and data transformation language over vaults, JSON, YAML, and
+records. What is planned for cells in a wiki is in the [Roadmap](roadmap.md).
 
 ## It looks like a real website
 

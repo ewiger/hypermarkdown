@@ -3,7 +3,8 @@
 Two installs, and neither one needs the other. The **VS Code extension** renders
 a card while you write it. The **`hmd` command** checks a whole tree of them and
 publishes it. Take either, or both — the usual shape is the extension while
-writing and the CLI in CI.
+writing and the CLI in CI. A third, **`hql`**, is optional and a separate
+project: a query language that runs over a tree of cards.
 
 Neither one teaches the format. The [Tutorial](../wiki/hmd-tutorial.hmd) is that,
 and it is the whole language in one sitting. This page is only how to get the
@@ -119,12 +120,79 @@ when [`d2`](https://d2lang.com) is on your `PATH` or Docker is available, and
 shows its own labelled source when neither is — a diagram never degrades to a
 blank space.
 
+## 4. Ask questions of it
+
+[HQL](https://hql.hypermarkdown.org/){ .md-button .md-button--primary }
+[Source on GitHub](https://github.com/ewiger/hql){ .md-button }
+
+[HQL](https://hql.hypermarkdown.org/) is a statically typed query and data transformation language. A
+program is a pipeline: each step takes the previous step's value and returns a
+new one. Steps include `filter`, `map`, `sort`, `group`, lexical and semantic
+search, and graph traversal. Sources are records, lists, JSON, YAML, and a
+vault of Markdown or HyperMarkDown files together with its link graph. HQL is
+a separate project with its own repository, releases, and documentation.
+
+A release binary for Linux and macOS is on
+[the releases page](https://github.com/ewiger/hql/releases), or build it from
+source with Rust 1.95 or newer:
+
+```bash
+cargo install hql --locked
+```
+
+```bash
+hql eval '40 + 2'        # 42
+hql builtins             # every pipeline step, grouped by extension
+```
+
+The query below ranks the vault's cards by semantic similarity to a string,
+keeps three, adds every card one link away, and prints the resulting graph as
+text:
+
+```hql
+import semantic
+
+cards
+| semantic("night hunting birds")
+| take(3)
+| expand(depth = 1)
+| text
+```
+
+Inside a `.hmd` file, HQL runs as **cells**. A cell is a fenced block with the
+info string `hql`. `id=<name>` makes the cell's value available to other
+cells; `hidden` evaluates the cell without printing its output. Cells run in
+dependency order. `hql render` writes the document with each cell replaced by
+its output:
+
+````markdown
+```hql id=books hidden
+cards | filter(c => c.metadata.category == "book")
+```
+
+## Still to read
+
+```hql
+books | filter(c => c.metadata.status == "todo") | map(c => c.title)
+```
+````
+
+```bash
+hql --vault path/to/your/wiki render reading-list.hmd
+```
+
+The vault is the same tree `hmd lint` checks. Documentation:
+[hql.hypermarkdown.org](https://hql.hypermarkdown.org/) — introduction, install, a twelve-chapter
+book, and the reference.
+
 ## Where to go next
 
 - **[Tutorial](../wiki/hmd-tutorial.hmd)** — the whole language in one sitting,
   every construct with its source shown beside what it renders.
 - **[The VS Code extension](vscode.md)** — what the preview gives you, and the
   gaps it still has.
+- **[HQL](https://hql.hypermarkdown.org/)** — the query language's own site:
+  introduction, install, the book, and the reference.
 - **[Presentation](../public/presentation.md)** — the trade-offs between
   rendering a card in an editor, converting it, and publishing a tree of them.
 - **[Language Specification](../wiki/hmd-lang-spec.hmd)** — the normative text,

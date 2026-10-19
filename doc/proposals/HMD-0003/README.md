@@ -1,7 +1,28 @@
 # HMD-0003: HQL — the Hyper Query Language
 
-**Status**: drafted
+**Status**: superseded
 **Created**: 2026-08-07
+**Superseded**: 2026-10-19, by [HQL's own documentation](https://hql.hypermarkdown.org/)
+
+> **This record is superseded.** HQL became its own project, in [its own
+> repository](https://github.com/ewiger/hql) with its own releases, its own book, and its own design
+> wiki at [hql.hypermarkdown.org](https://hql.hypermarkdown.org/). The language that exists is a
+> statically typed, functional pipeline language with lexical and semantic
+> retrieval and graph traversal over a vault of cards. It was not designed from
+> this record, and this record does not describe it. Some of what is asked
+> below arrived in a different shape — a card carries HQL as *cells*, fenced
+> `hql` blocks with an `id`, a `hidden` flag, and a choice of where output
+> goes, and `hql render` writes the outputs into the page — and the rest, the
+> purity rule, the `hmq` spelling, the templates section, the
+> frontmatter-as-declaration-space direction, is what this side asked of a
+> query language before one was written. Where the two disagree, HQL's
+> documentation is right.
+>
+> What remains on this side is the tooling around cells — the site build and
+> the editor preview rendering them — and that is tracked in
+> [the language tracker](../../status/lang.md), not here. The text below is kept
+> unedited as a record of what was asked, and should not be cited as a
+> specification of anything.
 
 ## Abstract
 
@@ -237,6 +258,8 @@ has to open both files to find out which copy is current.
 
 ## Changelog
 
+- 2026-10-19: superseded. HQL shipped as its own project with its own
+  documentation, and the constraints written here do not describe it.
 - 2026-08-07: drafted as a stub — name, constraints, and open questions
   reserved; no grammar specified.
 - 2026-08-07: fence modes decided — `hmq#eval` evaluates, a bare `hmq` fence

@@ -584,3 +584,18 @@ def test_the_retired_name_is_gone():
         " (HMD-0005). Either fix them, or add the file to"
         " `RETIRED_NAME_ALLOWED` with a reason:\n  " + "\n  ".join(offenders[:20])
     )
+
+
+def test_the_top_bar_reaches_the_sibling_project(built_home):
+    """HQL has its own site, and the tab bar is where this one points at it.
+
+    The href is asserted in the tab bar because the tab is the whole feature:
+    the button styling and the hover animation key on this exact host, in
+    `hmd.css` and `hql.js`, so a retyped URL would leave a plain tab that
+    nothing reports. The script is asserted on the page for the usual reason —
+    a path that is merely set in `mkdocs.yml` proves nothing about what the
+    theme emitted.
+    """
+    tab = re.search(r'<a href="https://hql\.hypermarkdown\.org/"[^>]*>', _tabs(built_home))
+    assert tab is not None, "the top bar no longer reaches hql.hypermarkdown.org"
+    assert 'src="wiki/assets/hql.js"' in built_home, "the HQL tab's script is not on the page"
