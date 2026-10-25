@@ -59,10 +59,10 @@ function envelopeFor(text: string, statuses: string[], markdown: string[]): obje
       hash: c.hash,
       status: statuses[i],
       markdown: markdown[i] ?? "",
-      reports: [],
+      diagnostics: [],
     })),
     document: "",
-    reports: [],
+    diagnostics: [],
   };
 }
 
@@ -119,12 +119,21 @@ describe("running a cell", () => {
 
   it("says why a cell did not run, and writes nothing for it", async () => {
     const envelope = envelopeFor(CARD, ["not-run", "error"], ["", "error: x"]) as {
-      reports: object[];
+      diagnostics: object[];
     };
-    envelope.reports = [{ severity: "error", message: "addition requires two Int" }];
+    envelope.diagnostics = [{ severity: "error", message: "addition requires two Int" }];
     const hql = fakeHql("check", envelope, 1);
     const result = await new HqlEngine({ configuredPath: hql }).run(CARD, dir, 0);
     expect(result.edits).toEqual([]);
+    expect(result.outcomes[0]).toMatchObject({ status: "not-run", reason: "addition requires two Int" });
+  });
+
+  it("reads why from an hql before 0.5, which called its diagnostics reports", async () => {
+    const envelope = envelopeFor(CARD, ["not-run", "error"], ["", "error: x"]) as Record<string, unknown>;
+    delete envelope["diagnostics"];
+    envelope["reports"] = [{ severity: "error", message: "addition requires two Int" }];
+    const hql = fakeHql("old", envelope, 1);
+    const result = await new HqlEngine({ configuredPath: hql }).run(CARD, dir, 0);
     expect(result.outcomes[0]).toMatchObject({ status: "not-run", reason: "addition requires two Int" });
   });
 
@@ -255,5 +264,19 @@ describe.skipIf(HQL_BIN === undefined)("against the real hql", () => {
       encoding: "utf8",
     });
     expect(again).toBe(masked);
+  });
+
+  it("writes a failing cell's error below it", async () => {
+    const vault = join(dir, "vault");
+    mkdirSync(join(vault, ".hmd"), { recursive: true });
+    const text = "```hql#eval id=a\n1 + \"x\"\n```\n";
+    const result = await new HqlEngine({ configuredPath: HQL_BIN! }).run(text, vault, 0);
+    expect(result.outcomes[0]).toMatchObject({ status: "error" });
+    expect(apply(text, result.edits)).toContain("status=error -->\nerror: addition requires");
+  });
+
+  it("says so when the folder it is given is not a vault", async () => {
+    const text = "```hql#eval id=a\n1\n```\n";
+    await expect(new HqlEngine({ configuredPath: HQL_BIN! }).run(text, dir, 0)).rejects.toThrow(/not a vault/);
   });
 });

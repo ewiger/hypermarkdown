@@ -70,12 +70,21 @@ interface EnvelopeCell {
   hash: string;
   status: string;
   markdown: string;
-  reports?: Array<{ severity?: string; message?: string }>;
+  diagnostics?: Diagnostic[];
+  /** Before hql 0.5, which renamed it `diagnostics`. */
+  reports?: Diagnostic[];
 }
 
 interface Envelope {
   cells: EnvelopeCell[];
-  reports?: Array<{ severity?: string; message?: string }>;
+  diagnostics?: Diagnostic[];
+  /** Before hql 0.5, which renamed it `diagnostics`. */
+  reports?: Diagnostic[];
+}
+
+interface Diagnostic {
+  severity?: string;
+  message?: string;
 }
 
 interface Candidate {
@@ -253,7 +262,11 @@ function agree(cells: readonly Cell[], envelope: Envelope): void {
 }
 
 function firstErrorOf(envelope: Envelope): string | null {
-  const all = [...(envelope.reports ?? []), ...envelope.cells.flatMap((c) => c.reports ?? [])];
+  // An `hql` on PATH may predate 0.5, so the old field name is still read.
+  const all = [
+    ...(envelope.diagnostics ?? envelope.reports ?? []),
+    ...envelope.cells.flatMap((c) => c.diagnostics ?? c.reports ?? []),
+  ];
   const error = all.find((r) => r.severity === "error" || r.severity === "failure");
   return error?.message ?? null;
 }

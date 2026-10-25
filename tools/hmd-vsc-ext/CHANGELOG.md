@@ -23,6 +23,23 @@ against
 
 Nothing yet.
 
+## [0.4.2] — 2026-10-26
+
+### Changed
+
+- **The extension carries `hql` 0.5.2**, where it carried 0.4.2, from
+  [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain)
+  0.3.0, on Linux x64 and macOS.
+
+### Fixed
+
+- **A cell that did not run says why again.** HQL 0.5 renamed the run's
+  `reports` to `diagnostics`. The extension reads both, so an older `hql` on
+  `PATH` still works.
+- **A folder that is not a vault is refused with HQL's own reason.** HQL 0.5
+  runs cells only inside a vault, a folder holding `.hmd/` or `hql.toml`. Run
+  in a workspace with neither now reports `not a vault`.
+
 ## [0.4.1] — 2026-10-19
 
 ### Fixed
