@@ -1,27 +1,27 @@
 {
   "$comment": "The one pin for every native binary HyperMarkDown runs — d2, and hql where HQL publishes the platform. See doc/issues/0107 and 0111. Bumping d2 or hql happens in the toolchain repository; here only `version` and the digests move, together, in one commit.",
   "repo": "ewiger/hypermarkdown-toolchain",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "archives": {
     "linux-x86_64": {
-      "name": "hypermarkdown-toolchain-0.2.0-linux-x86_64.tar.gz",
-      "sha256": "069ba27138bb2435568a7b4221e27b9e6bd51064b3c704b1d1001a1d1834dfbc"
+      "name": "hypermarkdown-toolchain-0.3.0-linux-x86_64.tar.gz",
+      "sha256": "b04c55cff80917ba88820efe9ebb0d04f47a2281cd48eadae1e495ef41cfd3bb"
     },
     "linux-arm64": {
-      "name": "hypermarkdown-toolchain-0.2.0-linux-arm64.tar.gz",
-      "sha256": "19b05846fb6c056679ea9831f7798c6d4aa9e850d908526546b4c6ac71a34568"
+      "name": "hypermarkdown-toolchain-0.3.0-linux-arm64.tar.gz",
+      "sha256": "7b4a5cc31e44becba0569d3bf757157269ad7bf1cfc6edd4aacccacf0b19cd7f"
     },
     "macos-x86_64": {
-      "name": "hypermarkdown-toolchain-0.2.0-macos-x86_64.tar.gz",
-      "sha256": "1a2e78f3f7d4e3dbc70c97bfe67e6243777741338593dbb46c2189e2da549557"
+      "name": "hypermarkdown-toolchain-0.3.0-macos-x86_64.tar.gz",
+      "sha256": "05507dbd25dc7f5420007f2fd971cf517ab4eda6726cd5902fdf6b4fe3cc4cd1"
     },
     "macos-arm64": {
-      "name": "hypermarkdown-toolchain-0.2.0-macos-arm64.tar.gz",
-      "sha256": "ee4d491adee9b7ea94e5d0bda3c98668035094a10a854deb38e891ca75de4a33"
+      "name": "hypermarkdown-toolchain-0.3.0-macos-arm64.tar.gz",
+      "sha256": "8bc68a3afc0797429a1bc2a6bcd6692cbc8051301e4eb8a087fc9ca85d127780"
     },
     "windows-x86_64": {
-      "name": "hypermarkdown-toolchain-0.2.0-windows-x86_64.zip",
-      "sha256": "266befdb9290d28ff2daf7b6824964b1f9d69aaa44932acbe445dc96d2ce8a0f"
+      "name": "hypermarkdown-toolchain-0.3.0-windows-x86_64.zip",
+      "sha256": "298a1229efaab4b097e36503febb018a7932a12236e66a7abf3c52aa0d0f3a8c"
     }
   }
 }
