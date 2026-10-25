@@ -596,6 +596,6 @@ def test_the_top_bar_reaches_the_sibling_project(built_home):
     a path that is merely set in `mkdocs.yml` proves nothing about what the
     theme emitted.
     """
-    tab = re.search(r'<a href="https://hql\.hypermarkdown\.org/"[^>]*>', _tabs(built_home))
-    assert tab is not None, "the top bar no longer reaches hql.hypermarkdown.org"
+    tab = re.search(r'<a href="https://hql-lang\.org/"[^>]*>', _tabs(built_home))
+    assert tab is not None, "the top bar no longer reaches hql-lang.org"
     assert 'src="wiki/assets/hql.js"' in built_home, "the HQL tab's script is not on the page"

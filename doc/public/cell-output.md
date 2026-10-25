@@ -1,6 +1,6 @@
 # Cell output
 
-A cell is an [HQL](https://hql.hypermarkdown.org/) query inside a card. Its
+A cell is an [HQL](https://hql-lang.org/) query inside a card. Its
 result is written into the card as Markdown, after the cell. This page lists
 what each kind of value becomes, and how to choose a different format.
 
@@ -154,4 +154,4 @@ with the same names as the steps above. `hql render` writes cells in `hmd`, as
 described on this page.
 
 The HQL documentation covers formats and renderers in full:
-[hql.hypermarkdown.org](https://hql.hypermarkdown.org/).
+[hql-lang.org](https://hql-lang.org/).

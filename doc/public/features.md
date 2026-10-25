@@ -32,7 +32,7 @@
   vault's cards, frontmatter, and links, and over JSON, YAML, and records:
   `filter`, `map`, `sort`, `group`, lexical and semantic search, graph
   traversal. Inside a card it runs as cells whose output replaces the block.
-  Separate project: [hql.hypermarkdown.org](https://hql.hypermarkdown.org/).
+  Separate project: [hql-lang.org](https://hql-lang.org/).
 
 ## A superset of CommonMark
 

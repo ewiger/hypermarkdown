@@ -166,7 +166,7 @@ nav:
       # Not a directory under `tools/`: the query language is a sibling
       # repository with its own site, listed here because a reader looking for
       # the tools around the format should find all of them in one place.
-      - hql — query language: https://hql.hypermarkdown.org/
+      - hql — query language: https://hql-lang.org/
   - Roadmap: public/roadmap.md
   # The sibling project, on its own host. One external tab rather than a page
   # here, for the same reason the tools link out to their READMEs: HQL has its
@@ -174,7 +174,7 @@ nav:
   # styled as a button by `wiki/assets/hmd.css` and animated by
   # `wiki/assets/hql.js`, both keyed on this host — change the URL here and
   # change it there.
-  - HQL: https://hql.hypermarkdown.org/
+  - HQL: https://hql-lang.org/
 
 # The numbered proposals are *internal* specifications: how the tools around the
 # format are built, not what the language is. They used to occupy a

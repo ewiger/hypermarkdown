@@ -42,7 +42,7 @@ this record to exist now, even unbuilt:
   which is what the settled vocabulary says. The chapter was rewritten on
   2026-08-08 to teach the four words apart.
 - **The gap is not hypothetical.** A query over cards already wants to reach
-  into another namespace — [HQL](https://hql.hypermarkdown.org/) exists and reads vaults — with no answer
+  into another namespace — [HQL](https://hql-lang.org/) exists and reads vaults — with no answer
   available because no such namespace has been defined anywhere in the project.
 - **The shape matters as much as the existence.** The obvious precedent for
   cross-project linking is MediaWiki's interwiki namespace — one flat
@@ -263,7 +263,7 @@ trusted without opening both.
 - [HMD-0001](../HMD-0001/README.md) — the module boundary, the namespace root,
   the containment check, and the `import` mechanism this record builds on and
   extends outward.
-- [HQL](https://hql.hypermarkdown.org/) — the query language whose cross-namespace reach this record's
+- [HQL](https://hql-lang.org/) — the query language whose cross-namespace reach this record's
   binding mechanism, once designed, is expected to answer. Its record here,
   [HMD-0003](../HMD-0003/README.md), is superseded by that documentation.
 - [Namespaces](../../public/namespaces.md) — the settled vocabulary for a

@@ -160,7 +160,7 @@ export class HqlEngine {
     const configured = this.options.configuredPath?.trim();
     return configured
       ? `hyperMarkdown.hql.path points at \`${configured}\`, which is not an executable`
-      : "no `hql` found — this build carries none for this platform, and none is on PATH. Install HQL from https://hql.hypermarkdown.org/ or set hyperMarkdown.hql.path";
+      : "no `hql` found — this build carries none for this platform, and none is on PATH. Install HQL from https://hql-lang.org/ or set hyperMarkdown.hql.path";
   }
 
   /**

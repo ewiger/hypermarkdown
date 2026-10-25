@@ -5,12 +5,12 @@
 **2026-10-19 — VS Code extension 0.4.1.** Cards are notebooks. The preview shows
 each HQL cell's saved output, keeps the query behind a **Code** toggle, and runs
 a cell when you press **Run**. The extension brings its own
-[`hql`](https://hql.hypermarkdown.org/) on Linux x64 and macOS; elsewhere, put
+[`hql`](https://hql-lang.org/) on Linux x64 and macOS; elsewhere, put
 `hql` on `PATH`.
 
 **2026-10-19 — HQL 0.4.2.** The query language is released as a separate
 project: `cargo install hql`, release binaries for Linux and macOS,
-documentation at [hql.hypermarkdown.org](https://hql.hypermarkdown.org/). It queries a vault with
+documentation at [hql-lang.org](https://hql-lang.org/). It queries a vault with
 lexical and semantic search and graph traversal, and also JSON and YAML.
 Inside a card it runs as cells; `hql render` writes their output into the
 page.
@@ -50,7 +50,7 @@ Released and out of preview. Installing is the [Quick start](../tools/index.md).
 - **Run HQL cells** in the VS Code preview: see each cell's output, show its
   query, run it. [Cell output](cell-output.md) lists what a cell writes.
 - **Publish** a tree of cards as a site. This one is built that way.
-- **Query** a vault with [HQL](https://hql.hypermarkdown.org/): filter, sort, lexical and semantic
+- **Query** a vault with [HQL](https://hql-lang.org/): filter, sort, lexical and semantic
   search, graph traversal. A separate project.
 
 The specification is a 0.1 draft and will change before 1.0. The documentation
@@ -60,7 +60,7 @@ is being written alongside it.
 
 ### Cards as notebooks
 
-[HQL](https://hql.hypermarkdown.org/) is a statically typed query and data transformation language
+[HQL](https://hql-lang.org/) is a statically typed query and data transformation language
 and a separate project. Inside a `.hmd` file it runs as **cells**: fences
 marked `hql#eval` or `hql#query`. A fence marked plain `hql` is a listing,
 shown as code and never run. `id=<name>` makes a cell's value available to other

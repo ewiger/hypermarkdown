@@ -7,7 +7,7 @@ into a knowledge graph. Every `.md` file is already valid `.hmd`.
 
     - *Tools for HyperMarkDown*: the [Quick start](tools/index.md) is two
       installs — the VS Code-compatible editor extension, then the `hmd` command — and what each one gets you.
-        - *Querying it*: [HQL](https://hql.hypermarkdown.org/) is a typed query language over a vault of
+        - *Querying it*: [HQL](https://hql-lang.org/) is a typed query language over a vault of
       cards, JSON, YAML, and records. A separate project with its own
       documentation.
     - *How to write HyperMarkDown*: [The HMD Tutorial](wiki/hmd-tutorial.hmd) is the whole language in one go — every construct, with its source shown beside what it renders.
@@ -98,7 +98,7 @@ note: "The two upper layers are what HyperMarkDown adds, and a specification is 
   than define it.
 
 * **What ships today is not the whole of it.** The resolver, linter, embed
-    expander, renderer, and MkDocs plugin are released and in use. [HQL](https://hql.hypermarkdown.org/),
+    expander, renderer, and MkDocs plugin are released and in use. [HQL](https://hql-lang.org/),
   the query language, is released as a separate project at major version zero.
   Namespaces beyond one tree are specified in outline and unbuilt; where it is
   all going is the [Roadmap](public/roadmap.md).
@@ -133,7 +133,7 @@ the [HMD Tutorial](wiki/hmd-tutorial.hmd). What that page teaches, the
 Wiki links to documents, headings, and named blocks; transclusion of any of
 them; filesystem-shaped modules with explicit imports; TeX mathematics, D2
 diagrams, callouts, collapsible sections, footnotes, tables, and the GitHub-
-flavoured Markdown baseline. [HQL](https://hql.hypermarkdown.org/), a statically typed query and data
+flavoured Markdown baseline. [HQL](https://hql-lang.org/), a statically typed query and data
 transformation language, is a separate project with its own documentation. It
 queries a vault's cards, frontmatter, and links, and also JSON, YAML, and
 records, with lexical and semantic search and graph traversal. Inside a card
@@ -180,7 +180,7 @@ repository:
 * **[`hql`](https://github.com/ewiger/hql)** — the Hyper Query Language, a
   statically typed query and data transformation language, published on
   [crates.io](https://crates.io/crates/hql) and documented at
-  [hql.hypermarkdown.org](https://hql.hypermarkdown.org/). Pipelines of `filter`, `map`, `sort`,
+  [hql-lang.org](https://hql-lang.org/). Pipelines of `filter`, `map`, `sort`,
   `group`, lexical and semantic search, and graph traversal over a vault's
   cards, frontmatter, and links, and over JSON, YAML, and records. Inside a
   card it runs as cells; `hql render` writes their output into the page.
@@ -247,7 +247,7 @@ still unbuilt, is [Vision](public/vision.md).
 The tools are released and installable, and the specification is at 0.1 and
 still moving. Which version of what is out, what the writing still owes the
 code, and the large features being aimed at next — semantic search over a
-collection of cards through [HQL](https://hql.hypermarkdown.org/), and names
+collection of cards through [HQL](https://hql-lang.org/), and names
 that cross repositories — are the [Roadmap](public/roadmap.md).
 
 The living example is [the wiki](wiki/README.md), generated from `.hmd` cards in

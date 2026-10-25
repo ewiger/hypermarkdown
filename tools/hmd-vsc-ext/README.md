@@ -72,7 +72,7 @@ Requires VS Code 1.90 or newer.
   preview shows the output saved in the card — a table of contents reads as a
   table of contents — with the query behind **Code**, plus **Edit** and **Run**.
   A badge says whether the output came from the code as it stands or is stale.
-  **Run** hands the card to [`hql`](https://hql.hypermarkdown.org/) and writes
+  **Run** hands the card to [`hql`](https://hql-lang.org/) and writes
   the answer back into the card as one undoable edit. Nothing runs when a card
   opens, and nothing runs in an untrusted workspace. An `hql#query` cell is
   `hql#eval hidden`: it computes a value other cells read, and shows nothing. A

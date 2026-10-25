@@ -69,7 +69,7 @@ in where you wrote it, `![[glossary/token#Rotation]]` one section,
 `![[glossary/token#^definition]]` one named block. Write a definition once and
 embed it everywhere it is needed — cards stop being pages and start being parts.
 
-The next step is computed content. [HQL](https://hql.hypermarkdown.org/) cells let a card contain a
+The next step is computed content. [HQL](https://hql-lang.org/) cells let a card contain a
 query whose result is written into the page: every card tagged
 `area/backend`, every card linking here, the three cards closest in meaning to
 a question, a table of contents. HQL is a separate project — a statically

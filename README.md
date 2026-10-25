@@ -86,11 +86,11 @@ diagram.](https://raw.githubusercontent.com/ewiger/hypermarkdown/main/doc/assets
 ### [HQL](https://github.com/ewiger/hql) — the query language, a sibling project
 
 [![crates.io](https://img.shields.io/crates/v/hql.svg?color=e6a700&label=crates.io)](https://crates.io/crates/hql)
-[![Docs](https://img.shields.io/badge/docs-hql.hypermarkdown.org-informational)](https://hql.hypermarkdown.org/)
+[![Docs](https://img.shields.io/badge/docs-hql-lang.org-informational)](https://hql-lang.org/)
 
 The Hyper Query Language: a statically typed query and data transformation
 language, in a separate repository with its own releases and documentation at
-[hql.hypermarkdown.org](https://hql.hypermarkdown.org/). Pipelines of `filter`, `map`, `sort`,
+[hql-lang.org](https://hql-lang.org/). Pipelines of `filter`, `map`, `sort`,
 `group`, lexical and semantic search, and graph traversal over a vault's
 cards, frontmatter, and links, and over JSON, YAML, and records. Inside a card
 it runs as cells; `hql render` writes their output into the page.

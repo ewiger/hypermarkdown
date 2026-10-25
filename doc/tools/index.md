@@ -122,10 +122,10 @@ blank space.
 
 ## 4. Ask questions of it
 
-[HQL](https://hql.hypermarkdown.org/){ .md-button .md-button--primary }
+[HQL](https://hql-lang.org/){ .md-button .md-button--primary }
 [Source on GitHub](https://github.com/ewiger/hql){ .md-button }
 
-[HQL](https://hql.hypermarkdown.org/) is a statically typed query and data transformation language. A
+[HQL](https://hql-lang.org/) is a statically typed query and data transformation language. A
 program is a pipeline: each step takes the previous step's value and returns a
 new one. Steps include `filter`, `map`, `sort`, `group`, lexical and semantic
 search, and graph traversal. Sources are records, lists, JSON, YAML, and a
@@ -183,7 +183,7 @@ hql --vault path/to/your/wiki render reading-list.hmd
 ```
 
 The vault is the same tree `hmd lint` checks. Documentation:
-[hql.hypermarkdown.org](https://hql.hypermarkdown.org/) — introduction, install, a twelve-chapter
+[hql-lang.org](https://hql-lang.org/) — introduction, install, a twelve-chapter
 book, and the reference.
 
 ## Where to go next
@@ -192,7 +192,7 @@ book, and the reference.
   every construct with its source shown beside what it renders.
 - **[The VS Code extension](vscode.md)** — what the preview gives you, and the
   gaps it still has.
-- **[HQL](https://hql.hypermarkdown.org/)** — the query language's own site:
+- **[HQL](https://hql-lang.org/)** — the query language's own site:
   introduction, install, the book, and the reference.
 - **[Presentation](../public/presentation.md)** — the trade-offs between
   rendering a card in an editor, converting it, and publishing a tree of them.

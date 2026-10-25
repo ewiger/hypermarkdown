@@ -13,7 +13,7 @@
 (function () {
   "use strict";
 
-  var HOST = "https://hql.hypermarkdown.org";
+  var HOST = "https://hql-lang.org";
   var FULL = "HyperQueryLanguage";
 
   function mount() {

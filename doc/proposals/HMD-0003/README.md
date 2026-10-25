@@ -2,11 +2,11 @@
 
 **Status**: superseded
 **Created**: 2026-08-07
-**Superseded**: 2026-10-19, by [HQL's own documentation](https://hql.hypermarkdown.org/)
+**Superseded**: 2026-10-19, by [HQL's own documentation](https://hql-lang.org/)
 
 > **This record is superseded.** HQL became its own project, in [its own
 > repository](https://github.com/ewiger/hql) with its own releases, its own book, and its own design
-> wiki at [hql.hypermarkdown.org](https://hql.hypermarkdown.org/). The language that exists is a
+> wiki at [hql-lang.org](https://hql-lang.org/). The language that exists is a
 > statically typed, functional pipeline language with lexical and semantic
 > retrieval and graph traversal over a vault of cards. It was not designed from
 > this record, and this record does not describe it. Some of what is asked

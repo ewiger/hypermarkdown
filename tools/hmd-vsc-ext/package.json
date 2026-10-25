@@ -203,7 +203,7 @@
           "type": "string",
           "default": "",
           "scope": "machine",
-          "markdownDescription": "Absolute path to an `hql` executable to run HQL cells with, overriding the default. Empty uses the `hql` bundled with this build — a pinned [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain) release, on Linux x64 and macOS — falling back to `hql` on `PATH`. Set this only to run cells with a different build of HQL deliberately. A shell alias is not on `PATH`: point this at the binary itself. A path that is not an executable is reported rather than silently ignored. See [HQL](https://hql.hypermarkdown.org/)."
+          "markdownDescription": "Absolute path to an `hql` executable to run HQL cells with, overriding the default. Empty uses the `hql` bundled with this build — a pinned [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain) release, on Linux x64 and macOS — falling back to `hql` on `PATH`. Set this only to run cells with a different build of HQL deliberately. A shell alias is not on `PATH`: point this at the binary itself. A path that is not an executable is reported rather than silently ignored. See [HQL](https://hql-lang.org/)."
         },
         "hyperMarkdown.diagnostics.scope": {
           "type": "string",
