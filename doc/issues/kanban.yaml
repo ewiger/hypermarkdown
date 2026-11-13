@@ -46,9 +46,6 @@ board:
       - id: "0011"
         title: "Vault and namespace: the declared design, HMD, and HQL have drifted apart"
         file: "0011-vault-and-namespace-drift-between-hmd-and-hql.md"
-      - id: "0010"
-        title: "A folder note's Markdown links resolve one directory up"
-        file: "0010-folder-note-links-resolve-one-level-up.md"
       - id: "0105"
         title: "The preview freezes on the card it was opened over"
         file: 0105-preview-does-not-follow-the-active-card.md
@@ -57,6 +54,9 @@ board:
         file: 0100-callout-open-state-lost.md
     doing: []
     done:
+      - id: "0010"
+        title: "A folder note's Markdown links resolve one directory up"
+        file: "0010-folder-note-links-resolve-one-level-up.md"
       - id: "0009"
         title: "A nested vault is swept into the vault around it"
         file: "0009-nested-vault-swept-into-the-outer-one.md"

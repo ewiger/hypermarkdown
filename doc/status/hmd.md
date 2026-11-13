@@ -35,7 +35,7 @@ implementation in [`ts-core.md`](ts-core.md), its editor in
 
 **Complete and released.** Everything the format specifies is implemented —
 grammar, resolution, the sixteen diagnostics, embed expansion, both renderers,
-the site plugin, publication. 308 tests, the shared corpus, three lint runs
+the site plugin, publication. 331 tests, the shared corpus, three lint runs
 over real trees, and a site build stand behind that. `hypermarkdown`
 is on PyPI through a trusted publisher, each tool owns its own README, changelog,
 licence, and guide, and the repository root is a workspace rather than a package.
@@ -63,7 +63,6 @@ commit: the retired domain does not redirect.
 
 | Status | Defect | Symptom | References |
 | --- | --- | --- | --- |
-| todo | **A folder note's Markdown links resolve one directory up.** The plugin registers `a/b/index.hmd` as the page `a/b.md`, and rewrites its wikilinks for that place but not its ordinary relative links | A link with code in its text, which cannot be a wikilink, lands on a source file or outside the docs on the built site. A prompt for the fix sits beside the issue | issue 0010 |
 | blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme | Every link published under the old host is dead. The fix is a web form, not a commit | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
 
 ## Limitations (known gaps)
@@ -72,6 +71,7 @@ commit: the retired domain does not redirect.
 | --- | --- | --- |
 | The workspace index reads every card from disk and cannot be handed an editor's unsaved buffer | Being fixed — it is the first open item above. Worth knowing that it is one layer, not a rewrite: the functions beneath it already take text | [[hmd-0024#text-not-paths]] |
 | The TypeScript implementation solved that years earlier in project time, and this one did not | Not a defect, an asymmetry: that one reads through an injectable port because it had to. This one never had a caller that needed it | [[hmd-0020#6-resolver]] |
+| An ordinary relative Markdown link inside embedded content is resolved from the page that embeds it, not from the card it was written in | Expansion is textual and carries wikilinks back to their card, but an ordinary link is plain text to it. It is right when host and target share a directory and wrong otherwise. Found while fixing folder notes, and not changed by that fix | [[hmd-0001#6-embed-expansion]] |
 | The source archive does not ship the example vaults, so linting them does not work from an unpacked archive | The examples are repository fixtures that both implementations lint, with exactly one copy at the root. Carrying them into the package would mean a duplicate tree | [[hmd-0024#where-tests-live-and-what-they-answer-for]] |
 | The same gate commands are written in the repository guide and in each tool's guide | The cost of per-tool guides, which removed a worse problem: one guide describing tools it did not live beside. Each tool's guide is authoritative for its own commands; nothing enforces the duplication, and a stale command is a silent defect | [[hmd-0024#a-tools-front-matter-is-its-own]] |
 | Installing under the retired name keeps installing the last release published under it, forever, and the retired plugin key survives as an alias | PyPI has no rename. The alias appears in site configs this project does not own, where removing it is a hard build failure whose cause is invisible to the site's author | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
@@ -107,6 +107,11 @@ commit: the retired domain does not redirect.
   own `.hmd/` is skipped when the workspace loads, so linting, the graph,
   rendering, and the site see none of its cards, and an import into it is
   HMD015. Ships in 0.3.1 [issue 0009]
+- **A folder note's ordinary links land on the built site** — the plugin
+  registers a folder note one directory above its file, and now resolves every
+  relative Markdown link in it from the file's own directory before rewriting
+  it for the registered page: links to cards, to plain pages, and to images,
+  inline and as reference definitions. Ships in 0.3.1 [issue 0010]
 - **The shared corpus runs here too** — every conformance case is checked
   against this implementation as well as the TypeScript one, so drift is caught
   whichever side moves.
