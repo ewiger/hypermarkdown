@@ -357,16 +357,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          version="${GITHUB_REF_NAME#vsc-ext-v}"
-          python3 -c "
-          import pathlib, re
-          text = pathlib.Path('tools/hmd-vsc-ext/CHANGELOG.md').read_text()
-          section = re.search(
-              r'^## \[$version\][^\n]*\n(.*?)(?=^## |\Z)', text, re.S | re.M
-          )
-          pathlib.Path('notes.md').write_text((section.group(1) if section else '').strip())
-          " || true
-          [ -s notes.md ] || echo "See tools/hmd-vsc-ext/CHANGELOG.md for what changed." > notes.md
+          # Title, Latest flag, and body all follow scripts/release.py, the one
+          # place the repository's release rules live.
+          python3 scripts/release.py notes "$GITHUB_REF_NAME" > notes.md
           gh release create "$GITHUB_REF_NAME" vsix/*.vsix \
-            --title "hypermarkdown.hmd $version" \
+            --title "$(python3 scripts/release.py title "$GITHUB_REF_NAME")" \
+            --latest="$(python3 scripts/release.py latest "$GITHUB_REF_NAME")" \
             --notes-file notes.md

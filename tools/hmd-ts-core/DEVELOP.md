@@ -125,7 +125,9 @@ git push origin ts-core-v0.1.0
 
 [`release-ts-core.yml`](../../.github/workflows/release-ts-core.yml) runs the
 gates, checks the tag against `package.json`, packs **one** tarball, and
-publishes that file — packing twice would ship bytes no gate ran against.
+publishes that file — packing twice would ship bytes no gate ran against. The
+GitHub release it cuts follows the repository's release rules
+([how a release reads](../../DEVELOP.md#how-a-release-reads)).
 
 **The first version was published by hand, on 2026-08-10**, and that is the
 only version that ever will be: npm configures trusted publishing per package
