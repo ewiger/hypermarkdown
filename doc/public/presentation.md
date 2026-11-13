@@ -177,7 +177,7 @@ This viewer erases the embed boundary, the same way conversion does. On a
 published page, content that came from another card is simply part of the page.
 For a site that is the correct answer.
 
-### The editor — live preview
+### The editor — real-time preview
 
 The other viewer is a VS Code extension: a TypeScript document model
 ([`tools/hmd-ts-core`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-ts-core),

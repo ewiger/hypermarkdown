@@ -10,9 +10,9 @@
 
 </div>
 
-Live preview for [HyperMarkDown](https://hypermarkdown.org/) (`.hmd`)
-knowledge bases: source on the left, the rendered card on the right, keeping up
-as you type.
+An editor for [HyperMarkDown](https://hypermarkdown.org/) (`.hmd`)
+knowledge bases, with real-time preview: source on the left, the rendered card
+on the right, keeping up as you type.
 
 ![The extension previewing a card: source on the left, rendered card on the
 right, with resolved links, a table, a callout, and a d2 diagram.](https://raw.githubusercontent.com/ewiger/hypermarkdown/main/doc/assets/hmd-vsc-ext-screenshot-1.png)

@@ -240,17 +240,19 @@ disagree, this one defines the answer. It will also host the language server.
 A second implementation of the format, not extension code. It answers to the
 same [conformance corpus](examples/conformance/) the canonical tool does.
 
-### [VS Code extension](tools/hmd-vsc-ext/) — live preview for `.hmd`
+### [VS Code extension](tools/hmd-vsc-ext/) — an editor for `.hmd` with real-time preview
 
 [![Open VSX](https://img.shields.io/open-vsx/v/hypermarkdown/hmd?color=c160ef&label=open%20vsx)](https://open-vsx.org/extension/hypermarkdown/hmd)
 [![VS Marketplace](https://img.shields.io/badge/marketplace-hypermarkdown.hmd-007acc?logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.90-007acc)](https://hypermarkdown.org/tools/vscode/)
 [![Changelog](https://img.shields.io/badge/changelog-tools%2Fhmd--vsc--ext-informational)](tools/hmd-vsc-ext/CHANGELOG.md)
 
-Live preview that keeps the embed boundary visible, a graph of the vault, red
-links, and diagnostics. Today it is the preview and the viewer, rendered in TypeScript, so
-there is nothing to install to see a card. Completion and the rest of the
-language-server features arrive with the Python server.
+A full editor for `.hmd`: syntax highlighting, a preview that renders the
+unsaved buffer as you type and keeps the embed boundary visible, a graph of the
+vault, red links with a create-the-card action, diagnostics, and HQL cells you
+can edit and run as a notebook. Rendering is in TypeScript, so there is nothing
+to install to see a card. Completion and the rest of the language-server
+features arrive with the Python server.
 
 Install from the [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd)
 in VS Code, or from [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd)
