@@ -265,12 +265,12 @@ ext install hypermarkdown.hmd
 the right, with resolved links, a table, a callout, and a d2
 diagram.](https://raw.githubusercontent.com/ewiger/hypermarkdown/main/doc/assets/hmd-vsc-ext-screenshot-1.png)
 
-### [HQL](https://github.com/ewiger/hql) — the query language, a sibling project
+### [HQL](https://github.com/ewiger/hql) — the Hyper Query Language
 
 [![crates.io](https://img.shields.io/crates/v/hql.svg?color=e6a700&label=crates.io)](https://crates.io/crates/hql)
-[![Docs](https://img.shields.io/badge/docs-hql-lang.org-informational)](https://hql-lang.org/)
+[![Docs](https://img.shields.io/badge/docs-hql--lang.org-informational)](https://hql-lang.org/)
 
-The Hyper Query Language: a strongly typed expression and query language, in a separate repository with its own releases and documentation at
+A strongly typed expression and query language, in a separate repository with its own releases and documentation at
 [hql-lang.org](https://hql-lang.org/). Pipelines of `filter`, `map`, `sort`,
 `group`, lexical and semantic search, and graph traversal over a vault's
 cards, frontmatter, and links, and over JSON, YAML, and records. Inside a card
