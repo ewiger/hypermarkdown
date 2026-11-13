@@ -35,7 +35,7 @@ implementation in [`ts-core.md`](ts-core.md), its editor in
 
 **Complete and released.** Everything the format specifies is implemented —
 grammar, resolution, the sixteen diagnostics, embed expansion, both renderers,
-the site plugin, publication. 308 tests, the shared corpus, three lint runs
+the site plugin, publication. 331 tests, the shared corpus, three lint runs
 over real trees, and a site build stand behind that. `hypermarkdown`
 is on PyPI through a trusted publisher, each tool owns its own README, changelog,
 licence, and guide, and the repository root is a workspace rather than a package.
@@ -63,7 +63,7 @@ commit: the retired domain does not redirect.
 
 | Status | Defect | Symptom | References |
 | --- | --- | --- | --- |
-| todo | **A folder note's Markdown links resolve one directory up.** The plugin registers `a/b/index.hmd` as the page `a/b.md`, and rewrites its wikilinks for that place but not its ordinary relative links | A link with code in its text, which cannot be a wikilink, lands on a source file or outside the docs on the built site. A prompt for the fix sits beside the issue | issue 0010 |
+| todo | **An embedded card's Markdown links resolve from the host page.** Expansion is textual and carries a wikilink back to the card it was written in, but an ordinary relative link is plain text to it and is resolved from the page that embeds it | A link, an image, or a path to a card written in an embedded card is wrong on every host in another directory, on the site and in `hmd render`. MkDocs reports it at `info` only, so a strict build stays green | [the issue card](../issues/0012-embedded-markdown-links-resolve-from-the-host-page.md), [[hmd-0001#6-embed-expansion]] |
 | blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme | Every link published under the old host is dead. The fix is a web form, not a commit | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
 
 ## Limitations (known gaps)
@@ -107,6 +107,11 @@ commit: the retired domain does not redirect.
   own `.hmd/` is skipped when the workspace loads, so linting, the graph,
   rendering, and the site see none of its cards, and an import into it is
   HMD015. Ships in 0.3.1 [issue 0009]
+- **A folder note's ordinary links land on the built site** — the plugin
+  registers a folder note one directory above its file, and now resolves every
+  relative Markdown link in it from the file's own directory before rewriting
+  it for the registered page: links to cards, to plain pages, and to images,
+  inline and as reference definitions. Ships in 0.3.1 [issue 0010]
 - **The shared corpus runs here too** — every conformance case is checked
   against this implementation as well as the TypeScript one, so drift is caught
   whichever side moves.

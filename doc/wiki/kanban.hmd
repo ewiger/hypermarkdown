@@ -5,6 +5,7 @@ of numbered **issues** currently in flight. It is distinct from proposals under
 `doc/proposals/`, which record *decisions* rather than the work that carries them
 out. Each issue is one flat Markdown file named `NNNN-slug.md`
 (`0001-first-issue.md`); the folder stays flat, with no per-topic subfolders.
+The one subfolder is `archive/`, which holds the issues that are done.
 
 ## The index is `kanban.yaml`
 
@@ -48,10 +49,10 @@ Top to bottom is the flow of work:
 
 ## Archiving
 
-When an issue is **done** and no longer relevant, move its file to
-`.grem/issues/archive/` and delete its card from `kanban.yaml`. That destination
-sits under the already-ignored `.grem/` control folder, so finished work leaves
-ordinary agent context without a separate ignore list.
+When an issue is **done**, move its file to `doc/issues/archive/` and point its
+card's `file` in `kanban.yaml` at the new path (`archive/0001-first-issue.md`).
+The card stays in the **done** column. A prompt file that belongs to the issue
+moves with it.
 
 ## Place in the knowledge base
 

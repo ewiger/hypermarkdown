@@ -12,7 +12,7 @@ A vault is a directory tree carrying `.hmd/`, and vaults nest. Discovery already
 honours that: walking up from a card stops at the nearest `.hmd/`, in `hmd`
 (`config.find_project_root`) and in the extension's catalog alike, and the
 decision that nothing resolves across a boundary is on record
-([decisions](../memory/decisions.md), the section on a window holding a catalog
+([decisions](../../memory/decisions.md), the section on a window holding a catalog
 of vaults).
 
 Loading does not. When `Workspace` is built for an outer root, it collects every
@@ -57,7 +57,7 @@ itself is exempt, since every vault carries its own marker.
   in both resolves in the outer vault without HMD002, and the nested cards are
   absent from `hmd graph`.
 - The specification's project-configuration section in
-  [hmd-lang-spec](../wiki/hmd-lang-spec.hmd) states that `.hmd/` marks the
+  [hmd-lang-spec](../../wiki/hmd-lang-spec.hmd) states that `.hmd/` marks the
   root. It should also state that a marker below the root ends the vault there.
 
 ## Not in scope

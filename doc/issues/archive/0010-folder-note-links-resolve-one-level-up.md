@@ -1,6 +1,6 @@
 # 0010 — A folder note's Markdown links resolve one directory up
 
-**Column**: todo
+**Column**: done
 **Opened**: 2026-11-13
 **Found by**: building the HQL site from cards, where every chapter folder of
 the book has an `index.hmd`

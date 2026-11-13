@@ -3,8 +3,8 @@
 # board.items holds the columns (swimlanes); top to bottom is the flow. Each
 # column is an ordered list of issue cards, highest priority first. Move a card
 # between columns as work progresses, and bump last_id when adding an issue.
-# When an issue is Done and no longer relevant, archive its file to
-# .grem/issues/archive/ and delete its card here.
+# When an issue is Done, archive it: move its file to doc/issues/archive/ and
+# point its card's `file` there; the card stays in the done column.
 #
 # Convention: doc/wiki/kanban.hmd
 #
@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0012, the editor line's is 0113.
-  last_id: 112 # highest assigned overall; per stream — Python 11, editor 112
+  # the Python line's next issue is 0013, the editor line's is 0114.
+  last_id: 113 # highest assigned overall; per stream — Python 12, editor 113
   items:
     backlog:
       - id: "0008"
@@ -46,9 +46,12 @@ board:
       - id: "0011"
         title: "Vault and namespace: the declared design, HMD, and HQL have drifted apart"
         file: "0011-vault-and-namespace-drift-between-hmd-and-hql.md"
-      - id: "0010"
-        title: "A folder note's Markdown links resolve one directory up"
-        file: "0010-folder-note-links-resolve-one-level-up.md"
+      - id: "0012"
+        title: "An embedded card's Markdown links resolve from the host page"
+        file: "0012-embedded-markdown-links-resolve-from-the-host-page.md"
+      - id: "0113"
+        title: "A relative image in a card is not shown in the preview"
+        file: 0113-relative-images-do-not-show-in-the-preview.md
       - id: "0105"
         title: "The preview freezes on the card it was opened over"
         file: 0105-preview-does-not-follow-the-active-card.md
@@ -57,48 +60,51 @@ board:
         file: 0100-callout-open-state-lost.md
     doing: []
     done:
+      - id: "0010"
+        title: "A folder note's Markdown links resolve one directory up"
+        file: "archive/0010-folder-note-links-resolve-one-level-up.md"
       - id: "0009"
         title: "A nested vault is swept into the vault around it"
-        file: "0009-nested-vault-swept-into-the-outer-one.md"
+        file: "archive/0009-nested-vault-swept-into-the-outer-one.md"
       - id: "0112"
         title: "A plain Markdown link in the preview does nothing"
-        file: 0112-plain-markdown-links-do-nothing.md
+        file: "archive/0112-plain-markdown-links-do-nothing.md"
       - id: "0111"
         title: "Run needs `hql` installed by hand"
-        file: 0111-hql-from-the-toolchain.md
+        file: "archive/0111-hql-from-the-toolchain.md"
       - id: "0110"
         title: "HQL cells show as code, and their saved output shows its markers"
-        file: 0110-cards-as-notebooks.md
+        file: "archive/0110-cards-as-notebooks.md"
       - id: "0109"
         title: "The preview shows what links here, but never the shape of the vault"
-        file: 0109-the-graph-tab.md
+        file: "archive/0109-the-graph-tab.md"
       - id: "0108"
         title: "One editor root folder should hold several HMD vaults"
-        file: 0108-vault-root-discovery-per-card.md
+        file: "archive/0108-vault-root-discovery-per-card.md"
       - id: "0107"
         title: "Native binaries want a toolchain repository with d2"
-        file: "0107-toolchain-repository-for-native-binaries.md"
+        file: "archive/0107-toolchain-repository-for-native-binaries.md"
       - id: "0006"
         title: "Escaped pipe inside a table code span keeps its backslash"
-        file: "0006-escaped-pipe-in-a-table-code-span.md"
+        file: "archive/0006-escaped-pipe-in-a-table-code-span.md"
       - id: "0005"
         title: "Strikethrough renders as its own source"
-        file: "0005-strikethrough-shown-as-its-own-source.md"
+        file: "archive/0005-strikethrough-shown-as-its-own-source.md"
       - id: "0004"
         title: "Math, callouts, and D2 diagrams"
-        file: "0004-math-callouts-diagrams.md"
+        file: "archive/0004-math-callouts-diagrams.md"
       - id: "0003"
         title: "Pygments 2.20 silently breaks every code block"
-        file: "0003-pygments-220-breaks-code-blocks.md"
+        file: "archive/0003-pygments-220-breaks-code-blocks.md"
       - id: "0002"
         title: "Markdown links to .hmd files 404 on the site"
-        file: "0002-md-links-to-cards-404.md"
+        file: "archive/0002-md-links-to-cards-404.md"
       - id: "0001"
         title: "Book and wiki in one site"
-        file: "0001-book-and-wiki-in-one-site.md"
+        file: "archive/0001-book-and-wiki-in-one-site.md"
       - id: "0103"
         title: "The preview is a side-bar view when it wants to be a tab in a column"
-        file: 0103-preview-lives-in-an-editor-column.md
+        file: "archive/0103-preview-lives-in-an-editor-column.md"
       - id: "0104"
         title: "The extension has no logo, and the project already has one"
-        file: 0104-the-bolt-is-the-extension-logo.md
+        file: "archive/0104-the-bolt-is-the-extension-logo.md"

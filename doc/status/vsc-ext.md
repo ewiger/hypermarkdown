@@ -66,7 +66,9 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Broken
 
-Nothing known.
+| Status | Defect | Symptom | References |
+| --- | --- | --- | --- |
+| todo | **A relative image in a card is not shown in the preview.** The rendered HTML keeps the image path as written, nothing rewrites it to a webview resource, and the webview is allowed to load files from the extension's own `media` folder only | `![chart](chart.png)` shows a broken image in every card, where the built site shows the picture. Found by reading the code while checking folder notes, and not yet reproduced in a running editor. Ordinary links are not affected: a click resolves from the card's own folder, a folder note included | [the issue card](../issues/0113-relative-images-do-not-show-in-the-preview.md) |
 
 ## Limitations (known gaps)
 
