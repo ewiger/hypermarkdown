@@ -75,6 +75,11 @@ nothing is wrong yet, only unstated.
   above without recursion, nearest winning, with a whole-tree sweep only if that
   finds nothing and two matches in the sweep an error rather than a tie-break.
   Folder notes bind to their directory's name; both import forms are specified.
+- **A nested marker ends the namespace** — a directory below the namespace root
+  carrying its own `.hmd/` is another project's root, and nothing beneath it is
+  a page, a resolution candidate, or an import target of the outer namespace.
+  Discovery already stopped at the nearest marker; the specification now says
+  the same about loading [issue 0009].
 - **Frontmatter** — four reserved keys, closed, each validated rather than
   coerced.
 - **Diagnostics** — seventeen rules with stable identifiers, severities, and

@@ -13,11 +13,11 @@ implementation in [`hmd.md`](hmd.md), the editor that embeds this one in
 
 ## Status
 
-**Released on npm at `0.1.1`, complete for everything except the card
+**Released on npm at `0.2.0`, complete for everything except the card
 publication model, and agreeing with the canonical implementation byte for byte
 on everything it implements.** Cards parse,
 resolve, expand, and render; all sixteen diagnostics are there; callouts, math,
-and D2 diagrams work. 107 tests, and the agreement is checked by linting three
+and D2 diagrams work. 144 tests, and the agreement is checked by linting three
 real trees — the wiki and two example vaults — against the canonical linter and
 comparing the output exactly.
 
@@ -73,8 +73,13 @@ canonical side warns and this one stays silent.
   Markdown with their markers gone, orphan outputs drawn without markers, and
   the edit that writes one output back; `hql#query` is a hidden cell, and the
   mask carries that and the listing rule to HQL [[hmd-0026]].
-- **Released** — `0.1.0` and `0.1.1` on npm as `@hypermarkdown/core`, tagged
-  `ts-core-v0.1.1`. The first version was published by hand, because npm
+- **A nested vault is its own vault** — loading does not descend into a
+  directory below the root that carries its own `.hmd/`, an incremental add of
+  a card beneath one is ignored, and an import into one is HMD015, matching the
+  canonical implementation. `inNestedVault` lets a host skip such a card before
+  parsing it. Ships in `0.2.0`, with a shared corpus case [issue 0009]
+- **Released** — `0.1.0`, `0.1.1`, and `0.2.0` on npm as `@hypermarkdown/core`,
+  tagged `ts-core-vX.Y.Z`. The first version was published by hand, because npm
   configures trusted publishing per package and a package must exist before it
   can be configured; every version since goes out from `release-ts-core.yml`
   with provenance and no stored credential.

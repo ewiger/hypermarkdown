@@ -43,13 +43,15 @@ leaks into the contract.
 | `indented-not-code` | An indented `[[link]]` is found; fenced, commented, and code-span links are not |
 | `imports-alias` | `import … as` binds the alias; heading and block fragments check |
 | `embed-cycle` | A two-card embed cycle is HMD007 |
+| `nested-vault` | A directory carrying its own `.hmd/` is another vault: none of its cards load, so a name it shares is not HMD002 |
 
 ## Runners
 
 - **TypeScript** — `tools/hmd-ts-core/test/corpus.test.ts`, part of
   `npm run -w @hypermarkdown/core test`.
-- **Python** — not yet written. It belongs in `tools/hmd/tests/`, beside the
-  implementation it would check, and is unclaimed rather than blocked.
+- **Python** — `tools/hmd/tests/test_conformance.py`, part of
+  `uv run python -m pytest`. A case's `config.toml` is copied in as the tree's
+  `.hmd/config.toml`; a marker further down the tree is part of the case.
 
 ## The ledger
 

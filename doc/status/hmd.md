@@ -35,8 +35,8 @@ implementation in [`ts-core.md`](ts-core.md), its editor in
 
 **Complete and released.** Everything the format specifies is implemented —
 grammar, resolution, the sixteen diagnostics, embed expansion, both renderers,
-the site plugin, publication — and nothing is known broken. 236 tests, three
-lint runs over real trees, and a site build stand behind that. `hypermarkdown`
+the site plugin, publication. 308 tests, the shared corpus, three lint runs
+over real trees, and a site build stand behind that. `hypermarkdown`
 is on PyPI through a trusted publisher, each tool owns its own README, changelog,
 licence, and guide, and the repository root is a workspace rather than a package.
 
@@ -45,10 +45,6 @@ thing it needs is the ability to lint text an editor holds in memory rather than
 what is on disk, and that turns out to be a patch to a single class, because
 every layer beneath it already takes text rather than a path.
 
-**One thing is enforced in the wrong direction.** The corpus of cases that keeps
-the two implementations honest is run only by the TypeScript side, so drift is
-caught when the newer implementation moves and not when this one does.
-
 Outside the repository, one thing remains broken and cannot be fixed by a
 commit: the retired domain does not redirect.
 
@@ -56,7 +52,6 @@ commit: the retired domain does not redirect.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **Run the shared corpus here too.** The cases exist and the other implementation runs them; until this one does, the agreement between them is checked in one direction only, and the comparison suite is doing the real work by shelling out to this linter | Nothing blocks it | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
 | todo | **Lint text, not just files.** Let a caller hand the workspace index the current contents of a card, consulted ahead of any read. Every layer below already takes text — the gap is exactly the one class that walks the tree and reads each card | First half of what the language server needs | [[hmd-0024#text-not-paths]] |
 | todo | **Invalidate one card at a time**, instead of loading the whole tree once when the index is built | Second half. Follows the change above | [[hmd-0024#text-not-paths]] |
 | todo | **A determinism test** — the same tree linted twice, and with its files created in a different order, producing identical output. The format leans on this without anything checking it | Nothing blocks it | [[hmd-0020#11-determinism-and-resource-bounds]] |
@@ -68,7 +63,6 @@ commit: the retired domain does not redirect.
 
 | Status | Defect | Symptom | References |
 | --- | --- | --- | --- |
-| todo | **A nested vault is swept into the vault around it.** `Workspace` loads every card below the root, including those under a directory carrying its own `.hmd/`, though discovery stops at the nearest marker | Linting an outer vault reports false HMD002 and HMD001 for names and absolute links that belong to the inner one, and a site rooted at the outer vault would publish the inner one's pages. Same defect in the TypeScript core; a prompt for the fix sits beside the issue | issue 0009 |
 | todo | **A folder note's Markdown links resolve one directory up.** The plugin registers `a/b/index.hmd` as the page `a/b.md`, and rewrites its wikilinks for that place but not its ordinary relative links | A link with code in its text, which cannot be a wikilink, lands on a source file or outside the docs on the built site. A prompt for the fix sits beside the issue | issue 0010 |
 | blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme | Every link published under the old host is dead. The fix is a web form, not a commit | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
 
@@ -109,6 +103,13 @@ commit: the retired domain does not redirect.
   front matter with no packaging symlinks, the shared corpus at the root where
   it belongs to every implementation, and a workspace root that is not itself a
   package.
+- **A nested vault is its own vault** — a directory below the root carrying its
+  own `.hmd/` is skipped when the workspace loads, so linting, the graph,
+  rendering, and the site see none of its cards, and an import into it is
+  HMD015. Ships in 0.3.1 [issue 0009]
+- **The shared corpus runs here too** — every conformance case is checked
+  against this implementation as well as the TypeScript one, so drift is caught
+  whichever side moves.
 
 ## Gates
 

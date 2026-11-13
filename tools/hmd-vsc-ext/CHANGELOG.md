@@ -23,6 +23,20 @@ against
 
 Nothing yet.
 
+## [0.4.4] — 2026-11-13
+
+### Fixed
+
+- **A vault nested inside another is its own vault in the editor too.** A
+  directory carrying its own `.hmd/` inside an indexed vault used to be swept
+  into it: the outer vault's diagnostics reported false ambiguities for names
+  the inner vault also used, flagged the inner vault's absolute links as
+  unresolved, and claimed the inner cards for itself, so opening one never
+  discovered the vault it belonged to. The outer vault now skips the nested
+  one on load, on file changes, and on edits, and opening an inner card
+  indexes the inner vault. Adding or removing a `.hmd/` directory while the
+  window is open still needs **Rebuild Index**.
+
 ## [0.4.3] — 2026-11-13
 
 ### Changed
@@ -282,7 +296,10 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.1...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.4...HEAD
+[0.4.4]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.3...vsc-ext-v0.4.4
+[0.4.3]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.2...vsc-ext-v0.4.3
+[0.4.2]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.1...vsc-ext-v0.4.2
 [0.4.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.0...vsc-ext-v0.4.1
 [0.4.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.3.0...vsc-ext-v0.4.0
 [0.3.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.2.0...vsc-ext-v0.3.0

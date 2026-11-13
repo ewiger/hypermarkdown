@@ -40,6 +40,18 @@ The first version of the language: the six constructs, resolution, the severitie
 and the publication model. Still `drafted`, which is what the `0.x` means — a
 construct may still change before `1.0`.
 
+### 2026-11-13
+
+#### Changed
+
+- **A nested `.hmd/` ends the namespace there.** A directory below the
+  namespace root that carries its own marker is another project's root, and
+  nothing in its subtree is part of the outer namespace: no page, no resolution
+  candidate, no import target. Discovery already stopped at the nearest marker
+  when walking up from a card; the specification now says the same about
+  loading, so a card belongs to exactly one namespace whichever root a tool is
+  handed. References still do not cross the boundary in either direction.
+
 ### 2026-10-19
 
 #### Changed

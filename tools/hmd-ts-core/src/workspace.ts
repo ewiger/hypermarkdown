@@ -9,6 +9,7 @@
  * previously red, and can never change what an already-working link means.
  */
 
+import { MARKER_DIR } from "./config.js";
 import type { WorkspaceHost } from "./host.js";
 import type { ImportStmt, ParsedDocument } from "./model.js";
 import { parse } from "./parse.js";
@@ -74,6 +75,8 @@ export class Workspace {
   private readonly pageList: string[] = [];
   private readonly byParts = new Map<string, string[]>();
   private readonly directories = new Set<string>([""]);
+  /** Roots of the vaults nested below this one; their cards are not ours. */
+  private readonly nestedRoots = new Set<string>();
   private readonly importTables = new Map<string, ImportTable>();
   private readonly resolveCache = new Map<string, Resolution>();
 
@@ -90,8 +93,15 @@ export class Workspace {
     const paths: string[] = [];
 
     const walk = async (dir: string): Promise<void> => {
-      workspace.directories.add(dir);
       const entries = await host.listDirectory(dir);
+      // A directory below the root that carries its own marker is another
+      // vault: none of it belongs to this one. The root's own marker does not
+      // count, since every vault has one.
+      if (dir !== "" && entries.some((e) => e.isDirectory && e.name === MARKER_DIR)) {
+        workspace.nestedRoots.add(dir);
+        return;
+      }
+      workspace.directories.add(dir);
       // Sorted before use: depending on host iteration order would make
       // resolution vary by platform, which is determinism's first casualty.
       entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
@@ -113,8 +123,26 @@ export class Workspace {
     return workspace;
   }
 
-  /** Add or replace one card. Used by `load` and by incremental updates. */
+  /**
+   * Whether `rel` is a nested vault's root or lies beneath one.
+   *
+   * Hosts that feed cards incrementally (a file watcher, an open editor) ask
+   * this before parsing, so a card of the inner vault never reaches the outer.
+   */
+  inNestedVault(rel: string): boolean {
+    for (const nested of this.nestedRoots) {
+      if (rel === nested || rel.startsWith(`${nested}/`)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Add or replace one card. Used by `load` and by incremental updates.
+   *
+   * A card inside a nested vault is ignored: it belongs to that vault.
+   */
   addDocument(rel: string, document: ParsedDocument): void {
+    if (this.inNestedVault(rel)) return;
     const isNew = !this.documents.has(rel);
     this.documents.set(rel, document);
     if (isNew) {

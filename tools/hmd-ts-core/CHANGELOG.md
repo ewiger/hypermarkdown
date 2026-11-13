@@ -21,6 +21,8 @@ point in
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-11-13
+
 ### Added
 
 - **HQL cells.** `CellBlock` joins the IR, which moves to version 3. A
@@ -30,6 +32,15 @@ point in
   `scanCells`, `maskForHql` and `outputEdit`
   find cells by HQL's own rule, compute the hash HQL computes, and write an
   output back in the bytes `hql render` writes.
+
+### Fixed
+
+- **A nested vault is no longer swept into the vault around it.** A directory
+  below the namespace root that carries its own `.hmd/` is another vault:
+  `Workspace.load` does not descend into it, `addDocument` ignores a card
+  beneath it, and an import naming a directory inside it is HMD015. The new
+  `inNestedVault(rel)` lets a host that feeds cards incrementally skip them
+  before parsing. Parity with `hypermarkdown` 0.3.1.
 
 ## [0.1.1] — 2026-08-10
 
@@ -110,6 +121,7 @@ character; and math is typeset by KaTeX rather than by the site's MathJax.
 - This package carries its own README, changelog, and license, rather than
   borrowing the repository's.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.1.1...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.2.0...HEAD
+[0.2.0]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.1.1...ts-core-v0.2.0
 [0.1.1]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.1.0...ts-core-v0.1.1
 [0.1.0]: https://github.com/ewiger/hypermarkdown/releases/tag/ts-core-v0.1.0

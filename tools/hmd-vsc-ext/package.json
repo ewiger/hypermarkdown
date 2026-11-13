@@ -2,7 +2,7 @@
   "name": "hmd",
   "displayName": "HyperMarkDown",
   "description": "Live preview, embeds, a graph of the vault, and diagnostics for HyperMarkDown (.hmd) knowledge bases.",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "license": "MIT",
   "icon": "media/logo.png",
   "publisher": "hypermarkdown",
@@ -231,7 +231,7 @@
     "package": "npm run build && node ../../scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain && vsce package --no-dependencies"
   },
   "dependencies": {
-    "@hypermarkdown/core": "^0.1.0",
+    "@hypermarkdown/core": "^0.2.0",
     "cytoscape": "^3.34.3"
   },
   "devDependencies": {
