@@ -200,15 +200,17 @@ neither can be done from a commit:
 The format's contract between implementations is the language-neutral corpus at
 [`examples/conformance/cases/`](../../examples/conformance/), whose
 `expected.json` files are
-generated from this implementation and never written by hand. Today only the
-TypeScript side runs the corpus, and its `test/parity.test.ts` shells out to
-`hmd lint --format json` and requires byte-identical diagnostics on
-`examples/small`, `examples/cs-alg-sorting`, and `doc/wiki`.
+generated from this implementation and never written by hand. Both sides run
+the corpus: `tests/test_conformance.py` here, so a change in canonical behaviour
+shows up as a diff against what this implementation once wrote, and
+`test/corpus.test.ts` in the TypeScript core. The TypeScript side's
+`test/parity.test.ts` also shells out to `hmd lint --format json` and requires
+byte-identical diagnostics on `examples/small`, `examples/cs-alg-sorting`, and
+`doc/wiki`.
 
 So a change here can break a gate in another tool's suite, in a direction this
 tool's own tests cannot see. When you change resolution behaviour, a rule ID, or
 a message, regenerate the affected cases and expect the ledger at
 [`tools/hmd-ts-core/conformance-xfail.json`](../hmd-ts-core/conformance-xfail.json)
 to need an entry — a divergence that is written down is fine, and a silent one is
-not. A Python runner for the corpus, which would enforce the contract in both
-directions, is specified and unwritten.
+not.

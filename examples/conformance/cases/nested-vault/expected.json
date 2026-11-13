@@ -1,0 +1,10 @@
+{
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "[[time]]",
+      "source": "here.hmd",
+      "target": "wiki/time.hmd"
+    }
+  ]
+}
