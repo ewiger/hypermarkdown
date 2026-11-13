@@ -70,14 +70,22 @@ export class Vault implements vscode.Disposable {
 
   // -- addressing ------------------------------------------------------
 
-  /** Root-relative POSIX path for a document, or null if it is outside. */
+  /**
+   * Root-relative POSIX path for a document, or null if it is outside.
+   *
+   * A card inside a vault nested below this one is outside: it belongs to the
+   * nested vault. Answering null here keeps it out of every incremental path
+   * (the watcher, open buffers, edits) and lets the catalog discover the
+   * nested vault instead of claiming the card for this one.
+   */
   relFor(uri: vscode.Uri): string | null {
     const base = this.root.toString();
     const target = uri.toString();
     if (target === base) return "";
     if (!target.startsWith(`${base}/`)) return null;
     const rel = decodeURIComponent(target.slice(base.length + 1));
-    return rel.endsWith(SUFFIX) ? rel : null;
+    if (!rel.endsWith(SUFFIX)) return null;
+    return this.workspace?.inNestedVault(rel) ? null : rel;
   }
 
   uriFor(rel: string): vscode.Uri {

@@ -130,3 +130,35 @@ describe("which vault claims a card", () => {
     expect(await catalog.openCard(outside)).toBeNull();
   });
 });
+
+describe("a vault nested inside an indexed one (issue 0009)", () => {
+  async function nest(): Promise<void> {
+    // `doc/wiki/public` is its own vault, inside the folder's `doc/wiki`, and
+    // holds a card named like one of the outer vault's.
+    await write("doc/wiki/public/.hmd/config.toml", 'wiki = "."\n');
+    await write("doc/wiki/public/topic.hmd", "# Inner topic\n\nSee [[/topic]].\n");
+    // `beforeEach` indexed the folder's vault before the nested one existed.
+    catalog.dispose();
+    catalog = new VaultCatalog(vscode.Uri.file("/ext"));
+    await catalog.initialize();
+  }
+
+  it("is not part of the outer vault", async () => {
+    await nest();
+    const outer = await catalog.openCard(uri("doc/wiki/index.hmd"));
+    expect(outer?.vault.pages()).toEqual(["index.hmd", "topic.hmd"]);
+    // `[[topic]]` is unique in the outer vault, so nothing is ambiguous.
+    expect(outer?.vault.diagnostics()).toEqual([]);
+  });
+
+  it("claims its own cards, even after the outer vault is indexed", async () => {
+    await nest();
+    const outer = await catalog.openCard(uri("doc/wiki/index.hmd"));
+    const inner = await catalog.openCard(uri("doc/wiki/public/topic.hmd"));
+
+    expect(outer?.vault.relFor(uri("doc/wiki/public/topic.hmd"))).toBeNull();
+    expect(inner?.rel).toBe("topic.hmd");
+    expect(inner?.vault.root.toString()).toBe(uri("doc/wiki/public").toString());
+    expect(inner?.vault.diagnostics()).toEqual([]);
+  });
+});
