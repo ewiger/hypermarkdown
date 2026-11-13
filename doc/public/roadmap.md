@@ -35,7 +35,7 @@ type; the preview needs no Python.
 | **`hmd`** — CLI, library, MkDocs plugin | 0.3.0 | [PyPI](https://pypi.org/project/hypermarkdown/) |
 | **`@hypermarkdown/core`** — TypeScript | 0.1.1 | [npm](https://www.npmjs.com/package/@hypermarkdown/core) |
 | **`hmd-vsc-ext`** — VS Code | 0.4.3 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
-| **`hql`** — the query language, a sibling project | 0.6.0 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
+| **`hql`** — the Hyper Query Language | 0.6.0 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
 
 The **HMD language specification** versions independently of the tools, and
 **HQL** versions in [its own repository](https://github.com/ewiger/hql): a
