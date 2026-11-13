@@ -68,6 +68,7 @@ commit: the retired domain does not redirect.
 
 | Status | Defect | Symptom | References |
 | --- | --- | --- | --- |
+| todo | **A nested vault is swept into the vault around it.** `Workspace` loads every card below the root, including those under a directory carrying its own `.hmd/`, though discovery stops at the nearest marker | Linting an outer vault reports false HMD002 and HMD001 for names and absolute links that belong to the inner one, and a site rooted at the outer vault would publish the inner one's pages. Same defect in the TypeScript core; a prompt for the fix sits beside the issue | issue 0009 |
 | blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme | Every link published under the old host is dead. The fix is a web form, not a commit | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
 
 ## Limitations (known gaps)
