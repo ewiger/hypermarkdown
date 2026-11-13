@@ -58,7 +58,7 @@ construct may still change before `1.0`.
 
 - **The query language is no longer reserved here.** HQL shipped as its own
   project, with its own repository, releases, and documentation at
-  [hql.hypermarkdown.org](https://hql.hypermarkdown.org/). The record that reserved the name and fixed
+  [hql-lang.org](https://hql-lang.org/). The record that reserved the name and fixed
     constraints for it is superseded: the language that exists was not designed
   from it, and HQL's own documentation is the authority on all of it — the
   language, and the cells by which a card carries it. What the format still
