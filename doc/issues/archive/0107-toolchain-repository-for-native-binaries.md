@@ -242,9 +242,9 @@ runs the archive for each of the five platforms on that platform.
 
 In this repository:
 
-* [`toolchain.json`](../../toolchain.json) is the pin — the toolchain version
+* [`toolchain.json`](../../../toolchain.json) is the pin — the toolchain version
   and the digest of every archive.
-* [`scripts/toolchain.mjs`](../../scripts/toolchain.mjs) is the one way to
+* [`scripts/toolchain.mjs`](../../../scripts/toolchain.mjs) is the one way to
   honour it. It downloads an archive, checks it against the digest committed
   here rather than a checksum fetched beside it, unpacks it, and prints `bin/`.
   `--platform` stages a platform other than the host's; `--github-path` appends

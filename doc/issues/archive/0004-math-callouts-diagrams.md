@@ -3,7 +3,7 @@
 **Column**: done
 **Opened**: 2026-08-07
 **Closed**: 2026-08-07
-**Related**: [HMD-0022](../proposals/HMD-0002/README.md) on the editor branch
+**Related**: [HMD-0022](../../proposals/HMD-0002/README.md) on the editor branch
 
 ## What
 
