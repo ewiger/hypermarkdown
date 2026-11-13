@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildShell, makeNonce } from "../src/preview/html.js";
-import { isSafeRelativePath, parseWebviewMessage } from "../src/protocol.js";
+import { classifyHref, isSafeRelativePath, parseWebviewMessage } from "../src/protocol.js";
 import { suggestedPath } from "../src/commands/createCard.js";
 
 describe("inbound messages", () => {
@@ -152,5 +152,52 @@ describe("create-card path derivation", () => {
   it("declines a target it cannot place", () => {
     expect(suggestedPath("a.hmd", "../up")).toBeNull();
     expect(suggestedPath("a.hmd", "page#Section")).toBeNull();
+  });
+});
+
+describe("plain Markdown links", () => {
+  it("carries the href as written", () => {
+    expect(parseWebviewMessage({ type: "openHref", href: "../foo/bar.md" })).toEqual({
+      type: "openHref",
+      href: "../foo/bar.md",
+    });
+    expect(parseWebviewMessage({ type: "openHref", href: "" })).toBeNull();
+    expect(parseWebviewMessage({ type: "openHref", href: 3 })).toBeNull();
+  });
+
+  it("reads a relative path, leaving .. for the host to resolve", () => {
+    expect(classifyHref("../foo/bar.md")).toEqual({
+      kind: "file",
+      path: "../foo/bar.md",
+      fragment: null,
+    });
+    expect(classifyHref("notes/a%20card.hmd#Some%20heading")).toEqual({
+      kind: "file",
+      path: "notes/a card.hmd",
+      fragment: "Some heading",
+    });
+    expect(classifyHref("/top.hmd?x=1")).toEqual({ kind: "file", path: "/top.hmd", fragment: null });
+  });
+
+  it("hands the web and mail to the system, and refuses every other scheme", () => {
+    expect(classifyHref("https://hql-lang.org/")).toEqual({
+      kind: "external",
+      url: "https://hql-lang.org/",
+    });
+    expect(classifyHref("MAILTO:a@example.org")).toEqual({
+      kind: "external",
+      url: "MAILTO:a@example.org",
+    });
+    for (const bad of [
+      "command:workbench.action.terminal.new",
+      "file:///etc/passwd",
+      "javascript:alert(1)",
+      "vscode://settings",
+      "//example.org/x",
+      "%E0%A4%A",
+      "a\\b.md",
+    ]) {
+      expect(classifyHref(bad), bad).toBeNull();
+    }
   });
 });

@@ -229,6 +229,18 @@ content.addEventListener("click", (event) => {
     return;
   }
 
+  // A plain Markdown link, `[bar](../foo/bar.md)`, carries only its `href`.
+  // The webview cannot navigate, so the host resolves and opens it; a bare
+  // `#fragment` is a jump within this page, which the webview does itself.
+  const plain = target.closest<HTMLAnchorElement>("a[href]");
+  if (plain !== null) {
+    const href = plain.getAttribute("href") ?? "";
+    if (href.startsWith("#")) return;
+    event.preventDefault();
+    if (href !== "") vscode.postMessage({ type: "openHref", href });
+    return;
+  }
+
   // Any other element reveals its source line (VSX-021).
   const anchored = target.closest<HTMLElement>("[data-line]");
   if (anchored !== null) {

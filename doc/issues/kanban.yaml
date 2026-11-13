@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0009, the editor line's is 0112.
-  last_id: 111 # highest assigned overall; per stream — Python 8, editor 111
+  # the Python line's next issue is 0009, the editor line's is 0113.
+  last_id: 112 # highest assigned overall; per stream — Python 8, editor 112
   items:
     backlog:
       - id: "0008"
@@ -51,6 +51,9 @@ board:
         file: 0100-callout-open-state-lost.md
     doing: []
     done:
+      - id: "0112"
+        title: "A plain Markdown link in the preview does nothing"
+        file: 0112-plain-markdown-links-do-nothing.md
       - id: "0111"
         title: "Run needs `hql` installed by hand"
         file: 0111-hql-from-the-toolchain.md

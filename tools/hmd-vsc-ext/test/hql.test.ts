@@ -277,6 +277,10 @@ describe.skipIf(HQL_BIN === undefined)("against the real hql", () => {
 
   it("says so when the folder it is given is not a vault", async () => {
     const text = "```hql#eval id=a\n1\n```\n";
-    await expect(new HqlEngine({ configuredPath: HQL_BIN! }).run(text, dir, 0)).rejects.toThrow(/not a vault/);
+    // hql 0.5 says "not a vault", 0.6 "not a workspace"; the engine passes
+    // either through.
+    await expect(new HqlEngine({ configuredPath: HQL_BIN! }).run(text, dir, 0)).rejects.toThrow(
+      /not a (vault|workspace)/,
+    );
   });
 });

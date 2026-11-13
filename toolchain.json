@@ -1,27 +1,27 @@
 {
   "$comment": "The one pin for every native binary HyperMarkDown runs — d2, and hql where HQL publishes the platform. See doc/issues/0107 and 0111. Bumping d2 or hql happens in the toolchain repository; here only `version` and the digests move, together, in one commit.",
   "repo": "ewiger/hypermarkdown-toolchain",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "archives": {
     "linux-x86_64": {
-      "name": "hypermarkdown-toolchain-0.3.0-linux-x86_64.tar.gz",
-      "sha256": "b04c55cff80917ba88820efe9ebb0d04f47a2281cd48eadae1e495ef41cfd3bb"
+      "name": "hypermarkdown-toolchain-0.4.0-linux-x86_64.tar.gz",
+      "sha256": "210347cc2e54eeafc7e14068b45775221f2679ea9f89541d8a35c6e3e5937478"
     },
     "linux-arm64": {
-      "name": "hypermarkdown-toolchain-0.3.0-linux-arm64.tar.gz",
-      "sha256": "7b4a5cc31e44becba0569d3bf757157269ad7bf1cfc6edd4aacccacf0b19cd7f"
+      "name": "hypermarkdown-toolchain-0.4.0-linux-arm64.tar.gz",
+      "sha256": "7d58ec8e451768a71db02911b9a0cc8c6bf0578366d72e8a8408618cd0eceb87"
     },
     "macos-x86_64": {
-      "name": "hypermarkdown-toolchain-0.3.0-macos-x86_64.tar.gz",
-      "sha256": "05507dbd25dc7f5420007f2fd971cf517ab4eda6726cd5902fdf6b4fe3cc4cd1"
+      "name": "hypermarkdown-toolchain-0.4.0-macos-x86_64.tar.gz",
+      "sha256": "2c6c4e68c442d8912a17334e33560dbf3177debfee451ff9a7213b0e81db8781"
     },
     "macos-arm64": {
-      "name": "hypermarkdown-toolchain-0.3.0-macos-arm64.tar.gz",
-      "sha256": "8bc68a3afc0797429a1bc2a6bcd6692cbc8051301e4eb8a087fc9ca85d127780"
+      "name": "hypermarkdown-toolchain-0.4.0-macos-arm64.tar.gz",
+      "sha256": "336cee408ad90e3c2a00bf796f88b92613061030bf20d011f3e3210a5eb236b9"
     },
     "windows-x86_64": {
-      "name": "hypermarkdown-toolchain-0.3.0-windows-x86_64.zip",
-      "sha256": "298a1229efaab4b097e36503febb018a7932a12236e66a7abf3c52aa0d0f3a8c"
+      "name": "hypermarkdown-toolchain-0.4.0-windows-x86_64.zip",
+      "sha256": "7c8ad5417647b37c80d4afdaaad9b70c96f7cd5737fd608e6f8a35c06f1a5d99"
     }
   }
 }

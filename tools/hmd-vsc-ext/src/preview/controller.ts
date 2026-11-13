@@ -19,6 +19,7 @@ import { sameCard, type CardRef, type VaultCatalog } from "../catalog.js";
 import { createCard } from "../commands/createCard.js";
 import { REPARSE_DEBOUNCE_MS, debounce } from "../debounce.js";
 import {
+  classifyHref,
   isSafeRelativePath,
   parseWebviewMessage,
   type GraphView,
@@ -238,6 +239,9 @@ export class PreviewController implements vscode.Disposable {
         // the next link is one click away rather than two.
         void this.open(message.path, null, message.fragment, { follow: true });
         return;
+      case "openHref":
+        void this.openHref(message.href);
+        return;
       case "createCard":
         void createCard(this.catalog, this.current, message.target);
         return;
@@ -302,7 +306,7 @@ export class PreviewController implements vscode.Disposable {
       viewColumn: this.sourceColumn(),
     });
 
-    const target = line ?? this.lineOfFragment(path, fragment);
+    const target = line ?? this.lineOfFragment({ vault: source.vault, rel: path }, fragment);
     if (target !== null) {
       const at = Math.min(Math.max(target - 1, 0), document.lineCount - 1);
       editor.selection = new vscode.Selection(at, 0, at, 0);
@@ -332,9 +336,73 @@ export class PreviewController implements vscode.Disposable {
     return vscode.ViewColumn.Beside;
   }
 
-  private lineOfFragment(path: string, fragment: string | null): number | null {
+  /**
+   * Follow a plain Markdown link, `[bar](../foo/bar.md)`.
+   *
+   * A wiki link reaches the host already resolved by the core; this one
+   * arrives as its author wrote it, and is resolved here the way any Markdown
+   * reader resolves it: against the folder of the card it sits in, or, for a
+   * path starting with `/`, against the vault root. A card it names is
+   * followed as a wiki link is, and any other file opens in the editor. A link
+   * may leave the vault but not the workspace, and a target that does not
+   * exist is reported, not opened as an empty buffer.
+   */
+  private async openHref(href: string): Promise<void> {
+    const source = this.current;
+    if (source === null) return;
+    const target = classifyHref(href);
+    if (target === null) return;
+
+    if (target.kind === "external") {
+      await vscode.env.openExternal(vscode.Uri.parse(target.url, true));
+      return;
+    }
+
+    const uri = target.path.startsWith("/")
+      ? vscode.Uri.joinPath(source.vault.root, target.path)
+      : vscode.Uri.joinPath(source.vault.uriFor(source.rel), "..", target.path);
+    if (vscode.workspace.getWorkspaceFolder(uri) === undefined) return;
+
+    let stat: vscode.FileStat;
+    try {
+      stat = await vscode.workspace.fs.stat(uri);
+    } catch {
+      void vscode.window.showWarningMessage(
+        `HyperMarkDown: the link \`${href}\` names no file (${vscode.workspace.asRelativePath(uri)}).`,
+      );
+      return;
+    }
+    if (stat.type & vscode.FileType.Directory) {
+      await vscode.commands.executeCommand("revealInExplorer", uri);
+      return;
+    }
+
+    const card = uri.path.endsWith(SUFFIX) ? await this.catalog.openCard(uri) : null;
+    if (card === null) {
+      await vscode.commands.executeCommand("vscode.open", uri, {
+        preserveFocus: true,
+        viewColumn: this.sourceColumn(),
+      });
+      return;
+    }
+
+    if (!this.pinned) this.show(card);
+    const document = await vscode.workspace.openTextDocument(uri);
+    const editor = await vscode.window.showTextDocument(document, {
+      preserveFocus: true,
+      viewColumn: this.sourceColumn(),
+    });
+    const line = this.lineOfFragment(card, target.fragment);
+    if (line !== null) {
+      const at = Math.min(Math.max(line - 1, 0), document.lineCount - 1);
+      editor.selection = new vscode.Selection(at, 0, at, 0);
+      editor.revealRange(new vscode.Range(at, 0, at, 0), vscode.TextEditorRevealType.AtTop);
+    }
+  }
+
+  private lineOfFragment(card: CardRef, fragment: string | null): number | null {
     if (fragment === null) return null;
-    const ir = this.current?.vault.render(path) ?? null;
+    const ir = card.vault.render(card.rel);
     if (ir === null) return null;
     const heading = ir.headings.find((h) => h.slug === fragment || h.text === fragment);
     return heading?.line ?? null;
