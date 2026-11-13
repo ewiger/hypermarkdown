@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0012, the editor line's is 0113.
-  last_id: 112 # highest assigned overall; per stream — Python 11, editor 112
+  # the Python line's next issue is 0013, the editor line's is 0114.
+  last_id: 113 # highest assigned overall; per stream — Python 12, editor 113
   items:
     backlog:
       - id: "0008"
@@ -46,6 +46,12 @@ board:
       - id: "0011"
         title: "Vault and namespace: the declared design, HMD, and HQL have drifted apart"
         file: "0011-vault-and-namespace-drift-between-hmd-and-hql.md"
+      - id: "0012"
+        title: "An embedded card's Markdown links resolve from the host page"
+        file: "0012-embedded-markdown-links-resolve-from-the-host-page.md"
+      - id: "0113"
+        title: "A relative image in a card is not shown in the preview"
+        file: 0113-relative-images-do-not-show-in-the-preview.md
       - id: "0105"
         title: "The preview freezes on the card it was opened over"
         file: 0105-preview-does-not-follow-the-active-card.md
