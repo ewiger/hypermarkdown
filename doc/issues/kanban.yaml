@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0011, the editor line's is 0113.
-  last_id: 112 # highest assigned overall; per stream — Python 10, editor 112
+  # the Python line's next issue is 0012, the editor line's is 0113.
+  last_id: 112 # highest assigned overall; per stream — Python 11, editor 112
   items:
     backlog:
       - id: "0008"
@@ -43,6 +43,9 @@ board:
         title: "There is no way to search the wiki from the preview"
         file: 0106-search-the-wiki-from-the-preview.md
     todo:
+      - id: "0011"
+        title: "Vault and namespace: the declared design, HMD, and HQL have drifted apart"
+        file: "0011-vault-and-namespace-drift-between-hmd-and-hql.md"
       - id: "0010"
         title: "A folder note's Markdown links resolve one directory up"
         file: "0010-folder-note-links-resolve-one-level-up.md"
