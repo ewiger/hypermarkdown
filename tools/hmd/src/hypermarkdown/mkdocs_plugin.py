@@ -35,10 +35,19 @@ from .resolve import Workspace
 #: authored book nav can say *where* the generated pages go.
 NAV_PLACEHOLDER = "hmd://wiki"
 
-#: An ordinary markdown link whose target is a `.hmd` file. Book pages and
-#: proposals link to cards this way — a wikilink would not work from outside the
-#: namespace, and the path they write is a real file in the repository.
-_HMD_HREF_RE = re.compile(r"\]\((?P<href>[^)\s#]+\.hmd)(?P<fragment>#[^)\s]*)?\)")
+#: The destination of an inline markdown link or image: what follows `](`, up
+#: to a space (where a title starts) or the closing parenthesis. A destination
+#: in angle brackets is not matched, and stays as written.
+_INLINE_HREF_RE = re.compile(r"\]\((?P<href>[^)\s<>]+)")
+
+#: The destination of a reference definition, `[label]: path`. A footnote
+#: definition, `[^label]: text`, has the same shape and is not one.
+_REFERENCE_HREF_RE = re.compile(
+    r"^[ ]{0,3}\[(?!\^)[^\]\n]+\]:[ \t]*(?P<href>[^\s<>]+)", re.MULTILINE
+)
+
+#: `https:`, `mailto:`, and every other scheme: a destination that is not a path.
+_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 
 
 class PluginConfig(BaseConfig):
@@ -186,15 +195,21 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         if self.workspace is None:
             return markdown
 
+        registered = posixpath.dirname(page.file.src_uri)
         source = self.sources.get(page.file.src_uri)
         if source is None:
             # Not a card. It may still link *to* one — a book page or a proposal
             # writes an ordinary relative link to a `.hmd` file, because a
             # wikilink does not work from outside the namespace — and it may
             # carry diagrams of its own.
-            return self._diagrams(self._link_to_cards(markdown, page.file.src_uri))
+            return self._diagrams(self._relink(markdown, registered, registered))
 
         root = self.workspace.root
+        # A folder note `a/b/index.hmd` is registered as `a/b.md`, one directory
+        # above the file. Its ordinary links were written against `a/b/`, so the
+        # whole page is kept relative to that directory until `_relink` moves
+        # every link at once — the wikilinks rewritten below included.
+        written = self._written_dir(source, registered)
 
         def rewrite(link: Link, target: Path | None) -> str:
             text = link.display or link.page_ref
@@ -211,6 +226,8 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
                     f'<a class="hmd-redlink" title="{link.target} is not published">{text}</a>'
                 )
             href = urls.href_for(root, source, target)
+            if written != registered:
+                href = _relative(posixpath.normpath(posixpath.join(registered, href)), written)
             if link.fragment is not None and link.fragment_kind == "heading":
                 href = f"{href}#{slug_for(link.fragment, set())}"
             return f"[{text}]({href})"
@@ -218,7 +235,21 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         expanded = expand(
             self.workspace, source, rewrite=rewrite, can_embed=self.workspace.is_public
         ).text
-        return self._diagrams(self._link_to_cards(expanded, page.file.src_uri))
+        return self._diagrams(self._relink(expanded, written, registered))
+
+    def _written_dir(self, source: Path, registered: str) -> str:
+        """The directory a card's own relative links were written against.
+
+        That is the directory of the `.hmd` file inside `docs_dir`. It differs
+        from the registered page's directory for a folder note only. A card
+        outside `docs_dir` has no such directory, and keeps the registered one.
+        """
+        assert self.docs_dir is not None
+        try:
+            directory = source.parent.relative_to(self.docs_dir).as_posix()
+        except ValueError:
+            return registered
+        return "" if directory == "." else directory
 
     def _diagrams(self, markdown: str) -> str:
         """Render `d2` fences to images, or to a labelled placeholder.
@@ -242,38 +273,74 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         out.append(markdown[cursor:])
         return "".join(out)
 
-    def _link_to_cards(self, markdown: str, src_uri: str) -> str:
-        """Point ordinary markdown links at the page a `.hmd` file becomes.
+    def _relink(self, markdown: str, written: str, registered: str) -> str:
+        """Move a page's ordinary relative links to the place it is registered.
 
-        The written path is a real file, which is what makes it work when the
-        repository is browsed on its own. The built site does not serve `.hmd`
-        sources, so the same link has to arrive at the rendered card instead of
-        404ing.
+        Each link is resolved from `written`, the directory it was written
+        against, and rewritten relative to `registered`, the directory of the
+        page MkDocs builds. Two things happen on the way:
 
-        Masked first, so a `.hmd` path quoted inside a fence stays quoted.
+        - A link to a `.hmd` card becomes a link to the page that card is
+          registered as. The written path is a real file, which is what makes
+          it work when the repository is browsed on its own. The built site
+          does not serve `.hmd` sources, so the same link has to arrive at the
+          rendered card instead of 404ing.
+        - On a folder note, where the two directories differ, a link to any
+          other file is rewritten to name the same file from the new place.
+
+        Inline links, images, and reference definitions are covered. Masked
+        first, so a path quoted inside a fence or a code span stays quoted.
         """
         masked = scan.mask(markdown)
-        directory = posixpath.dirname(src_uri)
+        matches = sorted(
+            (
+                *_INLINE_HREF_RE.finditer(masked),
+                *_REFERENCE_HREF_RE.finditer(masked),
+            ),
+            key=lambda match: match.start("href"),
+        )
         out: list[str] = []
         cursor = 0
 
-        for match in _HMD_HREF_RE.finditer(masked):
-            dest = self._card_at(directory, match.group("href"))
-            if dest is None:
+        for match in matches:
+            if match.start("href") < cursor:
                 continue
-            href = posixpath.relpath(dest, directory or ".")
-            out.append(markdown[cursor : match.start()])
-            out.append(f"]({href}{match.group('fragment') or ''})")
-            cursor = match.end()
+            href = self._moved(match.group("href"), written, registered)
+            if href is None:
+                continue
+            out.append(markdown[cursor : match.start("href")])
+            out.append(href)
+            cursor = match.end("href")
 
         out.append(markdown[cursor:])
         return "".join(out)
 
-    def _card_at(self, directory: str, href: str) -> str | None:
-        """The registered page for a `.hmd` link, or None if it is not a card."""
-        if self.docs_dir is None or href.startswith(("http://", "https://", "/")):
+    def _moved(self, href: str, written: str, registered: str) -> str | None:
+        """One destination as it reads from `registered`, or None to keep it.
+
+        A scheme link, a site-absolute path, and a fragment on the same page
+        mean the same thing wherever the page sits, so they are kept.
+        """
+        if _SCHEME_RE.match(href) or href.startswith(("/", "#", "?")):
             return None
-        target = Path(posixpath.normpath(posixpath.join(directory, href)))
+        cut = min((i for i in (href.find("#"), href.find("?")) if i != -1), default=len(href))
+        path, tail = href[:cut], href[cut:]
+        target = posixpath.normpath(posixpath.join(written, path))
+
+        dest = self._card_at(target)
+        if dest is not None:
+            return _relative(dest, registered) + tail
+        if written == registered:
+            return None
+        moved = _relative(target, registered)
+        if path.endswith("/") and not moved.endswith("/"):
+            moved += "/"
+        return moved + tail
+
+    def _card_at(self, target: str) -> str | None:
+        """The registered page for a `.hmd` file in `docs_dir`, or None."""
+        if self.docs_dir is None or not target.endswith(".hmd"):
+            return None
         return self.destinations.get((self.docs_dir / target).resolve())
 
     # -- serving ---------------------------------------------------------
@@ -296,6 +363,21 @@ def _prefix(docs_dir: Path, root: Path) -> str:
     except ValueError:
         return ""
     return "" if relative == "." else relative
+
+
+def _relative(target: str, directory: str) -> str:
+    """`target` as a path relative to `directory`, both relative to `docs_dir`.
+
+    Pure arithmetic on normalized paths. `posixpath.relpath` would anchor both
+    at the working directory first, and a target above `docs_dir` then depends
+    on how deep that directory happens to be.
+    """
+    parts = target.split("/")
+    base = directory.split("/") if directory else []
+    shared = 0
+    while shared < min(len(parts), len(base)) and parts[shared] == base[shared]:
+        shared += 1
+    return "/".join([".."] * (len(base) - shared) + parts[shared:]) or "."
 
 
 def _splice(node, derived: list):

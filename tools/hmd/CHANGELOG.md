@@ -26,6 +26,24 @@ only for the Python API.
   directory inside a nested vault is HMD015, the same as a missing directory.
   Linting the nested vault with `--root` set to it, or from a card inside it,
   is unchanged.
+- **A folder note's ordinary Markdown links reach their targets on a built
+  site.** The MkDocs plugin registers `a/b/index.hmd` as the page `a/b.md`, one
+  directory above the file, and rewrote its wikilinks for that place but left
+  its relative Markdown links as written, so MkDocs resolved them from `a/`.
+  A link to a sibling card, such as `` [`Bool`](bool.hmd) ``, reached the site
+  as a link to a source file that is not served, and a link to a plain page or
+  an image pointed one directory too high. Every relative link in a folder
+  note is now resolved from the file's own directory and rewritten for the
+  registered page: inline links, images, and reference definitions. A card
+  that is not a folder note is unchanged. A site that worked around this by
+  writing a folder note's links against the parent directory has to write
+  them against the file's own directory again.
+
+### Changed
+- **A Markdown link to a card is repointed in more spellings.** A link to a
+  `.hmd` file with a title, `[card](one.hmd "Title")`, and one given as a
+  reference definition, `[card]: one.hmd`, now reach the card's page. Before,
+  only the bare inline form did.
 
 ## [0.3.0] — 2026-09-14
 

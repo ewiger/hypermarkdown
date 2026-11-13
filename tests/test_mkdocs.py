@@ -438,6 +438,146 @@ def test_a_card_can_also_link_to_a_card_by_path(tmp_path):
     assert 'href="../two/"' in (site / "wiki" / "one" / "index.html").read_text()
 
 
+# -- issue 0010: a folder note's ordinary links ---------------------------
+
+
+def _folder_note_docs(tmp_path: Path, note: str) -> Path:
+    """A folder note at `learn/types/index.hmd`, with files around it to link.
+
+    The note is registered as `learn/types.md`, one directory above the file,
+    so every relative link in it is written against a directory MkDocs does
+    not resolve it from.
+    """
+    docs = tmp_path / "docs"
+    types = docs / "learn" / "types"
+    types.mkdir(parents=True)
+    (docs / "index.hmd").write_text(PUBLIC + "# Home\n", encoding="utf-8")
+    (docs / "reference.md").write_text("# Reference\n", encoding="utf-8")
+    (types / "index.hmd").write_text("# Types\n\n" + note, encoding="utf-8")
+    (types / "bool.hmd").write_text(
+        "# Bool\n\n## Values\n\n[notes](notes.md) ![chart](chart.png)\n", encoding="utf-8"
+    )
+    (types / "notes.md").write_text("# Notes\n", encoding="utf-8")
+    (types / "chart.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+    return docs
+
+
+def test_a_folder_note_links_a_sibling_card_by_path(tmp_path):
+    """The common case: code in the link text, which a wikilink cannot hold, so
+    the link is an ordinary one. It was looked up one directory too high, found
+    nothing, and reached the site as a link to an unserved source file."""
+    docs = _folder_note_docs(tmp_path, "[`Bool`](bool.hmd) and [values](bool.hmd#values)\n")
+    html = (build(tmp_path, docs, strict=True) / "learn" / "types" / "index.html").read_text()
+    assert '<a href="bool/"><code>Bool</code></a>' in html
+    assert 'href="bool/#values"' in html
+    assert ".hmd" not in html
+
+
+def test_a_folder_note_links_other_files_from_its_own_directory(tmp_path):
+    """A plain page, an image, and a page two levels up: none is a card, and
+    each still names the file it named in the repository. `strict` makes MkDocs
+    fail the build on a link it cannot place."""
+    docs = _folder_note_docs(
+        tmp_path,
+        "[notes](notes.md) ![chart](chart.png) [reference](../../reference.md)\n"
+        '[titled](notes.md "A title") [section](notes.md#notes)\n',
+    )
+    html = (build(tmp_path, docs, strict=True) / "learn" / "types" / "index.html").read_text()
+    assert 'href="notes/"' in html
+    assert 'src="chart.png"' in html
+    assert 'href="../../reference/"' in html
+    assert 'title="A title" href="notes/"' in html or 'href="notes/" title="A title"' in html
+    assert 'href="notes/#notes"' in html
+
+
+def test_a_folder_note_reference_definition_moves_with_it(tmp_path):
+    docs = _folder_note_docs(
+        tmp_path,
+        "[the card][bool] and [the notes][notes]\n\n[bool]: bool.hmd\n[notes]: notes.md\n",
+    )
+    html = (build(tmp_path, docs, strict=True) / "learn" / "types" / "index.html").read_text()
+    assert 'href="bool/"' in html
+    assert 'href="notes/"' in html
+
+
+def test_a_folder_note_wikilink_is_moved_once(tmp_path):
+    """A wikilink is rewritten for the registered page already. It goes through
+    the same pass as the ordinary links, and must not be moved a second time."""
+    docs = _folder_note_docs(tmp_path, "[[bool]], [[bool#Values]], and [[index]]\n")
+    html = (build(tmp_path, docs, strict=True) / "learn" / "types" / "index.html").read_text()
+    assert 'href="bool/"' in html
+    assert 'href="bool/#values"' in html
+    assert 'href="../.."' in html  # the site home, from `learn/types/`
+
+
+def test_a_folder_note_keeps_what_is_not_a_relative_path(tmp_path):
+    """A scheme link, a site-absolute path, a fragment on the same page, and a
+    path quoted as code mean the same thing wherever the page is registered."""
+    docs = _folder_note_docs(
+        tmp_path,
+        "[site](https://example.org/a/bool.hmd) [mail](mailto:a@example.org)\n"
+        "[top](#types) `[quoted](bool.hmd)`\n\n"
+        "```\n[fenced](notes.md)\n```\n\n"
+        "A footnote.[^1]\n\n[^1]: notes.md is where the notes are.\n",
+    )
+    site = build(tmp_path, docs, markdown_extensions=["footnotes"])
+    html = (site / "learn" / "types" / "index.html").read_text()
+    assert 'href="https://example.org/a/bool.hmd"' in html
+    assert 'href="mailto:a@example.org"' in html
+    assert 'href="#types"' in html
+    assert "[quoted](bool.hmd)" in html
+    assert "[fenced](notes.md)" in html
+    assert "notes.md is where the notes are." in html
+
+
+def test_an_ordinary_card_keeps_its_links_as_written(tmp_path):
+    """Only a folder note is registered away from its file. A card beside it is
+    registered in its own directory, and its links are left alone."""
+    docs = _folder_note_docs(tmp_path, "")
+    html = (
+        build(tmp_path, docs, strict=True) / "learn" / "types" / "bool" / "index.html"
+    ).read_text()
+    assert 'href="../notes/"' in html
+    assert 'src="../chart.png"' in html
+
+
+def test_a_folder_note_below_a_namespace_prefix(tmp_path):
+    """The namespace as a subtree of the site: the folder note's directory is
+    counted from `docs_dir`, so a link that leaves the namespace still lands."""
+    docs = tmp_path / "docs"
+    (docs / "wiki" / "area").mkdir(parents=True)
+    (docs / "index.md").write_text("# Book\n", encoding="utf-8")
+    (docs / "wiki" / "area" / "index.hmd").write_text(
+        PUBLIC + "# Area\n\n[`one`](one.hmd) and [the book](../../index.md)\n", encoding="utf-8"
+    )
+    (docs / "wiki" / "area" / "one.hmd").write_text("# One\n", encoding="utf-8")
+
+    site = build(
+        tmp_path, docs, strict=True, plugins=[{"hypermarkdown": {"root": str(docs / "wiki")}}]
+    )
+    html = (site / "wiki" / "area" / "index.html").read_text()
+    assert '<a href="one/"><code>one</code></a>' in html
+    assert 'href="../.."' in html
+
+
+@pytest.mark.parametrize(
+    ("target", "directory", "expected"),
+    [
+        ("a/b/c.md", "a/b", "c.md"),
+        ("a/c.md", "a/b", "../c.md"),
+        ("c.md", "", "c.md"),
+        ("../c.md", "a", "../../c.md"),
+        ("a", "a", "."),
+    ],
+)
+def test_relative_paths_are_pure_arithmetic(target, directory, expected):
+    """No working directory in it: a target above `docs_dir` reads the same
+    wherever the build is started from."""
+    from hypermarkdown.mkdocs_plugin import _relative
+
+    assert _relative(target, directory) == expected
+
+
 # -- issue 0003: the toolchain renders code blocks ------------------------
 
 
