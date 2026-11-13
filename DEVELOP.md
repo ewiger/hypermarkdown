@@ -50,6 +50,44 @@ because that card *is* the specification and a number in a second file would be 
 number that can disagree with it. `tests/test_docs.py` reads it from there and
 fails if the root changelog has no section for it.
 
+## How a release reads
+
+The three tools share one GitHub releases page, so each release has to say which
+tool it is before it says anything else. The rules live in
+[`scripts/release.py`](scripts/release.py), and every release workflow takes the
+title, the Latest flag, and the body from it. No workflow spells a title of its
+own, and `tests/test_release.py` fails if one does.
+
+| Tag | Title | Latest |
+| --- | --- | --- |
+| `vX.Y.Z` | `PyPI · hypermarkdown X.Y.Z` | no |
+| `ts-core-vX.Y.Z` | `npm · @hypermarkdown/core X.Y.Z` | no |
+| `vsc-ext-vX.Y.Z` | `VS Code · HyperMarkDown X.Y.Z` | yes |
+
+- **The title is platform first:** where you install it from, then the name the
+  registry knows it by, then the version. A release keeps the name it shipped
+  under, so the first two Python releases carry the package's name from before
+  the rename.
+- **Only the extension holds Latest.** GitHub keeps one Latest badge per
+  repository. Left to the default, it goes to whichever tool released last, so
+  it says nothing about any of them. The extension is what most visitors come
+  to install.
+- **The body opens with one header line:** the registry link, the install
+  command, and the changelog the notes come from. That version's changelog
+  section follows. The notes are the changelog, never generated commit titles,
+  so editing the changelog section before tagging is how the release notes are
+  written.
+
+To fix a release that is already out, edit it rather than re-cutting it. The
+assets on a release are the ones every gate ran against.
+
+```bash
+tag=v0.3.1
+python3 scripts/release.py notes "$tag" > notes.md
+gh release edit "$tag" --title "$(python3 scripts/release.py title "$tag")" \
+  --latest="$(python3 scripts/release.py latest "$tag")" --notes-file notes.md
+```
+
 ## The pinned toolchain
 
 `d2` is the project's only native dependency, and it is acquired in exactly one

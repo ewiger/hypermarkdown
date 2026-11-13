@@ -265,7 +265,9 @@ Publication runs in
 [`release-vsc-ext.yml`](../../.github/workflows/release-vsc-ext.yml): it packages
 the VSIXes, checks the tag against `package.json`, and uploads *those files* to
 the VS Marketplace, to Open VSX, and to the GitHub release. Packaging twice would
-publish a build nobody verified.
+publish a build nobody verified. The GitHub release follows the repository's
+release rules, and is the only one marked Latest
+([how a release reads](../../DEVELOP.md#how-a-release-reads)).
 
 **A release is one tag and nothing else.** Every gallery is reached from CI with
 no stored credential — see [below](#how-the-galleries-are-reached). Nothing is

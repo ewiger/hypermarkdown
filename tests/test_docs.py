@@ -508,6 +508,10 @@ RETIRED_NAME_ALLOWED = {
     "doc/memory/decisions.md",
     "doc/memory/2026-08-06-typescript-editor-line.md",
     "doc/memory/2026-08-10-hypermarkdown-identity.md",
+    # The release rules, which title the first two Python releases by the name
+    # they shipped under on PyPI, and the test that pins it.
+    "scripts/release.py",
+    "tests/test_release.py",
     # The trackers for the Python implementation and the site, which carry the rows about
     # the retired domain and the PyPI project left abandoned under it: what is
     # broken and what is deliberately not being fixed are both named by the old

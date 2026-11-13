@@ -173,7 +173,9 @@ git push origin v0.2.0
 
 [`release.yml`](../../.github/workflows/release.yml) rebuilds from the tagged
 tree, refuses to continue if the tag and `__version__` disagree, uploads to PyPI,
-and cuts a GitHub release whose notes are that version's changelog section.
+and cuts a GitHub release whose notes are that version's changelog section. Its
+title and header follow the repository's release rules
+([how a release reads](../../DEVELOP.md#how-a-release-reads)).
 Running the workflow by hand builds and verifies without publishing, or publishes
 to TestPyPI if you ask it to.
 
