@@ -23,6 +23,26 @@ against
 
 Nothing yet.
 
+## [0.4.3] — 2026-11-13
+
+### Changed
+
+- **The extension carries `hql` 0.6.0**, where it carried 0.5.2, from
+  [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain)
+  0.4.0, on Linux x64 and macOS. Cells run as before. HQL 0.6 changes the
+  language itself, so a cell written for 0.5 may need editing: see
+  [HQL's changelog](https://github.com/ewiger/hql/releases/tag/v0.6.0).
+
+### Fixed
+
+- **A plain Markdown link in the preview opens its target.** Clicking
+  `[bar](../foo/bar.md)` used to move the editor to the line the link is on.
+  Now a path opens the file it names, resolved from the card's own folder, or
+  from the vault root when it starts with `/`. A card opens in the preview,
+  any other file opens in the editor, and a folder is shown in the explorer.
+  `http`, `https` and `mailto` links open outside the editor. Other schemes,
+  `command:` included, do nothing.
+
 ## [0.4.2] — 2026-10-26
 
 ### Changed

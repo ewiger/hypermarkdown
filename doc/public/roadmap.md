@@ -2,6 +2,10 @@
 
 ## News and updates
 
+**2026-11-13 — VS Code extension 0.4.3.** Ships with
+[`hql`](https://hql-lang.org/) 0.6.0. Plain Markdown links in the preview,
+`[bar](../foo/bar.md)`, now open what they point at.
+
 **2026-10-26 — VS Code extension 0.4.2.** Ships with
 [`hql`](https://hql-lang.org/) 0.5.2. A cell that fails to run now says why again.
 
@@ -30,8 +34,8 @@ type; the preview needs no Python.
 | **HyperMarkDown**, the language | 0.1 draft | [specification](../wiki/hmd-lang-spec.hmd) |
 | **`hmd`** — CLI, library, MkDocs plugin | 0.3.0 | [PyPI](https://pypi.org/project/hypermarkdown/) |
 | **`@hypermarkdown/core`** — TypeScript | 0.1.1 | [npm](https://www.npmjs.com/package/@hypermarkdown/core) |
-| **`hmd-vsc-ext`** — VS Code | 0.4.2 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
-| **`hql`** — the query language, a sibling project | 0.5.2 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
+| **`hmd-vsc-ext`** — VS Code | 0.4.3 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
+| **`hql`** — the query language, a sibling project | 0.6.0 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
 
 The **HMD language specification** versions independently of the tools, and
 **HQL** versions in [its own repository](https://github.com/ewiger/hql): a

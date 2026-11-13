@@ -1,6 +1,6 @@
 # 0112 — A plain Markdown link in the preview does nothing
 
-**Column**: doing
+**Column**: done
 **Opened**: 2026-11-13
 
 ## What

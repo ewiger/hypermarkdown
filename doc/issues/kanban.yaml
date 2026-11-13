@@ -49,11 +49,11 @@ board:
       - id: "0100"
         title: "A ??? callout snaps shut on every re-render"
         file: 0100-callout-open-state-lost.md
-    doing:
+    doing: []
+    done:
       - id: "0112"
         title: "A plain Markdown link in the preview does nothing"
         file: 0112-plain-markdown-links-do-nothing.md
-    done:
       - id: "0111"
         title: "Run needs `hql` installed by hand"
         file: 0111-hql-from-the-toolchain.md

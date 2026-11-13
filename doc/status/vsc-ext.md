@@ -12,9 +12,9 @@ embeds in [`ts-core.md`](ts-core.md), and the website in [`pages.md`](pages.md).
 
 ## Status
 
-**`0.4.2` is released to both galleries, and cards are notebooks.**
+**`0.4.3` is released to both galleries, and cards are notebooks.**
 Everything the extension claims to do works and is gated by tests: the rendered
-tab, embeds as collapsible cards, scroll sync both ways, red links with a
+tab, wiki links and plain Markdown links that open what they name, embeds as collapsible cards, scroll sync both ways, red links with a
 create-the-card action, the graph, diagnostics identical to the linter's, and
 math, callouts, and D2 diagrams — the `d2` binary travels inside the extension,
 so a diagram draws on a fresh install with nothing configured. Releases publish
@@ -35,8 +35,8 @@ hands the card to the `hql` binary and writes the answer back in the bytes
 runs in an untrusted workspace. A plain `hql` fence is a listing and never runs
 [[hmd-0026]]. Tested against the real binary and checked by hand in a running
 editor [issue 0110]. Since `0.4.1` the `hql` comes with the extension, from the
-pinned toolchain beside `d2`, on Linux x64 and macOS — `hql` 0.5.2 as of
-`0.4.2`; `hyperMarkdown.hql.path`
+pinned toolchain beside `d2`, on Linux x64 and macOS — `hql` 0.6.0 as of
+`0.4.3`; `hyperMarkdown.hql.path`
 overrides it, and Linux ARM64 and Windows use `hql` on `PATH` [issue 0111].
 
 **Vaults are now discovered from the card.** A window holds a catalog of
@@ -71,7 +71,7 @@ Nothing known.
 
 | Limitation | Why it stands | References |
 | --- | --- | --- |
-| Run needs `hql` on `PATH` on Linux ARM64 and Windows | HQL 0.5.2 publishes no binary for either, so the toolchain archives for them carry `d2` only. A toolchain release picks them up when HQL publishes them | [[hmd-0026#running-a-cell]] |
+| Run needs `hql` on `PATH` on Linux ARM64 and Windows | HQL 0.6.0 publishes no binary for either, so the toolchain archives for them carry `d2` only. A toolchain release picks them up when HQL publishes them | [[hmd-0026#running-a-cell]] |
 | Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it | [[hmd-0021#11-webview-hardening]] |
 | A published card linking to a private one is never flagged | The publication model is unported, so nothing here knows whether a card is published at all (rule HMD017) | [[hmd-0002#3-expansion]] |
 | Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core | [[hmd-0020#33-free-syntax]] |
@@ -84,6 +84,12 @@ Nothing known.
 
 ## Done
 
+- **Plain Markdown links** — `[bar](../foo/bar.md)` in the preview opens the
+  file it names, resolved from the card's folder: a card in the preview, any
+  other file in the editor. Web and mail links open outside the editor, and
+  every other scheme is refused [issue 0112].
+- **`hql` 0.6.0** — toolchain 0.4.0 carries it. The cell protocol is
+  unchanged, and the real-binary tests pass against it and against 0.5.2.
 - **`hql` 0.5.2** — toolchain 0.3.0 carries it, and the engine reads its
   `diagnostics` field as well as the `reports` field older binaries write.
   The real-binary tests cover a failing cell and a folder that is not a vault.
