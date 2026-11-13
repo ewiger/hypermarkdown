@@ -78,6 +78,8 @@ export type WebviewMessage =
   | { type: "ready" }
   | { type: "openSource"; path: string; line: number }
   | { type: "openTarget"; path: string; fragment: string | null }
+  /** A plain Markdown link, `[text](href)`, as written: the host resolves it. */
+  | { type: "openHref"; href: string }
   | { type: "createCard"; target: string }
   | { type: "scrolled"; line: number }
   | { type: "modeChanged"; mode: PreviewMode }
@@ -131,6 +133,10 @@ export function parseWebviewMessage(raw: unknown): WebviewMessage | null {
             fragment: typeof message["fragment"] === "string" ? message["fragment"] : null,
           }
         : null;
+    case "openHref":
+      return typeof message["href"] === "string" && message["href"] !== ""
+        ? { type: "openHref", href: message["href"] }
+        : null;
     case "createCard":
       return typeof message["target"] === "string"
         ? { type: "createCard", target: message["target"] }
@@ -171,4 +177,43 @@ export function isSafeRelativePath(path: string): boolean {
   if (path === "" || path.startsWith("/") || path.includes("\\")) return false;
   if (path.includes("\0")) return false;
   return !path.split("/").includes("..");
+}
+
+/** Where a plain Markdown link goes, once the host has read its `href`. */
+export type HrefTarget =
+  | { kind: "external"; url: string }
+  | { kind: "file"; path: string; fragment: string | null };
+
+/** The schemes a link may hand to the system browser or mail client. */
+const EXTERNAL_SCHEMES: readonly string[] = ["http", "https", "mailto"];
+
+/**
+ * Read a plain link's `href`, or return null for one the preview must not follow.
+ *
+ * A path is percent-decoded and kept as written, `..` included: the host
+ * resolves it against the card's own folder, as a Markdown reader does, and
+ * decides there whether it may go. Any scheme outside `EXTERNAL_SCHEMES` is
+ * refused, `command:` above all, which would otherwise run a command from a
+ * card's text.
+ */
+export function classifyHref(href: string): HrefTarget | null {
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(href)?.[1]?.toLowerCase();
+  if (scheme !== undefined) {
+    return EXTERNAL_SCHEMES.includes(scheme) ? { kind: "external", url: href } : null;
+  }
+  if (href.startsWith("//")) return null;
+
+  const hash = href.indexOf("#");
+  const rawPath = (hash === -1 ? href : href.slice(0, hash)).split("?")[0] ?? "";
+  const rawFragment = hash === -1 ? "" : href.slice(hash + 1);
+  let path: string;
+  let fragment: string;
+  try {
+    path = decodeURIComponent(rawPath);
+    fragment = decodeURIComponent(rawFragment);
+  } catch {
+    return null;
+  }
+  if (path === "" || path.includes("\\") || path.includes("\0")) return null;
+  return { kind: "file", path, fragment: fragment === "" ? null : fragment };
 }
