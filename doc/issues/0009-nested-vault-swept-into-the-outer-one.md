@@ -1,6 +1,6 @@
 # 0009 — A nested vault is swept into the vault around it
 
-**Column**: todo
+**Column**: done
 **Opened**: 2026-11-13
 **Found by**: making `doc/public/` of the HQL repository a vault of its own,
 inside the `doc/` vault, so its site build and its editor resolve against the

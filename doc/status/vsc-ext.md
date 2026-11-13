@@ -12,7 +12,7 @@ embeds in [`ts-core.md`](ts-core.md), and the website in [`pages.md`](pages.md).
 
 ## Status
 
-**`0.4.3` is released to both galleries, and cards are notebooks.**
+**`0.4.4` is released to both galleries, and cards are notebooks.**
 Everything the extension claims to do works and is gated by tests: the rendered
 tab, wiki links and plain Markdown links that open what they name, embeds as collapsible cards, scroll sync both ways, red links with a
 create-the-card action, the graph, diagnostics identical to the linter's, and
@@ -42,7 +42,8 @@ overrides it, and Linux ARM64 and Windows use `hql` on `PATH` [issue 0111].
 **Vaults are now discovered from the card.** A window holds a catalog of
 vaults rather than one project, so a repository carrying several — this one
 carries `doc/wiki` plus a vault per example tree — previews a card in any of
-them.
+them. A vault nested inside another is its own vault on every path, not only
+on discovery, since `0.4.4` [issue 0009].
 
 ## Open
 
@@ -80,10 +81,16 @@ Nothing known.
 | The integration suite is not in the default test command | Its harness downloads about 300 MB on first run | [[hmd-0021#12-packaging-and-ci]] |
 | The graph draws only what resolved, and stops at 400 cards | A red link has no card at the other end to draw it to, and is reported in the rendered tab and the Problems panel instead. Past the cap the view keeps the cards nearest the one being read and says how many it dropped: a hairball is not a more honest picture than a bounded one that names what is missing | [[hmd-0025]] |
 | Full screen can fall one press out of step | Zen mode and the rest are toggles the editor does not let an extension read back, so the tab tracks what it performed. Leave zen mode by hand and the button's next press puts it back in step | [[hmd-0025]] |
+| Adding or removing a `.hmd/` directory inside an indexed vault takes effect only after **Rebuild Index** | The watcher follows cards, not markers. The vault's view of which directories are nested vaults is fixed when it loads | [[hmd-lang-spec#project-configuration]] |
 | The webview bundle is about 400 KB, nearly all of it Cytoscape | The policy forbids remote script, so a graph library is either compiled in or absent | [[hmd-0025]], [[hmd-0021#11-webview-hardening]] |
 
 ## Done
 
+- **Nested vaults stay separate** — a card in a vault nested inside an indexed
+  one is skipped by the outer vault's load, watcher, open buffers, and edits,
+  so the outer vault's diagnostics no longer report false ambiguities or
+  unresolved absolute links, and opening the inner card indexes the vault it
+  belongs to instead of the outer one claiming it [issue 0009].
 - **Plain Markdown links** — `[bar](../foo/bar.md)` in the preview opens the
   file it names, resolved from the card's folder: a card in the preview, any
   other file in the editor. Web and mail links open outside the editor, and

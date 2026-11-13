@@ -507,6 +507,11 @@ version reads exactly two settings from `.hmd/config.toml` and MUST ignore the
 rest of the file, so that the full schema can be specified later without
 invalidating existing trees.
 
+A `.hmd/` directory below the namespace root ends the namespace there: the
+directory carrying it is the project root of another namespace, and no card in
+its subtree is part of the outer one, whether as a page, a resolution candidate,
+or an import target. References do not cross that boundary in either direction.
+
 ```toml
 wiki = "doc/wiki"        # namespace root, relative to the project root
 
