@@ -17,10 +17,27 @@
 📖 **[hypermarkdown.org](https://hypermarkdown.org/) — the documentation.**
 What the format is, why it exists, and every construct in it. Start there.
 
-HyperMarkDown (`.hmd`) is ordinary markdown plus links to knowledge graph: you
-write the *name* of a card and it is resolved for you, a card can be built out of
-other cards, and a linter checks the whole graph. Every `.md` file is already
-valid `.hmd`, so a tree is adopted one rename at a time.
+HyperMarkDown (`.hmd`) is ordinary markdown plus wikilinks, and the cards they
+connect form a knowledge graph. A card is one `.hmd` file:
+
+- **A link names a card.** You write `[[name]]` in square brackets, and it is
+  resolved to the card's file and linked for you.
+- **A link can carry its own text.** In `[[foo|bar]]` the pipe separates the
+  two: `foo` is the address of the card, `bar` is what the reader sees.
+- **A link can point inside a card.** `[[tokens#Rotation]]` is a heading of
+  `tokens`, and `[[tokens#^definition]]` is one marked block of it.
+- **A card can be built out of other cards.** Put `!` in front of `[[foo]]` as in `![[foo]]` and get the target
+  embedded (transclusion) rather than linked: its content appears in place, so you say a
+  thing once rather than twice.
+- **A linter checks the whole graph**, every link and every embed in it.
+- **A card can be an interactive notebook.** [HQL](#hql-cells) cells query the vault by
+  structure and by meaning, with lexical and semantic search and graph
+  traversal, and write their results into the card. HQL also reads JSON, YAML,
+  and records, so one query can join the vault with other data.
+
+Every `.md` file is already valid `.hmd`, so an existing tree of markdown files
+is adopted one rename at a time: rename a file from `.md` to `.hmd` when you
+want it in the graph, and the rest stay as they are.
 
 ```markdown
 See [[tokens#Rotation|the rotation window]], and say it once rather than twice:
@@ -28,14 +45,179 @@ See [[tokens#Rotation|the rotation window]], and say it once rather than twice:
 ![[tokens#^definition]]
 ```
 
-This repository is both halves of the project: 
+And so much more:
+
+### Namespaces and how to address a card
+
+| You write | What it is | How it is found |
+| --- | --- | --- |
+| `[[tokens]]` | bare name | looked up for you, see below |
+| `[[specs/login]]` | path | looked up the same way |
+| `[[./tokens]]`, `[[../billing/invoices]]` | relative path | from the folder of the card you are writing |
+| `[[/shared/tokens]]` | absolute path | from the root of the vault |
+| `[[design:tokens]]` | namespace-qualified | in another vault, see [Namespaces](#namespaces) |
+
+A bare name or a path is looked up in four steps, and the first match wins:
+names the card imported, then the card's own folder and each folder above it,
+then the folders it imported with a wildcard, then one sweep of the whole
+vault. The sweep does not rank: two matches are an error, and you qualify the
+link.
+
+Imports go in the frontmatter:
+
+```yaml
+import:
+  - from /shared import tokens as shared-tokens   # binds one name
+  - from /glossary import *                       # adds a folder to the lookup
+```
+
+Any paragraph that ends in a caret and a name, like `^definition`, can be
+linked or embedded on its own.
+
+### Namespaces
+
+A folder is a *module*. A *vault* is a tree of modules, marked by a `.hmd/`
+directory at its root, and it is one *namespace*: every address in the table
+above resolves inside it. A nested `.hmd/` starts a new vault, and a link that
+escapes the root is an error.
+
+A namespace-qualified address reaches a card in another vault. The name before
+the colon selects the vault, and the path after it is resolved inside that
+vault by the same rules:
+
+```markdown
+See [[design:tokens/color]] for the palette.
+```
+
+The project grants each namespace in `.hmd/config.toml`. A card cannot
+introduce one by mentioning it, so the set of vaults a build may read is one
+file:
+
+```toml
+wiki = "doc/wiki"                # the default namespace: this project's own vault
+
+[namespaces.design]              # a second vault on this filesystem
+folder = "../design-wiki"
+
+[namespaces.upstream]            # a vault served over HTTP
+url = "https://wiki.example.org/"
+```
+
+Moving `design` from a folder to a server changes the binding and no card.
+
+**Status:** the address form and the rules above are designed. Version 0.1
+does not resolve them yet: `[[design:tokens]]` renders as a red link, and the
+configuration keys shown are a sketch. Details are on the
+[Namespaces](https://hypermarkdown.org/public/namespaces/) page.
+
+### Linting
+
+```text
+specs/auth/login.hmd:14:5: error[HMD002] [[tokens]] matches 2 pages; qualify it
+  (candidates: shared/tokens.hmd, specs/auth/tokens.hmd)
+```
+
+`hmd lint` checks the graph the way a compiler checks a program. A card you
+have not written yet is a warning and renders as a red link, so forward
+references become a to-do list. A malformed link or a name with two matches is
+an error. Your prose is left alone.
+
+### Math, diagrams, and metadata
+
+TeX mathematics, D2 diagrams, callouts, collapsible sections, footnotes, task
+lists, and tables are part of the format. A diagram is text in the file, so it
+lives in version control and shows up in a diff you can read:
+
+````markdown
+```d2
+client -> edge: credentials
+edge -> auth: verify
+auth -> edge: token
+```
+
+A retry after attempt $n$ waits $t_n = \min(t_{max},\; b \cdot 2^n)$.
+````
+
+A card may also open with YAML frontmatter, a block of metadata about the card.
+The tools read `tags`, `use`, `import`, and `nav`; any other key is free for
+your own use.
+
+### HQL cells
+
+A card can hold [HQL](https://hql-lang.org/) cells, like the code cells of a
+computational data science notebook. `hql render` runs each cell and writes its
+output into the card, below the cell:
+
+````markdown
+```hql#eval id=books
+cards
+| filter(c => c.name != "contents")
+| sort(by = c => c.title)
+```
+<!-- hql:output id=books hash=7282fba97096 status=ok -->
+- [[dune]]
+- [[emma]]
+- [[middlemarch]]
+- [[the-hobbit]]
+<!-- /hql:output -->
+````
+
+- **Three fences.** `hql#eval` runs and writes its output. `hql#query` runs and
+  writes nothing; it computes a value for other cells. A plain `hql` fence is a
+  code listing and never runs.
+- **Cells read each other.** A cell with `id=books` is available to the other
+  cells of the card as `books`, for example `books | map(c => c.title)`.
+- **Output format.** By default a list of cards is written as wikilinks, a
+  record as a table, and a graph as a D2 diagram. End the query with `| csv`,
+  `| json`, `| yaml`, or `| mermaid` to choose another format.
+- **Data.** A query can filter, sort, and group the cards of a vault by their
+  frontmatter, follow links and backlinks, and run lexical and semantic search.
+  It also reads JSON, YAML, and records.
+
+### Migrating from markdown
+
+```markdown
+<!-- notes.md — valid markdown, and already valid HyperMarkDown -->
+Tokens rotate hourly. See [the token format](../shared/tokens.md).
+```
+
+```markdown
+<!-- notes.hmd — the same file, with the graph filled in -->
+Tokens rotate hourly. See [[tokens]], and here is the rule itself:
+
+![[tokens#^rotation-rule]]
+```
+
+Rename one file, add one link, then run `hmd lint` or install the VS Code
+extension (see below). The rest of the vault can stay plain Markdown until you
+choose to convert it. 
+
+> Markdown is JavaScript; HyperMarkDown is TypeScript.
+
+Every Markdown file is already valid HyperMarkDown, the way JavaScript is
+already valid TypeScript. TypeScript adds types to the language you had.
+HyperMarkDown adds the knowledge graph, and [HQL](#hql-cells), a strongly typed
+expression and query language that runs inside a card. HQL queries the vault by
+structure and by meaning, with semantic retrieval and graph traversal, and
+assembles context for an AI agent. The same pipelines read and write files,
+SQLite, PostgreSQL, Kafka, NATS, and Databricks or Spark tables.
+
+### Publishing a site
+
+The MkDocs plugin builds a tree of cards into a site.
+[hypermarkdown.org](https://hypermarkdown.org/) is built that way from the
+cards in this repository, and the VS Code extension previews a card beside the
+file as you type.
+
+
+## The tools
+
+This repository contains both the *hmd language specification* and its *tools*: 
 - the **language** — its
 specification, the records that argue it, and the website they are published as 
 - and the **tools** that implement it, one package each under `tools/`.
 
-## The tools
-
-Each carries its own version, README, changelog, and license.
+Each tool carries its own version, README, ChangeLog, and license.
 
 ### [`hmd`](tools/hmd/) — the CLI, the library, the MkDocs plugin
 
@@ -88,8 +270,7 @@ diagram.](https://raw.githubusercontent.com/ewiger/hypermarkdown/main/doc/assets
 [![crates.io](https://img.shields.io/crates/v/hql.svg?color=e6a700&label=crates.io)](https://crates.io/crates/hql)
 [![Docs](https://img.shields.io/badge/docs-hql-lang.org-informational)](https://hql-lang.org/)
 
-The Hyper Query Language: a statically typed query and data transformation
-language, in a separate repository with its own releases and documentation at
+The Hyper Query Language: a strongly typed expression and query language, in a separate repository with its own releases and documentation at
 [hql-lang.org](https://hql-lang.org/). Pipelines of `filter`, `map`, `sort`,
 `group`, lexical and semantic search, and graph traversal over a vault's
 cards, frontmatter, and links, and over JSON, YAML, and records. Inside a card
