@@ -13,6 +13,20 @@ only for the Python API.
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-11-13
+
+### Fixed
+- **A nested vault is no longer swept into the vault around it.** A directory
+  below the namespace root that carries its own `.hmd/` is another vault, and
+  the outer `Workspace` now loads none of its cards. Before, a bare name unique
+  in the outer vault became HMD002 as soon as the inner vault had a card of the
+  same name, an inner card's absolute link was reported as HMD001 when linted
+  from the outer root, and a MkDocs site rooted at the outer vault published
+  the inner vault's public cards as its own pages. An import naming a
+  directory inside a nested vault is HMD015, the same as a missing directory.
+  Linting the nested vault with `--root` set to it, or from a card inside it,
+  is unchanged.
+
 ## [0.3.0] — 2026-09-14
 
 ### Added
@@ -243,7 +257,8 @@ Deliberate, and tracked per proposal under `doc/proposals/HMD-NNNN/STATUS.md`:
 Both specifications — the format and the site — are still `drafted`. Expect the
 format to move before `1.0`.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/ewiger/hypermarkdown/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ewiger/hypermarkdown/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ewiger/hypermarkdown/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/ewiger/hypermarkdown/compare/v0.1.0...v0.1.1

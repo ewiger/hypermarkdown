@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 
-from .config import Config
+from .config import MARKER_DIR, Config
 from .model import PRIVATE, PUBLIC, Document, ImportStmt
 from .parse import parse
 
@@ -58,13 +58,16 @@ class Workspace:
         #: Root-relative parts -> the pages addressable under them, for phase 3.
         self._by_parts: dict[tuple[str, ...], list[Path]] = {}
         self._import_tables: dict[Path, ImportTable] = {}
+        #: Roots of the vaults nested below this one; their cards are not ours.
+        self._nested_roots: frozenset[Path] = frozenset()
         self._load()
 
     # -- loading ---------------------------------------------------------
 
     def _load(self) -> None:
+        self._nested_roots = self._find_nested_roots()
         for path in sorted(self.root.rglob(f"*{SUFFIX}")):
-            if not path.is_file() or self._hidden(path):
+            if not path.is_file() or self._hidden(path) or self._in_nested_vault(path):
                 continue
             self._pages.append(path)
             text = path.read_text(encoding="utf-8")
@@ -80,6 +83,28 @@ class Workspace:
 
     def _hidden(self, path: Path) -> bool:
         return any(part.startswith(".") for part in path.relative_to(self.root).parts)
+
+    def _find_nested_roots(self) -> frozenset[Path]:
+        """Directories below the root that carry their own `.hmd/`.
+
+        Each one is the root of another vault, so nothing beneath it belongs
+        to this one. The root's own marker does not count: every vault has one.
+        """
+        nested = set()
+        for marker in self.root.rglob(MARKER_DIR):
+            directory = marker.parent
+            if directory == self.root or not marker.is_dir():
+                continue
+            if self._hidden(directory):
+                continue
+            nested.add(directory)
+        return frozenset(nested)
+
+    def _in_nested_vault(self, path: Path) -> bool:
+        """Whether `path` is a nested vault's root or lies beneath one."""
+        return any(
+            path == nested or nested in path.parents for nested in self._nested_roots
+        )
 
     # -- naming ----------------------------------------------------------
 
@@ -133,7 +158,9 @@ class Workspace:
                     ("HMD003", f"import ref {stmt.ref!r} resolves outside the namespace root")
                 )
                 continue
-            if not directory.is_dir():
+            # A nested vault is another namespace, so a directory inside one
+            # does not exist as far as this vault is concerned.
+            if not directory.is_dir() or self._in_nested_vault(directory):
                 table.problems.append(("HMD015", f"import ref {stmt.ref!r} does not exist"))
                 continue
 
