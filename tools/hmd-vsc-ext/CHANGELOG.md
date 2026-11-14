@@ -21,7 +21,15 @@ against
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- **A cell runs in its card's directory.** HQL was started in the vault root,
+  so a relative path in a cell, `file("data.csv")`, was read against the
+  vault root whatever folder the card was in. It is now started in the
+  directory holding the card: a relative path resolves beside the card, and
+  HQL finds the card's HQL project by searching upward from the card for
+  `.hql/config.toml`. A card that reads a file by a path relative to the
+  vault root needs that path rewritten relative to the card.
 
 ## [0.4.4] — 2026-11-13
 

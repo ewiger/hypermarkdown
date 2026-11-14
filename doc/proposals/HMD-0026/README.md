@@ -277,8 +277,16 @@ hql --vault <vault root> render --emit after --envelope json [--cell <id>] -
 ```
 
 - `<vault root>` is the namespace root of the vault that claims the card, so
-  the names HQL gives cards are the names the card's own links use. The process
-  runs in that directory.
+  the names HQL gives cards are the names the card's own links use.
+- The process runs in the directory holding the card. HQL reads a card on
+  standard input as a source in its working directory, so a relative path a
+  cell writes resolves beside the card, and HQL's search for the card's HQL
+  project, the nearest directory at or above it holding `.hql/config.toml`,
+  starts at the card. A card with no place on disk runs in the vault root.
+- No flag imports HyperMarkdown's HQL package or names the HQL project.
+  `hql render` is a HyperMarkdown host: it imports `hmd` into every cell, and
+  it selects the project itself, from `[hql] project` in the vault's
+  `.hmd/config.toml`, else by the search above.
 - A cell with an id runs with `--cell <id>`: HQL runs it and the cells it reads,
   and no others. A cell without an id has no name HQL can be asked for, so the
   whole card runs, and only that cell's output is written. *Run all* runs the
@@ -572,8 +580,15 @@ HQL_BIN=/path/to/hql npm run -w tools/hmd-vsc-ext test
   HQL as well as the listing rule.
 - 2026-10-19: `hql` ships in the toolchain release and is the default binary;
   the setting overrides it, and `PATH` is the fallback.
+- 2026-11-15: HQL runs in the directory holding the card, not the vault
+  root, so a cell's relative path resolves beside the card and the search
+  for the card's HQL project starts at the card.
 
 ## See also
+
+- [HQL's record of projects and vaults](https://github.com/ewiger/hql/blob/main/doc/proposals/HQL-0059/index.hmd)
+  — the source directory of a cell, the HQL project a vault selects, and the
+  package `hmd`.
 
 - [HQL's record of cells, shared values and saved outputs](https://github.com/ewiger/hql/blob/main/doc/proposals/HQL-0009/README.md)
   — the cell syntax, the attributes, the marker format, the hash, and the JSON

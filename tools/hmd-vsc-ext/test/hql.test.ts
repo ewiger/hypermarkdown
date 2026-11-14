@@ -9,7 +9,7 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -36,7 +36,7 @@ function fakeHql(name: string, answer: object | string, exit = 0): string {
   writeFileSync(join(dir, `${name}.json`), body);
   writeFileSync(
     path,
-    `#!/bin/sh\nprintf '%s\\n' "$@" > "${dir}/${name}.args"\ncat > "${dir}/${name}.stdin"\ncat "${dir}/${name}.json"\nexit ${exit}\n`,
+    `#!/bin/sh\nprintf '%s\\n' "$@" > "${dir}/${name}.args"\npwd -P > "${dir}/${name}.cwd"\ncat > "${dir}/${name}.stdin"\ncat "${dir}/${name}.json"\nexit ${exit}\n`,
   );
   chmodSync(path, 0o755);
   return path;
@@ -87,6 +87,23 @@ describe("running a cell", () => {
     // The listing and the other cell are untouched.
     expect(written).toContain("```hql\ncards | size\n```\n\n");
     expect(written.endsWith("<!-- /hql:output -->\n\n```hql#eval\ntoc | size\n```\n")).toBe(true);
+  });
+
+  it("runs hql in the card's own directory, and in the vault root for a card with none", async () => {
+    const nested = join(dir, "notes", "deep");
+    mkdirSync(nested, { recursive: true });
+    const hql = fakeHql("placed", envelopeFor(CARD, ["ok", "not-run"], ["- 2\n- 4"]));
+    const engine = new HqlEngine({ configuredPath: hql });
+    const cwd = (): string => execFileSync("cat", [join(dir, "placed.cwd")], { encoding: "utf8" }).trim();
+
+    await engine.run(CARD, dir, 0, nested);
+    expect(cwd()).toBe(realpathSync(nested));
+    // The vault is still the one named: only the working directory moves.
+    const args = execFileSync("cat", [join(dir, "placed.args")], { encoding: "utf8" }).split("\n");
+    expect(args.slice(0, 2)).toEqual(["--vault", dir]);
+
+    await engine.run(CARD, dir, 0);
+    expect(cwd()).toBe(realpathSync(dir));
   });
 
   it("runs the whole card for a cell with no id, and writes only that cell", async () => {

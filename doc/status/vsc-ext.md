@@ -54,6 +54,7 @@ on discovery, since `0.4.4` [issue 0009].
 | todo | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | A network view of a large vault is where this stops being a nicety [VSX-024] | [[hmd-0025]] |
 | todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
 | blocked | **Drop the mask.** Before handing a card to HQL the extension renames a bare `hql` fence to `txt` and marks an `hql#query` fence `hidden`, because `hql render` runs bare `hql` fences as cells and writes outputs for queries, and this format says they are a listing and a hidden cell. Unblocks when HQL adopts both rules | One function and its call [`src/hql/engine.ts`, `maskForHql`] | [[hmd-0026#the-divergence-with-hql-render]] |
+| blocked | **Name the HQL project and import `hmd` on the command line.** HQL's record of projects and vaults has a host pass the project it resolved, `--project <dir>`, and inject `--import hmd`. The extension passes neither: `hql render` imports `hmd` and selects the project itself, and the HQL the toolchain pins predates both flags and refuses an option it does not know. Unblocks when the toolchain pins an HQL release that has them | One argument list [`src/hql/engine.ts`, `run`] | [[hmd-0026#running-a-cell]] |
 | parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
 
 **Why the integration suite is parked**, neither reason in our code: the test
@@ -88,6 +89,11 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Done
 
+- **A cell runs in its card's directory** — HQL is started in the directory
+  holding the card, not the vault root, so a relative path in a cell resolves
+  beside the card and HQL's upward search for the card's HQL project starts
+  at the card. The vault named with `--vault` is unchanged
+  [`src/hql/engine.ts`, `run`].
 - **Nested vaults stay separate** — a card in a vault nested inside an indexed
   one is skipped by the outer vault's load, watcher, open buffers, and edits,
   so the outer vault's diagnostics no longer report false ambiguities or
@@ -166,6 +172,9 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-15: a cell runs in its card's directory, which is what HQL's record
+  of projects and vaults asks of a host: the source directory of a cell is
+  the directory of its document.
 - 2026-09-14: `0.3.0` released, and the `preview` flag came off the manifest.
   What it was waiting on — a graph of the vault — is in and read in a running
   editor, so the label had nothing left to stand for [issue 0109]. The
