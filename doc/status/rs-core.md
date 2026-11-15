@@ -77,6 +77,9 @@ implementation gains a rule the ledger does not name.
 - **The corpus runner and its ledger** — every case compared exactly on
   resolutions; a ledgered case that passes fails the test.
 
+- **A CI job** — format, lints as errors, the tests against the committed
+  lockfile, and a build on the minimum supported Rust version.
+
 ## Gates
 
 ```bash

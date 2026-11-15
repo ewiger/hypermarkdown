@@ -152,6 +152,50 @@ jobs:
           path: tools/hmd-vsc-ext/*.vsix
           if-no-files-found: error
 
+  # The Rust resolver crate (HMD-0027). It is its own Cargo package, outside
+  # both the uv and the npm workspace, so it gets a job of its own and installs
+  # neither Python nor Node. The corpus runner is one of its integration tests:
+  # a resolution that differs from what the canonical implementation wrote into
+  # `examples/conformance/cases/` fails here, and so does a ledgered case that
+  # has started passing.
+  rust:
+    name: rust
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/hmd-rs-core
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # The runner image ships rustup, so no action is needed to get a
+      # toolchain. `stable` runs the gates; `1.95` is the crate's declared
+      # `rust-version`, the floor its first consumer builds on.
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup toolchain install 1.95 --profile minimal
+          rustup default stable
+
+      - name: Format
+        run: cargo fmt --check
+
+      # Warnings are errors, and the crate warns on a public item with no
+      # documentation, so an undocumented item fails here.
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      # `--locked` for the reason the Python job gives for `uv sync --locked`:
+      # the committed `Cargo.lock` is the set of versions someone approved, and
+      # a run that would have to change it fails instead of re-resolving.
+      - name: Test
+        run: cargo test --locked
+
+      # A crate that declares a `rust-version` it does not build on is a
+      # promise nobody checked. Checked rather than tested: the tests ran above.
+      - name: Check the minimum supported Rust version
+        run: cargo +1.95 check --locked --all-targets
+
   # The same build `release.yml` runs, minus the upload. Packaging breaks in
   # ways the test matrix cannot see — an editable install resolves through
   # `src/` and never exercises the entry points — and PyPI will not let a
