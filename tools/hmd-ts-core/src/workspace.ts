@@ -14,15 +14,16 @@ import type { WorkspaceHost } from "./host.js";
 import type { ImportStmt, ParsedDocument } from "./model.js";
 import { parse } from "./parse.js";
 import {
+  CARD_SUFFIXES,
   INDEX_STEM,
   SUFFIX,
+  cardSuffix,
   dirnameRel,
   isUnder,
   joinRel,
   normalizeParts,
   pageParts,
   split,
-  withHmdSuffix,
 } from "./paths.js";
 
 export { INDEX_STEM, SUFFIX };
@@ -69,11 +70,15 @@ export const DEFAULT_CONFIG: WorkspaceConfig = {
   source: null,
 };
 
-/** Every `.hmd` file under the namespace root, plus resolution over them. */
+/** Every card under the namespace root, plus resolution over them. */
 export class Workspace {
   readonly documents = new Map<string, ParsedDocument>();
   private readonly pageList: string[] = [];
+  /** Built on demand from `pageList`; see `ensureIndex`. */
   private readonly byParts = new Map<string, string[]>();
+  /** Shadowed card -> the card of the same name that shadows it (HMD018). */
+  private readonly shadowed = new Map<string, string>();
+  private indexed = false;
   private readonly directories = new Set<string>([""]);
   /** Roots of the vaults nested below this one; their cards are not ours. */
   private readonly nestedRoots = new Set<string>();
@@ -109,7 +114,7 @@ export class Workspace {
         if (entry.name.startsWith(".")) continue;
         const rel = joinRel(dir, entry.name);
         if (entry.isDirectory) await walk(rel);
-        else if (entry.name.endsWith(SUFFIX)) paths.push(rel);
+        else if (cardSuffix(entry.name) !== null) paths.push(rel);
       }
     };
 
@@ -148,7 +153,6 @@ export class Workspace {
     if (isNew) {
       this.pageList.push(rel);
       this.pageList.sort();
-      this.indexParts(rel);
       let dir = dirnameRel(rel);
       for (;;) {
         this.directories.add(dir);
@@ -163,8 +167,6 @@ export class Workspace {
     if (!this.documents.delete(rel)) return;
     const at = this.pageList.indexOf(rel);
     if (at !== -1) this.pageList.splice(at, 1);
-    this.byParts.clear();
-    for (const page of this.pageList) this.indexParts(page);
     this.invalidate();
   }
 
@@ -172,6 +174,36 @@ export class Workspace {
   invalidate(): void {
     this.importTables.clear();
     this.resolveCache.clear();
+    this.indexed = false;
+  }
+
+  /**
+   * Rebuild the shadow map and the sweep index from the page list.
+   *
+   * Files of one directory whose names differ only in their card extension
+   * claim one name; the earliest extension is the card at it, and every other
+   * is shadowed and never a sweep candidate (HMD-0029).
+   */
+  private ensureIndex(): void {
+    if (this.indexed) return;
+    this.byParts.clear();
+    this.shadowed.clear();
+    const claims = new Map<string, string[]>();
+    for (const page of this.pageList) push(claims, pageParts(page).join("/"), page);
+    for (const claimants of claims.values()) {
+      const ranked = [...claimants].sort((a, b) => rank(a) - rank(b));
+      for (const loser of ranked.slice(1)) this.shadowed.set(loser, ranked[0]!);
+    }
+    for (const page of this.pageList) {
+      if (!this.shadowed.has(page)) this.indexParts(page);
+    }
+    this.indexed = true;
+  }
+
+  /** The card that shadows `rel`, or null when nothing does. */
+  shadowedBy(rel: string): string | null {
+    this.ensureIndex();
+    return this.shadowed.get(rel) ?? null;
   }
 
   private indexParts(rel: string): void {
@@ -197,22 +229,27 @@ export class Workspace {
   /**
    * Bind `parts` in one directory, honouring folder notes.
    *
-   * A target naming a directory resolves to that directory's `index.hmd`,
-   * which is what makes a folder note the namespace's landing page. When both
-   * `foo.hmd` and `foo/index.hmd` exist the file wins; the collision is
-   * reported separately as HMD012.
+   * The card extensions are tried in priority order, then the folder note with
+   * the same extensions in the same order (HMD-0029). A target naming a
+   * directory resolves to that directory's folder note, which is what makes it
+   * the namespace's landing page. When both `foo.hmd` and `foo/index.hmd`
+   * exist the file wins; the collision is reported separately as HMD012. A
+   * `suffix` the reference wrote binds only that extension.
    */
-  bind(directory: string, parts: readonly string[]): string | null {
+  bind(directory: string, parts: readonly string[], suffix: string | null = null): string | null {
     if (parts.length === 0) return null;
     const head = parts.slice(0, -1);
     const last = parts[parts.length - 1]!;
+    const suffixes = suffix === null ? CARD_SUFFIXES : [suffix];
 
-    const candidate = joinRel(directory, ...head, withHmdSuffix(last));
-    if (this.documents.has(candidate)) return candidate;
-
-    const folderNote = joinRel(directory, ...parts, `${INDEX_STEM}${SUFFIX}`);
-    if (this.documents.has(folderNote)) return folderNote;
-
+    for (const each of suffixes) {
+      const candidate = joinRel(directory, ...head, `${last}${each}`);
+      if (this.documents.has(candidate)) return candidate;
+    }
+    for (const each of suffixes) {
+      const folderNote = joinRel(directory, ...parts, `${INDEX_STEM}${each}`);
+      if (this.documents.has(folderNote)) return folderNote;
+    }
     return null;
   }
 
@@ -325,10 +362,11 @@ export class Workspace {
   }
 
   private resolveUncached(source: string, pageRef: string): Resolution {
-    const stem = pageRef.endsWith(SUFFIX) ? pageRef.slice(0, -SUFFIX.length) : pageRef;
+    const suffix = cardSuffix(pageRef);
+    const stem = suffix === null ? pageRef : pageRef.slice(0, -suffix.length);
 
     if (stem.startsWith("/")) {
-      const target = this.bind("", split(stem));
+      const target = this.bind("", split(stem), suffix);
       return target
         ? resolution({ outcome: "resolved", path: target })
         : resolution({ outcome: "unresolved" });
@@ -342,7 +380,7 @@ export class Workspace {
       if (escapes) return resolution({ outcome: "escapes" });
       if (parts.length === 0) return resolution({ outcome: "unresolved" });
       const dir = parts.slice(0, -1).join("/");
-      const target = this.bind(dir, [parts[parts.length - 1]!]);
+      const target = this.bind(dir, [parts[parts.length - 1]!], suffix);
       return target
         ? resolution({ outcome: "resolved", path: target })
         : resolution({ outcome: "unresolved" });
@@ -364,24 +402,24 @@ export class Workspace {
 
     // Phase 1 — spine walk, non-recursive, nearest first.
     for (const directory of this.spine(source)) {
-      const target = this.bind(directory, parts);
+      const target = this.bind(directory, parts, suffix);
       if (target !== null) {
         return resolution({ outcome: "resolved", path: target, phase: 1 });
       }
     }
 
     // Phase 2 — imported search paths, in declaration order.
-    const hits = table.searchPaths.filter((d) => this.bind(d, parts) !== null);
+    const hits = table.searchPaths.filter((d) => this.bind(d, parts, suffix) !== null);
     if (hits.length > 0) {
-      const winner = this.bind(hits[0]!, parts)!;
-      const shadowed = hits.slice(1).map((d) => this.bind(d, parts)!);
+      const winner = this.bind(hits[0]!, parts, suffix)!;
+      const shadowed = hits.slice(1).map((d) => this.bind(d, parts, suffix)!);
       return resolution({ outcome: "resolved", path: winner, phase: 2, shadowed });
     }
 
     if (!this.autodiscoveryEnabled(source)) return resolution({ outcome: "unresolved" });
 
     // Phase 3 — autodiscovery, at most once.
-    const matches = this.sweep(source, parts);
+    const matches = this.sweep(source, parts, suffix);
     if (matches.length === 1) {
       return resolution({ outcome: "resolved", path: matches[0]!, phase: 3 });
     }
@@ -403,7 +441,8 @@ export class Workspace {
     return out;
   }
 
-  private sweep(source: string, parts: readonly string[]): string[] {
+  private sweep(source: string, parts: readonly string[], ext: string | null): string[] {
+    this.ensureIndex();
     const scope = this.config.mode === "recursive" ? dirnameRel(source) : "";
     const suffix = parts.join("/");
     const matches = new Set<string>();
@@ -413,6 +452,7 @@ export class Workspace {
       if (keyParts.length < parts.length) continue;
       if (keyParts.slice(keyParts.length - parts.length).join("/") !== suffix) continue;
       for (const page of pages) {
+        if (ext !== null && cardSuffix(page) !== ext) continue;
         if (scope === "" || isUnder(scope, page)) matches.add(page);
       }
     }
@@ -421,6 +461,12 @@ export class Workspace {
     // across platforms and runs (P1).
     return [...matches].sort();
   }
+}
+
+/** The priority of a card's extension: lower wins a shared name. */
+function rank(rel: string): number {
+  const suffix = cardSuffix(rel);
+  return suffix === null ? CARD_SUFFIXES.length : CARD_SUFFIXES.indexOf(suffix);
 }
 
 function push(map: Map<string, string[]>, key: string, value: string): void {

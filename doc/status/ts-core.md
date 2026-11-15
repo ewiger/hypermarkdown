@@ -67,6 +67,10 @@ canonical side warns and this one stays silent.
 
 ## Done
 
+- **Markdown cards** — `.md` and `.markdown` cards, binding by card extension,
+  HMD018 and `Workspace.shadowedBy`, held to the corpus; released as 0.3.0
+  [HMD-0029].
+
 - **HQL cells in the IR** — `CellBlock` and `IR_VERSION` 3; cells found by
   HQL's own line rule, the lexical `reads` rule and the cell hash ported and
   pinned to hashes `hql` 0.4.2 wrote, saved outputs rendered as the card's own

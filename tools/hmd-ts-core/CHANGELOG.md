@@ -21,6 +21,32 @@ point in
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-11-15
+
+### Added
+
+- **Markdown cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/README.md)).
+  `.md` and `.markdown` files load as cards of `kind` `"markdown"`: a reference
+  resolves to one and its headings are addressable, but its body is not
+  scanned and not linted. `parse` dispatches on the path; `parseMarkdown`,
+  `isMarkdownCard`, `CARD_SUFFIXES` and `cardSuffix` are exported.
+- **HMD018**, a warning, and `Workspace.shadowedBy`: a card shadowed by one of
+  the same name with an earlier card extension.
+
+### Changed
+
+- Binding tries `.hmd`, `.md`, `.markdown`, then the folder note in the same
+  order; a written extension binds only itself, a name with a dot binds whole
+  (`[[v1.2]]` is `v1.2.hmd`, not `v1.hmd`), and a shadowed card is never an
+  autodiscovery candidate. `withHmdSuffix` keeps a name that already ends in a
+  card extension.
+
+### Fixed
+
+- A heading right below the frontmatter fence is a heading. The fence was
+  blanked together with its line breaks, so the first body line read as
+  indented and the heading was lost.
+
 ## [0.2.0] — 2026-11-13
 
 ### Added
