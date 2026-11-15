@@ -15,7 +15,7 @@ implementation in [`ts-core.md`](ts-core.md), the editor in
 **The format is specified and implemented twice, and the specification is a
 single normative text** rather than something a reader assembles from two
 proposals. Everything the first version needs is decided: the grammar, the
-resolution search, the four frontmatter keys, seventeen diagnostics, embed
+resolution search, the four frontmatter keys, eighteen diagnostics, embed
 expansion, and publication.
 
 **Three kinds of thing are open.** A handful of semantic questions that keep the
@@ -83,7 +83,10 @@ nothing is wrong yet, only unstated.
   the same about loading [issue 0009].
 - **Frontmatter** — four reserved keys, closed, each validated rather than
   coerced.
-- **Diagnostics** — seventeen rules with stable identifiers, severities, and
+- **Markdown cards** — a `.md` or `.markdown` file in the namespace is a card
+  that is addressed and embedded but not scanned; `.hmd` wins a shared name and
+  the loser is HMD018 [HMD-0029].
+- **Diagnostics** — eighteen rules with stable identifiers, severities, and
   positions, allocated by the canonical implementation and by nothing else.
 - **Embeds** — whole card, section, or block, with a depth cap and cycles an
   error.

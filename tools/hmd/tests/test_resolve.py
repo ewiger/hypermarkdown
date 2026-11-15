@@ -249,3 +249,38 @@ def test_resolution_is_stable_across_workspaces(build_workspace, tmp_path):
         for ref in ("logging", "tokens", "invoices", "specs/auth"):
             a, b = ws1.resolve(source, ref), ws2.resolve(source, ref)
             assert (a.outcome, a.path, a.candidates) == (b.outcome, b.path, b.candidates)
+
+
+# -- HMD-0029: Markdown cards ---------------------------------------------
+
+
+def test_a_markdown_card_exposes_frontmatter_and_is_not_scanned(build_workspace):
+    ws = build_workspace({"a.md": "---\ntitle: A\nnav:\n  visibility: private\n---\n# A\n\n[[b]] ^id\n"})
+    document = ws.documents[ws.root / "a.md"]
+    assert document.is_markdown
+    assert document.frontmatter["title"] == "A"
+    assert document.links == ()
+    assert document.anchors == ()
+    assert [h.slug for h in document.headings] == ["a"]
+    # The reserved keys are not interpreted, and HyperMarkdown does not gate it.
+    assert ws.visibility(ws.root / "a.md") == "public"
+
+
+def test_a_markdown_fence_that_does_not_parse_is_body_text(build_workspace):
+    ws = build_workspace({"a.md": "---\n: [unclosed\n---\n# A\n"})
+    document = ws.documents[ws.root / "a.md"]
+    assert document.frontmatter == {}
+    assert document.diagnostics == []
+
+
+def test_a_written_extension_binds_only_that_extension(build_workspace):
+    ws = build_workspace({"a.hmd": "[[n.markdown]] [[n.md]]\n", "n.markdown": "# N\n"})
+    source = ws.root / "a.hmd"
+    assert ws.resolve(source, "n.markdown").path == ws.root / "n.markdown"
+    assert ws.resolve(source, "n.md").outcome.value == "unresolved"
+    assert ws.resolve(source, "n").path == ws.root / "n.markdown"
+
+
+def test_a_name_with_a_dot_binds_whole(build_workspace):
+    ws = build_workspace({"a.hmd": "[[v1.2]]\n", "v1.2.md": "# v1.2\n"})
+    assert ws.resolve(ws.root / "a.hmd", "v1.2").path == ws.root / "v1.2.md"

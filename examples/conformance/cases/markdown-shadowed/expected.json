@@ -1,0 +1,24 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "owl.hmd shadows owl.md; [[owl]] means owl.hmd",
+      "path": "owl.md",
+      "rule": "HMD018",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[owl.md]]",
+      "source": "start.hmd",
+      "target": "owl.md"
+    },
+    {
+      "raw": "[[owl]]",
+      "source": "start.hmd",
+      "target": "owl.hmd"
+    }
+  ]
+}

@@ -23,7 +23,7 @@ resolutions — never written by hand.
 
 ```text
 examples/conformance/cases/<case-name>/
-  tree/           the input namespace: .hmd files and directories
+  tree/           the input namespace: cards (.hmd, .md, .markdown) and directories
   config.toml     optional; the case's .hmd/config.toml
   expected.json   { diagnostics: [...], resolutions: [...] }
 ```
@@ -43,6 +43,12 @@ leaks into the contract.
 | `indented-not-code` | An indented `[[link]]` is found; fenced, commented, and code-span links are not |
 | `imports-alias` | `import … as` binds the alias; heading and block fragments check |
 | `embed-cycle` | A two-card embed cycle is HMD007 |
+| `markdown-card-target` | `[[guide]]` reaches `guide.md`, and a heading fragment checks against it |
+| `markdown-not-scanned` | A `[[link]]` inside a `.md` file is text: no HMD001, no resolution |
+| `markdown-shadowed` | `owl.hmd` beside `owl.md`: `[[owl]]` is the `.hmd`, `[[owl.md]]` the `.md`, and HMD018 |
+| `markdown-folder-note` | `index.md` is a folder note; beside `index.hmd` it is HMD018 |
+| `markdown-sweep` | The sweep finds a Markdown card, is HMD002 across modules, and skips a shadowed file |
+| `heading-after-frontmatter` | A heading on the line right below the fence is addressable |
 | `nested-vault` | A directory carrying its own `.hmd/` is another vault: none of its cards load, so a name it shares is not HMD002 |
 
 ## Runners

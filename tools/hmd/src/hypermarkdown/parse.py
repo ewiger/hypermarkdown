@@ -15,6 +15,7 @@ from .model import (
     CardConfig,
     Diagnostic,
     Document,
+    MARKDOWN,
     Heading,
     Link,
     Span,
@@ -54,7 +55,7 @@ def parse(path: Path, text: str, rel: str) -> Document:
                 diagnostics.append(Diagnostic(rule, ERROR, rel, 1, 1, message))
 
     # Mask the body only; frontmatter is YAML, not markdown.
-    masked = " " * body_offset + scan.mask(text[body_offset:])
+    masked = _blank(text[:body_offset]) + scan.mask(text[body_offset:])
 
     headings = _headings(text, masked)
     anchors = _anchors(text, masked)
@@ -71,6 +72,42 @@ def parse(path: Path, text: str, rel: str) -> Document:
         links=links,
         diagnostics=diagnostics,
     )
+
+
+def parse_markdown(path: Path, text: str, rel: str) -> Document:
+    """Read one Markdown card (HMD-0029): frontmatter and headings, nothing else.
+
+    The body is CommonMark and is not scanned, so it yields no link, embed or
+    block anchor. A frontmatter block is exposed as data and none of its keys is
+    interpreted; one that does not parse as a mapping is body text, and is not
+    reported, because the author did not write HyperMarkdown.
+    """
+    raw_yaml, _body, body_offset = split_frontmatter(text)
+    frontmatter: dict = {}
+    if raw_yaml is not None:
+        try:
+            frontmatter = parse_yaml(raw_yaml)
+        except ValueError:
+            body_offset = 0
+
+    masked = _blank(text[:body_offset]) + scan.mask(text[body_offset:])
+    return Document(
+        path=path,
+        text=text,
+        frontmatter=frontmatter,
+        card=CardConfig(),
+        headings=_headings(text, masked),
+        kind=MARKDOWN,
+    )
+
+
+def _blank(frontmatter: str) -> str:
+    """The frontmatter as blanks of the same length, its line breaks kept.
+
+    Blanking the line breaks too would join the fence to the first body line,
+    which then reads as indented and loses a heading written right below `---`.
+    """
+    return re.sub(r"[^\r\n]", " ", frontmatter)
 
 
 def _span(text: str, start: int, end: int) -> Span:

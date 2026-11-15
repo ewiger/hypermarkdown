@@ -1,0 +1,24 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "fish/index.hmd shadows fish/index.md; [[fish]] means fish/index.hmd",
+      "path": "fish/index.md",
+      "rule": "HMD018",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[birds]]",
+      "source": "start.hmd",
+      "target": "birds/index.md"
+    },
+    {
+      "raw": "[[fish]]",
+      "source": "start.hmd",
+      "target": "fish/index.hmd"
+    }
+  ]
+}

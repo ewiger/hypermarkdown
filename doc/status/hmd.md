@@ -84,7 +84,11 @@ commit: the retired domain does not redirect.
   from Python-Markdown so links and rendered anchors cannot disagree, the
   two-phase resolution search with its whole-tree fallback, folder notes, both
   import forms, and embed expansion with a depth cap and cycle detection.
-- **`hmd lint`** — sixteen diagnostics with stable identifiers, JSON output, and
+- **Markdown cards** — `.md` and `.markdown` files load as cards that are not
+  scanned, bind after `.hmd`, and are reported as HMD018 when shadowed; the MkDocs
+  plugin links to the page MkDocs builds from one and never registers it; a
+  heading right below the frontmatter fence is a heading again [HMD-0029].
+- **`hmd lint`** — eighteen diagnostics with stable identifiers, JSON output, and
   exit codes a CI job can read.
 - **`hmd render`** — flat markdown and HTML.
 - **`hmd init`** — writes the project marker with every setting at its default,

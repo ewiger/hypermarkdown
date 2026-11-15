@@ -20,7 +20,7 @@ from . import graph as graph_mod
 from .lint import check, format_json, format_text, summarize
 from .model import Diagnostic
 from .render import flat
-from .resolve import SUFFIX, Workspace
+from .resolve import CARD_SUFFIXES, Workspace, card_suffix
 
 app = typer.Typer(
     add_completion=False,
@@ -79,13 +79,13 @@ def _selected(workspace: Workspace, paths: list[Path] | None) -> list[Path] | No
         candidate = raw.resolve()
         if candidate.is_dir():
             selected.extend(p for p in workspace.pages() if candidate in p.parents or candidate == p.parent)
-        elif candidate.suffix == SUFFIX:
+        elif card_suffix(candidate.name):
             if candidate not in workspace.documents:
                 typer.echo(f"hmd: not inside the namespace root: {raw}", err=True)
                 raise typer.Exit(EXIT_USAGE)
             selected.append(candidate)
         else:
-            typer.echo(f"hmd: not a {SUFFIX} file or directory: {raw}", err=True)
+            typer.echo(f"hmd: not a card ({', '.join(CARD_SUFFIXES)}) or directory: {raw}", err=True)
             raise typer.Exit(EXIT_USAGE)
     return sorted(set(selected))
 

@@ -1,0 +1,10 @@
+{
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "[[notes]]",
+      "source": "index.hmd",
+      "target": "notes.md"
+    }
+  ]
+}

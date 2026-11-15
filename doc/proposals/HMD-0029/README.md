@@ -113,7 +113,8 @@ bind(dir, parts, ext?) -> Resolved(path) | NotFound
   holding more than one has one folder note, the earliest by priority, and the
   rest are shadowed as below. A Markdown folder note is addressed by its
   directory like any folder note, but since its frontmatter is not interpreted
-  it sets no `use` and no `nav.visibility` for its subtree.
+  it sets no `use` and no `nav.visibility` for its subtree; inheritance reads
+  `index.hmd` only.
 - The file-before-folder-note rule and HMD012 are unchanged. A card and a folder
   note of the same name, of any extensions, are HMD012 and the file wins.
 
@@ -147,10 +148,16 @@ The sweep sees Markdown cards, and does not see shadowed files.
 
 ### Publishing
 
-A publisher renders a Markdown card as CommonMark and links to it as it links to
-any card. Visibility rules apply to a Markdown card as to any card; since its
-frontmatter is not interpreted, a Markdown card takes its visibility from the
-nearest ancestor folder note that sets one, then the default.
+HyperMarkdown does not gate the publication of a Markdown card. The card is
+published exactly where its file is, by whatever publishes Markdown files.
+
+- A Markdown card's effective visibility is `public`. The opt-in gate exists so
+  that a HyperMarkdown card's author decides whether it ships; a Markdown file
+  in a site's sources already ships under the site's own rules, and a gate that
+  defaulted it to private would remove pages a site publishes today.
+- A publisher MUST NOT register a Markdown card as a page of its own. A link or
+  an embed to one MUST point at the page the site builds from that file, and
+  where the site builds none, it MUST render as an unresolved link.
 
 ## Backwards Compatibility
 

@@ -1,0 +1,15 @@
+{
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "[[guide#Install]]",
+      "source": "home.hmd",
+      "target": "guide.md"
+    },
+    {
+      "raw": "[[guide]]",
+      "source": "home.hmd",
+      "target": "guide.md"
+    }
+  ]
+}

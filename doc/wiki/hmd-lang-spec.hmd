@@ -66,19 +66,46 @@ unexpectedly is a defect in the implementation rather than in the corpus.
 
 ## Documents
 
-A **card** is one file with the `.hmd` extension. It MUST be valid UTF-8.
+A **card** is one file with a **card extension**. It MUST be valid UTF-8. The
+card extensions, in priority order, are exactly:
 
-A card consists of an OPTIONAL frontmatter block followed by CommonMark content.
-Nothing else is structurally required: a card with no frontmatter and no
-HyperMarkDown construct is a well-formed card.
+```text
+.hmd  .md  .markdown
+```
+
+- A file with the extension `.hmd` is a **HyperMarkDown card**. It consists of
+  an OPTIONAL frontmatter block followed by CommonMark content. Nothing else is
+  structurally required: a card with no frontmatter and no HyperMarkDown
+  construct is a well-formed card. Where this specification says "card"
+  without qualification of what a card contains, it means a HyperMarkDown card.
+- A file with the extension `.md` or `.markdown` is a **Markdown card**: a link
+  target and an embed target whose body is CommonMark. It is specified under
+  *Markdown cards*.
+
+Where two files compete for one name, the earlier extension wins; the rule is
+stated under *Binding an unqualified reference in one directory*.
 
 Cards are addressed within a single rooted subtree of the filesystem, the
 **namespace root**, defined under *The namespace*. A file is a member of the
-namespace if and only if it lies inside that root and has the `.hmd` extension.
+namespace if and only if it lies inside that root and has a card extension.
 Files with any other extension MUST be ignored for the purposes of this
-specification: they are neither link targets nor inputs to checking, which is
-what allows an ordinary `README.md` to sit inside a namespace without becoming
-part of it.
+specification: they are neither link targets nor inputs to checking.
+
+### Markdown cards
+
+A Markdown card is addressable as a card and is read as CommonMark.
+
+- A Markdown card MUST NOT be scanned. Its body yields no wikilink, no embed and
+  no block anchor, and a `[[...]]` in it is text: its author wrote Markdown.
+- It MAY open with a frontmatter block under the same fence rule. An
+  implementation MUST expose the mapping and MUST NOT interpret any of its keys,
+  the four reserved keys included. A block that does not parse as a YAML
+  mapping is body text, not HMD009.
+- Its headings are assigned slugs by the rule under *Heading anchors*, so a
+  heading fragment matches them. It has no block anchors.
+- It is not checked: no diagnostic is raised from its body.
+- An embed of a Markdown card transcludes its body as CommonMark, with no
+  HyperMarkDown expansion inside it.
 
 ## Lexical model
 
@@ -160,8 +187,10 @@ reserved     := "[" | "]" | "|" | "#" | "^" | newline
 - **No escape mechanism exists in this version.** A target that needs a reserved
   character is a malformed link, reported as HMD010. This is a known gap rather
   than a design position.
-- A `page_ref` MAY carry a trailing `.hmd`; an implementation MUST strip it
-  before matching. Writing the extension is redundant but harmless.
+- A `page_ref` MAY carry a trailing card extension; an implementation MUST strip
+  it before matching and MUST then bind only that extension. Writing `.hmd` is
+  redundant but harmless; writing `.md` reaches a Markdown card that a
+  HyperMarkDown card of the same name shadows.
 - A `display` MAY be meaningless but MUST NOT be empty of characters. The form
   with an empty display is malformed and reported as HMD010.
 
@@ -224,8 +253,8 @@ address files and URLs outside that subtree.
   inside the vault the cards start. It is a path resolved relative to the
   project root, defaulting to `doc/wiki`. `wiki = "."` puts the cards directly
   under the vault.
-- The **namespace root** is the directory the cards location names. A `.hmd`
-  file is a card if and only if it lies below it, a card's path is written
+- The **namespace root** is the directory the cards location names. A file
+  with a card extension is a card if and only if it lies below it, a card's path is written
   relative to it, and a file of the vault outside it is not a card.
 - An implementation MUST offer a way to name the namespace root directly,
   overriding both.
@@ -236,8 +265,10 @@ address files and URLs outside that subtree.
 
 A directory inside the namespace is a **module**: it is the unit that scopes a
 name and the unit that inherits configuration. A directory MAY carry a **folder
-note**, an `index.hmd`. A reference to the directory and a reference to its
-explicit `index` path resolve to that one card.
+note**, a card named `index` with any card extension. A reference to the
+directory and a reference to its explicit `index` path resolve to that one card.
+Configuration inherits from `index.hmd` only: a Markdown folder note's
+frontmatter is not interpreted, so it sets nothing for its subtree.
 
 ## Name resolution
 
@@ -259,20 +290,29 @@ Every search phase binds an unqualified reference identically, so a folder note
 behaves the same everywhere.
 
 ```text
-bind(dir, parts) -> Resolved(path) | NotFound
+bind(dir, parts, ext?) -> Resolved(path) | NotFound
 
-  file   := dir / join(parts) + ".hmd"
-  folder := dir / join(parts)
+  exts := [ext] if the reference wrote one, else [".hmd", ".md", ".markdown"]
 
-  if file exists:                          return Resolved(file)
-  if folder is a directory
-     and folder/index.hmd exists:          return Resolved(folder/index.hmd)
+  for e in exts:
+      file := dir / join(parts) + e
+      if file exists:                      return Resolved(file)
+  for e in exts:
+      note := dir / join(parts) / ("index" + e)
+      if note exists:                      return Resolved(note)
   return NotFound
 ```
 
-- A target naming a directory MUST resolve to that directory's `index.hmd`. The
+- A target naming a directory MUST resolve to that directory's folder note. The
   directory-form reference and the explicit `index` reference therefore resolve
   to the same card.
+- Two files in one directory whose names differ only in their card extension
+  claim one name. The one with the earliest extension is the card at that name;
+  every other is **shadowed**: still a card, never bound by a reference that
+  writes no extension, bound by one that writes its extension, and never a
+  sweep candidate. Each shadowed file MUST be reported once as HMD018, a
+  warning, at its line 1 column 1. Folder notes shadow one another the same
+  way.
 - If a card and a folder note claim the same name as siblings, the pair MUST be
   reported as HMD012. For deterministic diagnostics and rendering after that
   error, an implementation MUST select the file card. The selection does not
@@ -283,7 +323,8 @@ bind(dir, parts) -> Resolved(path) | NotFound
 ```text
 resolve(target, source, root) -> Resolved(path) | Unresolved | Ambiguous(paths) | Escapes
 
-  stem  := target.page_ref with any ".hmd" suffix removed
+  ext   := the card extension target.page_ref ends in, if any
+  stem  := target.page_ref with ext removed
   parts := stem split on "/"
   bindings := named_imports(source)                      # name -> card
   paths    := wildcard_imports(source)                   # ordered dirs
@@ -317,10 +358,11 @@ resolve(target, source, root) -> Resolved(path) | Unresolved | Ambiguous(paths) 
        if mode == "spine": return Unresolved      # autodiscovery off
 
        # Phase 3 — autodiscovery. Runs at most once.
+       # Every card, less shadowed files; only `ext` when one was written.
        if mode == "recursive":
-           candidates := descendants(dirname(source), "*.hmd")
+           candidates := cards_below(dirname(source), ext)
        else:                                      # mode == "both"
-           candidates := descendants(root, "*.hmd")
+           candidates := cards_below(root, ext)
        matches := { p in candidates
                     : addressable_parts(p) ends with parts }
        if size(matches) == 1: return Resolved(the match)
@@ -328,7 +370,7 @@ resolve(target, source, root) -> Resolved(path) | Unresolved | Ambiguous(paths) 
        return Unresolved
 ```
 
-`addressable_parts(p)` is `p`'s root-relative parts without the suffix, plus —
+`addressable_parts(p)` is `p`'s root-relative parts without its card extension, plus —
 when `p` is a folder note — the parts of its directory, so that an unqualified
 reference means the same thing in the sweep as it does on the spine.
 
@@ -492,6 +534,11 @@ a card nobody asked to publish.
 - An unpublished card MUST NOT be registered at all — no page, no address. Being
   absent from a sidebar is not sufficient: a page reachable by typing its address
   is published, whatever the sidebar says.
+- A Markdown card's effective visibility is `public`, and a publisher MUST NOT
+  register it as a page of its own: it is published exactly where its file is,
+  by whatever publishes Markdown. A link or an embed to one points at the page
+  the site builds from that file, and renders as an unresolved link where the
+  site builds none.
 - `visibility` **inherits** the way `use` does: the card's own value, then the
   nearest ancestor folder note that sets one, then the default. The corollary is
   worth stating plainly: `public` on a root folder note publishes that entire
@@ -601,6 +648,7 @@ suppression comments and CI configuration reference them.
 | HMD015 | error | An import `ref` does not resolve, or two named imports bind one local name |
 | HMD016 | warning | An unqualified reference matched two imported search paths; the earlier won |
 | HMD017 | warning | A published card links to or embeds one that is not published |
+| HMD018 | warning | A card shadows a card of the same name with a later card extension |
 
 An unresolved reference is a **warning**: writing forward is permitted, and the
 report is a to-do list. Multiple autodiscovery matches are an **error** because
