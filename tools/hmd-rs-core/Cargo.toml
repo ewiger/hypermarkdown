@@ -1,0 +1,26 @@
+[package]
+name = "hypermarkdown"
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.95"
+description = "The HyperMarkdown resolver: which card a [[reference]] names."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ewiger/hypermarkdown"
+homepage = "https://hypermarkdown.org/"
+keywords = ["hypermarkdown", "hmd", "wikilink", "resolver", "markdown"]
+categories = ["parser-implementations", "text-processing"]
+include = ["src/**", "tests/**", "conformance-xfail.json", "README.md", "CHANGELOG.md", "LICENSE"]
+
+[lib]
+name = "hypermarkdown"
+
+[dependencies]
+# Frontmatter is YAML and `.hmd/config.toml` is TOML; everything else is std.
+# `serde` is what both parsers are driven through, and adds no crate of its own.
+serde = "1"
+serde_yaml_ng = "0.10"
+toml = { version = "1.1", default-features = false, features = ["std", "parse", "serde"] }
+
+[dev-dependencies]
+serde_json = "1"

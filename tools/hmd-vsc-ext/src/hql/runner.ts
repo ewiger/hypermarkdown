@@ -12,6 +12,8 @@
  * describes a card that no longer exists and is dropped.
  */
 
+import { dirname } from "node:path";
+
 import * as vscode from "vscode";
 
 import { scanCells, SUFFIX } from "@hypermarkdown/core";
@@ -91,7 +93,7 @@ export class CellRunner implements vscode.Disposable {
 
       const result = await vscode.window.withProgress(
         { location: vscode.ProgressLocation.Window, title: `HQL: running ${label}` },
-        () => this.engine.run(text, card.vault.root.fsPath, index),
+        () => this.engine.run(text, card.vault.projectRoot.fsPath, index, dirname(uri.fsPath)),
       );
 
       if (document.version !== version) {

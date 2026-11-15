@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { MemoryHost } from "../src/host.js";
 import { check } from "../src/lint.js";
+import { parse } from "../src/parse.js";
 import { Workspace, type WorkspaceConfig } from "../src/workspace.js";
 
 const card = (body = "# H\n"): string => body;
@@ -229,5 +230,29 @@ describe("determinism", () => {
       { autodiscovery: true, mode: "both", source: null },
     );
     expect(JSON.stringify(check(reversed))).toBe(JSON.stringify(check(forward)));
+  });
+});
+
+describe("Markdown cards (HMD-0029)", () => {
+  it("shadowing follows cards as they are added and removed", async () => {
+    const ws = await build({ "here.hmd": card("[[x]]\n"), "far/x.md": card() });
+    expect(ws.resolve("here.hmd", "x")).toMatchObject({ outcome: "resolved", path: "far/x.md" });
+
+    ws.addDocument("far/x.hmd", parse("far/x.hmd", card()));
+    expect(ws.shadowedBy("far/x.md")).toBe("far/x.hmd");
+    expect(ws.resolve("here.hmd", "x")).toMatchObject({ outcome: "resolved", path: "far/x.hmd" });
+
+    ws.removeDocument("far/x.hmd");
+    expect(ws.shadowedBy("far/x.md")).toBeNull();
+    expect(ws.resolve("here.hmd", "x")).toMatchObject({ outcome: "resolved", path: "far/x.md" });
+  });
+
+  it("a Markdown card is parsed for headings only", () => {
+    const doc = parse("a.md", "---\ntitle: A\n---\n# A\n\n[[b]] ^id\n");
+    expect(doc.kind).toBe("markdown");
+    expect(doc.frontmatter).toEqual({ title: "A" });
+    expect(doc.links).toEqual([]);
+    expect(doc.anchors).toEqual([]);
+    expect(doc.headings.map((h) => h.slug)).toEqual(["a"]);
   });
 });

@@ -134,9 +134,15 @@ class Diagnostic:
         return out
 
 
+# Card kinds (HMD-0029). A HyperMarkdown card is scanned and checked; a
+# Markdown card is addressable and has headings, and its body is CommonMark.
+HMD = "hmd"
+MARKDOWN = "markdown"
+
+
 @dataclass
 class Document:
-    """One parsed `.hmd` file."""
+    """One parsed card: a `.hmd` file, or a `.md` or `.markdown` file."""
 
     path: Path
     text: str
@@ -147,6 +153,12 @@ class Document:
     links: tuple[Link, ...] = ()
     # Diagnostics discovered at parse time (HMD009, HMD010, HMD013, HMD014).
     diagnostics: list[Diagnostic] = field(default_factory=list)
+    #: `HMD` or `MARKDOWN`.
+    kind: str = HMD
+
+    @property
+    def is_markdown(self) -> bool:
+        return self.kind == MARKDOWN
 
     def heading_slugs(self) -> set[str]:
         return {h.slug for h in self.headings}

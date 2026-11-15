@@ -1,0 +1,14 @@
+---
+title: The barn owl belongs to Tytonidae
+metadata:
+  status: done
+  knowledge:
+    type: Relation
+    relation:
+      source: barn-owl
+      target: tytonidae
+---
+# The barn owl belongs to Tytonidae
+
+The heart-shaped facial disc and the serrated middle claw place the species in
+the barn owl family rather than among the typical owls.

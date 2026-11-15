@@ -1,0 +1,10 @@
+{
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "[[a#Top]]",
+      "source": "b.hmd",
+      "target": "a.hmd"
+    }
+  ]
+}

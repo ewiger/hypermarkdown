@@ -98,10 +98,19 @@ export function compareDiagnostics(a: Diagnostic, b: Diagnostic): number {
   return 0;
 }
 
-/** One parsed `.hmd` file. */
+/**
+ * What a card is written in (HMD-0029): a `.hmd` file is scanned and checked; a
+ * `.md` or `.markdown` file is addressable and has headings, and its body is
+ * CommonMark.
+ */
+export type CardKind = "hmd" | "markdown";
+
+/** One parsed card. */
 export interface ParsedDocument {
   /** Root-relative path, POSIX separators. */
   path: string;
+  /** Absent means `hmd`. */
+  kind?: CardKind;
   text: string;
   frontmatter: Record<string, unknown>;
   card: CardConfig;
@@ -110,6 +119,10 @@ export interface ParsedDocument {
   links: readonly Link[];
   /** Diagnostics found at parse time (HMD009, HMD010, HMD013, HMD014). */
   diagnostics: readonly Diagnostic[];
+}
+
+export function isMarkdownCard(doc: ParsedDocument): boolean {
+  return doc.kind === "markdown";
 }
 
 export function headingSlugs(doc: ParsedDocument): Set<string> {

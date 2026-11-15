@@ -64,7 +64,8 @@ hmd init                    # or: hmd init --wiki notes --name shared
 ```
 
 That writes `.hmd/config.toml` with every setting at its default and creates the
-namespace root it names. The directory doubles as the root marker, so any
+directory its `wiki` setting names: the cards location, where inside the vault
+the cards start. The directory doubles as the root marker, so any
 subtree can be self-contained — `hmd init` inside one is how you make it so.
 
 It also names the tree, in a `[namespace]` section, after the project directory

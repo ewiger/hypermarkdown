@@ -36,7 +36,8 @@ CONFIG_TEMPLATE = """\
 # `.git/`. Only the settings below are read; every other key is ignored, so the
 # file is safe to extend.
 
-# The namespace root, relative to this project root. Every `.hmd` card beneath
+# The cards location: where inside this project the cards start, relative to
+# this project root. It names the namespace root. Every `.hmd` card beneath
 # it is a page, and links resolve within it. Nothing outside it is checked.
 wiki = "{wiki}"
 

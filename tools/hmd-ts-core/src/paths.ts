@@ -9,6 +9,20 @@
 export const SUFFIX = ".hmd";
 export const INDEX_STEM = "index";
 
+/**
+ * The card extensions in priority order (HMD-0029): where two files compete for
+ * one name, the earlier extension wins.
+ */
+export const CARD_SUFFIXES: readonly string[] = [".hmd", ".md", ".markdown"];
+
+/** The card extension `name` ends in, or null. */
+export function cardSuffix(name: string): string | null {
+  for (const suffix of CARD_SUFFIXES) {
+    if (name.endsWith(suffix)) return suffix;
+  }
+  return null;
+}
+
 /** Split a link ref or path into non-empty segments. */
 export function split(ref: string): string[] {
   return ref.split("/").filter((part) => part !== "");
@@ -36,20 +50,18 @@ export function joinRel(dir: string, ...parts: string[]): string {
 }
 
 /**
- * `PurePath.with_suffix(".hmd")`: replace the last extension, or add one.
- *
- * Replicated rather than simplified because the canonical resolver calls it,
- * so `[[v1.2]]` binds `v1.hmd` on both sides or on neither.
+ * The file a name becomes as a new card: `name` itself when it already ends in
+ * a card extension, `name.hmd` otherwise. A name binds whole, so `v1.2` is
+ * `v1.2.hmd` (HMD-0029).
  */
 export function withHmdSuffix(name: string): string {
-  const dot = name.lastIndexOf(".");
-  return dot <= 0 ? `${name}${SUFFIX}` : `${name.slice(0, dot)}${SUFFIX}`;
+  return cardSuffix(name) === null ? `${name}${SUFFIX}` : name;
 }
 
-/** Drop a single trailing extension, as `PurePath.with_suffix("")` does. */
+/** Drop a trailing card extension, if `name` has one. */
 export function stripSuffix(name: string): string {
-  const dot = name.lastIndexOf(".");
-  return dot <= 0 ? name : name.slice(0, dot);
+  const suffix = cardSuffix(name);
+  return suffix === null ? name : name.slice(0, name.length - suffix.length);
 }
 
 export interface Normalized {
@@ -79,7 +91,7 @@ export function normalizeParts(parts: readonly string[]): Normalized {
   return { parts: out, escapes: out[0] === ".." };
 }
 
-/** Root-relative parts of a page path, with the `.hmd` suffix removed. */
+/** Root-relative parts of a page path, with its card extension removed. */
 export function pageParts(rel: string): string[] {
   const parts = split(rel);
   const last = parts.pop();

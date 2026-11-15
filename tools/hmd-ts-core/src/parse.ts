@@ -20,6 +20,7 @@ import {
   type ParsedDocument,
   type Span,
 } from "./model.js";
+import { cardSuffix } from "./paths.js";
 import * as scan from "./scan.js";
 import { slugFor } from "./slug.js";
 
@@ -33,8 +34,13 @@ const HEADING_TEXT_RE = /^[ \t]{0,3}#{1,6}[ \t]+([\s\S]*?)[ \t]*$/;
 const CLOSING_HASHES_RE = /[ \t]+#+[ \t]*$/;
 const TRAILING_ANCHOR_RE = /[ \t]+\^[A-Za-z0-9][A-Za-z0-9_-]{0,63}[ \t]*$/;
 
-/** Parse one `.hmd` file. `rel` is the root-relative path used in diagnostics. */
+/**
+ * Parse one card. `rel` is the root-relative path used in diagnostics; one
+ * ending in `.md` or `.markdown` is a Markdown card, read by `parseMarkdown`.
+ */
 export function parse(rel: string, text: string): ParsedDocument {
+  const suffix = cardSuffix(rel);
+  if (suffix !== null && suffix !== SUFFIX) return parseMarkdown(rel, text);
   const diagnostics: Diagnostic[] = [];
   const { raw, bodyOffset } = splitFrontmatter(text);
 
@@ -61,10 +67,10 @@ export function parse(rel: string, text: string): ParsedDocument {
     }
   }
 
-  // Mask the body only; frontmatter is YAML, not markdown. The prefix is
-  // spaces rather than the original bytes, exactly as the canonical
-  // implementation writes it — see the note on `maskedBody` below.
-  const masked = " ".repeat(bodyOffset) + scan.mask(text.slice(bodyOffset));
+  // Mask the body only; frontmatter is YAML, not markdown. The frontmatter
+  // becomes blanks of the same length with its line breaks kept, so the first
+  // body line does not read as indented.
+  const masked = blank(text.slice(0, bodyOffset)) + scan.mask(text.slice(bodyOffset));
   const index = new scan.PositionIndex(text);
 
   const headings = collectHeadings(text, masked, index);
@@ -73,6 +79,45 @@ export function parse(rel: string, text: string): ParsedDocument {
   diagnostics.push(...linkDiagnostics);
 
   return { path: rel, text, frontmatter, card, headings, anchors, links, diagnostics };
+}
+
+/**
+ * Read one Markdown card (HMD-0029): frontmatter and headings, nothing else.
+ *
+ * The body is CommonMark and is not scanned, so it yields no link, embed or
+ * block anchor. A frontmatter block is exposed as data and none of its keys is
+ * interpreted; one that does not parse as a mapping is body text, and is not
+ * reported.
+ */
+export function parseMarkdown(rel: string, text: string): ParsedDocument {
+  const { raw } = splitFrontmatter(text);
+  let { bodyOffset } = splitFrontmatter(text);
+  let frontmatter: Record<string, unknown> = {};
+  if (raw !== null) {
+    try {
+      frontmatter = parseYaml(raw);
+    } catch {
+      bodyOffset = 0;
+    }
+  }
+  const masked = blank(text.slice(0, bodyOffset)) + scan.mask(text.slice(bodyOffset));
+  const index = new scan.PositionIndex(text);
+  return {
+    path: rel,
+    kind: "markdown",
+    text,
+    frontmatter,
+    card: emptyCardConfig(),
+    headings: collectHeadings(text, masked, index),
+    anchors: [],
+    links: [],
+    diagnostics: [],
+  };
+}
+
+/** `text` as blanks of the same length, its line breaks kept. */
+function blank(text: string): string {
+  return text.replace(/[^\r\n]/g, " ");
 }
 
 function spanAt(index: scan.PositionIndex, start: number, end: number): Span {

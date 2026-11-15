@@ -79,6 +79,35 @@ the name pattern both contradict.
 tree. Neither project says which one owns the namespace root, the namespace
 name, or the bindings to other vaults.
 
+## Decided on 2026-11-15
+
+Two of the points under "Expected" are settled by the owner, and the
+specification, the Namespaces page, the tutorial, the tools' READMEs and the
+root `README.md` state them:
+
+- **The namespace root is a `wiki` path below the marker directory.** The
+  `wiki` setting stays. It is the **cards location**: where inside the vault
+  the cards start, `doc/wiki` by default and `.` for directly under the vault.
+  The directory it names is the namespace root.
+- **Two words, with a stated difference.** A **vault** is the directory marked
+  by `.hmd/`: it holds the configuration and whatever a tool keeps beside it,
+  such as a semantic index. A **namespace** is the tree of cards a reference
+  resolves in. A vault has one namespace of its own, which starts at the cards
+  location; a file of the vault outside it is not a card.
+
+What this asks of each implementation:
+
+| Implementation | State |
+| --- | --- |
+| Python tool, TypeScript core, Rust crate | read `wiki` and load cards from the cards location |
+| The extension | passes the namespace root to HQL as `--vault`, so HQL looks for `.hmd/config.toml` in the wrong directory when the cards location is not `.` |
+| HQL | reads cards from the vault itself and never reads `wiki`; its issue 0079 |
+| `hmd-semantics` | copies HQL's loader, so it has the same walk and changes with it |
+
+Still open: whether `.git` marks a root, the one schema for binding another
+vault, and the address form for a card in another vault. HQL no longer reads
+`hql.toml`: its project is marked by `.hql/config.toml` and is not a vault.
+
 ## Expected
 
 One statement of each of these, which the specification makes and both projects

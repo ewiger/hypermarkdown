@@ -30,8 +30,9 @@ on this page.
 ## What a file is
 
 A **card** is one `.hmd` file. It explains one idea, and its value is in what it
-links to. Cards live under a single directory — `doc/wiki/` here — and that
-directory is the default namespace root. In HMD 0.1 it bounds all HMD
+links to. Cards live under a single directory — `doc/wiki/` here — which the
+`wiki` setting of `.hmd/config.toml` names: the cards location, where inside
+the vault the cards start. That directory is the default namespace root. In HMD 0.1 it bounds all HMD
 page-reference resolution. Ordinary Markdown links can still reach files and
 URLs outside it.
 

@@ -20,7 +20,7 @@ export const VALID_MODES: ReadonlySet<string> = new Set(["both", "recursive"]);
 export class ConfigError extends Error {}
 
 export interface ProjectConfig extends WorkspaceConfig {
-  /** The `wiki` setting: the namespace root, relative to the project root. */
+  /** The `wiki` setting: the cards location, naming the namespace root relative to the project root. */
   wiki: string;
 }
 

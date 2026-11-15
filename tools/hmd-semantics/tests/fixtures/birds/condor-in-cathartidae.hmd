@@ -1,0 +1,13 @@
+---
+title: The Andean condor belongs to Cathartidae
+metadata:
+  knowledge:
+    type: Relation
+    relation:
+      source: andean-condor
+      target: cathartidae
+---
+# The Andean condor belongs to Cathartidae
+
+An authored claim whose endpoints are not documents in this vault: no card
+carries either name, so the claim is retained and does not hold.

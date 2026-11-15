@@ -54,7 +54,7 @@ And so much more:
 | `[[tokens]]` | bare name | looked up for you, see below |
 | `[[specs/login]]` | path | looked up the same way |
 | `[[./tokens]]`, `[[../billing/invoices]]` | relative path | from the folder of the card you are writing |
-| `[[/shared/tokens]]` | absolute path | from the root of the vault |
+| `[[/shared/tokens]]` | absolute path | from where the vault's cards start |
 | `[[design:tokens]]` | namespace-qualified | in another vault, see [Namespaces](#namespaces) |
 
 A bare name or a path is looked up in four steps, and the first match wins:
@@ -76,10 +76,14 @@ linked or embedded on its own.
 
 ### Namespaces
 
-A folder is a *module*. A *vault* is a tree of modules, marked by a `.hmd/`
-directory at its root, and it is one *namespace*: every address in the table
-above resolves inside it. A nested `.hmd/` starts a new vault, and a link that
-escapes the root is an error.
+A *vault* is a directory marked by a `.hmd/` directory, which holds its
+configuration. Its cards start at the *cards location*, the `wiki` setting of
+`.hmd/config.toml`: a path inside the vault, `doc/wiki` unless the file says
+otherwise, and `.` to keep the cards directly under the vault. A folder below
+it is a *module*, and the tree of modules is the vault's *namespace*: every
+address in the table above resolves inside it, and a file of the vault outside
+it is not a card. A nested `.hmd/` starts a new vault, and a link that escapes
+the namespace is an error.
 
 A namespace-qualified address reaches a card in another vault. The name before
 the colon selects the vault, and the path after it is resolved inside that
@@ -94,7 +98,7 @@ introduce one by mentioning it, so the set of vaults a build may read is one
 file:
 
 ```toml
-wiki = "doc/wiki"                # the default namespace: this project's own vault
+wiki = "doc/wiki"                # the cards location: where this vault's own cards start
 
 [namespaces.design]              # a second vault on this filesystem
 folder = "../design-wiki"
@@ -240,6 +244,28 @@ disagree, this one defines the answer. It will also host the language server.
 A second implementation of the format, not extension code. It answers to the
 same [conformance corpus](examples/conformance/) the canonical tool does.
 
+### [`hypermarkdown`](tools/hmd-rs-core/) — the resolver as a Rust crate
+
+[![Rust](https://img.shields.io/badge/rust-1.95%2B-b7410e)](tools/hmd-rs-core/DEVELOP.md)
+[![Changelog](https://img.shields.io/badge/changelog-tools%2Fhmd--rs--core-informational)](tools/hmd-rs-core/CHANGELOG.md)
+
+A third implementation, of resolution only: a Rust library that says which card
+a `[[reference]]` names, for programs written in Rust. It neither lints nor
+renders, it answers to the same [conformance corpus](examples/conformance/),
+and it is [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on crates.io.
+
+### [`hmd-semantics`](tools/hmd-semantics/) — the semantic index builder
+
+[![Python](https://img.shields.io/badge/python-3.11%2B-3776ab)](tools/hmd-semantics/DEVELOP.md)
+[![Changelog](https://img.shields.io/badge/changelog-tools%2Fhmd--semantics-informational)](tools/hmd-semantics/CHANGELOG.md)
+
+A Python command that embeds the text of each card of a vault and writes the
+vectors to an SQLite index in the vault's `.hmd/`, where a reader such as
+[HQL](https://hql-lang.org/) ranks cards against a query without running a
+model. It also verifies an index against its vault. It is
+[`hypermarkdown-semantics`](https://pypi.org/project/hypermarkdown-semantics/)
+on PyPI: `uv tool install hypermarkdown-semantics`.
+
 ### [VS Code extension](tools/hmd-vsc-ext/) — an editor for `.hmd` with real-time preview
 
 [![Open VSX](https://img.shields.io/open-vsx/v/hypermarkdown/hmd?color=c160ef&label=open%20vsx)](https://open-vsx.org/extension/hypermarkdown/hmd)
@@ -286,7 +312,7 @@ cargo install hql --locked      # or a release binary from its releases page
 
 - [`examples/`](examples/) — runnable fixture wikis, linted by both, and
   [`examples/conformance/cases/`](examples/conformance/) — the language-neutral
-  corpus that arbitrates between the two implementations
+  corpus that arbitrates between the implementations
 - [`doc/`](doc/) — the knowledge base the website is built from: the book, the
   `.hmd` wiki, and the numbered proposals that specify everything
 - [`tests/`](tests/) — the repository's own guards, for its prose and its site
@@ -299,14 +325,16 @@ cargo install hql --locked      # or a release binary from its releases page
 - **A tool's own guide** for its code — [the Python
   tool](tools/hmd/DEVELOP.md), [the TypeScript
   core](tools/hmd-ts-core/DEVELOP.md), [the
-  extension](tools/hmd-vsc-ext/DEVELOP.md). Each carries that tool's test loop,
+  extension](tools/hmd-vsc-ext/DEVELOP.md), [the Rust
+  crate](tools/hmd-rs-core/DEVELOP.md), [the semantic index
+  builder](tools/hmd-semantics/DEVELOP.md). Each carries that tool's test loop,
   gates, and release.
 - **[`doc/proposals/`](doc/proposals/)** — numbered specifications. A change to
   the format or the tooling starts as one; reserve its number in
   [`doc/proposals/README.md`](doc/proposals/README.md).
 - **[`doc/status/`](doc/status/)** — progress, tracked per tool: `lang.md` for
-  the format, `hmd.md`, `ts-core.md`, and `vsc-ext.md` for the three tools, and
-  `pages.md` for the site. Updated in the same commit that changes the code, and
+  the format, `hmd.md`, `ts-core.md`, `vsc-ext.md`, `rs-core.md`, and `semantics.md`
+  for the five tools, and `pages.md` for the site. Updated in the same commit that changes the code, and
   the only place work is tracked.
 - **Kanban board** - in `doc/issues/**`, for the repository's own work, and for the language and the
   website, as well as the tools. The board is public, but the issues are owned by the contributors team.
@@ -352,7 +380,7 @@ Once accepted, a PR should be merged into the `main` branch, and the issue close
 
 Two licenses, split on the one boundary this repository already has.
 
-- **The code is MIT** — see [LICENSE](LICENSE). The three tools under
+- **The code is MIT** — see [LICENSE](LICENSE). The tools under
   [`tools/`](tools/), the fixture wikis and the conformance corpus under
   [`examples/`](examples/), the guards under [`tests/`](tests/), and the
   configuration at the root. Each tool carries its own identical copy.

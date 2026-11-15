@@ -21,10 +21,16 @@ Every tool lives under `tools/`, one directory each:
 - **`tools/hmd-ts-core`** — `@hypermarkdown/core`, the TypeScript half of the
   conformance contract. A second implementation, not extension code.
 - **`tools/hmd-vsc-ext`** — the VS Code extension.
+- **`tools/hmd-rs-core`** — `hypermarkdown`, the resolver as a Rust library
+  crate. A third implementation, of resolution only.
+- **`tools/hmd-semantics`** — `hmd-semantics`, the builder of a vault's
+  semantic index. A Python project of its own, outside the uv workspace.
 
 Progress is tracked per tool, in [`doc/status/`](status/): the format itself in
-[`lang.md`](status/lang.md), the three tools in [`hmd.md`](status/hmd.md),
-[`ts-core.md`](status/ts-core.md), and [`vsc-ext.md`](status/vsc-ext.md), and
-the site in [`pages.md`](status/pages.md). Proposals under
+[`lang.md`](status/lang.md), the five tools in [`hmd.md`](status/hmd.md),
+[`ts-core.md`](status/ts-core.md), [`vsc-ext.md`](status/vsc-ext.md),
+[`rs-core.md`](status/rs-core.md), and [`semantics.md`](status/semantics.md),
+and the site in
+[`pages.md`](status/pages.md). Proposals under
 [`doc/proposals/`](proposals/) record the decisions; they carry no trackers of
 their own.

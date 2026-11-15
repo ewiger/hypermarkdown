@@ -74,8 +74,13 @@ def expand(
 
 
 def body_region(document: Document) -> tuple[int, int]:
-    """The document minus its frontmatter fence."""
-    _raw, _body, offset = split_frontmatter(document.text)
+    """The document minus its frontmatter fence.
+
+    A Markdown card whose fence did not parse kept it as body text (HMD-0029).
+    """
+    raw, _body, offset = split_frontmatter(document.text)
+    if document.is_markdown and raw is not None and not document.frontmatter:
+        return 0, len(document.text)
     return offset, len(document.text)
 
 

@@ -1,0 +1,41 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "d/y.hmd shadows d/y.md; [[d/y]] means d/y.hmd",
+      "path": "d/y.md",
+      "rule": "HMD018",
+      "severity": "warning"
+    },
+    {
+      "candidates": [
+        "b/x.hmd",
+        "c/x.md"
+      ],
+      "column": 11,
+      "line": 3,
+      "message": "[[x]] matches 2 pages; qualify it (candidates: b/x.hmd, c/x.md)",
+      "path": "here.hmd",
+      "rule": "HMD002",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[lone]]",
+      "source": "here.hmd",
+      "target": "a/lone.md"
+    },
+    {
+      "raw": "[[x]]",
+      "source": "here.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[y]]",
+      "source": "here.hmd",
+      "target": "d/y.hmd"
+    }
+  ]
+}

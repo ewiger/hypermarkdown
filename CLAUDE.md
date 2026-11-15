@@ -9,6 +9,15 @@ Every tool lives in its own directory under `tools/`:
 - `tools/hmd-ts-core/` — `@hypermarkdown/core`, the TypeScript half of the
   conformance contract. A second implementation, not extension code.
 - `tools/hmd-vsc-ext/` — the VS Code extension.
+- `tools/hmd-rs-core/` — `hypermarkdown`, the resolver as a Rust library crate.
+  A third implementation, and a narrower one: it resolves, and neither lints
+  nor renders. Its own Cargo package with its own `Cargo.lock`, outside both
+  the uv and the npm workspace; published to crates.io as `hypermarkdown`.
+- `tools/hmd-semantics/` — `hmd-semantics`, the builder of a vault's semantic
+  index, as the Python distribution `hypermarkdown-semantics`. Its own project
+  with its own `uv.lock`, outside the uv workspace, so that `torch` and
+  `transformers` stay out of the root lock; published to PyPI on a
+  `semantics-vX.Y.Z` tag.
 
 `examples/` stays at the root, and the conformance corpus lives inside it at
 `examples/conformance/cases/`: fixture trees belong to every implementation,
@@ -29,8 +38,9 @@ Treat `doc/` as a modular knowledge base:
 Keep L0, L1, and L2 lens files directly under `doc/models/`.
 
 Track progress **per tool**, in `doc/status/`: `lang.md` for the format itself,
-`hmd.md`, `ts-core.md`, and `vsc-ext.md` for the three tools, and `pages.md` for
-the website. Those files are the only place work is tracked, and they
+`hmd.md`, `ts-core.md`, `vsc-ext.md`, `rs-core.md`, and `semantics.md` for the
+five tools, and
+`pages.md` for the website. Those files are the only place work is tracked, and they
 read in one order: **Status** in prose, then **Open**, **Broken**, **Limitations
 (known gaps)**, and **Done** last. Open rows carry a state in the board's own
 words — `todo`, `doing`, `backlog`, `blocked`, `parked` — and a blocked row says

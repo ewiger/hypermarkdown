@@ -13,6 +13,34 @@ only for the Python API.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-15
+
+### Added
+- **Markdown files are cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/README.md)).
+  A `.md` or `.markdown` file below the namespace root loads as a Markdown card:
+  `[[guide]]` resolves to `guide.md`, `[[guide#Install]]` checks its headings,
+  and `![[guide]]` transcludes its body. Its body is not scanned and not
+  linted, and its frontmatter is exposed but not interpreted. Binding tries
+  `.hmd`, `.md`, `.markdown`, then the folder note in the same order, and
+  `[[owl.md]]` binds only `owl.md`. `hmd lint` accepts `.md` and `.markdown`
+  paths.
+- **HMD018**, a warning: a card shadows a card of the same name with a later
+  extension, as `owl.hmd` beside `owl.md`.
+- The MkDocs plugin links a card to the page MkDocs builds from a Markdown
+  card, and never registers one itself; a Markdown card outside `docs_dir` is
+  a red link.
+
+### Changed
+- A `.md` file inside the namespace is no longer invisible: a reference that
+  was HMD001 can resolve, and a bare name it shares with a card found by the
+  sweep is HMD002.
+
+### Fixed
+- **A heading right below the frontmatter fence is a heading.** The fence was
+  blanked together with its line breaks, so the first body line read as
+  indented: `# Title` directly under `---` produced no heading, and a fragment
+  naming it was HMD004.
+
 ## [0.3.1] — 2026-11-13
 
 ### Fixed

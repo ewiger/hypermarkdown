@@ -90,6 +90,11 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         self.prefix = _prefix(docs_dir, self.workspace.root)
 
         for path in self.workspace.pages():
+            if self.workspace.documents[path].is_markdown:
+                # HMD-0029: a Markdown card is never registered by the plugin.
+                # MkDocs already builds it if it sits in `docs_dir`, and a
+                # second registration would collide with that page.
+                continue
             # Publication is opt-in (§2). An unpublished card is not registered
             # at all: no file, no URL, nothing about it in `site/`. Skipping it
             # here is what makes that true everywhere downstream — nav derives
@@ -225,6 +230,17 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
                 return (
                     f'<a class="hmd-redlink" title="{link.target} is not published">{text}</a>'
                 )
+            if self.workspace.documents[target].is_markdown:
+                # The page MkDocs builds from the file itself, if it builds one.
+                served = self._served(target)
+                if served is None:
+                    return (
+                        f'<a class="hmd-redlink" title="{link.target} is not published">{text}</a>'
+                    )
+                href = _relative(served, written)
+                if link.fragment is not None and link.fragment_kind == "heading":
+                    href = f"{href}#{slug_for(link.fragment, set())}"
+                return f"[{text}]({href})"
             href = urls.href_for(root, source, target)
             if written != registered:
                 href = _relative(posixpath.normpath(posixpath.join(registered, href)), written)
@@ -336,6 +352,18 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         if path.endswith("/") and not moved.endswith("/"):
             moved += "/"
         return moved + tail
+
+    def _served(self, target: Path) -> str | None:
+        """The `docs_dir`-relative source path of a Markdown card, or None.
+
+        None when the file lies outside `docs_dir`, where MkDocs builds no page.
+        """
+        if self.docs_dir is None:
+            return None
+        try:
+            return target.resolve().relative_to(self.docs_dir).as_posix()
+        except ValueError:
+            return None
 
     def _card_at(self, target: str) -> str | None:
         """The registered page for a `.hmd` file in `docs_dir`, or None."""

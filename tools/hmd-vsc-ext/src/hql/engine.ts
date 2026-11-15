@@ -179,8 +179,18 @@ export class HqlEngine {
    * A cell with an id runs alone with `--cell`. One without has no name HQL
    * can be asked for, so the whole card runs and only that cell's output is
    * written; the others are left exactly as they were.
+   *
+   * `sourceDirectory` is the directory holding the card. HQL runs in it, so
+   * a relative path a cell writes resolves beside the card, and the walk for
+   * the card's HQL project starts there. A card with no place on disk runs in
+   * the vault root.
    */
-  async run(text: string, vaultRoot: string, target: number | null): Promise<RunResult> {
+  async run(
+    text: string,
+    vaultRoot: string,
+    target: number | null,
+    sourceDirectory: string = vaultRoot,
+  ): Promise<RunResult> {
     if (Buffer.byteLength(text, "utf8") > MAX_CARD_BYTES) {
       throw new HqlRunError(`the card exceeds ${MAX_CARD_BYTES / 1024} KiB`);
     }
@@ -195,7 +205,7 @@ export class HqlEngine {
     if (id !== null) args.push("--cell", id);
     args.push("-");
 
-    const answer = await this.invoke(args, maskForHql(text), vaultRoot);
+    const answer = await this.invoke(args, maskForHql(text), sourceDirectory);
     const envelope = parseEnvelope(answer.stdout);
     if (envelope === null) {
       const said = answer.stderr.trim() || answer.error?.message || "no answer";

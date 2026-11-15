@@ -11,6 +11,8 @@ each package keeps its own history:
 | --- | --- | --- |
 | [`tools/hmd/`](tools/hmd/) | [CHANGELOG.md](tools/hmd/CHANGELOG.md) | [`hypermarkdown`](https://pypi.org/project/hypermarkdown/) on PyPI, tagged `vX.Y.Z` |
 | [`tools/hmd-ts-core/`](tools/hmd-ts-core/) | [CHANGELOG.md](tools/hmd-ts-core/CHANGELOG.md) | [`@hypermarkdown/core`](https://www.npmjs.com/package/@hypermarkdown/core) on npm, tagged `ts-core-vX.Y.Z` |
+| [`tools/hmd-rs-core/`](tools/hmd-rs-core/) | [CHANGELOG.md](tools/hmd-rs-core/CHANGELOG.md) | [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on crates.io, published by hand |
+| [`tools/hmd-semantics/`](tools/hmd-semantics/) | [CHANGELOG.md](tools/hmd-semantics/CHANGELOG.md) | [`hypermarkdown-semantics`](https://pypi.org/project/hypermarkdown-semantics/) on PyPI, tagged `semantics-vX.Y.Z` |
 | [`tools/hmd-vsc-ext/`](tools/hmd-vsc-ext/) | [CHANGELOG.md](tools/hmd-vsc-ext/CHANGELOG.md) | [`hypermarkdown.hmd`](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd) on the VS Marketplace and Open VSX, tagged `vsc-ext-vX.Y.Z` |
 
 The dependency runs one way. A tool depends on the specification; the
@@ -39,6 +41,21 @@ language itself.
 The first version of the language: the six constructs, resolution, the severities,
 and the publication model. Still `drafted`, which is what the `0.x` means — a
 construct may still change before `1.0`.
+
+### 2026-11-15
+
+#### Changed
+
+- **Markdown files are cards** ([HMD-0029](doc/proposals/HMD-0029/README.md)).
+  A `.md` or `.markdown` file below the namespace root is a Markdown card: a
+  link and embed target with heading anchors and exposed frontmatter, whose
+  body is CommonMark and is not scanned. Binding tries `.hmd`, `.md` and
+  `.markdown`, then the folder note in the same order. A later extension that
+  shares a name is shadowed, reachable only by writing its extension, and
+  reported as **HMD018**, a warning. A Markdown card is published wherever its
+  file is; HyperMarkdown does not gate it. In an existing vault a `.md` file
+  inside the namespace now resolves, and a name it shares with a card found by
+  the sweep becomes HMD002.
 
 ### 2026-11-13
 

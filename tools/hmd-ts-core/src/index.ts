@@ -6,7 +6,7 @@
  * one carries the bug (HMD-0020 §10).
  */
 
-export { parse, parseTarget, RESERVED_CHARS, SUFFIX } from "./parse.js";
+export { parse, parseMarkdown, parseTarget, RESERVED_CHARS, SUFFIX } from "./parse.js";
 export { mask, lineCol, lineStarts, PositionIndex } from "./scan.js";
 export { slugify, slugFor, unique } from "./slug.js";
 export {
@@ -92,4 +92,6 @@ export {
   split,
   stripSuffix,
   withHmdSuffix,
+  CARD_SUFFIXES,
+  cardSuffix,
 } from "./paths.js";

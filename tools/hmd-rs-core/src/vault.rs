@@ -1,0 +1,1183 @@
+//! The vault and the resolver.
+//!
+//! A vault is every card under one namespace root. A reference is resolved
+//! from the card that holds it, and the rules are tried in this order:
+//!
+//! 1. A reference opening with `/` names a card from the namespace root, and
+//!    one opening with `./` or `../` names a card from the directory of the
+//!    card holding it. Neither is looked up anywhere else.
+//! 2. A bare single-segment reference that a named import binds is the card
+//!    the import bound.
+//! 3. The spine: the directory of the card holding the reference, then each
+//!    directory above it up to the root. The nearest directory that holds the
+//!    reference wins.
+//! 4. The directories imported with `import *`, in the order written.
+//! 5. Autodiscovery, when it is on for the card: every card in the namespace
+//!    whose path ends with the reference. One match resolves; more than one is
+//!    ambiguous and nothing is chosen.
+//!
+//! In every directory a name binds the card `name.hmd`, `name.md` or
+//! `name.markdown`, in that order, and failing those the folder note
+//! `name/index` with the same extensions in the same order. A reference that
+//! writes an extension binds only that extension. Where two files of one
+//! directory share a name, the later extension is shadowed: bound only by a
+//! reference that writes its extension, and never found by autodiscovery.
+//!
+//! A directory below the root that holds its own `.hmd` directory is the root
+//! of another vault. None of its cards belong to this one.
+
+use std::cmp::Ordering;
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::path::Path;
+
+use crate::config::{Config, MARKER_DIR, Mode};
+use crate::error::Error;
+use crate::host::{EntryKind, FsHost, Host};
+use crate::page::Page;
+use crate::paths::{self, CARD_SUFFIXES, INDEX_STEM, SUFFIX};
+
+/// The rule that resolved a reference.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Via {
+    /// The reference names its card by path: it opens with `/`, `./` or
+    /// `../`.
+    Path,
+    /// A named import of the card holding the reference binds the name.
+    NamedImport,
+    /// A directory on the spine holds the name.
+    Spine,
+    /// A directory imported with `import *` holds the name.
+    SearchPath,
+    /// Exactly one card in the namespace has a path ending with the reference.
+    Autodiscovery,
+}
+
+/// The outcome of resolving one reference.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Resolution {
+    /// The reference names exactly one card.
+    Resolved {
+        /// The card's path relative to the namespace root.
+        path: String,
+        /// The rule that found it.
+        via: Via,
+    },
+    /// The reference names no card.
+    Unresolved,
+    /// Autodiscovery found more than one card and chose none.
+    Ambiguous {
+        /// The paths of the cards found, sorted.
+        candidates: Vec<String>,
+    },
+    /// A relative reference climbs above the namespace root.
+    Escapes,
+}
+
+impl Resolution {
+    /// The path of the card the reference resolved to, if it resolved.
+    pub fn path(&self) -> Option<&str> {
+        match self {
+            Resolution::Resolved { path, .. } => Some(path),
+            _ => None,
+        }
+    }
+
+    /// Whether the reference resolved to a card.
+    pub fn is_resolved(&self) -> bool {
+        matches!(self, Resolution::Resolved { .. })
+    }
+}
+
+/// What one card's import statements resolve to.
+#[derive(Debug, Default)]
+struct ImportTable {
+    /// Local name to the path of the card it is bound to.
+    bindings: HashMap<String, String>,
+    /// The directories imported with `*`, in the order written, each as a
+    /// root-relative path.
+    search_paths: Vec<String>,
+}
+
+/// Every card under one namespace root, and resolution over them.
+#[derive(Debug)]
+pub struct Vault {
+    config: Config,
+    /// The cards, ordered by path.
+    pages: Vec<Page>,
+    /// A card's path to its position in `pages`.
+    by_path: HashMap<String, usize>,
+    /// A path without its suffix to the cards it names, for autodiscovery; a
+    /// folder note is also filed under its directory.
+    by_parts: HashMap<String, Vec<usize>>,
+    /// The import table of each card, in the order of `pages`.
+    imports: Vec<ImportTable>,
+    /// Every directory of the namespace that is not hidden and not inside a
+    /// nested vault; the root is the empty string.
+    directories: HashSet<String>,
+    /// The roots of the vaults nested below this one, sorted.
+    nested: Vec<String>,
+    /// A shadowed card's path to the path of the card that shadows it.
+    shadowed: HashMap<String, String>,
+}
+
+impl Vault {
+    /// Loads every card under the namespace root `host` reads from.
+    ///
+    /// The walk skips every entry whose name starts with `.`, and does not
+    /// enter a directory below the root that holds a `.hmd` directory. The
+    /// `wiki` setting of `config` is not consulted: the host already is the
+    /// namespace root.
+    pub fn load<H: Host + ?Sized>(host: &H, config: Config) -> Result<Vault, Error> {
+        let mut tree = Tree::default();
+        walk(host, "", &mut tree)?;
+
+        // Ordered by path component, so a directory's cards stay together.
+        let Tree {
+            cards: mut found,
+            directories,
+            mut nested,
+        } = tree;
+        found.sort_by(|a, b| compare_paths(a, b));
+        nested.sort();
+
+        let mut pages = Vec::with_capacity(found.len());
+        for path in found {
+            let text = host.read(&path).map_err(|err| Error::io(&path, err))?;
+            pages.push(Page::parse(path, &text));
+        }
+        Ok(Vault::index(config, pages, directories, nested))
+    }
+
+    /// Loads the vault rooted at the directory `vault_root` from disk.
+    ///
+    /// The configuration is the vault's `.hmd/config.toml`, or the defaults
+    /// when it has none, and the namespace root is the directory its `wiki`
+    /// setting names.
+    pub fn open(vault_root: &Path) -> Result<Vault, Error> {
+        let config = Config::read(vault_root)?;
+        let root = config.namespace_root(vault_root);
+        if !root.is_dir() {
+            return Err(Error::config(format!(
+                "namespace root does not exist: {}",
+                root.display()
+            )));
+        }
+        Vault::load(&FsHost::new(root), config)
+    }
+
+    /// Builds the lookup tables over already parsed cards.
+    fn index(
+        config: Config,
+        pages: Vec<Page>,
+        directories: HashSet<String>,
+        nested: Vec<String>,
+    ) -> Vault {
+        let mut vault = Vault {
+            config,
+            pages,
+            by_path: HashMap::new(),
+            by_parts: HashMap::new(),
+            imports: Vec::new(),
+            directories,
+            nested,
+            shadowed: HashMap::new(),
+        };
+
+        // Files of one directory whose names differ only in their card
+        // extension claim one name; the earliest extension is the card at it.
+        let mut claims: HashMap<String, Vec<&str>> = HashMap::new();
+        for page in &vault.pages {
+            claims
+                .entry(paths::page_parts(&page.path).join("/"))
+                .or_default()
+                .push(&page.path);
+        }
+        for mut claimants in claims.into_values() {
+            claimants.sort_by_key(|path| rank(path));
+            if let Some((winner, losers)) = claimants.split_first() {
+                for loser in losers {
+                    vault
+                        .shadowed
+                        .insert((*loser).to_owned(), (*winner).to_owned());
+                }
+            }
+        }
+
+        for (at, page) in vault.pages.iter().enumerate() {
+            vault.by_path.insert(page.path.clone(), at);
+            if vault.shadowed.contains_key(&page.path) {
+                // Reachable only by a reference that writes its extension.
+                continue;
+            }
+
+            let parts = paths::page_parts(&page.path);
+            vault.by_parts.entry(parts.join("/")).or_default().push(at);
+            // A folder note is also addressable by its directory's name, so a
+            // bare name means the same card on the spine and in the sweep.
+            if let [directory @ .., INDEX_STEM] = &parts[..]
+                && !directory.is_empty()
+            {
+                vault
+                    .by_parts
+                    .entry(directory.join("/"))
+                    .or_default()
+                    .push(at);
+            }
+        }
+
+        vault.imports = vault
+            .pages
+            .iter()
+            .map(|page| vault.import_table(page))
+            .collect();
+        vault
+    }
+
+    /// The configuration the vault was loaded with.
+    pub fn config(&self) -> &Config {
+        &self.config
+    }
+
+    /// The vault's cards, ordered by path, component by component.
+    pub fn pages(&self) -> &[Page] {
+        &self.pages
+    }
+
+    /// The card at `path`, a path relative to the namespace root.
+    pub fn page(&self, path: &str) -> Option<&Page> {
+        self.by_path.get(path).map(|&at| &self.pages[at])
+    }
+
+    /// The directories below the root that are the roots of other vaults,
+    /// sorted.
+    pub fn nested_vaults(&self) -> &[String] {
+        &self.nested
+    }
+
+    /// The card that shadows the card at `path`, when one does: a card of the
+    /// same name in the same directory with an earlier card extension.
+    pub fn shadowed_by(&self, path: &str) -> Option<&str> {
+        self.shadowed.get(path).map(String::as_str)
+    }
+
+    /// Whether autodiscovery is on for the card at `source`.
+    ///
+    /// The card's own `use` key decides; failing that, the `use` key of the
+    /// nearest folder note at or above the card's directory; failing that, the
+    /// configuration.
+    pub fn autodiscovery(&self, source: &str) -> bool {
+        if let Some(stated) = self.page(source).and_then(|page| page.autodiscovery) {
+            return stated;
+        }
+
+        let mut directory = paths::parent(source);
+        loop {
+            let note = join(&directory, &[&format!("{INDEX_STEM}{SUFFIX}")]);
+            if note != source
+                && let Some(stated) = self.page(&note).and_then(|page| page.autodiscovery)
+            {
+                return stated;
+            }
+            if directory.pop().is_none() {
+                break;
+            }
+        }
+
+        self.config.autodiscovery
+    }
+
+    /// Resolves the page reference `reference` from the card at `source`.
+    ///
+    /// `source` is a path relative to the namespace root; it need not be a
+    /// card the vault holds, in which case it has no imports and no `use` key.
+    /// `reference` is a page reference without fragment or display text, as
+    /// [`Link::page`](crate::Link::page) and
+    /// [`Reference::page`](crate::Reference::page) hold it. A trailing card
+    /// extension is stripped, and only that extension is then bound.
+    pub fn resolve(&self, source: &str, reference: &str) -> Resolution {
+        let ext = paths::card_suffix(reference);
+        let stem = &reference[..reference.len() - ext.map_or(0, str::len)];
+
+        if stem.starts_with('/') {
+            return self.by_path_rule(self.bind(&[], &paths::split(stem), ext));
+        }
+
+        if stem.starts_with("./") || stem.starts_with("../") {
+            let from = paths::parent(source);
+            let Some(parts) = paths::normalize(from.into_iter().chain(stem.split('/'))) else {
+                return Resolution::Escapes;
+            };
+            // A reference that normalizes to the root itself, such as `../`
+            // from a card one directory down, names the root's folder note.
+            return self.by_path_rule(self.bind_path(&parts, ext));
+        }
+
+        let parts = paths::split(stem);
+        if parts.is_empty() {
+            return Resolution::Unresolved;
+        }
+
+        let table = self.by_path.get(source).map(|&at| &self.imports[at]);
+
+        // A named import binds a card, not a directory, so it applies to a
+        // single-segment reference only.
+        if let ([name], Some(table)) = (&parts[..], table)
+            && let Some(path) = table.bindings.get(*name)
+        {
+            return resolved(path, Via::NamedImport);
+        }
+
+        // The spine, nearest directory first.
+        let mut directory = paths::parent(source);
+        loop {
+            if let Some(path) = self.bind(&directory, &parts, ext) {
+                return resolved(path, Via::Spine);
+            }
+            if directory.pop().is_none() {
+                break;
+            }
+        }
+
+        // Imported directories, in the order the card wrote them.
+        for directory in table.iter().flat_map(|table| &table.search_paths) {
+            if let Some(path) = self.bind(&paths::split(directory), &parts, ext) {
+                return resolved(path, Via::SearchPath);
+            }
+        }
+
+        if !self.autodiscovery(source) {
+            return Resolution::Unresolved;
+        }
+
+        let mut matches = self.sweep(source, &parts, ext);
+        match matches.len() {
+            0 => Resolution::Unresolved,
+            1 => Resolution::Resolved {
+                path: matches.remove(0),
+                via: Via::Autodiscovery,
+            },
+            _ => Resolution::Ambiguous {
+                candidates: matches,
+            },
+        }
+    }
+
+    /// The outcome of a reference that names its card by path.
+    fn by_path_rule(&self, bound: Option<&str>) -> Resolution {
+        match bound {
+            Some(path) => resolved(path, Via::Path),
+            None => Resolution::Unresolved,
+        }
+    }
+
+    /// Binds `parts` in the directory `directory`: the card `directory/parts`
+    /// with a card extension, or failing that the folder note
+    /// `directory/parts/index` with one; `ext`, when given, is the only
+    /// extension tried.
+    ///
+    /// When both exist the card wins. A `.` among the parts is dropped, as the
+    /// canonical implementation's path type drops it.
+    fn bind(&self, directory: &[&str], parts: &[&str], ext: Option<&str>) -> Option<&str> {
+        if parts.is_empty() {
+            return None;
+        }
+        let full: Vec<&str> = directory
+            .iter()
+            .chain(parts)
+            .copied()
+            .filter(|part| *part != ".")
+            .collect();
+        self.bind_path(&full, ext)
+    }
+
+    /// Binds the root-relative path `full`: the card `full` with a card
+    /// extension, or failing that the folder note `full/index` with one, the
+    /// extensions in priority order or `ext` alone. The empty path, the root,
+    /// binds the root's folder note.
+    fn bind_path(&self, full: &[&str], ext: Option<&str>) -> Option<&str> {
+        let extensions: Vec<&str> = match ext {
+            Some(ext) => vec![ext],
+            None => CARD_SUFFIXES.to_vec(),
+        };
+        if let Some((last, head)) = full.split_last() {
+            for ext in &extensions {
+                let candidate = join(head, &[&format!("{last}{ext}")]);
+                if let Some(page) = self.page(&candidate) {
+                    return Some(&page.path);
+                }
+            }
+        }
+
+        for ext in &extensions {
+            let folder_note = join(full, &[&format!("{INDEX_STEM}{ext}")]);
+            if let Some(page) = self.page(&folder_note) {
+                return Some(&page.path);
+            }
+        }
+        None
+    }
+
+    /// Resolves the import statements of `page` into bindings and search
+    /// paths.
+    ///
+    /// A statement contributes nothing when its directory climbs above the
+    /// root, is not a directory of the namespace, or lies in a nested vault. A
+    /// name that binds no card is skipped, and a local name bound twice to
+    /// different cards keeps its first binding.
+    fn import_table(&self, page: &Page) -> ImportTable {
+        let mut table = ImportTable::default();
+        for import in &page.imports {
+            let directory = if import.directory.starts_with('/') {
+                paths::normalize(paths::split(&import.directory))
+            } else {
+                paths::normalize(
+                    paths::parent(&page.path)
+                        .into_iter()
+                        .chain(import.directory.split('/')),
+                )
+            };
+            let Some(directory) = directory else {
+                continue;
+            };
+            if !self.directories.contains(&directory.join("/")) {
+                continue;
+            }
+
+            if import.wildcard {
+                table.search_paths.push(directory.join("/"));
+                continue;
+            }
+
+            for binding in &import.bindings {
+                if let Some(target) = self.bind(&directory, &[&binding.name], None) {
+                    table
+                        .bindings
+                        .entry(binding.local.clone())
+                        .or_insert_with(|| target.to_owned());
+                }
+            }
+        }
+        table
+    }
+
+    /// The cards whose path, without its suffix, ends with `parts`, sorted by
+    /// path.
+    ///
+    /// In `recursive` mode only cards beneath the directory of `source` count.
+    /// A shadowed card is never found, and with `ext` only cards with that
+    /// extension are.
+    fn sweep(&self, source: &str, parts: &[&str], ext: Option<&str>) -> Vec<String> {
+        let scope = match self.config.mode {
+            Mode::Both => String::new(),
+            Mode::Recursive => paths::parent(source).join("/"),
+        };
+        let wanted = parts.join("/");
+        let tail = format!("/{wanted}");
+
+        let mut matches = BTreeSet::new();
+        for (key, pages) in &self.by_parts {
+            if *key != wanted && !key.ends_with(&tail) {
+                continue;
+            }
+            for &at in pages {
+                let path = &self.pages[at].path;
+                let in_scope = scope.is_empty()
+                    || path
+                        .strip_prefix(&scope)
+                        .is_some_and(|rest| rest.starts_with('/'));
+                let kept = ext.is_none_or(|ext| paths::card_suffix(path) == Some(ext));
+                if in_scope && kept {
+                    matches.insert(path.clone());
+                }
+            }
+        }
+        matches.into_iter().collect()
+    }
+}
+
+/// A [`Resolution::Resolved`] for `path`.
+fn resolved(path: &str, via: Via) -> Resolution {
+    Resolution::Resolved {
+        path: path.to_owned(),
+        via,
+    }
+}
+
+/// The priority of a card's extension: lower wins a shared name.
+fn rank(path: &str) -> usize {
+    paths::card_suffix(path)
+        .and_then(|suffix| CARD_SUFFIXES.iter().position(|each| *each == suffix))
+        .unwrap_or(CARD_SUFFIXES.len())
+}
+
+/// The path made of `head` followed by `tail`.
+fn join(head: &[&str], tail: &[&str]) -> String {
+    head.iter()
+        .chain(tail)
+        .copied()
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+/// Orders two paths component by component, as the canonical implementation
+/// orders its pages.
+fn compare_paths(a: &str, b: &str) -> Ordering {
+    a.split('/').cmp(b.split('/'))
+}
+
+/// What a walk of the namespace finds.
+#[derive(Debug, Default)]
+struct Tree {
+    /// The path of every card.
+    cards: Vec<String>,
+    /// Every directory walked, the root included.
+    directories: HashSet<String>,
+    /// The root of every nested vault.
+    nested: Vec<String>,
+}
+
+/// Collects the cards, directories and nested vaults under `dir` into `tree`.
+fn walk<H: Host + ?Sized>(host: &H, dir: &str, tree: &mut Tree) -> Result<(), Error> {
+    let entries = host.list(dir).map_err(|err| Error::io(dir, err))?;
+
+    // A directory below the root that carries its own marker is another
+    // vault. The root's own marker does not count: every vault has one.
+    let marked = entries
+        .iter()
+        .any(|entry| entry.kind == EntryKind::Directory && entry.name == MARKER_DIR);
+    if marked && !dir.is_empty() {
+        tree.nested.push(dir.to_owned());
+        return Ok(());
+    }
+    tree.directories.insert(dir.to_owned());
+
+    for entry in entries {
+        if entry.name.starts_with('.') {
+            continue;
+        }
+        let path = if dir.is_empty() {
+            entry.name
+        } else {
+            format!("{dir}/{}", entry.name)
+        };
+        match entry.kind {
+            EntryKind::Directory => walk(host, &path, tree)?,
+            EntryKind::File if paths::card_suffix(&path).is_some() => tree.cards.push(path),
+            EntryKind::File => {}
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::host::MemoryHost;
+
+    fn vault(files: &[(&str, &str)]) -> Vault {
+        vault_with(files, Config::default())
+    }
+
+    fn vault_with(files: &[(&str, &str)], config: Config) -> Vault {
+        Vault::load(&MemoryHost::new(files.iter().copied()), config).unwrap()
+    }
+
+    fn hit(path: &str, via: Via) -> Resolution {
+        resolved(path, via)
+    }
+
+    #[test]
+    fn pages_are_ordered_by_path_component() {
+        let v = vault(&[
+            ("a-b/c.hmd", ""),
+            ("a/b.hmd", ""),
+            ("z.hmd", ""),
+            ("a.hmd", ""),
+        ]);
+        let paths: Vec<_> = v.pages().iter().map(|p| p.path.as_str()).collect();
+        assert_eq!(paths, ["a/b.hmd", "a-b/c.hmd", "a.hmd", "z.hmd"]);
+    }
+
+    #[test]
+    fn only_cards_outside_hidden_directories_load() {
+        let v = vault(&[
+            ("a.hmd", ""),
+            ("notes.md", ""),
+            (".hidden/b.hmd", ""),
+            (".c.hmd", ""),
+            (".hmd/config.toml", ""),
+            ("sub/.git/d.hmd", ""),
+        ]);
+        let paths: Vec<_> = v.pages().iter().map(|p| p.path.as_str()).collect();
+        assert_eq!(paths, ["a.hmd", "notes.md"]);
+        assert!(v.nested_vaults().is_empty());
+    }
+
+    #[test]
+    fn an_absolute_reference_names_a_card_from_the_root() {
+        let v = vault(&[
+            ("specs/login.hmd", ""),
+            ("shared/tokens.hmd", ""),
+            ("tokens.hmd", ""),
+        ]);
+        let from = "specs/login.hmd";
+        assert_eq!(
+            v.resolve(from, "/shared/tokens"),
+            hit("shared/tokens.hmd", Via::Path)
+        );
+        assert_eq!(v.resolve(from, "/tokens.hmd"), hit("tokens.hmd", Via::Path));
+        assert_eq!(
+            v.resolve(from, "/shared//tokens/"),
+            hit("shared/tokens.hmd", Via::Path)
+        );
+        // It is looked up nowhere else: no spine, no sweep.
+        assert_eq!(v.resolve(from, "/login"), Resolution::Unresolved);
+        assert_eq!(v.resolve(from, "/"), Resolution::Unresolved);
+        assert_eq!(v.resolve(from, "/shared/../tokens"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn a_relative_reference_names_a_card_from_the_source_directory() {
+        let v = vault(&[
+            ("specs/auth/login.hmd", ""),
+            ("specs/auth/tokens.hmd", ""),
+            ("specs/glossary.hmd", ""),
+            ("tokens.hmd", ""),
+        ]);
+        let from = "specs/auth/login.hmd";
+        assert_eq!(
+            v.resolve(from, "./tokens"),
+            hit("specs/auth/tokens.hmd", Via::Path)
+        );
+        assert_eq!(
+            v.resolve(from, "../glossary"),
+            hit("specs/glossary.hmd", Via::Path)
+        );
+        assert_eq!(
+            v.resolve(from, "../../tokens.hmd"),
+            hit("tokens.hmd", Via::Path)
+        );
+        assert_eq!(
+            v.resolve(from, "./../auth/./tokens"),
+            hit("specs/auth/tokens.hmd", Via::Path)
+        );
+        // It is looked up nowhere else.
+        assert_eq!(v.resolve(from, "./glossary"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn a_relative_reference_above_the_root_escapes() {
+        let v = vault(&[("specs/login.hmd", ""), ("tokens.hmd", "")]);
+        assert_eq!(
+            v.resolve("specs/login.hmd", "../../tokens"),
+            Resolution::Escapes
+        );
+        assert_eq!(v.resolve("tokens.hmd", "../tokens"), Resolution::Escapes);
+        assert_eq!(
+            v.resolve("specs/login.hmd", "../tokens"),
+            hit("tokens.hmd", Via::Path)
+        );
+    }
+
+    #[test]
+    fn a_relative_reference_to_the_root_names_its_folder_note() {
+        let v = vault(&[("index.hmd", ""), ("specs/login.hmd", ""), ("a.hmd", "")]);
+        assert_eq!(
+            v.resolve("specs/login.hmd", "../"),
+            hit("index.hmd", Via::Path)
+        );
+        assert_eq!(v.resolve("a.hmd", "./"), hit("index.hmd", Via::Path));
+        // The absolute form names nothing.
+        assert_eq!(v.resolve("a.hmd", "/"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn the_nearest_card_on_the_spine_wins() {
+        let v = vault(&[
+            ("specs/auth/login.hmd", ""),
+            ("specs/auth/tokens.hmd", ""),
+            ("specs/tokens.hmd", ""),
+            ("tokens.hmd", ""),
+            ("specs/other.hmd", ""),
+            ("root.hmd", ""),
+        ]);
+        assert_eq!(
+            v.resolve("specs/auth/login.hmd", "tokens"),
+            hit("specs/auth/tokens.hmd", Via::Spine)
+        );
+        assert_eq!(
+            v.resolve("specs/other.hmd", "tokens"),
+            hit("specs/tokens.hmd", Via::Spine)
+        );
+        assert_eq!(
+            v.resolve("root.hmd", "tokens"),
+            hit("tokens.hmd", Via::Spine)
+        );
+        assert_eq!(
+            v.resolve("specs/auth/login.hmd", "root"),
+            hit("root.hmd", Via::Spine)
+        );
+    }
+
+    #[test]
+    fn a_multi_segment_reference_binds_on_the_spine() {
+        let v = vault(&[
+            ("specs/auth/login.hmd", ""),
+            ("specs/shared/tokens.hmd", ""),
+        ]);
+        assert_eq!(
+            v.resolve("specs/auth/login.hmd", "shared/tokens"),
+            hit("specs/shared/tokens.hmd", Via::Spine)
+        );
+    }
+
+    #[test]
+    fn a_directory_name_binds_its_folder_note() {
+        let v = vault(&[
+            ("a.hmd", ""),
+            ("guide/index.hmd", ""),
+            ("guide/intro.hmd", ""),
+        ]);
+        assert_eq!(
+            v.resolve("a.hmd", "guide"),
+            hit("guide/index.hmd", Via::Spine)
+        );
+        assert_eq!(
+            v.resolve("a.hmd", "/guide"),
+            hit("guide/index.hmd", Via::Path)
+        );
+        assert_eq!(
+            v.resolve("a.hmd", "./guide"),
+            hit("guide/index.hmd", Via::Path)
+        );
+        assert_eq!(
+            v.resolve("a.hmd", "guide/index"),
+            hit("guide/index.hmd", Via::Spine)
+        );
+    }
+
+    #[test]
+    fn a_card_beats_the_folder_note_of_the_same_name() {
+        let v = vault(&[("foo.hmd", ""), ("foo/index.hmd", ""), ("a.hmd", "")]);
+        assert_eq!(v.resolve("a.hmd", "foo"), hit("foo.hmd", Via::Spine));
+        assert_eq!(v.resolve("a.hmd", "/foo"), hit("foo.hmd", Via::Path));
+        assert_eq!(
+            v.resolve("a.hmd", "foo/index"),
+            hit("foo/index.hmd", Via::Spine)
+        );
+    }
+
+    #[test]
+    fn a_folder_note_is_swept_under_its_directory_name() {
+        let v = vault(&[("deep/guide/index.hmd", ""), ("other/a.hmd", "")]);
+        assert_eq!(
+            v.resolve("other/a.hmd", "guide"),
+            hit("deep/guide/index.hmd", Via::Autodiscovery)
+        );
+        // The root's folder note has no directory name to answer to.
+        let v = vault(&[("index.hmd", ""), ("a.hmd", "")]);
+        assert_eq!(v.resolve("a.hmd", "index"), hit("index.hmd", Via::Spine));
+    }
+
+    #[test]
+    fn a_name_with_a_dot_binds_whole_and_a_written_extension_binds_only_itself() {
+        let v = vault(&[("a.hmd", ""), ("v1.2.md", ""), ("notes.hmd", "")]);
+        assert_eq!(v.resolve("a.hmd", "v1.2"), hit("v1.2.md", Via::Spine));
+        assert_eq!(v.resolve("a.hmd", "notes.md"), Resolution::Unresolved);
+        assert_eq!(
+            v.resolve("a.hmd", "notes.hmd"),
+            hit("notes.hmd", Via::Spine)
+        );
+    }
+
+    #[test]
+    fn a_markdown_card_is_a_target_and_is_not_scanned() {
+        let v = vault(&[("a.hmd", "[[guide]]"), ("guide.md", "[[a]] [[missing]]")]);
+        assert_eq!(v.resolve("a.hmd", "guide"), hit("guide.md", Via::Spine));
+        let guide = v.page("guide.md").unwrap();
+        assert_eq!(guide.kind, crate::Kind::Markdown);
+        assert!(guide.links.is_empty());
+    }
+
+    #[test]
+    fn a_later_extension_is_shadowed() {
+        let v = vault(&[
+            ("a.hmd", ""),
+            ("owl.hmd", ""),
+            ("owl.md", ""),
+            ("far/y.md", ""),
+            ("far/y.markdown", ""),
+        ]);
+        assert_eq!(v.resolve("a.hmd", "owl"), hit("owl.hmd", Via::Spine));
+        assert_eq!(v.resolve("a.hmd", "owl.md"), hit("owl.md", Via::Spine));
+        assert_eq!(v.shadowed_by("owl.md"), Some("owl.hmd"));
+        assert_eq!(v.shadowed_by("owl.hmd"), None);
+        // The sweep finds the card at the name and never the shadowed one.
+        assert_eq!(v.resolve("a.hmd", "y"), hit("far/y.md", Via::Autodiscovery));
+    }
+
+    #[test]
+    fn a_named_import_binds_a_card_and_shadows_the_spine() {
+        let v = vault(&[
+            (
+                "specs/login.hmd",
+                "---\nimport: from ../shared import tokens\n---\n",
+            ),
+            ("specs/tokens.hmd", ""),
+            ("shared/tokens.hmd", ""),
+        ]);
+        assert_eq!(
+            v.resolve("specs/login.hmd", "tokens"),
+            hit("shared/tokens.hmd", Via::NamedImport)
+        );
+        // Another card in the same directory has no such import.
+        assert_eq!(
+            v.resolve("specs/tokens.hmd", "tokens"),
+            hit("specs/tokens.hmd", Via::Spine)
+        );
+    }
+
+    #[test]
+    fn as_binds_the_alias_and_not_the_name() {
+        let v = vault_with(
+            &[
+                (
+                    "specs/login.hmd",
+                    "---\nimport: from /shared import tokens as shared-tokens\n---\n",
+                ),
+                ("shared/tokens.hmd", ""),
+            ],
+            Config {
+                autodiscovery: false,
+                ..Config::default()
+            },
+        );
+        let from = "specs/login.hmd";
+        assert_eq!(
+            v.resolve(from, "shared-tokens"),
+            hit("shared/tokens.hmd", Via::NamedImport)
+        );
+        assert_eq!(
+            v.resolve(from, "shared-tokens.hmd"),
+            hit("shared/tokens.hmd", Via::NamedImport)
+        );
+        assert_eq!(v.resolve(from, "tokens"), Resolution::Unresolved);
+        // A binding names a card, so it does not apply to a longer reference.
+        assert_eq!(v.resolve(from, "x/shared-tokens"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn a_named_import_can_bind_a_folder_note() {
+        let v = vault(&[
+            ("a.hmd", "---\nimport: from ./lib import guide\n---\n"),
+            ("lib/guide/index.hmd", ""),
+            ("guide.hmd", ""),
+        ]);
+        assert_eq!(
+            v.resolve("a.hmd", "guide"),
+            hit("lib/guide/index.hmd", Via::NamedImport)
+        );
+    }
+
+    #[test]
+    fn a_name_bound_twice_keeps_its_first_binding() {
+        let v = vault(&[
+            (
+                "a.hmd",
+                "---\nimport:\n  - from ./one import x\n  - from ./two import x\n  - from ./two import missing\n---\n",
+            ),
+            ("one/x.hmd", ""),
+            ("two/x.hmd", ""),
+        ]);
+        assert_eq!(v.resolve("a.hmd", "x"), hit("one/x.hmd", Via::NamedImport));
+        assert_eq!(v.resolve("a.hmd", "missing"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn a_wildcard_import_is_searched_after_the_spine() {
+        let v = vault_with(
+            &[
+                (
+                    "specs/login.hmd",
+                    "---\nimport:\n  - from /one import *\n  - from ../two import *\n---\n",
+                ),
+                ("one/tokens.hmd", ""),
+                ("two/tokens.hmd", ""),
+                ("two/only.hmd", ""),
+                ("one/sub/deep.hmd", ""),
+                ("specs/local.hmd", ""),
+                ("one/local.hmd", ""),
+            ],
+            Config {
+                autodiscovery: false,
+                ..Config::default()
+            },
+        );
+        let from = "specs/login.hmd";
+        // Declaration order decides between two imported directories.
+        assert_eq!(
+            v.resolve(from, "tokens"),
+            hit("one/tokens.hmd", Via::SearchPath)
+        );
+        assert_eq!(
+            v.resolve(from, "only"),
+            hit("two/only.hmd", Via::SearchPath)
+        );
+        assert_eq!(
+            v.resolve(from, "sub/deep"),
+            hit("one/sub/deep.hmd", Via::SearchPath)
+        );
+        // An imported directory never shadows a card on the spine.
+        assert_eq!(v.resolve(from, "local"), hit("specs/local.hmd", Via::Spine));
+        // The search is not recursive.
+        assert_eq!(v.resolve(from, "deep"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn an_import_from_above_the_root_contributes_nothing() {
+        let v = vault_with(
+            &[
+                (
+                    "a.hmd",
+                    "---\nimport:\n  - from ../x import *\n  - from ../x import y\n---\n",
+                ),
+                ("x/y.hmd", ""),
+            ],
+            Config {
+                autodiscovery: false,
+                ..Config::default()
+            },
+        );
+        assert_eq!(v.resolve("a.hmd", "y"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn an_import_from_what_is_not_a_directory_contributes_nothing() {
+        let v = vault_with(
+            &[
+                (
+                    "a.hmd",
+                    "---\nimport:\n  - from ./nowhere import *\n  - from ./x import *\n  - from ./x import y\n---\n",
+                ),
+                ("x.hmd", ""),
+            ],
+            Config {
+                autodiscovery: false,
+                ..Config::default()
+            },
+        );
+        assert_eq!(v.resolve("a.hmd", "y"), Resolution::Unresolved);
+        assert_eq!(v.resolve("a.hmd", "."), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn autodiscovery_finds_the_one_card_ending_with_the_reference() {
+        let v = vault(&[
+            ("specs/login.hmd", ""),
+            ("shared/auth/tokens.hmd", ""),
+            ("shared/other.hmd", ""),
+        ]);
+        let from = "specs/login.hmd";
+        assert_eq!(
+            v.resolve(from, "tokens"),
+            hit("shared/auth/tokens.hmd", Via::Autodiscovery)
+        );
+        assert_eq!(
+            v.resolve(from, "auth/tokens"),
+            hit("shared/auth/tokens.hmd", Via::Autodiscovery)
+        );
+        assert_eq!(v.resolve(from, "th/tokens"), Resolution::Unresolved);
+        assert_eq!(v.resolve(from, "nothing"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn two_sweep_matches_are_ambiguous() {
+        let v = vault(&[
+            ("a/tokens.hmd", ""),
+            ("b/tokens.hmd", ""),
+            ("c/here.hmd", ""),
+        ]);
+        let outcome = v.resolve("c/here.hmd", "tokens");
+        assert_eq!(
+            outcome,
+            Resolution::Ambiguous {
+                candidates: vec!["a/tokens.hmd".into(), "b/tokens.hmd".into()],
+            }
+        );
+        assert_eq!(outcome.path(), None);
+        assert!(!outcome.is_resolved());
+    }
+
+    #[test]
+    fn a_card_and_a_folder_note_are_two_sweep_matches() {
+        let v = vault(&[("x/foo.hmd", ""), ("y/foo/index.hmd", ""), ("z/a.hmd", "")]);
+        assert_eq!(
+            v.resolve("z/a.hmd", "foo"),
+            Resolution::Ambiguous {
+                candidates: vec!["x/foo.hmd".into(), "y/foo/index.hmd".into()],
+            }
+        );
+    }
+
+    #[test]
+    fn recursive_mode_sweeps_only_beneath_the_source_directory() {
+        let files = [
+            ("specs/login.hmd", ""),
+            ("specs/auth/deep/tokens.hmd", ""),
+            ("shared/tokens.hmd", ""),
+            ("shared/only.hmd", ""),
+            ("top.hmd", ""),
+        ];
+        let v = vault_with(
+            &files,
+            Config {
+                mode: Mode::Recursive,
+                ..Config::default()
+            },
+        );
+        assert_eq!(
+            v.resolve("specs/login.hmd", "tokens"),
+            hit("specs/auth/deep/tokens.hmd", Via::Autodiscovery)
+        );
+        assert_eq!(v.resolve("specs/login.hmd", "only"), Resolution::Unresolved);
+        // From the root the two modes cover the same cards.
+        assert!(matches!(
+            v.resolve("top.hmd", "tokens"),
+            Resolution::Ambiguous { .. }
+        ));
+        assert!(matches!(
+            vault(&files).resolve("specs/login.hmd", "tokens"),
+            Resolution::Ambiguous { .. }
+        ));
+    }
+
+    #[test]
+    fn the_configuration_turns_autodiscovery_off() {
+        let v = vault_with(
+            &[("specs/login.hmd", ""), ("shared/tokens.hmd", "")],
+            Config {
+                autodiscovery: false,
+                ..Config::default()
+            },
+        );
+        assert!(!v.autodiscovery("specs/login.hmd"));
+        assert_eq!(
+            v.resolve("specs/login.hmd", "tokens"),
+            Resolution::Unresolved
+        );
+    }
+
+    #[test]
+    fn a_card_overrides_the_configuration_in_either_direction() {
+        let files = [
+            ("on.hmd", "---\nuse: autodiscovery\n---\n"),
+            ("off.hmd", "---\nuse: no_autodiscovery\n---\n"),
+            ("plain.hmd", ""),
+            ("shared/tokens.hmd", ""),
+        ];
+        let off = vault_with(
+            &files,
+            Config {
+                autodiscovery: false,
+                ..Config::default()
+            },
+        );
+        assert!(off.resolve("on.hmd", "tokens").is_resolved());
+        assert!(!off.resolve("plain.hmd", "tokens").is_resolved());
+
+        let on = vault(&files);
+        assert!(!on.resolve("off.hmd", "tokens").is_resolved());
+        assert!(on.resolve("plain.hmd", "tokens").is_resolved());
+    }
+
+    #[test]
+    fn the_nearest_folder_note_decides_for_the_cards_beneath_it() {
+        let v = vault(&[
+            ("index.hmd", "---\nuse: no_autodiscovery\n---\n"),
+            ("a/index.hmd", "---\nuse: autodiscovery\n---\n"),
+            ("a/b/card.hmd", ""),
+            ("a/b/own.hmd", "---\nuse: no_autodiscovery\n---\n"),
+            ("c/card.hmd", ""),
+            ("c/index.hmd", ""),
+        ]);
+        assert!(v.autodiscovery("a/b/card.hmd"));
+        assert!(!v.autodiscovery("a/b/own.hmd"));
+        assert!(!v.autodiscovery("c/card.hmd"));
+        // A folder note does not consult itself twice: its own key, then the
+        // notes above it.
+        assert!(v.autodiscovery("a/index.hmd"));
+        assert!(!v.autodiscovery("c/index.hmd"));
+        assert!(!v.autodiscovery("index.hmd"));
+    }
+
+    #[test]
+    fn a_nested_vault_contributes_no_cards() {
+        let v = vault(&[
+            ("here.hmd", "[[time]]"),
+            ("wiki/time.hmd", ""),
+            ("inner/.hmd/config.toml", ""),
+            ("inner/time.hmd", ""),
+            ("inner/deeper/abs.hmd", ""),
+        ]);
+        assert_eq!(v.nested_vaults(), ["inner"]);
+        assert!(v.page("inner/time.hmd").is_none());
+        assert_eq!(
+            v.resolve("here.hmd", "time"),
+            hit("wiki/time.hmd", Via::Autodiscovery)
+        );
+        assert_eq!(v.resolve("here.hmd", "/inner/time"), Resolution::Unresolved);
+        assert_eq!(v.resolve("here.hmd", "abs"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn the_root_marker_does_not_make_the_root_nested() {
+        let v = vault(&[(".hmd/config.toml", ""), ("a.hmd", "")]);
+        assert!(v.nested_vaults().is_empty());
+        assert_eq!(v.pages().len(), 1);
+    }
+
+    #[test]
+    fn an_import_into_a_nested_vault_binds_nothing() {
+        let v = vault(&[
+            (
+                "a.hmd",
+                "---\nimport:\n  - from ./inner import time\n  - from ./inner import *\n---\n",
+            ),
+            ("inner/.hmd/config.toml", ""),
+            ("inner/time.hmd", ""),
+        ]);
+        assert_eq!(v.resolve("a.hmd", "time"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn a_source_the_vault_does_not_hold_still_has_a_spine() {
+        let v = vault(&[("specs/tokens.hmd", "")]);
+        assert_eq!(
+            v.resolve("specs/unsaved.hmd", "tokens"),
+            hit("specs/tokens.hmd", Via::Spine)
+        );
+    }
+
+    #[test]
+    fn an_empty_reference_is_unresolved() {
+        let v = vault(&[("a.hmd", "")]);
+        assert_eq!(v.resolve("a.hmd", ""), Resolution::Unresolved);
+        assert_eq!(v.resolve("a.hmd", ".hmd"), Resolution::Unresolved);
+    }
+
+    #[test]
+    fn a_host_failure_is_an_io_error_naming_the_path() {
+        struct Broken;
+        impl Host for Broken {
+            fn list(&self, _dir: &str) -> std::io::Result<Vec<crate::Entry>> {
+                Ok(vec![crate::Entry::file("a.hmd")])
+            }
+            fn read(&self, _path: &str) -> std::io::Result<String> {
+                Err(std::io::Error::other("unreadable"))
+            }
+        }
+        let err = Vault::load(&Broken, Config::default()).unwrap_err();
+        assert!(matches!(&err, Error::Io { path, .. } if path == "a.hmd"));
+        assert_eq!(err.to_string(), "cannot read a.hmd: unreadable");
+    }
+}

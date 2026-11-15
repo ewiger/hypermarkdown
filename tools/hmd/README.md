@@ -116,10 +116,12 @@ Every other key is yours, and nothing will inspect it.
 | `hmd info` | Show the resolved root and discovery policy |
 | `hmd --version` | Print the installed version |
 
-Every command but `init` takes `--root` to override the namespace root, which
-otherwise comes from the `wiki` setting in `.hmd/config.toml` (defaulting to
-`doc/wiki`). A `.hmd/` directory doubles as the project root marker, so any
-subtree can be self-contained.
+The `wiki` setting in `.hmd/config.toml` is the cards location: where inside
+the vault, the directory holding `.hmd/`, the cards start (`doc/wiki` by
+default, `.` for directly under the vault). The directory it names is the
+namespace root, and every command but `init` takes `--root` to override it. A
+`.hmd/` directory doubles as the project root marker, so any subtree can be
+self-contained.
 
 ```bash
 hmd init                    # here; the namespace is named after the directory

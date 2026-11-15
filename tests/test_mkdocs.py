@@ -273,8 +273,35 @@ def test_plain_markdown_builds_alongside_cards(tmp_path):
 
     site = build(tmp_path, docs)
     assert (site / "plain" / "index.html").is_file()
-    # `.md` is invisible to the resolver, so a wikilink naming one stays red.
-    assert 'class="hmd-redlink"' in (site / "index.html").read_text()
+    # HMD-0029: `plain.md` is a Markdown card, and the link reaches the page
+    # MkDocs builds from it.
+    html = (site / "index.html").read_text()
+    assert 'href="plain/"' in html
+    assert 'class="hmd-redlink"' not in html
+
+
+def test_a_markdown_card_is_published_whatever_its_frontmatter_says(tmp_path):
+    """HyperMarkdown does not gate a Markdown card; MkDocs publishes the file."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.hmd").write_text(PUBLIC + "# Home\n\n[[plain#Usage]]\n", encoding="utf-8")
+    (docs / "plain.md").write_text(PRIVATE + "# Plain\n\n## Usage\n\ntext\n", encoding="utf-8")
+
+    site = build(tmp_path, docs)
+    assert (site / "plain" / "index.html").is_file()
+    assert 'href="plain/#usage"' in (site / "index.html").read_text()
+
+
+def test_a_link_from_a_folder_note_reaches_a_markdown_card(tmp_path):
+    """A folder note is registered one directory up; its href must follow."""
+    docs = tmp_path / "docs"
+    (docs / "area").mkdir(parents=True)
+    (docs / "index.hmd").write_text(PUBLIC + "# Home\n", encoding="utf-8")
+    (docs / "area" / "index.hmd").write_text(PUBLIC + "# Area\n\n[[notes]]\n", encoding="utf-8")
+    (docs / "area" / "notes.md").write_text("# Notes\n", encoding="utf-8")
+
+    site = build(tmp_path, docs)
+    assert 'href="notes/"' in (site / "area" / "index.html").read_text()
 
 
 # -- §5 serving ----------------------------------------------------------

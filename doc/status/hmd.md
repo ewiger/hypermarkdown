@@ -84,12 +84,19 @@ commit: the retired domain does not redirect.
   from Python-Markdown so links and rendered anchors cannot disagree, the
   two-phase resolution search with its whole-tree fallback, folder notes, both
   import forms, and embed expansion with a depth cap and cycle detection.
-- **`hmd lint`** — sixteen diagnostics with stable identifiers, JSON output, and
+- **Markdown cards** — `.md` and `.markdown` files load as cards that are not
+  scanned, bind after `.hmd`, and are reported as HMD018 when shadowed; the MkDocs
+  plugin links to the page MkDocs builds from one and never registers it; a
+  heading right below the frontmatter fence is a heading again [HMD-0029].
+- **`hmd lint`** — eighteen diagnostics with stable identifiers, JSON output, and
   exit codes a CI job can read.
 - **`hmd render`** — flat markdown and HTML.
 - **`hmd init`** — writes the project marker with every setting at its default,
   creates the namespace root it names, refuses to overwrite an existing config,
   and warns when an enclosing project would silently win.
+- **The `[hql]` and `[semantics]` tables are left alone** — a configuration
+  holding them loads and lints as one without them, whatever their values, and
+  a test holds that [[hmd-0028#the-hql-table]].
 - **The MkDocs plugin** — cards become pages, folder notes collapse onto their
   directory's URL, links are rewritten, red links render as red links without
   failing the build, embeds expand, and diagrams render through `d2`.
@@ -160,3 +167,5 @@ improvement.
   the tool. Language questions moved to the format's tracker and the site's rows
   to the website's; the corpus runner moved in from the editor line's tracker,
   where it had been filed beside the rows that cannot deliver it.
+- 2026-11-15: a Done row for the `[hql]` and `[semantics]` tables of
+  `.hmd/config.toml`, which this tool does not read and does not reject.

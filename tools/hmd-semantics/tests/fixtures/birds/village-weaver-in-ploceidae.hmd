@@ -1,0 +1,14 @@
+---
+title: The village weaver belongs to Ploceidae
+metadata:
+  status: todo
+  knowledge:
+    type: Relation
+    relation:
+      source: village-weaver
+      target: ploceidae
+---
+# The village weaver belongs to Ploceidae
+
+The plaited, roofed chamber suspended from a branch tip is the character the
+family is named for.

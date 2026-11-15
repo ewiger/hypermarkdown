@@ -1,0 +1,603 @@
+# HMD-0028: The `[hql]` and `[semantics]` tables, and the semantic index
+
+**Status**: drafted
+**Created**: 2026-11-15
+**Source**: [HQL's record of projects, vaults and its `hmd` package](https://github.com/ewiger/hql/blob/main/doc/proposals/HQL-0059/index.hmd),
+which assigns to HyperMarkdown the `[hql]` table of a vault's configuration,
+the `[semantics]` table, the semantic index it configures, and the depth
+levels of that index
+
+## Abstract
+
+A vault's `.hmd/config.toml` gains two optional tables. `[hql]` has one key,
+`project`, a path naming the HQL project that the HQL cells of the vault's
+cards run in. `[semantics]` names the vault's semantic index and declares the
+models that fill it. The semantic index is one SQLite file inside the vault's
+`.hmd/` directory. It holds, for each card, a vector computed by an embedding
+model from text of the card, with a hash of that text, and it holds the vectors
+of the queries it was built with. A card is indexed at three depths: depth 2 is
+the card itself, depth 1 is a one-paragraph summary of the card, and depth 0 is
+a one-sentence summary. The two summaries are written by a language model and
+stored in the index as text. Schema version 1 holds depth 2 only; schema
+version 2 holds all three. The index is built by `hmd-semantics`, a Python tool
+in `tools/hmd-semantics/`, which moves here from HQL's repository.
+
+## Motivation
+
+HQL, the query language in a sibling repository, runs cells inside cards and
+ranks a vault's cards against a query. Both need facts about the vault that
+only the vault can state, and HQL's own record places those facts in the
+vault's configuration and leaves HyperMarkdown to specify them.
+
+- **A table nobody has specified is a table every reader guesses at.** HQL
+  already reads `[hql] project` and `[semantics] index` from
+  `.hmd/config.toml`. Until this record, no HyperMarkdown text says those
+  tables exist, what their keys mean, or that a HyperMarkdown tool must leave
+  them alone.
+- **The index belongs to the vault.** A semantic index is computed from one
+  vault's cards and describes no other vault, so it lives in that vault's
+  `.hmd/` and its schema is HyperMarkdown's. The tool that writes it lived in
+  HQL's repository, where a second reader could not depend on it.
+- **A card is not the only useful unit of meaning.** A query that asks what a
+  vault is about matches a summary of a card better than the card's full text,
+  and a consumer assembling context for a language model needs a shorter form
+  of a card than the card. The index therefore carries the card at three
+  levels of detail.
+
+The risk this record carries is disclosure. An embedder or a summarizer
+reached over HTTP is sent the text of every card, and the configuration that
+selects one names a credential.
+
+## Goals
+
+- A HyperMarkdown tool reads a configuration file holding `[hql]` and
+  `[semantics]` without an error and without changing them.
+- A reader of the index decides everything it needs from the file: which
+  schema it is, which model computed the vectors, whether a card's vector is
+  stale, and which depths are present.
+- A rebuild of an unchanged vault produces the same bytes when the build stamp
+  is pinned.
+
+## Non-goals
+
+- **Ranking.** How a reader scores, orders or reports cards is the reader's.
+  This record fixes what the index holds and what a reader must check before
+  it trusts it.
+- **Embedding a query at the reader.** A reader runs no model. A query is
+  embedded when the index is built.
+- **Chunks.** A card is indexed whole at depth 2. No part of a card smaller
+  than the card has a row.
+- **HQL projects.** What an HQL project is, and what `.hql/config.toml` holds,
+  is HQL's.
+- **An index that spans vaults.** One index describes one vault.
+
+## Specification
+
+### The `hql` table
+
+The table selects the HQL project for the vault's HQL cells.
+
+```toml
+[hql]
+project = "../.."
+```
+
+- `[hql]` is OPTIONAL, and so is its one key, `project`.
+- `project` is a path. A relative path is read against the directory that
+  holds `.hmd/`. The directory it names is an HQL project: a directory that
+  holds `.hql/config.toml`. HQL cells in the cards of this vault run in that
+  project.
+- When `project` is absent, a host that runs an HQL cell takes as the project
+  the nearest directory, at or above the directory of the card, that holds
+  `.hql/config.toml`. When there is none, the cell runs with no project.
+- HyperMarkdown's own tools do not act on the key. A HyperMarkdown tool that
+  reads `.hmd/config.toml` MUST NOT reject the table or the key, and a tool
+  that rewrites the file MUST leave both in place. The key selects where HQL
+  looks for packages, endpoints and secrets, and no part of resolving a
+  `[[reference]]` depends on it.
+- A value that is not a string, and a value naming a directory that holds no
+  `.hql/config.toml`, are HQL's to refuse. A HyperMarkdown tool MUST NOT
+  refuse them, because it cannot know what HQL accepts.
+
+### The `semantics` table
+
+The table names the vault's index and declares the models that fill it.
+
+```toml
+[semantics]
+index = ".hmd/index.sqlite"
+
+[semantics.embedder]
+provider    = "http"
+model       = "text-embedding-3-small"
+revision    = "2024-01-25"
+endpoint    = "https://api.openai.com/v1/embeddings"
+api_key_env = "OPENAI_API_KEY"
+dimensions  = 1536
+
+[semantics.summarizer]
+provider    = "http"
+model       = "gpt-4.1-mini"
+revision    = "2025-04-14"
+endpoint    = "https://api.openai.com/v1/chat/completions"
+api_key_env = "OPENAI_API_KEY"
+```
+
+- `[semantics]` is OPTIONAL, and so is every key and table in it.
+- `index` is the path of the index file, relative to the directory that holds
+  `.hmd/`. Its default is `.hmd/index.sqlite`. It MUST be a non-empty string,
+  MUST NOT be an absolute path, and MUST NOT contain a `..` component, so the
+  index stays inside the vault it describes. The builder and a reader MUST
+  refuse any other value.
+- A vault has one index. A nested vault, a directory below the vault's root
+  that holds its own `.hmd/`, has its own configuration and its own index.
+- The Python tool `hmd` and the other HyperMarkdown implementations do not
+  read the table. They MUST NOT reject it and MUST leave it in place. Only the
+  index builder reads `[semantics.embedder]` and `[semantics.summarizer]`; a
+  reader of the index reads `index` and nothing else.
+- A configuration file that is not readable TOML MUST be refused by the
+  builder. A file that is absent, and a file with no `[semantics]` table, mean
+  every default.
+
+### The embedder
+
+`[semantics.embedder]` declares the model that computes the vectors.
+
+| Key | Type | Meaning | Default |
+| --- | --- | --- | --- |
+| `provider` | string | `local`: the model runs in the builder's process. `http`: the model is called at `endpoint` | `local` |
+| `model` | string | The model's name | under `local`, `sentence-transformers/all-MiniLM-L6-v2`; none under `http` |
+| `revision` | string | The pinned revision of the model | under `local`, `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`; none under `http` |
+| `endpoint` | string | The URL an `http` embedder is called at | none |
+| `api_key_env` | string | The name of the environment variable that holds the key for `endpoint` | none |
+| `dimensions` | integer | The number of components a vector is expected to have | none |
+
+- The table is OPTIONAL. An absent table is the `local` provider with its
+  default model and revision.
+- A value of `provider` other than `local` or `http` MUST be refused, naming
+  the accepted values.
+- A key other than the six above MUST be refused by name. A misspelled key
+  that selected a default would index a vault with a model nobody chose.
+- Each string key, when present, MUST be a non-empty string. `dimensions`,
+  when present, MUST be a positive integer.
+- The `http` provider MUST be refused unless `endpoint`, `model` and
+  `revision` are all given. An endpoint offers nothing to derive a revision
+  from, and the index records the revision that computed its vectors.
+- A key named `api_key` MUST be refused, and the refusal MUST name
+  `api_key_env` and MUST NOT print the value. `.hmd/config.toml` is a
+  committed file.
+- When `api_key_env` is given under `http` and the variable it names is unset
+  or empty, the builder MUST refuse before it reads a card. The key is sent as
+  a bearer token in the `Authorization` header.
+- When `dimensions` is given, a vector with another number of components MUST
+  be refused. When it is absent, the first vector fixes the number and every
+  later vector MUST match it. The builder MUST refuse more than `8192`
+  components.
+- An `http` embedder is called with one wire format, and the request MUST be
+  made with the standard library alone:
+
+```text
+POST <endpoint>
+  {"input": [<text>, ...], "model": <model>}
+answer
+  {"data": [{"index": <n>, "embedding": [<number>, ...]}, ...]}
+```
+
+- The builder MUST order the answer by its `index` field, and MUST refuse an
+  answer that holds a different number of vectors than texts were sent.
+- The builder MUST scale every vector to unit length before storing it,
+  whatever the provider returned, and MUST refuse a vector whose components
+  are all zero. A provider asked for fewer components than its model computes
+  returns a prefix of a unit vector, which is not unit length.
+
+### The cards of an index
+
+The builder and a reader must agree on which cards exist and what each is
+called, because a row is found by the card's name.
+
+- An index covers the cards of one vault. A vault's cards start at its cards
+  location, the `wiki` setting of `.hmd/config.toml`: a path inside the vault,
+  `doc/wiki` when absent. The index file itself stays in the vault's `.hmd/`,
+  which does not move with `wiki`.
+- A card's `name` in the index MUST be the name the reader knows the card by.
+  The first reader is HQL, and its names are: the file's name without its
+  extension, or the file's path from where the cards start without its
+  extension when two files share a name.
+- The builder MUST load the cards the format defines: every `.hmd` file below
+  the cards location, except under an entry whose name starts with a dot. A
+  builder and a reader that both load another set, as HQL's loader and the
+  builder copied from it do while they read every `.hmd`, `.md` and
+  `.markdown` file under the vault itself, agree with each other and not with
+  the format, and MUST change together.
+- The cards of a nested vault MUST NOT be in the index of the vault that
+  contains it. They are in the nested vault's own index.
+
+### The embedded text
+
+The depth-2 text of a card is the text the builder embeds and the text every
+party hashes.
+
+```text
+text(card) = title, then each string of the authored frontmatter in key order,
+             then the body; the parts joined by one space
+```
+
+- The title is the frontmatter's `title` when that is a string, otherwise the
+  text of the card's first level-one heading, otherwise the card's name.
+- The frontmatter's strings are taken in ascending key order, descending into
+  nested mappings in key order and into lists in the order written. A value
+  that is not a string contributes nothing. The key `title` is left out of the
+  walk, because the title is written once at the front.
+- The body is the card's source after the closing line of its frontmatter, or
+  the whole source when it has no frontmatter.
+- Where a card sits, its name and its path, is not part of the text. A card
+  that moves to another directory keeps its text and its hash.
+- `content_hash` is the SHA-256 of the UTF-8 bytes of that text, written as 64
+  lowercase hexadecimal digits.
+- The builder and a reader MUST compute this text byte for byte the same. The
+  text is defined by HQL's document loader, and the builder reimplements that
+  loader, including its frontmatter parser, to reach the same bytes. A change
+  to the text MUST be made in both in one step.
+
+### Schema version 1
+
+Schema version 1 holds one vector for each card. It is the schema the builder
+writes today.
+
+```sql
+CREATE TABLE model (
+    id          TEXT    PRIMARY KEY,  -- the embedding model's name
+    revision    TEXT    NOT NULL,     -- its pinned revision
+    dimensions  INTEGER NOT NULL,     -- components in every vector
+    metric      TEXT    NOT NULL,     -- "cosine"
+    normalized  INTEGER NOT NULL      -- 1: every vector is unit length
+);
+
+CREATE TABLE index_meta (
+    schema_version INTEGER NOT NULL,  -- 1
+    vault          TEXT    NOT NULL,  -- the vault's root, as the builder was given it
+    built_at       TEXT    NOT NULL,  -- ISO 8601, UTC
+    tool_version   TEXT    NOT NULL   -- "hmd-semantics <version>"
+);
+
+CREATE TABLE card (
+    name         TEXT PRIMARY KEY,
+    path         TEXT NOT NULL,       -- relative to the vault's root, "/"-separated
+    content_hash TEXT NOT NULL,       -- of the embedded text
+    embedding    BLOB NOT NULL
+);
+
+CREATE TABLE query (
+    text      TEXT PRIMARY KEY,
+    embedding BLOB NOT NULL
+);
+```
+
+- `model` and `index_meta` each hold exactly one row.
+- An `embedding` is `dimensions` values of IEEE 754 binary32, little-endian,
+  with no header: `dimensions * 4` bytes.
+- `metric` MUST be `cosine` and `normalized` MUST be `1`. Every stored vector
+  MUST be unit length within `0.00001`. A reader scores with a dot product,
+  which is the cosine only between unit-length vectors.
+- `query` holds each query the index was built with, embedded by the same
+  model. A reader has no model, so a query the table does not hold has no
+  vector, and a reader MUST report that as a failure and MUST NOT return an
+  empty ranking for it.
+- `built_at` is the time of the build unless the build pins it. With the
+  stamp pinned, building an unchanged vault twice with the same model MUST
+  produce the same bytes.
+- `tool_version` records what wrote the file. A reader MUST NOT decide
+  anything from it. An index built before the builder moved to this repository
+  holds `hql-semantics 0.1.0`.
+- A card whose recomputed hash differs from its `content_hash` is stale: its
+  vector describes text that no longer exists.
+
+### Depth
+
+A card is indexed at three depths.
+
+| Depth | What is embedded |
+| --- | --- |
+| 2 | The card itself: the embedded text of schema version 1 |
+| 1 | A one-paragraph summary of the card |
+| 0 | A one-sentence summary of the card |
+
+- The two summaries are generated by a language model, by the index builder,
+  from the card's depth-2 text.
+- The summaries are stored in the index as text beside their vectors, with
+  the model and the revision that wrote them, so a reader can show what was
+  embedded.
+- The vector at depth 0 and at depth 1 is the embedding of the stored summary
+  text, computed by the same embedding model as depth 2.
+- A summary is regenerated when the card's content hash changes, or when the
+  summarizing model or its revision changes, and not otherwise. An unchanged
+  card keeps its summaries across builds: the builder reads them from the
+  index it is about to replace. A rebuild of an unchanged vault is therefore
+  byte-identical when the build stamp is pinned.
+- Every depth of a card carries the same `content_hash`, the hash of the
+  depth-2 text. Staleness is one comparison for each card.
+- An index holds depth 2 for every card. It holds depths 0 and 1 either for
+  every card or for no card.
+- An index holding only depth 2 is a valid index. Schema version 1 is exactly
+  that.
+- A reader asked for a depth the index does not hold MUST report that the
+  index does not hold it, and MUST NOT answer from another depth.
+- A stored summary MUST be non-empty and MUST carry no leading or trailing
+  whitespace. The builder MUST refuse an empty answer from the summarizer.
+- The instruction the builder gives the summarizing model is the builder's and
+  is not part of the index. A change to it does not regenerate a stored
+  summary.
+
+### The summarizer
+
+`[semantics.summarizer]` declares the model that writes the summaries. It has
+the shape and the refusals of `[semantics.embedder]`.
+
+| Key | Type | Meaning | Default |
+| --- | --- | --- | --- |
+| `provider` | string | `local`: the model runs in the builder's process. `http`: the model is called at `endpoint` | `local` |
+| `model` | string | The summarizing model's name | none |
+| `revision` | string | The pinned revision of the model | none |
+| `endpoint` | string | The URL an `http` summarizer is called at | none |
+| `api_key_env` | string | The name of the environment variable that holds the key for `endpoint` | none |
+
+- The table is OPTIONAL. When it is absent the builder generates no summary
+  and the index holds depth 2 only.
+- `model` and `revision` MUST be given under either provider, and `endpoint`
+  under `http`. No summarizing model is a default.
+- A value of `provider` other than `local` or `http`, a key other than the
+  five above, and a key named `api_key` MUST each be refused as the embedder's
+  table refuses them. A key is never written in the file.
+- When `api_key_env` is given under `http` and the variable is unset or empty,
+  the builder MUST refuse before it reads a card.
+- An `http` summarizer is called with one wire format, once for each summary,
+  with the standard library alone:
+
+```text
+POST <endpoint>
+  {"model": <model>, "messages": [{"role": "user", "content": <instruction and depth-2 text>}]}
+answer
+  {"choices": [{"message": {"content": <summary>}}, ...]}
+```
+
+### Schema version 2
+
+Schema version 2 carries the three depths. It differs from version 1 in the
+`card` table, in a new `summarizer` table, and in the number `index_meta`
+holds.
+
+```sql
+CREATE TABLE model (
+    id          TEXT    PRIMARY KEY,
+    revision    TEXT    NOT NULL,
+    dimensions  INTEGER NOT NULL,
+    metric      TEXT    NOT NULL,
+    normalized  INTEGER NOT NULL
+);
+
+CREATE TABLE summarizer (
+    id        TEXT PRIMARY KEY,       -- the summarizing model's name
+    revision  TEXT NOT NULL           -- its pinned revision
+);
+
+CREATE TABLE index_meta (
+    schema_version INTEGER NOT NULL,  -- 2
+    vault          TEXT    NOT NULL,
+    built_at       TEXT    NOT NULL,
+    tool_version   TEXT    NOT NULL
+);
+
+CREATE TABLE card (
+    name         TEXT    NOT NULL,
+    depth        INTEGER NOT NULL CHECK (depth IN (0, 1, 2)),
+    path         TEXT    NOT NULL,
+    content_hash TEXT    NOT NULL,    -- of the depth-2 text, at every depth
+    text         TEXT,                -- the summary at depth 0 and 1; NULL at depth 2
+    embedding    BLOB    NOT NULL,
+    PRIMARY KEY (name, depth),
+    CHECK ((depth = 2) = (text IS NULL))
+);
+
+CREATE TABLE query (
+    text      TEXT PRIMARY KEY,
+    embedding BLOB NOT NULL
+);
+```
+
+- `model`, `index_meta` and `query` mean what they mean in version 1, and the
+  layout of an `embedding` is the same.
+- `summarizer` holds no row or one row. With no row, `card` holds depth 2
+  only. With one row, `card` holds depths 0, 1 and 2 for every card, and every
+  summary in the index was written by that model at that revision. A builder
+  whose configured summarizer differs from the row regenerates every summary.
+- The three rows of a card hold the same `path` and the same `content_hash`.
+- `text` at depth 2 is NULL: the depth-2 text is the card, which the reader
+  has.
+- A query's vector is compared with the vectors of whichever depth the reader
+  was asked for. All depths share one embedding model.
+- A reader of version 2 MUST also read version 1, as an index that holds
+  depth 2 only: each row of a version 1 `card` table is a depth-2 row.
+- A reader MUST refuse a `schema_version` it does not know, and MUST NOT read
+  tables or columns of such a file.
+
+### What a reader checks
+
+The index is a file a vault names, so a reader treats it as input it does not
+control.
+
+- A reader MUST refuse `dimensions` that is not positive or exceeds the bound
+  it sets; HQL's reader sets `8192`.
+- A reader MUST refuse an `embedding` that is not exactly `dimensions * 4`
+  bytes.
+- A reader MUST refuse an index whose `normalized` is `0`, and one whose
+  `metric` it does not compute. It MUST NOT normalise vectors itself.
+- A reader MUST refuse an index whose `vault` names another vault than the one
+  it loaded.
+- A reader MUST NOT invoke the builder.
+
+### The builder
+
+The index is built by `hmd-semantics`, in `tools/hmd-semantics/`.
+
+```text
+hmd-semantics build   --vault DIR [--out PATH] [--offline]
+                      [--provider local|http] [--model NAME] [--revision REV]
+                      [--endpoint URL] [--api-key-env VAR] [--dimensions N]
+                      [--query TEXT]... [--built-at STAMP]
+hmd-semantics verify  --vault DIR [--index PATH]
+hmd-semantics inspect --index PATH
+```
+
+- The tool MUST be its own Python project: the distribution
+  `hypermarkdown-semantics`, the import package `hypermarkdown_semantics`, and
+  the command `hmd-semantics`. It MUST carry its own `README.md`,
+  `CHANGELOG.md`, `DEVELOP.md` and `LICENSE` as real files.
+- The tool MUST have no required dependency. `torch` and `transformers`, which
+  the `local` provider needs, MUST be an optional extra named `local`, so the
+  tool installs and its tests run without them.
+- The tool MUST NOT be a member of the uv workspace at the repository root,
+  and keeps its own lockfile. A workspace lockfile records every extra of
+  every member, and the root lockfile is what the canonical tool installs
+  from.
+- `build` writes the index the vault's configuration names, or `--out`. Each
+  embedder flag overrides the matching key of `[semantics.embedder]` for one
+  run. `--offline` MUST refuse the network, and with the `http` provider MUST
+  be refused by name. `--built-at` pins the build stamp.
+- `verify` MUST exit with status 1 when the index does not describe the vault:
+  a stale card, a card in the vault and not in the index, a card in the index
+  and not in the vault, a vector of the wrong size, a vector that is not unit
+  length, a metric other than `cosine`, or `normalized` of `0`.
+- `inspect` prints what the index holds about itself and no vector. An index
+  holds no credential.
+- The builder MUST NOT write a key to its output, its errors or the index.
+
+## Backwards Compatibility
+
+Nothing existing breaks.
+
+- A vault with neither table behaves as before. The language specification
+  already requires a tool to ignore the keys of `.hmd/config.toml` it does not
+  read, and this record names two tables that rule covers.
+- An index of schema version 1 stays valid and stays readable by a reader of
+  version 2. A reader that knows only version 1 refuses a version 2 file by
+  its number.
+- The builder was `contrib/semantics/` in HQL's repository, run as
+  `python3 cli.py` under the name `hql-semantics`. Its command is now
+  `hmd-semantics` and its behavior is unchanged. An index it wrote before the
+  move differs only in `tool_version`, which no reader compares.
+- The repository's guard over the MIT license files gains a sixth file.
+
+## Security Considerations
+
+- **An `http` embedder or summarizer sends card text to the endpoint named.**
+  The embedder is sent the depth-2 text of every card, every summary and every
+  query; the summarizer is sent the depth-2 text of every card it summarizes.
+  The endpoint is declared in the vault's configuration, a committed file, so
+  the disclosure is reviewed with the vault.
+- **Keys are given only by the name of an environment variable.** A literal
+  key in either table is refused and its value is not printed. The builder
+  writes no key to its output, its errors or the index.
+- **The index is untrusted input to a reader.** A reader refuses a schema
+  version it does not know, bounds `dimensions`, checks the size of every
+  vector against `dimensions`, and refuses an index that does not declare unit
+  length. The builder checks unit length before it writes, and `verify` checks
+  it for any index.
+- **The index path cannot leave the vault.** An absolute `index` and one with
+  a `..` component are refused by the builder and by a reader.
+- **A stored summary is text a model wrote.** A reader that shows a summary,
+  or passes one to another model, treats it as it treats the card's own text:
+  as content, and never as an instruction.
+- **Resource bounds.** A build reads every card into memory and sends texts to
+  an `http` embedder sixteen at a time, with a timeout of 60 seconds for each
+  request. A vector is refused above `8192` components.
+
+## Deployment / Activation
+
+1. The builder lands in `tools/hmd-semantics/` with its tests and its fixture
+   vault, writing schema version 1.
+2. CI gains a job that installs the tool from its own lockfile, without the
+   `local` extra, and runs its tests.
+3. HQL removes its copy of the builder and names `hmd-semantics` in its
+   messages.
+4. The builder gains the summarizer and writes schema version 2; `verify` and
+   `inspect` read both versions.
+5. A reader gains schema version 2 and the choice of depth.
+6. The tool is not published to PyPI. A distribution name there cannot be
+   changed once uploaded, so the first upload is the repository owner's
+   decision and is not part of this proposal. Until it is taken the tool
+   installs from this repository.
+
+## Reference Implementation
+
+- `tools/hmd-semantics/pyproject.toml` and `uv.lock` for the project.
+- `tools/hmd-semantics/src/hypermarkdown_semantics/config.py` for the
+  `[semantics]` table and its refusals.
+- `tools/hmd-semantics/src/hypermarkdown_semantics/vault.py` for the cards and
+  the embedded text.
+- `tools/hmd-semantics/src/hypermarkdown_semantics/embed.py` for the two
+  embedder providers.
+- `tools/hmd-semantics/src/hypermarkdown_semantics/store.py` for the schema.
+- `tools/hmd-semantics/src/hypermarkdown_semantics/cli.py` for the three
+  commands.
+- `tools/hmd-semantics/tests/fixtures/birds/` for a vault with a committed
+  index.
+- `tools/hmd/tests/test_config.py` for the Python tool leaving both tables
+  alone.
+- `.github/workflows/ci.yml` for the job.
+
+## Test Plan
+
+Unit tests MUST include:
+
+- every refusal of `[semantics]` and `[semantics.embedder]`: an `index`
+  outside the vault, an unknown key, an unknown provider, a literal `api_key`
+  whose value is not printed, and an `http` embedder missing `endpoint`,
+  `model` or `revision`;
+- the `http` wire format against a fake transport: ordering by `index`, a
+  wrong count, a wrong width, a zero vector, and normalising to unit length;
+- the embedded text and its hash, with the frontmatter parser's cases;
+- the vector layout, and the refusal to write a vector that is not unit
+  length;
+- for schema version 2: a summary kept when the hash and the summarizer are
+  unchanged, regenerated when either changes, and a version 1 file read as
+  depth 2 only.
+
+Integration tests MUST include:
+
+- the fixture vault against its committed index: every card's text hashes to
+  the stored `content_hash`, and `verify` exits 0;
+- `verify` exiting 1 for an edited card with the reason `<name>: stale, the
+  text has changed since the build`;
+- the Python tool loading and linting a vault whose configuration holds
+  `[hql]` and `[semantics]`.
+
+```bash
+cd tools/hmd-semantics
+uv sync --locked
+uv run python -m pytest
+```
+
+## See also
+
+- [HQL-0059](https://github.com/ewiger/hql/blob/main/doc/proposals/HQL-0059/index.hmd),
+  HQL's record of projects and vaults, which assigns these tables and the
+  index to HyperMarkdown.
+- [HQL-0002](https://github.com/ewiger/hql/blob/main/doc/proposals/HQL-0002/index.hmd),
+  HQL's record of semantic retrieval, where schema version 1 and the text
+  contract were first written down.
+- [HMD-0001](../HMD-0001/README.md), which specifies `.hmd/config.toml` and
+  the rule that unread keys are ignored.
+- [HMD-0026](../HMD-0026/README.md), which specifies HQL cells in a card.
+- [HMD-0027](../HMD-0027/README.md), the Rust resolver crate, HQL's other
+  dependency on this repository.
+- [HMD-0024](../HMD-0024/README.md), which fixes the repository as a monorepo
+  of tools and says what each tool owns.
+- [`doc/status/semantics.md`](../../status/semantics.md), where the builder's
+  work is tracked, and [`doc/status/hmd.md`](../../status/hmd.md), where the
+  Python tool's is.
+
+## Changelog
+
+- 2026-11-15: drafted
+- 2026-11-15: the cards of an index are the cards below the vault's cards
+  location, the `wiki` setting, which the owner decided stays in the format

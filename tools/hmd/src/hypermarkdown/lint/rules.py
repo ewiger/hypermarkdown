@@ -10,7 +10,7 @@ from pathlib import Path
 
 from ..embed import MAX_EMBED_DEPTH
 from ..model import ERROR, WARNING, Diagnostic, Document, Link
-from ..resolve import INDEX_STEM, SUFFIX, Outcome, Workspace
+from ..resolve import CARD_SUFFIXES, INDEX_STEM, Outcome, Workspace
 
 SEVERITY = {
     "HMD001": WARNING,
@@ -30,6 +30,7 @@ SEVERITY = {
     "HMD015": ERROR,
     "HMD016": WARNING,
     "HMD017": WARNING,
+    "HMD018": WARNING,
 }
 
 
@@ -42,6 +43,10 @@ def check(workspace: Workspace, paths: list[Path] | None = None) -> list[Diagnos
         document = workspace.documents.get(path)
         if document is None:
             continue
+        if document.is_markdown:
+            # HMD-0029: a Markdown card is not checked; no diagnostic comes
+            # from its body.
+            continue
         diagnostics.extend(document.diagnostics)  # HMD009, HMD010, HMD013, HMD014
         diagnostics.extend(_duplicate_anchors(workspace, document))
         diagnostics.extend(_duplicate_slugs(workspace, document))
@@ -49,6 +54,7 @@ def check(workspace: Workspace, paths: list[Path] | None = None) -> list[Diagnos
         diagnostics.extend(_links(workspace, document))
 
     diagnostics.extend(_folder_note_collisions(workspace, targets))
+    diagnostics.extend(_shadowed(workspace, targets))
     diagnostics.extend(_embed_cycles(workspace, targets))
 
     diagnostics.sort(key=Diagnostic.sort_key)
@@ -188,11 +194,21 @@ def _fragment(workspace: Workspace, document: Document, link: Link, target: Path
 
 
 def _folder_note_collisions(workspace: Workspace, targets: list[Path]):
-    """HMD012 — `foo.hmd` beside `foo/index.hmd`."""
+    """HMD012 — `foo.hmd` beside `foo/index.hmd`, of any card extensions."""
     wanted = set(targets)
     for page in workspace.pages():
-        note = page.with_suffix("") / f"{INDEX_STEM}{SUFFIX}"
-        if note not in workspace.documents:
+        if page in workspace.shadowed:
+            continue
+        directory = page.parent / workspace.parts(page)[-1]
+        note = next(
+            (
+                directory / f"{INDEX_STEM}{suffix}"
+                for suffix in CARD_SUFFIXES
+                if directory / f"{INDEX_STEM}{suffix}" in workspace.documents
+            ),
+            None,
+        )
+        if note is None:
             continue
         if page not in wanted and note not in wanted:
             continue
@@ -204,7 +220,28 @@ def _folder_note_collisions(workspace: Workspace, targets: list[Path]):
             1,
             1,
             f"{rel} and {workspace.rel(note)} both claim the name "
-            f"'{page.with_suffix('').relative_to(workspace.root).as_posix()}'; the file wins",
+            f"'{'/'.join(workspace.parts(page))}'; the file wins",
+        )
+
+
+def _shadowed(workspace: Workspace, targets: list[Path]):
+    """HMD018 — a card shadows one of the same name with a later extension."""
+    wanted = set(targets)
+    for loser, winner in sorted(workspace.shadowed.items()):
+        if loser not in wanted and winner not in wanted:
+            continue
+        rel = workspace.rel(loser)
+        parts = workspace.parts(loser)
+        if len(parts) > 1 and parts[-1] == INDEX_STEM:
+            parts = parts[:-1]  # a folder note is named by its directory
+        name = "/".join(parts)
+        yield Diagnostic(
+            "HMD018",
+            SEVERITY["HMD018"],
+            rel,
+            1,
+            1,
+            f"{workspace.rel(winner)} shadows {rel}; [[{name}]] means {workspace.rel(winner)}",
         )
 
 
