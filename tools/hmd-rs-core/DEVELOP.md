@@ -87,15 +87,17 @@ tracked in [`doc/status/rs-core.md`](../../doc/status/rs-core.md), against
 
 ## Releasing
 
-The crate is `hypermarkdown` on crates.io, and `0.1.0` was published by hand
-on 2026-11-15, as a first publish has to be: crates.io accepts a trusted
-publisher only for a crate that exists. No workflow publishes it yet, and a
-version on crates.io cannot be changed or reused. Until a workflow exists, a
-release is the changelog section, the version in `Cargo.toml`, then:
+The crate is `hypermarkdown` on crates.io, published by
+[`release-rs-core.yml`](../../.github/workflows/release-rs-core.yml) through
+crates.io trusted publishing. A version on crates.io cannot be changed or
+reused. A release is:
 
-```sh
-cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings
-cargo test --locked
-cargo publish --dry-run --locked    # read what the package holds
-cargo publish --locked
-```
+1. the changelog section for the version, and the version in `Cargo.toml`;
+2. a run of the workflow by hand (`workflow_dispatch`), which runs every gate
+   and `cargo publish --dry-run` and publishes nothing;
+3. the tag `rs-core-vX.Y.Z` pushed, which publishes the crate and cuts the
+   GitHub release.
+
+The crate's trusted publisher on crates.io names repository
+`ewiger/hypermarkdown`, workflow `release-rs-core.yml` and environment
+`crates-io`; renaming any of the three breaks publication.

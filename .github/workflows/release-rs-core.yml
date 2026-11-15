@@ -1,0 +1,145 @@
+name: Release (Rust core)
+
+# Publication of the `hypermarkdown` crate to crates.io, driven by an
+# `rs-core-vX.Y.Z` tag. The crate is its own Cargo package under
+# `tools/hmd-rs-core/`, outside both the uv and the npm workspace.
+#
+# The prefix begins with `r`, so neither `v[0-9]*` (the Python tool), nor
+# `ts-core-v*`, `semantics-v[0-9]*` or `vsc-ext-v*` matches it, and this
+# workflow matches none of theirs.
+#
+# `workflow_dispatch` runs every gate and `cargo publish --dry-run`, publishing
+# nowhere, so the packaging path can be exercised without minting a tag.
+on:
+  push:
+    tags: ["rs-core-v[0-9]*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never cancel a publication in flight. crates.io refuses a version it has
+# already accepted, so a half-finished release is worse than a queued one.
+concurrency:
+  group: release-rs-core-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: build and verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/hmd-rs-core
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup toolchain install 1.95 --profile minimal
+          rustup default stable
+
+      # A crate version can never be replaced or reused, so a mistyped tag must
+      # fail here rather than on the registry.
+      - name: Check the tag matches the crate version
+        if: startsWith(github.ref, 'refs/tags/rs-core-v')
+        run: |
+          tagged="${GITHUB_REF_NAME#rs-core-v}"
+          packaged=$(cargo metadata --no-deps --format-version 1 --locked \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)["packages"][0]["version"])')
+          echo "tag=$tagged packaged=$packaged"
+          if [ "$tagged" != "$packaged" ]; then
+            echo "::error::tag rs-core-v$tagged does not match Cargo.toml version $packaged" >&2
+            exit 1
+          fi
+
+      # The same gates as CI's `rust` job, at the tagged commit.
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Check the minimum supported Rust version
+        run: cargo +1.95 check --locked --all-targets
+
+      # Packages the crate and builds it from its own `.crate` file, so a
+      # package missing a file it needs fails here, not after the upload.
+      - name: Package
+        run: cargo publish --dry-run --locked
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: crate
+          path: tools/hmd-rs-core/target/package/*.crate
+          if-no-files-found: error
+
+  crates-io:
+    name: publish to crates.io
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/rs-core-v')
+    runs-on: ubuntu-latest
+    environment:
+      name: crates-io
+      url: https://crates.io/crates/hypermarkdown
+    # Trusted publishing: the job proves its identity to crates.io with a
+    # short-lived OIDC token, so there is no registry token in repository
+    # secrets. It requires a trusted publisher configured on the crate's
+    # crates.io settings: repository `ewiger/hypermarkdown`, workflow
+    # `release-rs-core.yml`, environment `crates-io`. There is deliberately no
+    # `CARGO_REGISTRY_TOKEN` fallback, the same stance the PyPI and npm
+    # releases take.
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: tools/hmd-rs-core
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+
+      - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: cargo publish --locked
+
+  github-release:
+    name: github release
+    needs: crates-io
+    if: startsWith(github.ref, 'refs/tags/rs-core-v')
+    runs-on: ubuntu-latest
+    # The one job that writes to the repository, and it writes only the release.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: crate
+          path: dist/
+
+      - name: Cut the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Title, Latest flag, and body all follow scripts/release.py, the one
+          # place the repository's release rules live.
+          python3 scripts/release.py notes "$GITHUB_REF_NAME" > notes.md
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "$(python3 scripts/release.py title "$GITHUB_REF_NAME")" \
+            --latest="$(python3 scripts/release.py latest "$GITHUB_REF_NAME")" \
+            --notes-file notes.md

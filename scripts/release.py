@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """How a GitHub release of one of this repository's tools reads.
 
-The repository releases four tools, each on its own tag prefix. A release page
+The repository releases five tools, each on its own tag prefix. A release page
 lists all of them together, so every title has to say which tool it is and where
-it is installed from. That cannot be left to three workflows that each spell
+it is installed from. That cannot be left to workflows that each spell
 their own title. This script is the one place the rules live, and every release
 workflow calls it:
 
@@ -14,7 +14,7 @@ workflow calls it:
 The rules:
 
 - A title is `<platform> · <package> <version>`. The platform is where a reader
-  installs it from, which is what tells three tools apart. The package is the
+  installs it from, which is what tells the tools apart. The package is the
   name a registry knows it by, as it was called at that version.
 - Only the VS Code extension is marked Latest. GitHub keeps one Latest badge per
   repository, and the extension is what most visitors come to install.
@@ -91,6 +91,17 @@ class SemanticsTool(Tool):
         ]
 
 
+class CrateTool(Tool):
+    def package(self, version: str) -> str:
+        return "hypermarkdown"
+
+    def links(self, version: str) -> list[str]:
+        return [
+            f"[hypermarkdown {version}](https://crates.io/crates/hypermarkdown/{version})",
+            f"`cargo add hypermarkdown@{version}`",
+        ]
+
+
 class ExtensionTool(Tool):
     def package(self, version: str) -> str:
         return "HyperMarkDown"
@@ -108,6 +119,7 @@ class ExtensionTool(Tool):
 TOOLS: tuple[Tool, ...] = (
     ExtensionTool("vsc-ext-v", "VS Code", "tools/hmd-vsc-ext/CHANGELOG.md", latest=True),
     NpmTool("ts-core-v", "npm", "tools/hmd-ts-core/CHANGELOG.md", latest=False),
+    CrateTool("rs-core-v", "crates.io", "tools/hmd-rs-core/CHANGELOG.md", latest=False),
     SemanticsTool(
         "semantics-v", "PyPI", "tools/hmd-semantics/CHANGELOG.md", latest=False
     ),

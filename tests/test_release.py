@@ -1,6 +1,6 @@
 """The rules for how a GitHub release reads, held to the workflows that cut them.
 
-Three tools release from this repository, and their releases share one page. The
+Five tools release from this repository, and their releases share one page. The
 rules (a platform-first title, one tool holding the Latest badge, a body opening
 with an install line) live in `scripts/release.py`. These tests check that every
 workflow that cuts a release goes through that script, and that the script
@@ -47,6 +47,7 @@ def test_the_workflow_takes_title_latest_and_notes_from_the_script(workflow):
         ("v0.1.1", "PyPI · hyper-markdown 0.1.1", False),
         ("v0.3.1", "PyPI · hypermarkdown 0.3.1", False),
         ("ts-core-v0.2.0", "npm · @hypermarkdown/core 0.2.0", False),
+        ("rs-core-v0.2.0", "crates.io · hypermarkdown 0.2.0", False),
         ("vsc-ext-v0.4.4", "VS Code · HyperMarkDown 0.4.4", True),
     ],
 )
