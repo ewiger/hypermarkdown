@@ -250,6 +250,17 @@ a `[[reference]]` names, for programs written in Rust. It neither lints nor
 renders, it answers to the same [conformance corpus](examples/conformance/),
 and it is not published to crates.io.
 
+### [`hmd-semantics`](tools/hmd-semantics/) — the semantic index builder
+
+[![Python](https://img.shields.io/badge/python-3.11%2B-3776ab)](tools/hmd-semantics/DEVELOP.md)
+[![Changelog](https://img.shields.io/badge/changelog-tools%2Fhmd--semantics-informational)](tools/hmd-semantics/CHANGELOG.md)
+
+A Python command that embeds the text of each card of a vault and writes the
+vectors to an SQLite index in the vault's `.hmd/`, where a reader such as
+[HQL](https://hql-lang.org/) ranks cards against a query without running a
+model. It also verifies an index against its vault. It is not published to
+PyPI.
+
 ### [VS Code extension](tools/hmd-vsc-ext/) — an editor for `.hmd` with real-time preview
 
 [![Open VSX](https://img.shields.io/open-vsx/v/hypermarkdown/hmd?color=c160ef&label=open%20vsx)](https://open-vsx.org/extension/hypermarkdown/hmd)
@@ -310,14 +321,15 @@ cargo install hql --locked      # or a release binary from its releases page
   tool](tools/hmd/DEVELOP.md), [the TypeScript
   core](tools/hmd-ts-core/DEVELOP.md), [the
   extension](tools/hmd-vsc-ext/DEVELOP.md), [the Rust
-  crate](tools/hmd-rs-core/DEVELOP.md). Each carries that tool's test loop,
+  crate](tools/hmd-rs-core/DEVELOP.md), [the semantic index
+  builder](tools/hmd-semantics/DEVELOP.md). Each carries that tool's test loop,
   gates, and release.
 - **[`doc/proposals/`](doc/proposals/)** — numbered specifications. A change to
   the format or the tooling starts as one; reserve its number in
   [`doc/proposals/README.md`](doc/proposals/README.md).
 - **[`doc/status/`](doc/status/)** — progress, tracked per tool: `lang.md` for
-  the format, `hmd.md`, `ts-core.md`, `vsc-ext.md`, and `rs-core.md` for the
-  four tools, and `pages.md` for the site. Updated in the same commit that changes the code, and
+  the format, `hmd.md`, `ts-core.md`, `vsc-ext.md`, `rs-core.md`, and `semantics.md`
+  for the five tools, and `pages.md` for the site. Updated in the same commit that changes the code, and
   the only place work is tracked.
 - **Kanban board** - in `doc/issues/**`, for the repository's own work, and for the language and the
   website, as well as the tools. The board is public, but the issues are owned by the contributors team.

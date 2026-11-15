@@ -15,6 +15,7 @@ its dependencies, how it is built and released — go straight to its guide:
 | `tools/hmd-ts-core/` | [tools/hmd-ts-core/DEVELOP.md](tools/hmd-ts-core/DEVELOP.md) — build, the host port, the conformance ledger |
 | `tools/hmd-vsc-ext/` | [tools/hmd-vsc-ext/DEVELOP.md](tools/hmd-vsc-ext/DEVELOP.md) — the two bundles, the development host, the VSIX |
 | `tools/hmd-rs-core/` | [tools/hmd-rs-core/DEVELOP.md](tools/hmd-rs-core/DEVELOP.md) — the Cargo loop, the host trait, the conformance ledger |
+| `tools/hmd-semantics/` | [tools/hmd-semantics/DEVELOP.md](tools/hmd-semantics/DEVELOP.md) — its own uv project and lockfile, the text contract shared with HQL, the fixture vault |
 
 The book under [`doc/public/`](doc/public/) explains the format to a reader. This
 file explains how the format's record and its website are worked on.
@@ -34,6 +35,12 @@ The Rust crate under `tools/hmd-rs-core/` declares a version of its own as well,
 in [`Cargo.toml`](tools/hmd-rs-core/Cargo.toml), with
 [its changelog](tools/hmd-rs-core/CHANGELOG.md). It is unreleased and has no
 release line: the crate is not published.
+
+The semantic index builder under `tools/hmd-semantics/` declares one too, as
+`__version__` in
+[`src/hypermarkdown_semantics/__init__.py`](tools/hmd-semantics/src/hypermarkdown_semantics/__init__.py),
+with [its changelog](tools/hmd-semantics/CHANGELOG.md). It is unreleased as
+well: the tool is not published to PyPI.
 
 A fifth number is pinned rather than declared here:
 [`toolchain.json`](toolchain.json) names the
@@ -150,8 +157,8 @@ Three conventions that are easy to get wrong:
 - **Progress is tracked per tool**, in [`doc/status/`](doc/status/), and nowhere
   else — not in `doc/memory/`, not in a wiki card, not in a proposal's own
   `README.md`, not in a tool's `README.md`. One file each: `lang.md` for the
-  format, `hmd.md`, `ts-core.md`, `vsc-ext.md`, and `rs-core.md` for the four
-  tools, and `pages.md` for the site. A proposal's rows go to whichever tracker owns the
+  format, `hmd.md`, `ts-core.md`, `vsc-ext.md`, `rs-core.md`, and `semantics.md` for the
+  five tools, and `pages.md` for the site. A proposal's rows go to whichever tracker owns the
   code, citing the proposal. Update the tracker in the same commit that changes
   the code. Each reads Status, Open, Broken, Limitations, Done — in that order,
   with Done last — and a row is a sentence that stands alone, never a pointer at
@@ -261,6 +268,7 @@ tools/hmd/                the Python tool, published as `HyperMarkDown`
 tools/hmd-ts-core/        @hypermarkdown/core — the TypeScript implementation
 tools/hmd-vsc-ext/        the VS Code extension
 tools/hmd-rs-core/        hypermarkdown — the resolver as a Rust crate
+tools/hmd-semantics/      hmd-semantics — the builder of a vault's semantic index
 tests/                    repository guards: this repo's prose and its built site
 examples/small/           a runnable fixture wiki, exercised by both lines
 examples/cs-alg-sorting/  a larger fixture wiki, exercised by both lines
