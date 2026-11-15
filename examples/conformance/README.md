@@ -49,14 +49,20 @@ leaks into the contract.
 
 - **TypeScript** — `tools/hmd-ts-core/test/corpus.test.ts`, part of
   `npm run -w @hypermarkdown/core test`.
+- **Rust** — `tools/hmd-rs-core/tests/corpus.rs`, part of `cargo test` in
+  `tools/hmd-rs-core/`. It compares `resolutions` only: the crate is a resolver
+  and emits no diagnostics.
 - **Python** — `tools/hmd/tests/test_conformance.py`, part of
   `uv run python -m pytest`. A case's `config.toml` is copied in as the tree's
   `.hmd/config.toml`; a marker further down the tree is part of the case.
 
 ## The ledger
 
-Divergence is permitted. Silence is not. Known differences live in
-[`tools/hmd-ts-core/conformance-xfail.json`](../../tools/hmd-ts-core/conformance-xfail.json),
-each naming the case, the reason, and where it is tracked. **A ledger entry
+Divergence is permitted. Silence is not. Known differences live in a ledger
+beside each implementation that is not the canonical one —
+[`tools/hmd-ts-core/conformance-xfail.json`](../../tools/hmd-ts-core/conformance-xfail.json)
+and
+[`tools/hmd-rs-core/conformance-xfail.json`](../../tools/hmd-rs-core/conformance-xfail.json)
+— each entry naming the case, the reason, and where it is tracked. **A ledger entry
 that passes fails the build** — an expected failure that starts succeeding and
 is not removed is how a ledger rots into a lie.
