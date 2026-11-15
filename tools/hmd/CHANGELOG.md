@@ -13,6 +13,8 @@ only for the Python API.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-15
+
 ### Added
 - **Markdown files are cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/README.md)).
   A `.md` or `.markdown` file below the namespace root loads as a Markdown card:
