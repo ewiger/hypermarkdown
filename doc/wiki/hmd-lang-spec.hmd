@@ -216,9 +216,17 @@ addressable by an HMD page reference. Ordinary Markdown links remain able to
 address files and URLs outside that subtree.
 
 - The **project root** is the nearest ancestor directory containing a `.hmd/`
-  directory, falling back to the nearest ancestor containing `.git`.
-- The **namespace root** is the `wiki` setting of `.hmd/config.toml`, resolved
-  relative to the project root, defaulting to `doc/wiki`.
+  directory, falling back to the nearest ancestor containing `.git`. A project
+  root marked by `.hmd/` is a **vault**: the directory one `.hmd/config.toml`
+  configures. A vault is where the settings are; it is not where the cards
+  are.
+- The **cards location** is the `wiki` setting of `.hmd/config.toml`: where
+  inside the vault the cards start. It is a path resolved relative to the
+  project root, defaulting to `doc/wiki`. `wiki = "."` puts the cards directly
+  under the vault.
+- The **namespace root** is the directory the cards location names. A `.hmd`
+  file is a card if and only if it lies below it, a card's path is written
+  relative to it, and a file of the vault outside it is not a card.
 - An implementation MUST offer a way to name the namespace root directly,
   overriding both.
 - A resolved target MUST lie inside the namespace root. One that does not is
@@ -503,8 +511,8 @@ a card nobody asked to publish.
 ### Project configuration
 
 The `.hmd/` directory at the project root doubles as the root marker. This
-version reads exactly two settings from `.hmd/config.toml` and MUST ignore the
-rest of the file, so that the full schema can be specified later without
+version reads exactly three settings from `.hmd/config.toml`, `wiki`,
+`autodiscovery` and `mode`, and MUST ignore the rest of the file, so that the full schema can be specified later without
 invalidating existing trees.
 
 A `.hmd/` directory below the namespace root ends the namespace there: the
@@ -513,13 +521,16 @@ its subtree is part of the outer one, whether as a page, a resolution candidate,
 or an import target. References do not cross that boundary in either direction.
 
 ```toml
-wiki = "doc/wiki"        # namespace root, relative to the project root
+wiki = "doc/wiki"        # the cards location: where in the vault the cards start
 
 [discovery]
 autodiscovery = true     # whether the sweep runs at all
 mode = "both"            # both (default) | recursive — how the sweep searches
 ```
 
+- **`wiki`** is the cards location, a path relative to the project root. The
+  directory it names is the namespace root. It moves where the cards start
+  and nothing else: `.hmd/` and everything in it stay at the project root.
 - **`autodiscovery`** is the project default for the `use` feature of the same
   name. A card overrides it freely in either direction.
 - **`mode`** decides how the sweep searches once it runs. `both` sweeps the

@@ -54,7 +54,7 @@ And so much more:
 | `[[tokens]]` | bare name | looked up for you, see below |
 | `[[specs/login]]` | path | looked up the same way |
 | `[[./tokens]]`, `[[../billing/invoices]]` | relative path | from the folder of the card you are writing |
-| `[[/shared/tokens]]` | absolute path | from the root of the vault |
+| `[[/shared/tokens]]` | absolute path | from where the vault's cards start |
 | `[[design:tokens]]` | namespace-qualified | in another vault, see [Namespaces](#namespaces) |
 
 A bare name or a path is looked up in four steps, and the first match wins:
@@ -76,10 +76,14 @@ linked or embedded on its own.
 
 ### Namespaces
 
-A folder is a *module*. A *vault* is a tree of modules, marked by a `.hmd/`
-directory at its root, and it is one *namespace*: every address in the table
-above resolves inside it. A nested `.hmd/` starts a new vault, and a link that
-escapes the root is an error.
+A *vault* is a directory marked by a `.hmd/` directory, which holds its
+configuration. Its cards start at the *cards location*, the `wiki` setting of
+`.hmd/config.toml`: a path inside the vault, `doc/wiki` unless the file says
+otherwise, and `.` to keep the cards directly under the vault. A folder below
+it is a *module*, and the tree of modules is the vault's *namespace*: every
+address in the table above resolves inside it, and a file of the vault outside
+it is not a card. A nested `.hmd/` starts a new vault, and a link that escapes
+the namespace is an error.
 
 A namespace-qualified address reaches a card in another vault. The name before
 the colon selects the vault, and the path after it is resolved inside that
@@ -94,7 +98,7 @@ introduce one by mentioning it, so the set of vaults a build may read is one
 file:
 
 ```toml
-wiki = "doc/wiki"                # the default namespace: this project's own vault
+wiki = "doc/wiki"                # the cards location: where this vault's own cards start
 
 [namespaces.design]              # a second vault on this filesystem
 folder = "../design-wiki"

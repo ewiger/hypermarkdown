@@ -42,14 +42,15 @@ Its first reader is HQL's `hmd` package.
 
 ## Broken
 
-Nothing known.
+| What | Effect | References |
+| --- | --- | --- |
+| **Cards are read from the vault itself, not from its cards location.** The format puts a vault's cards at the `wiki` setting of `.hmd/config.toml`, where inside the vault the cards start, and counts `.hmd` files only. The builder walks the directory holding `.hmd/` and takes `.md` and `.markdown` files too, because it copies HQL's loader | In a vault whose `wiki` is not `.`, the index holds files that are not cards and names the cards by other paths than `hmd` does. It is fixed in one step with HQL's loader, which HQL tracks as its issue 0079, and both committed fixture indexes are rebuilt then | [[hmd-0028#the-cards-of-an-index]], [the issue card](../issues/0011-vault-and-namespace-drift-between-hmd-and-hql.md) |
 
 ## Limitations (known gaps)
 
 | Limitation | Why it stands | References |
 | --- | --- | --- |
 | The text contract is shared with HQL's loader, and a change to either must change both | The text this tool embeds and hashes has to be byte-identical to the text HQL hashes, so `vault.py` reimplements HQL's document loader and its frontmatter parser. Nothing in this repository runs HQL's loader, so a difference is caught only by HQL's own tests over its copy of the fixture vault | [[hmd-0028#the-embedded-text]] |
-| Cards are loaded from the vault's root, not from the namespace root the `wiki` setting names, and `.md` and `.markdown` files are cards too | That is what HQL's loader loads and how it names cards, and an index whose card names differ from its reader's is an index of nothing. It moves when HQL's loader moves | [[hmd-0028#the-cards-of-an-index]] |
 | The frontmatter parser is not a YAML parser | It is HQL's: block mappings, block and flow lists, and plain scalars. Frontmatter outside that subset is read as HQL reads it, which is the property that matters here | [[hmd-0028#the-embedded-text]] |
 | An index answers only the queries it was built with | A reader has no model and cannot embed a question, so `build --query` embeds each one and a query the index does not hold is a failure at the reader | [[hmd-0028#schema-version-1]] |
 | The committed fixture index names the tool's former name | It was built before the move and reads `hql-semantics 0.1.0`. Rebuilding needs the model, and no reader compares the string | [[hmd-0028#schema-version-1]] |
@@ -91,4 +92,7 @@ uv run python -m pytest
 
 ## Changelog
 
+- 2026-11-15: reading cards from the vault itself moved from a limitation to
+  broken: `wiki` is decided to stay as the cards location, so the walk is
+  wrong where the two differ.
 - 2026-11-15: created with the tool.

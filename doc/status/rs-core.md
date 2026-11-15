@@ -94,12 +94,13 @@ cargo test --locked
 
 ## Open questions
 
-| Question | References |
-| --- | --- |
-| Should opening a vault from its root keep honoring the `wiki` setting? The canonical implementation does, and HQL takes the marker directory as the namespace root. The crate follows the canonical implementation in `Vault::open` and lets a caller root a host anywhere, so either reading is available until the format settles it (issue 0011) | [[hmd-0027#what-the-crate-does]] |
+None.
 
 ## Changelog
 
+- 2026-11-15: the question of whether `Vault::open` keeps honoring `wiki` is
+  closed: it does. `wiki` is the cards location, where inside a vault the cards
+  start, and stays in the format (issue 0011).
 - 2026-11-15: `0.1.0` published to crates.io as `hypermarkdown`, by hand, on
   the owner's decision. The manifest no longer refuses a publish.
 - 2026-11-15: created with the crate.

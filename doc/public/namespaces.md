@@ -24,9 +24,13 @@ and inherited configuration. It is not a hard boundary: autodiscovery can find
 a unique card in another module. A directory's `index.hmd`, when present, is its
 folder note and can provide module-level configuration.
 
-A **namespace** is a rooted tree of modules. The default namespace root comes
-from the `wiki` setting in `.hmd/config.toml`, defaults to `doc/wiki`, and can be
-overridden by a command or integration. A page reference that escapes this root
+A **vault** is the directory that holds `.hmd/`: one `config.toml` configures
+it. A **namespace** is a rooted tree of modules, the tree of cards a reference
+resolves in. The two are not the same directory unless the configuration says
+so: the `wiki` setting in `.hmd/config.toml` is the **cards location**, where
+inside the vault the cards start. The directory it names is the default
+namespace root. It defaults to `doc/wiki`, `wiki = "."` puts the cards directly
+under the vault, and a command or integration can override it. A page reference that escapes this root
 is `HMD003`; path normalization happens before that check, and symlinks are not
 followed out of the tree.
 
@@ -164,7 +168,7 @@ Bindings live in `.hmd/config.toml` — the configuration for the whole wiki
 space, next to the root and the discovery policy that are already there:
 
 ```toml
-wiki = "doc/wiki"                # the default namespace: this project's own tree
+wiki = "doc/wiki"                # the cards location: where this vault's own cards start
 
 [namespaces.design]              # a second tree on this filesystem
 folder = "../design-wiki"

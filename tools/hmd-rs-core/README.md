@@ -52,7 +52,9 @@ fn main() -> Result<(), hypermarkdown::Error> {
 }
 ```
 
-A vault on disk loads from its root, the directory that holds `.hmd/`:
+A vault on disk is opened by its root, the directory that holds `.hmd/`. Its
+cards are read from the cards location, the `wiki` setting of its
+`.hmd/config.toml`: where inside the vault the cards start.
 
 ```rust
 use std::path::Path;

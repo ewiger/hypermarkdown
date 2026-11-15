@@ -118,7 +118,8 @@ restates a rule differently from the language specification.
   alias, or `*`. Frontmatter that is not a YAML mapping contributes nothing, and
   a malformed entry is skipped.
 - **Configuration.** Three settings of `.hmd/config.toml` are read: `wiki`, the
-  namespace root relative to the vault's root, `doc/wiki` when absent;
+  cards location, where inside the vault the cards start, a path relative to
+  the vault's root and `doc/wiki` when absent;
   `autodiscovery` in the `[discovery]` table, `true` when absent; and `mode` in
   the same table, `"both"` or `"recursive"`, `"both"` when absent.
 - **The namespace root.** Opening a vault from its root on disk takes the

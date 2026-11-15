@@ -195,15 +195,20 @@ answer
 The builder and a reader must agree on which cards exist and what each is
 called, because a row is found by the card's name.
 
-- An index covers the cards of one vault, loaded from the directory that holds
-  `.hmd/`.
+- An index covers the cards of one vault. A vault's cards start at its cards
+  location, the `wiki` setting of `.hmd/config.toml`: a path inside the vault,
+  `doc/wiki` when absent. The index file itself stays in the vault's `.hmd/`,
+  which does not move with `wiki`.
 - A card's `name` in the index MUST be the name the reader knows the card by.
   The first reader is HQL, and its names are: the file's name without its
-  extension, or the file's path from the vault's root without its extension
-  when two files share a name.
-- The builder loads every file whose extension is `.hmd`, `.md` or `.markdown`
-  under the vault's root, except under an entry whose name starts with a dot.
-  That is the set HQL's loader loads.
+  extension, or the file's path from where the cards start without its
+  extension when two files share a name.
+- The builder MUST load the cards the format defines: every `.hmd` file below
+  the cards location, except under an entry whose name starts with a dot. A
+  builder and a reader that both load another set, as HQL's loader and the
+  builder copied from it do while they read every `.hmd`, `.md` and
+  `.markdown` file under the vault itself, agree with each other and not with
+  the format, and MUST change together.
 - The cards of a nested vault MUST NOT be in the index of the vault that
   contains it. They are in the nested vault's own index.
 
@@ -594,3 +599,5 @@ uv run python -m pytest
 ## Changelog
 
 - 2026-11-15: drafted
+- 2026-11-15: the cards of an index are the cards below the vault's cards
+  location, the `wiki` setting, which the owner decided stays in the format

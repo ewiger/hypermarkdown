@@ -166,7 +166,10 @@ parser, and does not use a YAML library. A change to either loader must change
 both. A difference between them has no error: every card would report as stale
 in HQL, or a score would describe text nobody wrote.
 
-The same coupling fixes which files are cards and what they are named: every
+The same coupling fixes which files are cards and what they are named, and
+here the tool does not yet follow the format. A vault's cards start at its
+cards location, the `wiki` setting of `.hmd/config.toml`, and are `.hmd`
+files. This tool, as HQL's loader does, reads every
 `.hmd`, `.md` and `.markdown` file under the vault's root, outside entries
 whose name starts with a dot, named by its file name without the extension, or
 by its path without the extension when two files share a name.
