@@ -28,6 +28,7 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0026](HMD-0026/README.md) | drafted | HQL cells — a card as a notebook | [ts-core](../status/ts-core.md), [vsc-ext](../status/vsc-ext.md), [lang](../status/lang.md) |
 | [HMD-0027](HMD-0027/README.md) | drafted | `hypermarkdown` — the resolver as a Rust crate | [rs-core](../status/rs-core.md) |
 | [HMD-0028](HMD-0028/README.md) | drafted | The `[hql]` and `[semantics]` tables, and the semantic index | [semantics](../status/semantics.md), [hmd](../status/hmd.md) |
+| [HMD-0029](HMD-0029/README.md) | drafted | Markdown files are cards | [lang](../status/lang.md), [hmd](../status/hmd.md), [ts-core](../status/ts-core.md), [rs-core](../status/rs-core.md), [semantics](../status/semantics.md) |
 
 ## Progress is tracked per tool
 
