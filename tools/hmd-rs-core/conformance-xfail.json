@@ -103,6 +103,12 @@
       "reason": "A published card that links to an unpublished one. The publication model is not read: `nav` is ignored and no card is public or private here.",
       "deliberate": true,
       "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD018",
+      "reason": "A card shadowed by one of the same name with an earlier card extension. The earlier extension wins, as in the canonical implementation; `Vault::shadowed_by` names the winner, and the warning is the caller's to report.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do; HMD-0029"
     }
   ]
 }

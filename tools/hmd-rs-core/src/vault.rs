@@ -16,8 +16,12 @@
 //!    whose path ends with the reference. One match resolves; more than one is
 //!    ambiguous and nothing is chosen.
 //!
-//! In every directory a name binds the card `name.hmd`, and failing that the
-//! folder note `name/index.hmd`.
+//! In every directory a name binds the card `name.hmd`, `name.md` or
+//! `name.markdown`, in that order, and failing those the folder note
+//! `name/index` with the same extensions in the same order. A reference that
+//! writes an extension binds only that extension. Where two files of one
+//! directory share a name, the later extension is shadowed: bound only by a
+//! reference that writes its extension, and never found by autodiscovery.
 //!
 //! A directory below the root that holds its own `.hmd` directory is the root
 //! of another vault. None of its cards belong to this one.
@@ -30,7 +34,7 @@ use crate::config::{Config, MARKER_DIR, Mode};
 use crate::error::Error;
 use crate::host::{EntryKind, FsHost, Host};
 use crate::page::Page;
-use crate::paths::{self, INDEX_STEM, SUFFIX};
+use crate::paths::{self, CARD_SUFFIXES, INDEX_STEM, SUFFIX};
 
 /// The rule that resolved a reference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -112,6 +116,8 @@ pub struct Vault {
     directories: HashSet<String>,
     /// The roots of the vaults nested below this one, sorted.
     nested: Vec<String>,
+    /// A shadowed card's path to the path of the card that shadows it.
+    shadowed: HashMap<String, String>,
 }
 
 impl Vault {
@@ -174,10 +180,35 @@ impl Vault {
             imports: Vec::new(),
             directories,
             nested,
+            shadowed: HashMap::new(),
         };
+
+        // Files of one directory whose names differ only in their card
+        // extension claim one name; the earliest extension is the card at it.
+        let mut claims: HashMap<String, Vec<&str>> = HashMap::new();
+        for page in &vault.pages {
+            claims
+                .entry(paths::page_parts(&page.path).join("/"))
+                .or_default()
+                .push(&page.path);
+        }
+        for mut claimants in claims.into_values() {
+            claimants.sort_by_key(|path| rank(path));
+            if let Some((winner, losers)) = claimants.split_first() {
+                for loser in losers {
+                    vault
+                        .shadowed
+                        .insert((*loser).to_owned(), (*winner).to_owned());
+                }
+            }
+        }
 
         for (at, page) in vault.pages.iter().enumerate() {
             vault.by_path.insert(page.path.clone(), at);
+            if vault.shadowed.contains_key(&page.path) {
+                // Reachable only by a reference that writes its extension.
+                continue;
+            }
 
             let parts = paths::page_parts(&page.path);
             vault.by_parts.entry(parts.join("/")).or_default().push(at);
@@ -223,6 +254,12 @@ impl Vault {
         &self.nested
     }
 
+    /// The card that shadows the card at `path`, when one does: a card of the
+    /// same name in the same directory with an earlier card extension.
+    pub fn shadowed_by(&self, path: &str) -> Option<&str> {
+        self.shadowed.get(path).map(String::as_str)
+    }
+
     /// Whether autodiscovery is on for the card at `source`.
     ///
     /// The card's own `use` key decides; failing that, the `use` key of the
@@ -255,13 +292,14 @@ impl Vault {
     /// card the vault holds, in which case it has no imports and no `use` key.
     /// `reference` is a page reference without fragment or display text, as
     /// [`Link::page`](crate::Link::page) and
-    /// [`Reference::page`](crate::Reference::page) hold it. A trailing `.hmd`
-    /// is ignored.
+    /// [`Reference::page`](crate::Reference::page) hold it. A trailing card
+    /// extension is stripped, and only that extension is then bound.
     pub fn resolve(&self, source: &str, reference: &str) -> Resolution {
-        let stem = reference.strip_suffix(SUFFIX).unwrap_or(reference);
+        let ext = paths::card_suffix(reference);
+        let stem = &reference[..reference.len() - ext.map_or(0, str::len)];
 
         if stem.starts_with('/') {
-            return self.by_path_rule(self.bind(&[], &paths::split(stem)));
+            return self.by_path_rule(self.bind(&[], &paths::split(stem), ext));
         }
 
         if stem.starts_with("./") || stem.starts_with("../") {
@@ -271,7 +309,7 @@ impl Vault {
             };
             // A reference that normalizes to the root itself, such as `../`
             // from a card one directory down, names the root's folder note.
-            return self.by_path_rule(self.bind_path(&parts));
+            return self.by_path_rule(self.bind_path(&parts, ext));
         }
 
         let parts = paths::split(stem);
@@ -292,7 +330,7 @@ impl Vault {
         // The spine, nearest directory first.
         let mut directory = paths::parent(source);
         loop {
-            if let Some(path) = self.bind(&directory, &parts) {
+            if let Some(path) = self.bind(&directory, &parts, ext) {
                 return resolved(path, Via::Spine);
             }
             if directory.pop().is_none() {
@@ -302,7 +340,7 @@ impl Vault {
 
         // Imported directories, in the order the card wrote them.
         for directory in table.iter().flat_map(|table| &table.search_paths) {
-            if let Some(path) = self.bind(&paths::split(directory), &parts) {
+            if let Some(path) = self.bind(&paths::split(directory), &parts, ext) {
                 return resolved(path, Via::SearchPath);
             }
         }
@@ -311,7 +349,7 @@ impl Vault {
             return Resolution::Unresolved;
         }
 
-        let mut matches = self.sweep(source, &parts);
+        let mut matches = self.sweep(source, &parts, ext);
         match matches.len() {
             0 => Resolution::Unresolved,
             1 => Resolution::Resolved {
@@ -332,13 +370,14 @@ impl Vault {
         }
     }
 
-    /// Binds `parts` in the directory `directory`: the card
-    /// `directory/parts.hmd`, or failing that the folder note
-    /// `directory/parts/index.hmd`.
+    /// Binds `parts` in the directory `directory`: the card `directory/parts`
+    /// with a card extension, or failing that the folder note
+    /// `directory/parts/index` with one; `ext`, when given, is the only
+    /// extension tried.
     ///
     /// When both exist the card wins. A `.` among the parts is dropped, as the
     /// canonical implementation's path type drops it.
-    fn bind(&self, directory: &[&str], parts: &[&str]) -> Option<&str> {
+    fn bind(&self, directory: &[&str], parts: &[&str], ext: Option<&str>) -> Option<&str> {
         if parts.is_empty() {
             return None;
         }
@@ -348,22 +387,34 @@ impl Vault {
             .copied()
             .filter(|part| *part != ".")
             .collect();
-        self.bind_path(&full)
+        self.bind_path(&full, ext)
     }
 
-    /// Binds the root-relative path `full`: the card `full.hmd`, or failing
-    /// that the folder note `full/index.hmd`. The empty path, the root, binds
-    /// the root's folder note.
-    fn bind_path(&self, full: &[&str]) -> Option<&str> {
+    /// Binds the root-relative path `full`: the card `full` with a card
+    /// extension, or failing that the folder note `full/index` with one, the
+    /// extensions in priority order or `ext` alone. The empty path, the root,
+    /// binds the root's folder note.
+    fn bind_path(&self, full: &[&str], ext: Option<&str>) -> Option<&str> {
+        let extensions: Vec<&str> = match ext {
+            Some(ext) => vec![ext],
+            None => CARD_SUFFIXES.to_vec(),
+        };
         if let Some((last, head)) = full.split_last() {
-            let candidate = join(head, &[&paths::with_hmd_suffix(last)]);
-            if let Some(page) = self.page(&candidate) {
-                return Some(&page.path);
+            for ext in &extensions {
+                let candidate = join(head, &[&format!("{last}{ext}")]);
+                if let Some(page) = self.page(&candidate) {
+                    return Some(&page.path);
+                }
             }
         }
 
-        let folder_note = join(full, &[&format!("{INDEX_STEM}{SUFFIX}")]);
-        self.page(&folder_note).map(|page| page.path.as_str())
+        for ext in &extensions {
+            let folder_note = join(full, &[&format!("{INDEX_STEM}{ext}")]);
+            if let Some(page) = self.page(&folder_note) {
+                return Some(&page.path);
+            }
+        }
+        None
     }
 
     /// Resolves the import statements of `page` into bindings and search
@@ -398,7 +449,7 @@ impl Vault {
             }
 
             for binding in &import.bindings {
-                if let Some(target) = self.bind(&directory, &[&binding.name]) {
+                if let Some(target) = self.bind(&directory, &[&binding.name], None) {
                     table
                         .bindings
                         .entry(binding.local.clone())
@@ -413,7 +464,9 @@ impl Vault {
     /// path.
     ///
     /// In `recursive` mode only cards beneath the directory of `source` count.
-    fn sweep(&self, source: &str, parts: &[&str]) -> Vec<String> {
+    /// A shadowed card is never found, and with `ext` only cards with that
+    /// extension are.
+    fn sweep(&self, source: &str, parts: &[&str], ext: Option<&str>) -> Vec<String> {
         let scope = match self.config.mode {
             Mode::Both => String::new(),
             Mode::Recursive => paths::parent(source).join("/"),
@@ -432,7 +485,8 @@ impl Vault {
                     || path
                         .strip_prefix(&scope)
                         .is_some_and(|rest| rest.starts_with('/'));
-                if in_scope {
+                let kept = ext.is_none_or(|ext| paths::card_suffix(path) == Some(ext));
+                if in_scope && kept {
                     matches.insert(path.clone());
                 }
             }
@@ -447,6 +501,13 @@ fn resolved(path: &str, via: Via) -> Resolution {
         path: path.to_owned(),
         via,
     }
+}
+
+/// The priority of a card's extension: lower wins a shared name.
+fn rank(path: &str) -> usize {
+    paths::card_suffix(path)
+        .and_then(|suffix| CARD_SUFFIXES.iter().position(|each| *each == suffix))
+        .unwrap_or(CARD_SUFFIXES.len())
 }
 
 /// The path made of `head` followed by `tail`.
@@ -501,7 +562,7 @@ fn walk<H: Host + ?Sized>(host: &H, dir: &str, tree: &mut Tree) -> Result<(), Er
         };
         match entry.kind {
             EntryKind::Directory => walk(host, &path, tree)?,
-            EntryKind::File if path.ends_with(SUFFIX) => tree.cards.push(path),
+            EntryKind::File if paths::card_suffix(&path).is_some() => tree.cards.push(path),
             EntryKind::File => {}
         }
     }
@@ -548,7 +609,7 @@ mod tests {
             ("sub/.git/d.hmd", ""),
         ]);
         let paths: Vec<_> = v.pages().iter().map(|p| p.path.as_str()).collect();
-        assert_eq!(paths, ["a.hmd"]);
+        assert_eq!(paths, ["a.hmd", "notes.md"]);
         assert!(v.nested_vaults().is_empty());
     }
 
@@ -719,10 +780,40 @@ mod tests {
     }
 
     #[test]
-    fn a_suffix_on_a_name_is_replaced() {
-        let v = vault(&[("a.hmd", ""), ("v1.hmd", ""), ("notes.hmd", "")]);
-        assert_eq!(v.resolve("a.hmd", "v1.2"), hit("v1.hmd", Via::Spine));
-        assert_eq!(v.resolve("a.hmd", "notes.md"), hit("notes.hmd", Via::Spine));
+    fn a_name_with_a_dot_binds_whole_and_a_written_extension_binds_only_itself() {
+        let v = vault(&[("a.hmd", ""), ("v1.2.md", ""), ("notes.hmd", "")]);
+        assert_eq!(v.resolve("a.hmd", "v1.2"), hit("v1.2.md", Via::Spine));
+        assert_eq!(v.resolve("a.hmd", "notes.md"), Resolution::Unresolved);
+        assert_eq!(
+            v.resolve("a.hmd", "notes.hmd"),
+            hit("notes.hmd", Via::Spine)
+        );
+    }
+
+    #[test]
+    fn a_markdown_card_is_a_target_and_is_not_scanned() {
+        let v = vault(&[("a.hmd", "[[guide]]"), ("guide.md", "[[a]] [[missing]]")]);
+        assert_eq!(v.resolve("a.hmd", "guide"), hit("guide.md", Via::Spine));
+        let guide = v.page("guide.md").unwrap();
+        assert_eq!(guide.kind, crate::Kind::Markdown);
+        assert!(guide.links.is_empty());
+    }
+
+    #[test]
+    fn a_later_extension_is_shadowed() {
+        let v = vault(&[
+            ("a.hmd", ""),
+            ("owl.hmd", ""),
+            ("owl.md", ""),
+            ("far/y.md", ""),
+            ("far/y.markdown", ""),
+        ]);
+        assert_eq!(v.resolve("a.hmd", "owl"), hit("owl.hmd", Via::Spine));
+        assert_eq!(v.resolve("a.hmd", "owl.md"), hit("owl.md", Via::Spine));
+        assert_eq!(v.shadowed_by("owl.md"), Some("owl.hmd"));
+        assert_eq!(v.shadowed_by("owl.hmd"), None);
+        // The sweep finds the card at the name and never the shadowed one.
+        assert_eq!(v.resolve("a.hmd", "y"), hit("far/y.md", Via::Autodiscovery));
     }
 
     #[test]

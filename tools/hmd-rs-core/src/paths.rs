@@ -5,8 +5,20 @@
 //! implementation does the same arithmetic with `pathlib`, whose behavior is
 //! restated here so no answer depends on an operating system.
 
-/// The suffix every card's file name carries.
+/// The extension of a HyperMarkdown card, and of the folder note whose
+/// frontmatter a subtree inherits.
 pub(crate) const SUFFIX: &str = ".hmd";
+
+/// The card extensions in priority order: where two files compete for one
+/// name, the earlier extension wins (HMD-0029).
+pub(crate) const CARD_SUFFIXES: [&str; 3] = [".hmd", ".md", ".markdown"];
+
+/// The card extension `name` ends in, if any.
+pub(crate) fn card_suffix(name: &str) -> Option<&'static str> {
+    CARD_SUFFIXES
+        .into_iter()
+        .find(|suffix| name.ends_with(suffix))
+}
 
 /// The stem of a folder note, the card a directory's own name resolves to.
 pub(crate) const INDEX_STEM: &str = "index";
@@ -21,19 +33,6 @@ pub(crate) fn parent(path: &str) -> Vec<&str> {
     let mut parts = split(path);
     parts.pop();
     parts
-}
-
-/// `name` with its suffix replaced by `.hmd`, or with `.hmd` added when it has
-/// none, as `PurePath.with_suffix(".hmd")` does.
-///
-/// A name has a suffix when something other than dots stands before its last
-/// dot, so `v1.2` becomes `v1.hmd` and `.notes` becomes `.notes.hmd`.
-pub(crate) fn with_hmd_suffix(name: &str) -> String {
-    let stem = match name.rfind('.') {
-        Some(dot) if !name[..dot].trim_matches('.').is_empty() => &name[..dot],
-        _ => name,
-    };
-    format!("{stem}{SUFFIX}")
 }
 
 /// `parts` with every `.` dropped and every `..` cancelled against the
@@ -55,11 +54,13 @@ pub(crate) fn normalize<'a>(parts: impl IntoIterator<Item = &'a str>) -> Option<
     Some(out)
 }
 
-/// The components of a card's path with the `.hmd` suffix removed.
+/// The components of a card's path with its card extension removed.
 pub(crate) fn page_parts(path: &str) -> Vec<&str> {
     let mut parts = split(path);
-    if let Some(last) = parts.last_mut() {
-        *last = last.strip_suffix(SUFFIX).unwrap_or(last);
+    if let Some(last) = parts.last_mut()
+        && let Some(suffix) = card_suffix(last)
+    {
+        *last = &last[..last.len() - suffix.len()];
     }
     parts
 }
@@ -69,14 +70,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_suffix_is_replaced_and_a_missing_one_is_added() {
-        assert_eq!(with_hmd_suffix("tokens"), "tokens.hmd");
-        assert_eq!(with_hmd_suffix("v1.2"), "v1.hmd");
-        assert_eq!(with_hmd_suffix("notes.md"), "notes.hmd");
-        assert_eq!(with_hmd_suffix(".notes"), ".notes.hmd");
-        assert_eq!(with_hmd_suffix("notes."), "notes.hmd");
-        assert_eq!(with_hmd_suffix(".."), "...hmd");
-        assert_eq!(with_hmd_suffix("..a.b"), "..a.hmd");
+    fn a_card_extension_is_found_at_the_end_of_a_name() {
+        assert_eq!(card_suffix("tokens.hmd"), Some(".hmd"));
+        assert_eq!(card_suffix("notes.md"), Some(".md"));
+        assert_eq!(card_suffix("notes.markdown"), Some(".markdown"));
+        assert_eq!(card_suffix("v1.2"), None);
+        assert_eq!(card_suffix("image.png"), None);
     }
 
     #[test]
@@ -94,6 +93,7 @@ mod tests {
             ["specs", "auth", "login"]
         );
         assert_eq!(page_parts("v1.2.hmd"), ["v1.2"]);
+        assert_eq!(page_parts("notes/guide.md"), ["notes", "guide"]);
         assert_eq!(parent("specs/auth/login.hmd"), ["specs", "auth"]);
         assert!(parent("login.hmd").is_empty());
     }

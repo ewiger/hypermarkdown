@@ -18,6 +18,31 @@ crates.io. Implementation state is tracked in
 
 Nothing yet.
 
+## [0.2.0] — 2026-11-15
+
+### Added
+
+- **Markdown cards** ([HMD-0029](../../doc/proposals/HMD-0029/README.md)). A
+  `.md` or `.markdown` file below the namespace root loads as a card of kind
+  `Kind::Markdown`: a reference resolves to it, and it has no links, imports or
+  `use` key, since a Markdown card is not scanned. `Page::kind` says which
+  kind a card is.
+- `Vault::shadowed_by` names the card that shadows a card of the same name in
+  the same directory with a later card extension.
+
+### Changed
+
+- **Binding tries `.hmd`, `.md`, `.markdown`**, then the folder note `index`
+  with the same extensions in the same order. A shadowed card is never found
+  by autodiscovery.
+- **A reference that writes a card extension binds only that extension.**
+  `[[owl.md]]` reaches `owl.md` beside `owl.hmd`, where 0.1.0 replaced the
+  extension with `.hmd`; `[[notes.md]]` no longer binds `notes.hmd`.
+- **A name with a dot binds whole.** `[[v1.2]]` binds `v1.2.hmd`, where 0.1.0
+  bound `v1.hmd` by replacing what followed the last dot.
+- `Page` has a public `kind` field, so a `Page` written as a struct literal
+  must name it.
+
 ## [0.1.0] — 2026-11-15
 
 ### Added

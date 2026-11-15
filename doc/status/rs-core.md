@@ -62,6 +62,11 @@ implementation gains a rule the ledger does not name.
 
 ## Done
 
+- **Markdown cards** — `.md` and `.markdown` files load as `Kind::Markdown`
+  cards, bind after `.hmd`, a written extension binds only itself, and a
+  shadowed card is named by `Vault::shadowed_by`; released as 0.2.0
+  [HMD-0029].
+
 - **Published to crates.io** — `hypermarkdown` 0.1.0, so a consumer that is
   itself on crates.io, HQL among them, can depend on it by version
   [`tools/hmd-rs-core/Cargo.toml`].

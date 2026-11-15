@@ -145,12 +145,25 @@ pub struct Link {
     pub column: usize,
 }
 
+/// What a card is written in, which its file extension decides (HMD-0029).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Kind {
+    /// A `.hmd` file: scanned for references, with its reserved frontmatter
+    /// keys read.
+    HyperMarkdown,
+    /// A `.md` or `.markdown` file: a target of references, never scanned, its
+    /// frontmatter not interpreted.
+    Markdown,
+}
+
 /// One card: its path, its references, and its reserved frontmatter keys.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Page {
     /// The card's path relative to the namespace root, with `/` between
     /// components.
     pub path: String,
+    /// What the card is written in.
+    pub kind: Kind,
     /// The card's well-formed references, in the order they appear.
     pub links: Vec<Link>,
     /// What the card's `use` key says about autodiscovery: `Some(true)` for
@@ -166,8 +179,20 @@ impl Page {
     /// Parses the text of the card at `path`.
     ///
     /// `\r\n` and a lone `\r` are read as `\n` first, so lines and columns
-    /// count in text whose only line terminator is `\n`.
+    /// count in text whose only line terminator is `\n`. A path ending in `.md`
+    /// or `.markdown` is a Markdown card: it has no links, no imports and no
+    /// `use` key, whatever its text holds.
     pub fn parse(path: impl Into<String>, text: &str) -> Page {
+        let path = path.into();
+        if matches!(crate::paths::card_suffix(&path), Some(".md" | ".markdown")) {
+            return Page {
+                path,
+                kind: Kind::Markdown,
+                links: Vec::new(),
+                autodiscovery: None,
+                imports: Vec::new(),
+            };
+        }
         let text = text::universal_newlines(text);
         let (raw_yaml, body_start) = frontmatter::split(&text);
         let card = raw_yaml.map(frontmatter::card).unwrap_or_default();
@@ -198,7 +223,8 @@ impl Page {
             .collect();
 
         Page {
-            path: path.into(),
+            path,
+            kind: Kind::HyperMarkdown,
             links,
             autodiscovery: card.autodiscovery,
             imports: card.imports,

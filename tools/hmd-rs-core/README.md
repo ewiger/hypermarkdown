@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd-rs-core/LICENSE)
 
 The [HyperMarkdown](https://github.com/ewiger/hypermarkdown) resolver as a Rust
-library: given a tree of `.hmd` cards, which card a `[[reference]]` names.
+library: given a tree of cards, which card a `[[reference]]` names.
 
 It is a resolver. It finds the references in each card, reads the frontmatter
 keys and the `.hmd/config.toml` settings that steer resolution, and resolves a
@@ -76,7 +76,9 @@ fn open(card: &Path) -> Option<Vault> {
 | The spine | the card's own directory, then each directory above it; the nearest wins |
 | Autodiscovery | a sweep of the namespace for a card whose path ends with the reference; `use: no_autodiscovery` on a card or a folder note, and `[discovery]` in the configuration, turn it off or narrow it |
 | Ambiguity | two sweep matches are `Resolution::Ambiguous`, never a tie-break |
-| Folder notes | a directory's name binds its `index.hmd`; a card of the same name wins |
+| Markdown cards | a `.md` or `.markdown` file is a card a reference can name; it is not scanned, so it holds no references |
+| Card extensions | a name binds `.hmd`, then `.md`, then `.markdown`; `[[owl.md]]` binds only `owl.md`, and a later extension sharing a name is shadowed (`Vault::shadowed_by`) |
+| Folder notes | a directory's name binds its folder note, `index` with a card extension; a card of the same name wins |
 | Nested vaults | a directory below the root that holds its own `.hmd/` is another vault, and none of its cards load |
 | Fragments | a heading (`#Heading`), a block (`#^block`) and the display text after a bar are split off a reference and reported with it |
 | Configuration | `wiki`, `[discovery] autodiscovery` and `[discovery] mode` of `.hmd/config.toml` |

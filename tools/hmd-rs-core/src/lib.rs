@@ -66,5 +66,5 @@ pub use config::{CONFIG_NAME, Config, DEFAULT_WIKI, MARKER_DIR, Mode, find_vault
 pub use error::Error;
 pub use host::{Entry, EntryKind, FsHost, Host, MemoryHost};
 pub use imports::{Binding, Import};
-pub use page::{Fragment, Link, Page, Reference, ReferenceError};
+pub use page::{Fragment, Kind, Link, Page, Reference, ReferenceError};
 pub use vault::{Resolution, Vault, Via};
