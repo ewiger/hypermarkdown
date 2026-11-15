@@ -35,8 +35,8 @@ hands the card to the `hql` binary and writes the answer back in the bytes
 runs in an untrusted workspace. A plain `hql` fence is a listing and never runs
 [[hmd-0026]]. Tested against the real binary and checked by hand in a running
 editor [issue 0110]. Since `0.4.1` the `hql` comes with the extension, from the
-pinned toolchain beside `d2`, on Linux x64 and macOS — `hql` 0.6.0 as of
-`0.4.3`; `hyperMarkdown.hql.path`
+pinned toolchain beside `d2`, on Linux x64 and macOS — `hql` 0.7.0 as of
+`0.5.0`; `hyperMarkdown.hql.path`
 overrides it, and Linux ARM64 and Windows use `hql` on `PATH` [issue 0111].
 
 **Vaults are now discovered from the card.** A window holds a catalog of
@@ -103,6 +103,8 @@ about 300 MB on first run, which is why it is not in the default test command.
   file it names, resolved from the card's folder: a card in the preview, any
   other file in the editor. Web and mail links open outside the editor, and
   every other scheme is refused [issue 0112].
+- **`hql` 0.7.0** — toolchain 0.5.0 carries it. `--vault` names the vault
+  root, and the real-binary tests pass against it.
 - **`hql` 0.6.0** — toolchain 0.4.0 carries it. The cell protocol is
   unchanged, and the real-binary tests pass against it and against 0.5.2.
 - **`hql` 0.5.2** — toolchain 0.3.0 carries it, and the engine reads its

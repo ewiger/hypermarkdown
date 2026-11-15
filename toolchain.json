@@ -1,27 +1,27 @@
 {
   "$comment": "The one pin for every native binary HyperMarkDown runs — d2, and hql where HQL publishes the platform. See doc/issues/0107 and 0111. Bumping d2 or hql happens in the toolchain repository; here only `version` and the digests move, together, in one commit.",
   "repo": "ewiger/hypermarkdown-toolchain",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "archives": {
     "linux-x86_64": {
-      "name": "hypermarkdown-toolchain-0.4.0-linux-x86_64.tar.gz",
-      "sha256": "210347cc2e54eeafc7e14068b45775221f2679ea9f89541d8a35c6e3e5937478"
+      "name": "hypermarkdown-toolchain-0.5.0-linux-x86_64.tar.gz",
+      "sha256": "9f92ad3fc0f3e1aa0a65244d4055b7062e7dfeb04882ebd5a79120e6aebd8f92"
     },
     "linux-arm64": {
-      "name": "hypermarkdown-toolchain-0.4.0-linux-arm64.tar.gz",
-      "sha256": "7d58ec8e451768a71db02911b9a0cc8c6bf0578366d72e8a8408618cd0eceb87"
+      "name": "hypermarkdown-toolchain-0.5.0-linux-arm64.tar.gz",
+      "sha256": "94a871da81e0a98f5986c72eddef14667bae827d1bc2fe245fb8007b4566ce98"
     },
     "macos-x86_64": {
-      "name": "hypermarkdown-toolchain-0.4.0-macos-x86_64.tar.gz",
-      "sha256": "2c6c4e68c442d8912a17334e33560dbf3177debfee451ff9a7213b0e81db8781"
+      "name": "hypermarkdown-toolchain-0.5.0-macos-x86_64.tar.gz",
+      "sha256": "035dd2ee20258307df1cf1cd573a1ad049a309a5f2733e4c027e38d8e8c3bd9e"
     },
     "macos-arm64": {
-      "name": "hypermarkdown-toolchain-0.4.0-macos-arm64.tar.gz",
-      "sha256": "336cee408ad90e3c2a00bf796f88b92613061030bf20d011f3e3210a5eb236b9"
+      "name": "hypermarkdown-toolchain-0.5.0-macos-arm64.tar.gz",
+      "sha256": "91e630c706b4287af12d4a0c4601a37f395d17c453d32f64357e8f70701893a1"
     },
     "windows-x86_64": {
-      "name": "hypermarkdown-toolchain-0.4.0-windows-x86_64.zip",
-      "sha256": "7c8ad5417647b37c80d4afdaaad9b70c96f7cd5737fd608e6f8a35c06f1a5d99"
+      "name": "hypermarkdown-toolchain-0.5.0-windows-x86_64.zip",
+      "sha256": "b4342d1193136b5127453fd3e090f24076e8445d9c5a0a56c62dfd4e38522412"
     }
   }
 }

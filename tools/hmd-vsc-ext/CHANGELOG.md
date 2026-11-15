@@ -21,8 +21,15 @@ against
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-11-15
+
 ### Changed
 
+- **The extension carries `hql` 0.7.0**, where it carried 0.6.0, from
+  toolchain 0.5.0. HQL 0.7 reads a vault's cards from its namespace root and
+  resolves every reference through HyperMarkdown's own resolver, so a cell's
+  `@[[name]]` and the preview's `[[name]]` name the same card. A vault that
+  keeps its cards at its root states `wiki = "."` in `.hmd/config.toml`.
 - **A cell runs in its card's directory.** HQL was started in the vault root,
   so a relative path in a cell, `file("data.csv")`, was read against the
   vault root whatever folder the card was in. It is now started in the
@@ -35,6 +42,7 @@ against
   found no `.hmd/config.toml` and read neither `[hql] project` nor
   `[semantics]`. It now names the directory holding `.hmd/`, which HQL 0.7
   requires.
+- `@hypermarkdown/core` 0.3.0.
 
 ### Added
 

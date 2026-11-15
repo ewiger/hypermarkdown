@@ -260,6 +260,9 @@ describe.skipIf(HQL_BIN === undefined)("against the real hql", () => {
   it("writes one output exactly as hql render does", async () => {
     const vault = join(dir, "vault");
     mkdirSync(join(vault, ".hmd"), { recursive: true });
+    // The cards sit at the vault root, so the vault says so: HQL 0.7 reads
+    // them from the namespace root its `wiki` names.
+    writeFileSync(join(vault, ".hmd", "config.toml"), 'wiki = "."\n');
     writeFileSync(join(vault, "dune.hmd"), "---\ntitle: Dune\nmetadata:\n  category: book\n---\n# Dune\n");
     writeFileSync(join(vault, "emma.hmd"), "---\ntitle: Emma\nmetadata:\n  category: book\n---\n# Emma\n");
     const text =
@@ -286,6 +289,9 @@ describe.skipIf(HQL_BIN === undefined)("against the real hql", () => {
   it("writes a failing cell's error below it", async () => {
     const vault = join(dir, "vault");
     mkdirSync(join(vault, ".hmd"), { recursive: true });
+    // The cards sit at the vault root, so the vault says so: HQL 0.7 reads
+    // them from the namespace root its `wiki` names.
+    writeFileSync(join(vault, ".hmd", "config.toml"), 'wiki = "."\n');
     const text = "```hql#eval id=a\n1 + \"x\"\n```\n";
     const result = await new HqlEngine({ configuredPath: HQL_BIN! }).run(text, vault, 0);
     expect(result.outcomes[0]).toMatchObject({ status: "error" });
