@@ -9,7 +9,7 @@ ADR-style proposal skeleton. Copy to doc/proposals/HMD-NNNN/README.md and
 reserve the ID in doc/proposals/README.md. Fill each section; delete the guidance
 comments and any section that genuinely does not apply. House rules:
   - Do NOT create a sibling tracker. Work is tracked per tool, in doc/status/ —
-    lang.md, hmd.md, ts-core.md, vsc-ext.md, pages.md — and those files are the
+    lang.md, hmd.md, ts-core.md, vsc-ext.md, rs-core.md, pages.md — and those files are the
     only place it is tracked: not doc/memory/, not doc/wiki/, not this record.
     Add rows to whichever tracker owns the code, citing this proposal, and list
     them in the Progress column of doc/proposals/README.md. Each tracker carries
