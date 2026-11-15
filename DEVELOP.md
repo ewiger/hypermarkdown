@@ -33,8 +33,8 @@ Four things version independently, and each has exactly one literal:
 
 The Rust crate under `tools/hmd-rs-core/` declares a version of its own as well,
 in [`Cargo.toml`](tools/hmd-rs-core/Cargo.toml), with
-[its changelog](tools/hmd-rs-core/CHANGELOG.md). It is unreleased and has no
-release line: the crate is not published.
+[its changelog](tools/hmd-rs-core/CHANGELOG.md). It is published to crates.io as
+`hypermarkdown`, by hand: no workflow releases it yet.
 
 The semantic index builder under `tools/hmd-semantics/` declares one too, as
 `__version__` in

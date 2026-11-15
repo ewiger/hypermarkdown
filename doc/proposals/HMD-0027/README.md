@@ -18,7 +18,7 @@ reads a vault through a host trait, so a consumer can supply documents from
 memory. It is held to the canonical Python implementation by the conformance
 corpus, through a runner that compares resolutions exactly and a ledger of
 known differences in which a listed case that passes fails the build. The crate
-is not published to crates.io.
+is `hypermarkdown` on crates.io.
 
 ## Motivation
 
@@ -261,12 +261,12 @@ The crate reads files and parses three formats, on input it does not control.
    and the ledger.
 2. CI gains a job that runs `cargo fmt --check`, `cargo clippy --all-targets --
    -D warnings` and `cargo test --locked` in the crate's directory.
-3. A consumer depends on the crate from this repository, by git or by path.
-4. The crate is not published to crates.io, and its manifest refuses a
-   publish. A crate name on crates.io cannot be changed once published, so the
-   first publish is the repository owner's decision and is not part of this
-   proposal. Until it is taken, a consumer that is itself published to
-   crates.io cannot publish a version that depends on the crate.
+3. The crate is published to crates.io as `hypermarkdown`. The name cannot
+   be changed and a version cannot be reused. The first version is published
+   by hand, since crates.io accepts a trusted publisher only for a crate
+   that exists; later versions SHOULD be published by a workflow through a
+   trusted publisher, with no stored token.
+4. A consumer depends on the crate by version from crates.io.
 
 ## Reference Implementation
 
@@ -331,3 +331,5 @@ cargo test --locked
 ## Changelog
 
 - 2026-11-15: drafted
+- 2026-11-15: the crate is published to crates.io as `hypermarkdown`, on the
+  owner's decision; the deployment steps say so

@@ -248,7 +248,7 @@ same [conformance corpus](examples/conformance/) the canonical tool does.
 A third implementation, of resolution only: a Rust library that says which card
 a `[[reference]]` names, for programs written in Rust. It neither lints nor
 renders, it answers to the same [conformance corpus](examples/conformance/),
-and it is not published to crates.io.
+and it is [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on crates.io.
 
 ### [`hmd-semantics`](tools/hmd-semantics/) — the semantic index builder
 

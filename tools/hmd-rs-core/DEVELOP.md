@@ -87,7 +87,15 @@ tracked in [`doc/status/rs-core.md`](../../doc/status/rs-core.md), against
 
 ## Releasing
 
-There is no release. The crate is not published to crates.io, `Cargo.toml`
-carries `publish = false`, and no workflow publishes it. A crate name on
-crates.io cannot be changed after the first publish, so that publish is the
-owner's decision; the tracker carries it as a blocked row.
+The crate is `hypermarkdown` on crates.io, and `0.1.0` was published by hand
+on 2026-11-15, as a first publish has to be: crates.io accepts a trusted
+publisher only for a crate that exists. No workflow publishes it yet, and a
+version on crates.io cannot be changed or reused. Until a workflow exists, a
+release is the changelog section, the version in `Cargo.toml`, then:
+
+```sh
+cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings
+cargo test --locked
+cargo publish --dry-run --locked    # read what the package holds
+cargo publish --locked
+```

@@ -19,11 +19,11 @@ the bug. One of the tools in the
 [HyperMarkdown monorepo](https://github.com/ewiger/hypermarkdown); the format
 itself is documented at [hypermarkdown.org](https://hypermarkdown.org/).
 
-The crate is not on crates.io. Depend on it from the repository:
+The crate is [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on
+crates.io:
 
-```toml
-[dependencies]
-hypermarkdown = { git = "https://github.com/ewiger/hypermarkdown" }
+```sh
+cargo add hypermarkdown
 ```
 
 ## Use

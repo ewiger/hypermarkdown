@@ -17,15 +17,15 @@ website in [`pages.md`](pages.md).
 
 ## Status
 
-**Written, passing every corpus case, and not published.** The crate loads a
+**Written, passing every corpus case, and published as `hypermarkdown` 0.1.0.** The crate loads a
 vault, finds its references, and resolves them by path, named import, spine,
 imported directory and autodiscovery, with ambiguity and a climb above the root
 as outcomes of their own. All seven corpus cases produce the resolutions the
 canonical implementation wrote, and the list of differing cases in the ledger
 is empty. 96 tests.
 
-It is not on crates.io, and its manifest refuses a publish. A crate name there
-cannot be changed, so the first publish waits for the owner.
+It is on crates.io as `hypermarkdown`, published by hand at 0.1.0. No workflow
+publishes it yet.
 
 Its first consumer is HQL, which is required by its own record to resolve
 references through this crate and keep no resolution code of its own.
@@ -34,7 +34,7 @@ references through this crate and keep no resolution code of its own.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| blocked | **Publish to crates.io.** Remove `publish = false` from the manifest, choose how a release is tagged and titled alongside the other tools, and add a release workflow | Blocked on the owner's decision: a published crate name cannot be changed, and `hypermarkdown` is the name the crate would take. Until then a consumer depends on the crate from this repository, and a consumer that is itself on crates.io cannot publish a version that depends on it | [[hmd-0027#deployment--activation]] |
+| todo | **A release workflow.** `0.1.0` was published by hand. A tag of the crate's own, in the style of the other tools' tags, should run the gates and publish through a trusted publisher on crates.io, so that no token is stored | Nothing blocks it: crates.io accepts a trusted publisher now that the crate exists | [[hmd-0027#deployment--activation]] |
 | backlog | **A comparison suite that asks the canonical implementation.** The corpus pins seven cases. The TypeScript implementation also compares itself with `hmd` over the wiki and two example vaults; this crate was compared with `hmd` by hand, over those trees and over nine thousand generated ones, with every reference, position and outcome equal, and nothing in the repository repeats that | Needs Python in the crate's CI job, which today installs none | [[hmd-0027#conformance]] |
 
 ## Broken
@@ -62,6 +62,9 @@ implementation gains a rule the ledger does not name.
 
 ## Done
 
+- **Published to crates.io** — `hypermarkdown` 0.1.0, so a consumer that is
+  itself on crates.io, HQL among them, can depend on it by version
+  [`tools/hmd-rs-core/Cargo.toml`].
 - **The resolver** — by path, named import, spine, imported directory and
   autodiscovery, with folder notes, ambiguity, and a climb above the root as
   their own outcomes [[hmd-0027#what-the-crate-does]].
@@ -93,9 +96,10 @@ cargo test --locked
 
 | Question | References |
 | --- | --- |
-| Is the crate published to crates.io, and as `hypermarkdown`? The name cannot be changed afterwards | [[hmd-0027#deployment--activation]] |
 | Should opening a vault from its root keep honoring the `wiki` setting? The canonical implementation does, and HQL takes the marker directory as the namespace root. The crate follows the canonical implementation in `Vault::open` and lets a caller root a host anywhere, so either reading is available until the format settles it (issue 0011) | [[hmd-0027#what-the-crate-does]] |
 
 ## Changelog
 
+- 2026-11-15: `0.1.0` published to crates.io as `hypermarkdown`, by hand, on
+  the owner's decision. The manifest no longer refuses a publish.
 - 2026-11-15: created with the crate.

@@ -9,11 +9,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) with
 the usual `0.x` caveat: **the format itself may change between minor versions.**
 
-The crate is not published to crates.io. Implementation state is tracked in
+The crate is [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on
+crates.io. Implementation state is tracked in
 [`doc/status/rs-core.md`](../../doc/status/rs-core.md), against
 [HMD-0027](../../doc/proposals/HMD-0027/README.md).
 
 ## [Unreleased]
+
+Nothing yet.
+
+## [0.1.0] — 2026-11-15
 
 ### Added
 

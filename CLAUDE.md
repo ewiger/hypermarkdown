@@ -12,7 +12,7 @@ Every tool lives in its own directory under `tools/`:
 - `tools/hmd-rs-core/` — `hypermarkdown`, the resolver as a Rust library crate.
   A third implementation, and a narrower one: it resolves, and neither lints
   nor renders. Its own Cargo package with its own `Cargo.lock`, outside both
-  the uv and the npm workspace; not published to crates.io.
+  the uv and the npm workspace; published to crates.io as `hypermarkdown`.
 - `tools/hmd-semantics/` — `hmd-semantics`, the builder of a vault's semantic
   index, as the Python distribution `hypermarkdown-semantics`. Its own project
   with its own `uv.lock`, outside the uv workspace, so that `torch` and
