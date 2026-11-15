@@ -90,6 +90,9 @@ commit: the retired domain does not redirect.
 - **`hmd init`** — writes the project marker with every setting at its default,
   creates the namespace root it names, refuses to overwrite an existing config,
   and warns when an enclosing project would silently win.
+- **The `[hql]` and `[semantics]` tables are left alone** — a configuration
+  holding them loads and lints as one without them, whatever their values, and
+  a test holds that [[hmd-0028#the-hql-table]].
 - **The MkDocs plugin** — cards become pages, folder notes collapse onto their
   directory's URL, links are rewritten, red links render as red links without
   failing the build, embeds expand, and diagrams render through `d2`.
@@ -160,3 +163,5 @@ improvement.
   the tool. Language questions moved to the format's tracker and the site's rows
   to the website's; the corpus runner moved in from the editor line's tracker,
   where it had been filed beside the rows that cannot deliver it.
+- 2026-11-15: a Done row for the `[hql]` and `[semantics]` tables of
+  `.hmd/config.toml`, which this tool does not read and does not reject.
