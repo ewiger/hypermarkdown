@@ -11,9 +11,6 @@ homepage = "https://hypermarkdown.org/"
 keywords = ["hypermarkdown", "hmd", "wikilink", "resolver", "markdown"]
 categories = ["parser-implementations", "text-processing"]
 include = ["src/**", "tests/**", "conformance-xfail.json", "README.md", "CHANGELOG.md", "LICENSE"]
-# Not released to crates.io: a published crate name cannot be changed, so the
-# first publish is the owner's decision. Remove this line when it is taken.
-publish = false
 
 [lib]
 name = "hypermarkdown"
