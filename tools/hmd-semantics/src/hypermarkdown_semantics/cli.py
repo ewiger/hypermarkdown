@@ -17,9 +17,10 @@ from . import vault as vault_reader
 
 def build(args) -> int:
     root = Path(args.vault)
-    documents = vault_reader.load(root)
+    cards = config.namespace_root(root)
+    documents = vault_reader.load(cards)
     if not documents:
-        print(f"{root}: no documents", file=sys.stderr)
+        print(f"{cards}: no documents", file=sys.stderr)
         return 1
     # The vault declares its embedder; flags override it field by field.
     embedder = config.resolve(
@@ -38,7 +39,7 @@ def build(args) -> int:
     rows = [
         (
             document.name,
-            document.path.relative_to(root).as_posix(),
+            document.path.relative_to(cards).as_posix(),
             document.content_hash(),
             vector,
         )
@@ -61,7 +62,10 @@ def verify(args) -> int:
     if index["meta"][0] != store.SCHEMA_VERSION:
         print(f"unknown index schema: {index['meta'][0]}", file=sys.stderr)
         return 1
-    documents = {document.name: document for document in vault_reader.load(root)}
+    documents = {
+        document.name: document
+        for document in vault_reader.load(config.namespace_root(root))
+    }
     indexed = {row[0]: row for row in index["cards"]}
     problems = []
     for name, document in sorted(documents.items()):

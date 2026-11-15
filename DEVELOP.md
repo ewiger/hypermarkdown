@@ -39,8 +39,9 @@ in [`Cargo.toml`](tools/hmd-rs-core/Cargo.toml), with
 The semantic index builder under `tools/hmd-semantics/` declares one too, as
 `__version__` in
 [`src/hypermarkdown_semantics/__init__.py`](tools/hmd-semantics/src/hypermarkdown_semantics/__init__.py),
-with [its changelog](tools/hmd-semantics/CHANGELOG.md). It is unreleased as
-well: the tool is not published to PyPI.
+with [its changelog](tools/hmd-semantics/CHANGELOG.md). A `semantics-vX.Y.Z`
+tag publishes it to PyPI as `hypermarkdown-semantics`, through
+[`release-semantics.yml`](.github/workflows/release-semantics.yml).
 
 A fifth number is pinned rather than declared here:
 [`toolchain.json`](toolchain.json) names the

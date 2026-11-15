@@ -24,6 +24,9 @@ index reads `[semantics] index` from the same file."""
 DEFAULT_INDEX = ".hmd/index.sqlite"
 """Where a vault's index is when `[semantics] index` does not say."""
 
+DEFAULT_WIKI = "doc/wiki"
+"""The cards location when `wiki` does not say, as HyperMarkdown defines it."""
+
 LOCAL = "local"
 HTTP = "http"
 PROVIDERS = (LOCAL, HTTP)
@@ -75,6 +78,20 @@ def read(root: Path) -> Embedder:
     return _from_table(table, path)
 
 
+def namespace_root(root: Path) -> Path:
+    """The directory the vault's cards start in: `wiki` against the vault root.
+
+    A card's path is relative to it, which is what HQL and every HyperMarkdown
+    tool take a card's path to be (HMD-0029, HQL issue 0079).
+    """
+    root = Path(root)
+    path = root / CONFIG_FILE
+    declared = _table(path).get("wiki", DEFAULT_WIKI)
+    if not isinstance(declared, str) or not declared.strip():
+        raise ConfigError(f"{path}: `wiki` must be a non-empty string")
+    return root / declared.strip()
+
+
 def index(root: Path) -> Path:
     """The vault's index: `[semantics] index` against the vault root, or
     `.hmd/index.sqlite` where the vault does not say.
@@ -99,6 +116,12 @@ def index(root: Path) -> Path:
 def _semantics(path: Path) -> dict:
     """The `[semantics]` table of a vault's configuration, empty where the
     file or the table is absent."""
+    section = _table(path).get("semantics")
+    return section if isinstance(section, dict) else {}
+
+
+def _table(path: Path) -> dict:
+    """A vault's whole configuration, empty where the file is absent."""
     try:
         text = path.read_bytes()
     except (FileNotFoundError, NotADirectoryError):
@@ -109,8 +132,7 @@ def _semantics(path: Path) -> dict:
         parsed = tomllib.loads(text.decode("utf-8"))
     except (tomllib.TOMLDecodeError, UnicodeDecodeError) as error:
         raise ConfigError(f"{path}: is not readable TOML: {error}") from error
-    section = parsed.get("semantics")
-    return section if isinstance(section, dict) else {}
+    return parsed
 
 
 def _from_table(table: dict, path: Path) -> Embedder:

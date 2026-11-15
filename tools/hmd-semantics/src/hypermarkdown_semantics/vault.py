@@ -168,13 +168,23 @@ FORMATS = {".hmd": "Hmd", ".md": "Markdown", ".markdown": "Markdown"}
 
 
 def load(root: Path) -> list[Document]:
-    """Every document under a root, named as HQL's loader names them."""
+    """Every card under a namespace root, named as HQL's loader names them.
+
+    A directory below the root that holds its own `.hmd/` is another vault,
+    and none of its cards are this one's.
+    """
+    nested = {
+        marker.parent
+        for marker in root.rglob(".hmd")
+        if marker.is_dir() and marker.parent != root
+    }
     files = sorted(
         path
         for path in root.rglob("*")
         if path.is_file()
         and path.suffix in FORMATS
         and not any(part.startswith(".") for part in path.relative_to(root).parts)
+        and not any(directory in path.parents for directory in nested)
     )
     seen: dict[str, int] = {}
     for path in files:

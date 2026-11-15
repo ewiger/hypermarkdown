@@ -16,7 +16,8 @@ Every tool lives in its own directory under `tools/`:
 - `tools/hmd-semantics/` — `hmd-semantics`, the builder of a vault's semantic
   index, as the Python distribution `hypermarkdown-semantics`. Its own project
   with its own `uv.lock`, outside the uv workspace, so that `torch` and
-  `transformers` stay out of the root lock; not published to PyPI.
+  `transformers` stay out of the root lock; published to PyPI on a
+  `semantics-vX.Y.Z` tag.
 
 `examples/` stays at the root, and the conformance corpus lives inside it at
 `examples/conformance/cases/`: fixture trees belong to every implementation,

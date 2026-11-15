@@ -15,14 +15,19 @@ The first reader is the `hmd` package of [HQL](https://github.com/ewiger/hql),
 whose `semantic` ranks a vault's cards from this file.
 
 One of the tools in the
-[HyperMarkdown monorepo](https://github.com/ewiger/hypermarkdown). It is not on
-PyPI; install it from the repository.
+[HyperMarkdown monorepo](https://github.com/ewiger/hypermarkdown).
 
 ## Install
 
 ```sh
-pip install "hypermarkdown-semantics @ git+https://github.com/ewiger/hypermarkdown#subdirectory=tools/hmd-semantics"
+uv tool install hypermarkdown-semantics      # or: pip install hypermarkdown-semantics
+uv tool install "hypermarkdown-semantics[local]"   # with the in-process model
 ```
+
+`--vault` names the vault root, the directory holding `.hmd/`. The cards are
+read from the namespace root its `wiki` setting names (default `doc/wiki`), a
+card's path is relative to it, and a `.md` or `.markdown` file there is a card
+as much as a `.hmd` file.
 
 That installs the `hmd-semantics` command and no dependency: reading a vault,
 writing the index and calling an embedder over HTTP use the standard library.

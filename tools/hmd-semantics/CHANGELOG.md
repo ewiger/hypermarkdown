@@ -9,11 +9,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) with
 the usual `0.x` caveat: **the index schema may change between minor versions.**
 
-The tool is not published to PyPI. Implementation state is tracked in
+The tool is [`hypermarkdown-semantics`](https://pypi.org/project/hypermarkdown-semantics/)
+on PyPI, tagged `semantics-vX.Y.Z`. Implementation state is tracked in
 [`doc/status/semantics.md`](../../doc/status/semantics.md), against
 [HMD-0028](../../doc/proposals/HMD-0028/README.md).
 
 ## [Unreleased]
+
+## [0.1.0] — 2026-11-15
+
+The first release on PyPI.
+
+### Changed
+
+- **Cards come from the namespace root.** `--vault` names the vault root, the
+  directory holding `.hmd/`; the cards are read from the directory its `wiki`
+  setting names, `doc/wiki` by default, and a card's path in the index is
+  relative to it. A vault whose cards sit directly under the vault root sets
+  `wiki = "."`. This is HQL's rule from 0.7 on (its issue 0079), and the two
+  must agree, since the index hashes the text HQL hashes.
+- **A nested vault's cards are left out.** A directory below the namespace root
+  that holds its own `.hmd/` is another vault.
 
 ### Added
 

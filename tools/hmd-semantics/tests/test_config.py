@@ -183,3 +183,26 @@ def test_a_flag_can_switch_a_declared_remote_vault_to_local(tmp_path):
     declared = config.read(vault(tmp_path, REMOTE))
     resolved = config.resolve(declared, provider="local")
     assert not resolved.remote
+
+
+def test_the_cards_start_where_wiki_says(tmp_path):
+    (tmp_path / ".hmd").mkdir()
+    assert config.namespace_root(tmp_path) == tmp_path / "doc" / "wiki"
+    (tmp_path / ".hmd" / "config.toml").write_text('wiki = "."\n', encoding="utf-8")
+    assert config.namespace_root(tmp_path) == tmp_path / "."
+
+
+def test_a_nested_vault_and_files_outside_the_namespace_are_not_cards(tmp_path):
+    from hypermarkdown_semantics import vault
+
+    (tmp_path / ".hmd").mkdir()
+    (tmp_path / ".hmd" / "config.toml").write_text('wiki = "doc/wiki"\n', encoding="utf-8")
+    (tmp_path / "README.md").write_text("# Readme\n", encoding="utf-8")
+    wiki = tmp_path / "doc" / "wiki"
+    (wiki / "inner" / ".hmd").mkdir(parents=True)
+    (wiki / "owl.hmd").write_text("# Owl\n", encoding="utf-8")
+    (wiki / "notes.md").write_text("# Notes\n", encoding="utf-8")
+    (wiki / "inner" / "heron.hmd").write_text("# Heron\n", encoding="utf-8")
+
+    names = sorted(d.name for d in vault.load(config.namespace_root(tmp_path)))
+    assert names == ["notes", "owl"]

@@ -262,8 +262,9 @@ and it is [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on crates.io
 A Python command that embeds the text of each card of a vault and writes the
 vectors to an SQLite index in the vault's `.hmd/`, where a reader such as
 [HQL](https://hql-lang.org/) ranks cards against a query without running a
-model. It also verifies an index against its vault. It is not published to
-PyPI.
+model. It also verifies an index against its vault. It is
+[`hypermarkdown-semantics`](https://pypi.org/project/hypermarkdown-semantics/)
+on PyPI: `uv tool install hypermarkdown-semantics`.
 
 ### [VS Code extension](tools/hmd-vsc-ext/) — an editor for `.hmd` with real-time preview
 

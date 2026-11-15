@@ -1,2 +1,4 @@
+wiki = "."
+
 [semantics]
 index = ".hmd/index.sqlite"
