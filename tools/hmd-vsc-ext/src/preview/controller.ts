@@ -13,7 +13,7 @@
 
 import * as vscode from "vscode";
 
-import { IR_VERSION, SUFFIX } from "@hypermarkdown/core";
+import { IR_VERSION, SUFFIX, cardSuffix } from "@hypermarkdown/core";
 
 import { sameCard, type CardRef, type VaultCatalog } from "../catalog.js";
 import { createCard } from "../commands/createCard.js";
@@ -139,7 +139,7 @@ export class PreviewController implements vscode.Disposable {
    * checked here the way an inbound message would be.
    */
   async restore(vaultKey: string, rel: string): Promise<void> {
-    if (!isSafeRelativePath(rel) || !rel.endsWith(SUFFIX)) return;
+    if (!isSafeRelativePath(rel) || cardSuffix(rel) === null) return;
 
     const indexed = this.catalog.vaultAt(vaultKey);
     if (indexed !== undefined) {
@@ -293,7 +293,7 @@ export class PreviewController implements vscode.Disposable {
     // The renderer only sends paths the core produced, so this can only fire on
     // a defect — which is exactly when a file-read primitive would be worth
     // having (§4).
-    if (!isSafeRelativePath(path) || !path.endsWith(SUFFIX)) return;
+    if (!isSafeRelativePath(path) || cardSuffix(path) === null) return;
     const uri = source.vault.uriFor(path);
 
     // Move this preview itself rather than waiting for the active editor to

@@ -30,6 +30,19 @@ against
   HQL finds the card's HQL project by searching upward from the card for
   `.hql/config.toml`. A card that reads a file by a path relative to the
   vault root needs that path rewritten relative to the card.
+- **HQL is given the vault root.** `--vault` named the namespace root (the
+  `wiki` directory), so in a vault whose cards start below the vault root HQL
+  found no `.hmd/config.toml` and read neither `[hql] project` nor
+  `[semantics]`. It now names the directory holding `.hmd/`, which HQL 0.7
+  requires.
+
+### Added
+
+- **Markdown cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/README.md)).
+  `.md` and `.markdown` files in a vault are cards: a `[[link]]` to one
+  resolves, opens the file, and shows it in the preview, and the vault
+  watches them. The preview does not follow an ordinary Markdown file opened
+  in the editor, so VS Code's own Markdown preview still serves those.
 
 ## [0.4.4] — 2026-11-13
 

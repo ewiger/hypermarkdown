@@ -9,7 +9,7 @@
 
 import * as vscode from "vscode";
 
-import { SUFFIX } from "@hypermarkdown/core";
+import { stripSuffix } from "@hypermarkdown/core";
 
 import type { VaultCatalog } from "../catalog.js";
 import { PreviewController } from "./controller.js";
@@ -175,5 +175,5 @@ function webviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
 
 function basename(rel: string): string {
   const name = rel.slice(rel.lastIndexOf("/") + 1);
-  return name.endsWith(SUFFIX) ? name.slice(0, -SUFFIX.length) : name;
+  return stripSuffix(name);
 }

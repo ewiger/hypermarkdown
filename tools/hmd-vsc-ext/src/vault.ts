@@ -12,8 +12,8 @@ import * as vscode from "vscode";
 
 import {
   Renderer,
-  SUFFIX,
   Workspace,
+  cardSuffix,
   buildGraph,
   check,
   parse,
@@ -84,7 +84,7 @@ export class Vault implements vscode.Disposable {
     if (target === base) return "";
     if (!target.startsWith(`${base}/`)) return null;
     const rel = decodeURIComponent(target.slice(base.length + 1));
-    if (!rel.endsWith(SUFFIX)) return null;
+    if (cardSuffix(rel) === null) return null;
     return this.workspace?.inNestedVault(rel) ? null : rel;
   }
 
@@ -146,7 +146,8 @@ export class Vault implements vscode.Disposable {
 
   private watch(): void {
     const watcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(this.root, `**/*${SUFFIX}`),
+      // Every card extension (HMD-0029): a Markdown card is a link target.
+      new vscode.RelativePattern(this.root, "**/*.{hmd,md,markdown}"),
     );
     this.disposables.push(watcher);
 

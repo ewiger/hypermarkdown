@@ -93,7 +93,7 @@ export class CellRunner implements vscode.Disposable {
 
       const result = await vscode.window.withProgress(
         { location: vscode.ProgressLocation.Window, title: `HQL: running ${label}` },
-        () => this.engine.run(text, card.vault.root.fsPath, index, dirname(uri.fsPath)),
+        () => this.engine.run(text, card.vault.projectRoot.fsPath, index, dirname(uri.fsPath)),
       );
 
       if (document.version !== version) {

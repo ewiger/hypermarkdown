@@ -7,7 +7,7 @@
  * never decides which ones it is entitled to.
  */
 
-import { SUFFIX, type Graph } from "@hypermarkdown/core";
+import { stripSuffix, type Graph } from "@hypermarkdown/core";
 
 import type { GraphPayload, GraphView, GraphViewEdge, GraphViewNode } from "../protocol.js";
 
@@ -154,5 +154,5 @@ function nearest(
 
 function labelFor(path: string): string {
   const name = path.slice(path.lastIndexOf("/") + 1);
-  return name.endsWith(SUFFIX) ? name.slice(0, -SUFFIX.length) : name;
+  return stripSuffix(name);
 }

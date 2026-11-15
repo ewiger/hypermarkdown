@@ -8,7 +8,7 @@
 
 import * as vscode from "vscode";
 
-import { SUFFIX, dirnameRel, joinRel, split, withHmdSuffix } from "@hypermarkdown/core";
+import { cardSuffix, dirnameRel, joinRel, split, withHmdSuffix } from "@hypermarkdown/core";
 
 import type { CardRef, VaultCatalog } from "../catalog.js";
 import { isSafeRelativePath } from "../protocol.js";
@@ -56,7 +56,7 @@ export async function createCard(
   }
 
   const rel = suggestedPath(source.rel, target);
-  if (rel === null || !isSafeRelativePath(rel) || !rel.endsWith(SUFFIX)) {
+  if (rel === null || !isSafeRelativePath(rel) || cardSuffix(rel) === null) {
     void vscode.window.showWarningMessage(
       `HyperMarkDown: cannot derive a path for ${target}.`,
     );
