@@ -1,0 +1,108 @@
+{
+  "$comment": "Known differences from the canonical implementation. `cases` are conformance cases whose resolutions this crate gets wrong; `rules` are lint rules it does not emit. This crate is a resolver, not a linter: it emits no diagnostic at all, so every rule is listed, each with what the crate does in the situation the rule reports. The runner in tests/corpus.rs fails when a ledgered case passes, when the ledger names a case the corpus does not have, and when the canonical implementation defines a rule that is not listed here, because a ledger that is not kept true stops being read.",
+  "cases": [],
+  "rules": [
+    {
+      "id": "HMD001",
+      "reason": "A reference that resolves to no card. The outcome is `Resolution::Unresolved`; the warning is the caller's to report.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD002",
+      "reason": "A bare reference that autodiscovery matches to more than one card. The outcome is `Resolution::Ambiguous` with its candidates; the error is the caller's to report.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD003",
+      "reason": "A reference or an import that climbs above the namespace root. For a reference the outcome is `Resolution::Escapes`; an import that climbs out contributes nothing and is not reported.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD004",
+      "reason": "A heading fragment the resolved card does not have. Headings and their slugs are not read, so a fragment is parsed and never checked.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD005",
+      "reason": "A block fragment the resolved card does not have. Block anchors are not read, so a fragment is parsed and never checked.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD006",
+      "reason": "A block identifier used twice in one card. Block anchors are not read.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD007",
+      "reason": "An embed cycle. Embeds are found and resolved, never expanded.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD008",
+      "reason": "An embed chain deeper than the bound. Embeds are found and resolved, never expanded.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD009",
+      "reason": "Frontmatter that is not valid YAML or not a mapping. Such frontmatter contributes nothing to resolution and is not reported.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD010",
+      "reason": "A malformed or unterminated reference. A malformed reference is left out of a card's links; `Reference::parse` says why when a caller asks.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD011",
+      "reason": "Two headings in one card sharing a slug. Headings are not read.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD012",
+      "reason": "A card beside a folder note of the same name. The card wins, as in the canonical implementation; the collision is not reported.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD013",
+      "reason": "A malformed reserved frontmatter key. A malformed `use` entry is skipped; `tags` and `nav` are not read at all.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD014",
+      "reason": "A malformed import statement. The statement is skipped and not reported.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD015",
+      "reason": "An import of a directory or a card that does not exist, or a local name bound twice. The import binds nothing, or the first binding stands, and neither is reported.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD016",
+      "reason": "A reference that more than one imported directory holds. The earlier import wins, as in the canonical implementation; the later ones are not reported.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    },
+    {
+      "id": "HMD017",
+      "reason": "A published card that links to an unpublished one. The publication model is not read: `nav` is ignored and no card is public or private here.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do"
+    }
+  ]
+}

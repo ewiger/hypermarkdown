@@ -278,19 +278,20 @@ def test_the_site_names_its_repository(built_home):
 
 # -- two licenses --------------------------------------------------------
 #
-# The code is MIT; everything under `doc/` is CC BY 4.0. Five files carry that
-# claim and all five have to agree — the shape that rots the first time one of
+# The code is MIT; everything under `doc/` is CC BY 4.0. Six files carry that
+# claim and all six have to agree — the shape that rots the first time one of
 # them is edited alone.
 
 #: The MIT files: the root, plus one byte-identical copy per distributable
 #: tool. Each of those copies ships *inside* an artifact — the wheel and sdist,
-#: the npm tarball's `files`, the VSIX — where nothing else from this
-#: repository is present.
+#: the npm tarball's `files`, the VSIX, the crate's `include` — where nothing
+#: else from this repository is present.
 MIT_LICENSES = (
     "LICENSE",
     "tools/hmd/LICENSE",
     "tools/hmd-ts-core/LICENSE",
     "tools/hmd-vsc-ext/LICENSE",
+    "tools/hmd-rs-core/LICENSE",
 )
 
 CONTRIBUTORS_URL = (
@@ -323,7 +324,7 @@ COPYRIGHT_CLAIM = re.compile(
 
 
 def test_every_license_names_the_contributors():
-    """One holder, named once, in all five license files.
+    """One holder, named once, in all six license files.
 
     A personal name in a copyright line gets less true with every merged pull
     request, and the alternative to fixing that early is renegotiating it file
@@ -345,7 +346,7 @@ def test_every_license_names_the_contributors():
             f" why the line may not be split:\n  " + "\n  ".join(offenders)
         )
 
-    # The four MIT files are copies, not variations. A tool whose license has
+    # The five MIT files are copies, not variations. A tool whose license has
     # drifted is a tool shipping different terms than the repository claims.
     digests = {(ROOT / rel).read_bytes() for rel in MIT_LICENSES}
     assert len(digests) == 1, (
@@ -392,8 +393,8 @@ def test_the_footer_states_both_licenses(built_site: Path):
     the page they are quoting from.
 
     Terms alone are not attribution, so the footer also carries the notice: the
-    same holder and year as the five license files, linking the same
-    `CONTRIBUTORS.md`. That makes the footer a sixth place stating the claim,
+    same holder and year as the six license files, linking the same
+    `CONTRIBUTORS.md`. That makes the footer a seventh place stating the claim,
     which is why the year is asserted here rather than left to a template.
 
     Asserted on the built markup, and on a deep page as well as the cover, for
