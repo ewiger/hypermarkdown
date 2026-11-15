@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# The folder is `tools/hmd-semantics`; the distribution is
+# `hypermarkdown-semantics`, the import package `hypermarkdown_semantics`, and
+# the command `hmd-semantics`.
+#
+# This project is deliberately NOT a member of the uv workspace at the
+# repository root. uv locks every extra of every member, so membership would
+# write `torch` and `transformers` and everything they pull in into the root
+# `uv.lock`, which the canonical tool's CI installs from. The tool keeps its
+# own `uv.lock` beside this file instead; run uv from this directory.
+name = "hypermarkdown-semantics"
+# One source of truth: `src/hypermarkdown_semantics/__init__.py`. The index's
+# `tool_version` is written from the same literal.
+dynamic = ["version"]
+description = "Builds, verifies and inspects the semantic index of a HyperMarkdown vault."
+# This tool's own files, checked in beside this one. The README is read on
+# PyPI, so its links are absolute.
+readme = "README.md"
+# 3.11 for `tomllib` in the standard library.
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Yauhen Yakimovich" }]
+keywords = [
+    "markdown",
+    "wiki",
+    "knowledge-base",
+    "embeddings",
+    "semantic-search",
+    "sqlite",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Documentation",
+    "Topic :: Text Processing :: Indexing",
+]
+# None, on purpose. Reading a vault, writing the index and reaching an `http`
+# embedder all use the standard library, so installing the tool and running
+# its tests needs no model and no model framework.
+dependencies = []
+
+[project.optional-dependencies]
+# The `local` provider only: a checkpoint loaded into this process. Each range
+# is capped at the next major, as every range in this repository is.
+local = [
+    "torch>=2,<3",
+    "transformers>=4.41,<6",
+]
+
+[project.urls]
+Homepage = "https://hypermarkdown.org/"
+Documentation = "https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd-semantics/README.md"
+Repository = "https://github.com/ewiger/hypermarkdown"
+Changelog = "https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd-semantics/CHANGELOG.md"
+Issues = "https://github.com/ewiger/hypermarkdown/issues"
+
+[project.scripts]
+hmd-semantics = "hypermarkdown_semantics.cli:main"
+
+# A dependency group rather than an extra, so a bare `uv sync` in this
+# directory installs what the tests need and nothing the `local` provider
+# needs.
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+
+[tool.setuptools.dynamic]
+version = { attr = "hypermarkdown_semantics.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

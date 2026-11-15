@@ -278,8 +278,8 @@ def test_the_site_names_its_repository(built_home):
 
 # -- two licenses --------------------------------------------------------
 #
-# The code is MIT; everything under `doc/` is CC BY 4.0. Six files carry that
-# claim and all six have to agree — the shape that rots the first time one of
+# The code is MIT; everything under `doc/` is CC BY 4.0. Seven files carry that
+# claim and all seven have to agree — the shape that rots the first time one of
 # them is edited alone.
 
 #: The MIT files: the root, plus one byte-identical copy per distributable
@@ -292,6 +292,7 @@ MIT_LICENSES = (
     "tools/hmd-ts-core/LICENSE",
     "tools/hmd-vsc-ext/LICENSE",
     "tools/hmd-rs-core/LICENSE",
+    "tools/hmd-semantics/LICENSE",
 )
 
 CONTRIBUTORS_URL = (
@@ -324,7 +325,7 @@ COPYRIGHT_CLAIM = re.compile(
 
 
 def test_every_license_names_the_contributors():
-    """One holder, named once, in all six license files.
+    """One holder, named once, in all seven license files.
 
     A personal name in a copyright line gets less true with every merged pull
     request, and the alternative to fixing that early is renegotiating it file
@@ -346,7 +347,7 @@ def test_every_license_names_the_contributors():
             f" why the line may not be split:\n  " + "\n  ".join(offenders)
         )
 
-    # The five MIT files are copies, not variations. A tool whose license has
+    # The six MIT files are copies, not variations. A tool whose license has
     # drifted is a tool shipping different terms than the repository claims.
     digests = {(ROOT / rel).read_bytes() for rel in MIT_LICENSES}
     assert len(digests) == 1, (
@@ -354,7 +355,7 @@ def test_every_license_names_the_contributors():
         f" the root LICENSE, one per tool: {', '.join(MIT_LICENSES)}"
     )
 
-    # The URL those five files point at has to resolve to something.
+    # The URL those six files point at has to resolve to something.
     assert (ROOT / "CONTRIBUTORS.md").is_file(), (
         f"every license file links {CONTRIBUTORS_URL}, and CONTRIBUTORS.md is"
         " not there — the link is dead in three published artifacts"
