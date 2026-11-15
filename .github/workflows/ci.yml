@@ -196,6 +196,50 @@ jobs:
       - name: Check the minimum supported Rust version
         run: cargo +1.95 check --locked --all-targets
 
+  # The semantic index builder (HMD-0028). It is its own Python project with
+  # its own `uv.lock`, outside the uv workspace at the root: a workspace lock
+  # records every extra of every member, and this tool's `local` extra is
+  # `torch` and `transformers`. A bare sync installs the tool and `pytest` and
+  # leaves the extra out, so the job downloads no model framework. The tests
+  # need no model and no network.
+  semantics:
+    name: semantics (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.14"]
+    defaults:
+      run:
+        working-directory: tools/hmd-semantics
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Pinned exactly, for the reason spelled out in the `test` job above:
+      # there is no floating `v9` tag to fall back on.
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: tools/hmd-semantics/uv.lock
+
+      # `--locked` for the reason the `test` job gives: the committed lockfile
+      # is the set of versions someone approved.
+      - name: Install
+        run: uv sync --locked
+
+      - name: Test
+        run: uv run python -m pytest
+
+      # The entry point, which the tests do not go through: they call
+      # `cli.main` directly.
+      - name: Run the command
+        run: |
+          uv run hmd-semantics verify --vault tests/fixtures/birds
+          uv run hmd-semantics inspect --index tests/fixtures/birds/.hmd/index.sqlite
+
   # The same build `release.yml` runs, minus the upload. Packaging breaks in
   # ways the test matrix cannot see — an editable install resolves through
   # `src/` and never exercises the entry points — and PyPI will not let a
