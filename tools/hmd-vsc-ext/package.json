@@ -2,7 +2,7 @@
   "name": "hmd",
   "displayName": "HyperMarkDown",
   "description": "An editor for HyperMarkDown (.hmd) knowledge bases: real-time preview, embeds, a graph of the vault, HQL cells, and diagnostics.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "license": "MIT",
   "icon": "media/logo.png",
   "publisher": "hypermarkdown",

@@ -21,6 +21,15 @@ against
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-11-16
+
+### Changed
+
+- **The extension carries `hql` 0.7.1**, where it carried 0.7.0, from
+  toolchain 0.5.1. `import m` binds the module's name only: a cell that
+  called a non-prelude module's function bare after `import m` writes
+  `m.f(…)` or `from m import f`. The cell protocol is unchanged.
+
 ## [0.5.0] — 2026-11-15
 
 ### Changed
@@ -325,7 +334,9 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.4...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.1...HEAD
+[0.5.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.0...vsc-ext-v0.5.1
+[0.5.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.4...vsc-ext-v0.5.0
 [0.4.4]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.3...vsc-ext-v0.4.4
 [0.4.3]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.2...vsc-ext-v0.4.3
 [0.4.2]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.1...vsc-ext-v0.4.2
