@@ -36,9 +36,9 @@ likely fail many of CommonMark's examples. Once the baseline is declared,
 either the canonical renderer moves to a CommonMark-compliant one, or the
 specification says that for 0.1 only scanning has to agree with CommonMark.
 
-**Why it matters.** The specification now says that where it and CommonMark
-disagree about inherited syntax, CommonMark is right. The project's own site
-then disagrees with the baseline on ordinary input.
+**Why it matters.** The specification now names CommonMark 0.31.2 as the
+baseline for every piece of inherited syntax it does not restate. The project's
+own site then disagrees with the baseline on ordinary input.
 
 ## The heading anchor's embed
 

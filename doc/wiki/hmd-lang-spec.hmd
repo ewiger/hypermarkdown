@@ -148,9 +148,9 @@ and **MAY** are to be interpreted as described in RFC 2119.
 - **CommonMark compatibility.** Every document CommonMark 0.31.2 accepts is
   syntactically valid HyperMarkDown. CommonMark constructs keep their CommonMark
   meaning, except where their bytes form a HyperMarkDown construct. Where this
-  document and CommonMark 0.31.2 disagree about inherited syntax, CommonMark is
-  right; the inherited syntax is specified at
-  <https://spec.commonmark.org/0.31.2/> and is not restated here.
+  document and CommonMark 0.31.2 disagree about inherited syntax, this document
+  is right; whatever inherited syntax it does not restate is specified at
+  <https://spec.commonmark.org/0.31.2/>.
 - **What must agree with CommonMark in 0.1.** An implementation MUST find the
   constructs where a CommonMark reading of the document puts them, within the
   [known divergence](#lexical-model). How it renders the inherited Markdown is

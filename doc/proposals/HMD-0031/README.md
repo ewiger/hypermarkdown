@@ -74,7 +74,7 @@ this record, and every finding below is read against them.
 
 | Topic | Resolution |
 | --- | --- |
-| Baseline | CommonMark 0.31.2, named by version; where the two disagree about inherited syntax, CommonMark is right |
+| Baseline | CommonMark 0.31.2, named by version; where the two disagree about inherited syntax, the specification is right |
 | Extras | Tables, task lists, strikethrough, subscript, footnotes, callouts, maths, attribute lists, Markdown inside HTML, and drawn diagrams are listed one by one and marked non-normative |
 | Cells | `hql#eval`, `hql#query`, `d2#show`, and `mermaid#show` are the cell kinds, matched exactly; a plain `hql`, `d2`, or `mermaid` fence is a listing; a cell body is masked |
 | Card types | `.hmd`, `.md`, `.markdown`, in that priority; a Markdown card is addressed and embedded, never scanned or checked |
