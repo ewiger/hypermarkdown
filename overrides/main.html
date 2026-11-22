@@ -1,0 +1,40 @@
+{#-
+  Every page. Adds what a site needs to show a shared link as a card: Open
+  Graph tags (LinkedIn, Facebook, Slack, Discord, Mastodon) and their Twitter
+  counterparts (X). The image is the one card of the site,
+  `assets/social-card.png`, drawn from `scripts/social-card/card.html` by
+  `scripts/social-card.mjs`. A page's own `description` front matter, when it
+  has one, takes the place of the site's description.
+
+  This file extends the theme's `base.html` and fills one block the theme
+  leaves empty for the purpose, so it forks nothing.
+-#}
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {%- if page.is_homepage -%}
+    {%- set og_title = config.site_name ~ " · An AI-ready document language for humans and machines" -%}
+  {%- elif page.title -%}
+    {%- set og_title = page.title | striptags ~ " · " ~ config.site_name -%}
+  {%- else -%}
+    {%- set og_title = config.site_name -%}
+  {%- endif -%}
+  {%- set og_description = (page.meta.description if page.meta and page.meta.description else config.site_description) -%}
+  {%- set og_image = config.site_url ~ "assets/social-card.png" -%}
+  <meta property="og:type" content="{{ 'website' if page.is_homepage else 'article' }}">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:title" content="{{ og_title }}">
+  <meta property="og:description" content="{{ og_description }}">
+  {%- if page.canonical_url %}
+  <meta property="og:url" content="{{ page.canonical_url }}">
+  {%- endif %}
+  <meta property="og:image" content="{{ og_image }}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="HyperMarkDown: an AI-ready document language for humans and machines. hypermarkdown.org">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ og_title }}">
+  <meta name="twitter:description" content="{{ og_description }}">
+  <meta name="twitter:image" content="{{ og_image }}">
+{% endblock %}

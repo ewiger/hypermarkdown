@@ -1,5 +1,9 @@
 ---
 template: home.html
+description: >-
+  An AI-ready document language for humans and machines. Markdown with wiki
+  links, structured metadata, rich visuals, semantic relationships, and
+  executable HQL cells.
 hide:
   - navigation
   - toc

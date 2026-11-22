@@ -395,6 +395,20 @@ def test_the_live_editor_stays_under_its_budget():
     assert bundle.stat().st_size <= int(match.group(1)) * 1024
 
 
+def test_a_shared_link_has_a_card(built_site, built_home):
+    """A link pasted into a chat or a feed is shown as a card only if the page
+    says what to show: a title, a description, and an image at an absolute
+    URL. Every page says so, and the image is a file the site publishes."""
+    spec = (built_site / "wiki" / "hmd-lang-spec" / "index.html").read_text(encoding="utf-8")
+    for page in (built_home, spec):
+        assert '<meta property="og:title"' in page
+        assert '<meta name="twitter:card" content="summary_large_image">' in page
+        image = re.search(r'<meta property="og:image" content="([^"]+)">', page)
+        assert image is not None
+        assert image.group(1) == "https://hypermarkdown.org/assets/social-card.png"
+    assert (built_site / "assets" / "social-card.png").is_file()
+
+
 def test_the_site_names_its_repository(built_home):
     assert "ewiger/hypermarkdown" in built_home
     # `extra.generator: false` leaves the project's own license line alone in
