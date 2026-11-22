@@ -58,6 +58,20 @@ jobs:
       - name: Check d2
         run: d2 --version
 
+      # The cover's live editor is the TypeScript implementation, bundled. It
+      # is build output, so it is built here, from the lockfile, and never
+      # committed. A site built without it still works: the editor's tab says
+      # it could not be loaded and the recorded tabs are untouched.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Build the cover's live editor
+        run: |
+          npm ci
+          node scripts/build-site-demo.mjs
+
       # The same gate `ci.yml` gets. Nothing is published that does not build
       # clean, so `--strict` stays on here rather than being relaxed for the
       # sake of shipping something.

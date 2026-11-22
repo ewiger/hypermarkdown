@@ -127,6 +127,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The cover's live editor is this implementation bundled for a browser.
+      # Building it here keeps it building, and keeps it under its size budget.
+      - name: Build the cover's live editor
+        run: node scripts/build-site-demo.mjs
+
       # Runs the shared corpus and the parity check that shells out to
       # `hmd lint`. A drift between the two implementations fails here.
       #

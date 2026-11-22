@@ -220,6 +220,11 @@ extra_javascript:
   # the markup is built at load time instead. Local, so not a network
   # dependency; the tab is a plain link without it.
   - wiki/assets/hql.js
+  # The cover's live editor: adds a tab to the hero's window and fetches the
+  # implementation only when a visitor opens it. The bundle it fetches is built
+  # by `scripts/build-site-demo.mjs` and is not committed; without it the tab
+  # says so and the recorded tabs are untouched.
+  - wiki/assets/hmd-demo.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 # Cards link out to the repository — proposals, styles, source — with ordinary

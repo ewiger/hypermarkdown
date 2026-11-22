@@ -42,8 +42,10 @@ five tabs that each show a card's source beside what it produces. The bands
 that tell the language are in as well: three layers, links, embeds, metadata,
 and visuals, each with a diagram drawn in the page. So are the bands for cards
 as notebooks, search by meaning, the tools, a comparison with other formats,
-and the pages to read next, and the old prose is gone from the cover. What is
-left is a live editor in the hero and a link-preview card.
+and the pages to read next, and the old prose is gone from the cover. The hero's
+window also has a live editor: a sixth tab, added by a script, where a visitor
+types into a card of the example vault and the page renders and checks it.
+What is left is a link-preview card.
 
 **What remains open** is one decision deliberately not being taken — which
 successor to follow when the site generator's 2.0 arrives without a plugin
@@ -54,7 +56,6 @@ revisiting is that maths loads from a CDN at view time.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| doing | **A live card editor on the cover**, running the TypeScript implementation in the browser: type in a card, watch links, embeds, and diagnostics change | The static source-and-result pairs stay as the page without a script | [`ts-core.md`](ts-core.md) |
 | todo | **A link-preview card**, with Open Graph and Twitter tags on every page | — | — |
 | todo | **The roadmap's version table is behind the registries** | Found while rebuilding the cover; the roadmap is the one page that states versions, so it is the one page that has to be right | — |
 | backlog | **Self-host the maths typesetter**, so the site has no runtime dependency on anything it does not ship | Today it loads from a CDN, which is the site's only network dependency at view time. Not argued yet | — |
@@ -75,10 +76,19 @@ revisiting is that maths loads from a CDN at view time.
 | A diagram fence without the `d2` binary degrades to a labelled placeholder and the build stays green | Deliberate: a missing binary must not fail a build. The cost is that an environment without it ships placeholders silently | [[hmd-0022#2-what-the-consumer-does]] |
 | Directory-style URLs are required, and turning them off is a hard error | A card and its folder note share one URL, so this is a requirement rather than a preference | [[hmd-0002#1-output-urls]] |
 | Only one of the theme's own templates is shadowed, the footer's | A shadowed template pins the site to the theme's internal structure, which is exactly what the version pin already has to be careful about. The cover's template extends the theme's page rather than replacing a part of it, and changes one block; the HQL tab's script builds its per-letter markup from the link the theme emitted, so the tab is still a working link without it | — |
+| The cover's live editor is missing from a site built without `npm ci` and the bundle step | The bundle is build output and is not committed. The tab then says the editor could not be loaded; the deploy workflow builds it, so the published site has it | — |
 | A drawn diagram keeps a white ground in the dark scheme | `d2` draws dark ink into an image, and an image cannot be restyled from the page. The cover draws its own diagrams in HTML and CSS for this reason; diagrams in chapters and cards are unchanged | — |
 
 ## Done
 
+- **A live editor on the cover** — a "Try it" tab in the hero's window: one
+  card of the example vault in a text box, rendered and linted in the page as
+  it is typed, by the TypeScript implementation bundled for a browser. A link
+  resolves, an embed appears, a name two cards share is reported. The bundle
+  is built by `node scripts/build-site-demo.mjs`, is not committed, has a size
+  budget, and is fetched only when the tab is opened; mathematics is left as
+  its source and a diagram as its text, since neither can be drawn there
+  cheaply. Without the script the five recorded tabs are the page.
 - **The cover's computation and reach bands** — cards as notebooks, with the
   three kinds of fence, three cells of the example notebook reading each other,
   and a current screenshot of a cell in the editor; search by meaning, as the
@@ -144,6 +154,7 @@ revisiting is that maths loads from a CDN at view time.
 
 ```bash
 uv run python -m pytest tests/test_docs.py tests/test_mkdocs.py
+node scripts/build-site-demo.mjs       # the cover's live editor; needs `npm ci`
 uv run mkdocs build --strict
 uv run mkdocs serve                    # live, watching the namespace root
 ```
@@ -165,6 +176,8 @@ run permanently.
 
 ## Changelog
 
+- 2026-11-22: a live editor in the cover's hero, built from the TypeScript
+  implementation and loaded on demand.
 - 2026-11-22: the cover's remaining bands — notebooks, search, tools,
   comparison, reading list — and the last of the old prose retired.
 - 2026-11-22: the cover's language bands, five of them, and the diagrams they

@@ -1506,3 +1506,127 @@ body:has(.hmd-home) .md-grid {
   max-width: 56rem;
   line-height: 1.6;
 }
+
+/* The live editor, a tab `hmd-demo.js` adds to the window. */
+.hmd-term:has(input[value="try"]:checked) .hmd-pane[data-tab="try"] {
+  display: block;
+}
+
+.hmd-tabbar label.hmd-tabbar__try {
+  margin-left: auto;
+  color: var(--hmd-bolt);
+}
+
+.hmd-tabbar label.hmd-tabbar__try::before {
+  content: "▸ ";
+}
+
+.md-typeset .hmd-live__name {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.6rem;
+  padding: 0.45rem 0.8rem;
+  font-family: var(--md-code-font-family);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--md-code-bg-color);
+  border-left: 3px solid var(--hmd-bolt);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.4rem 0.4rem 0 0;
+}
+
+.md-typeset .hmd-live__hint {
+  font-weight: 400;
+  color: var(--hmd-bolt);
+}
+
+.md-typeset .hmd-live__source {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  font-family: var(--md-code-font-family);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  font-variant-ligatures: none;
+  color: var(--md-code-fg-color);
+  background: var(--md-code-bg-color);
+  border: 0;
+  border-left: 3px solid var(--hmd-bolt);
+  border-radius: 0 0 0.4rem 0;
+  resize: vertical;
+  tab-size: 4;
+}
+
+.md-typeset .hmd-live__source:focus-visible {
+  outline: 2px solid var(--hmd-bolt);
+  outline-offset: -2px;
+}
+
+.md-typeset .hmd-live__out {
+  min-height: 3rem;
+}
+
+.md-typeset .hmd-live__out h1 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset .hmd-live__out h2,
+.md-typeset .hmd-live__out h3 {
+  margin: 0.4rem 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.md-typeset .hmd-live__out a.hmd-link {
+  color: var(--md-typeset-a-color);
+  cursor: default;
+}
+
+.md-typeset .hmd-live__out a.hmd-redlink,
+.md-typeset .hmd-live__out a.hmd-ambiguous {
+  color: var(--hmd-red);
+  border-bottom: 1px dashed currentColor;
+}
+
+.md-typeset .hmd-live__out a.hmd-ambiguous {
+  border-bottom-style: solid;
+}
+
+.md-typeset .hmd-embed--failed {
+  border-left-color: var(--hmd-red);
+}
+
+.md-typeset .hmd-live__out pre > code {
+  font-size: 0.66rem;
+}
+
+.md-typeset .hmd-live__log {
+  margin: 0.7rem 0 0;
+  padding: 0.6rem 0.8rem;
+  font-family: var(--md-code-font-family);
+  font-size: 0.64rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--md-default-fg-color--light);
+  background: var(--md-code-bg-color);
+  border-left: 3px solid var(--md-default-fg-color--lighter);
+  border-radius: 0 0.4rem 0.4rem 0;
+}
+
+.md-typeset .hmd-live__log--error {
+  border-left-color: var(--hmd-red);
+}
+
+.md-typeset .hmd-live__note {
+  margin: 0.6rem 0 0;
+  font-size: 0.66rem;
+  color: var(--md-default-fg-color--light);
+}

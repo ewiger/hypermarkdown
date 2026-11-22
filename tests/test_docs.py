@@ -371,6 +371,30 @@ def test_the_cover_shows_what_the_linter_prints(tmp_path):
         assert line in cover, f"the cover does not show this line of output: {line}"
 
 
+def test_the_cover_works_without_a_script(built_home):
+    """The window's five tabs are in the page as built: a source and what it
+    produces, recorded. The live editor is a sixth tab that a script adds, so
+    a reader without the script, or without the editor's bundle, loses nothing
+    that was written."""
+    for tab in ("link", "embed", "diagram", "cell", "check"):
+        assert f'data-tab="{tab}"' in built_home, f"the {tab} tab is not in the page"
+    assert 'data-tab="try"' not in built_home, "the live tab must be added by the script"
+    assert "wiki/assets/hmd-demo.js" in built_home
+
+
+def test_the_live_editor_stays_under_its_budget():
+    """The editor's bundle is fetched when a visitor opens its tab. The build
+    script states what that may cost and refuses to go over; this holds a
+    bundle built some other way to the same number."""
+    bundle = ROOT / "doc" / "wiki" / "assets" / "hmd-demo.bundle.js"
+    if not bundle.is_file():
+        pytest.skip("the bundle is build output: node scripts/build-site-demo.mjs")
+    script = (ROOT / "scripts" / "build-site-demo.mjs").read_text(encoding="utf-8")
+    match = re.search(r"BUDGET_BYTES = (\d+) \* 1024", script)
+    assert match is not None, "the build script no longer states a budget"
+    assert bundle.stat().st_size <= int(match.group(1)) * 1024
+
+
 def test_the_site_names_its_repository(built_home):
     assert "ewiger/hypermarkdown" in built_home
     # `extra.generator: false` leaves the project's own license line alone in

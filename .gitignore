@@ -372,3 +372,7 @@ dist
 
 # Platform-specific VSIXes, built by the release workflow.
 dist-vsix/
+
+# The cover's live editor, bundled from tools/hmd-ts-core by
+# `node scripts/build-site-demo.mjs`. Build output; never committed.
+doc/wiki/assets/hmd-demo.bundle.js
