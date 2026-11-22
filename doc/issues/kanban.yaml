@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0015, the editor line's is 0116.
-  last_id: 115 # highest assigned overall; per stream — Python 14, editor 115
+  # the Python line's next issue is 0016, the editor line's is 0116.
+  last_id: 115 # highest assigned overall; per stream — Python 15, editor 115
   items:
     backlog:
       - id: "0008"
@@ -46,6 +46,9 @@ board:
       - id: "0014"
         title: "A heading in a non-Latin script cannot be linked"
         file: "0014-non-latin-headings-cannot-be-linked.md"
+      - id: "0015"
+        title: "CommonMark's own examples as a test dataset"
+        file: "0015-commonmark-examples-as-a-test-dataset.md"
       - id: "0013"
         title: "The roadmap is behind the releases, and it is the one page that states them"
         file: "0013-the-roadmap-is-behind-the-releases.md"
