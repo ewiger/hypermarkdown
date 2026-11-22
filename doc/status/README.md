@@ -13,6 +13,31 @@ thing you care about; this page is the one-line version of each.
 | [**VS Code extension**](vsc-ext.md) | The hmd preview, diagnostics, and the graph, inside the editor | `0.3.0` live on both galleries, and the preview label is off | Automate the by-hand release checks |
 | [**website**](pages.md) | <https://hypermarkdown.org> — the book, the prose, the branding, the deploy | Live and building clean | The roadmap page, and the stale state claims the audit for it turned up |
 
+## Generated views
+
+Three cards here are written by queries, not by hand. Each one is an HQL cell
+over the cards of `doc/`, which is a vault for that reason
+([`doc/.hmd/config.toml`](../.hmd/config.toml)), with its output saved under
+the cell:
+
+| View | Reads | Shows |
+| --- | --- | --- |
+| [`kanban.hmd`](kanban.hmd) | Each issue's `**Column**:` line, and `doc/issues/archive/` | The lanes, the board, and the archive |
+| [`proposals.hmd`](proposals.hmd) | Each proposal's title and `**Status**:` line | Every proposal, its status, and the trackers that cite it |
+| [`open.hmd`](open.hmd) | The **Open** table of every tracker | Every open row, by state, with the tracker that owns it |
+
+They are derived reads, not trackers: the trackers stay the only place work is
+recorded, and the views only gather it. Never edit an output by hand. Re-render
+in the same commit that moves an issue, changes a proposal's status, or edits
+an Open row, from the repository root:
+
+```sh
+hql render --in-place --emit after doc/status/kanban.hmd doc/status/proposals.hmd doc/status/open.hmd
+```
+
+Any `hql` from 0.7.1 on will do, including the one in the pinned toolchain
+(`node scripts/toolchain.mjs` prints its directory).
+
 ## How these files work
 
 Each tracker reads in one order, and it is the order a reader asks in:

@@ -40,7 +40,9 @@ Keep L0, L1, and L2 lens files directly under `doc/models/`.
 Track progress **per tool**, in `doc/status/`: `lang.md` for the format itself,
 `hmd.md`, `ts-core.md`, `vsc-ext.md`, `rs-core.md`, and `semantics.md` for the
 five tools, and
-`pages.md` for the website. Those files are the only place work is tracked, and they
+`pages.md` for the website. The `.hmd` cards beside them are generated views,
+not trackers: HQL queries over the vault `doc/`, re-rendered with the command
+in `doc/status/README.md`. Those `.md` files are the only place work is tracked, and they
 read in one order: **Status** in prose, then **Open**, **Broken**, **Limitations
 (known gaps)**, and **Done** last. Open rows carry a state in the board's own
 words — `todo`, `doing`, `backlog`, `blocked`, `parked` — and a blocked row says

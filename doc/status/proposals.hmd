@@ -1,0 +1,83 @@
+# Proposals
+
+Every proposal under [`doc/proposals/`](../proposals/README.md), read from its
+`README.md`: the number, the title, the status, and the trackers that cite it.
+The status is the first word of the `**Status**:` line; one outside the list in
+[the template](../proposals/TEMPLATE.md) (`drafted`, `accepted`, `rejected`,
+`withdrawn`, `superseded`) shows as `invalid`. A proposal carries no
+implementation state of its own: how far its code has got is in the trackers
+listed beside it, which are every tracker under `doc/status/` that names the
+proposal, in any case. Compare that column with the Progress column of
+[the proposal index](../proposals/README.md), which is written by hand.
+
+This is a generated view, not a tracker: refresh it with the command in
+[the status README](README.md), and never edit an output by hand.
+
+```hql#eval
+import regex
+
+// The first word after `**Status**:` on the record's status line.
+fn status_of(body: String) : String =
+    regex.find(body, "(?m)^\\*\\*Status\\*\\*: *[a-z]+")
+    | map(s => regex.replace_first(s, "^\\*\\*Status\\*\\*: *", ""))
+    | unwrap_or("unknown")
+
+// The status, or `invalid` for a value outside the template's list.
+fn checked(status: String) : String =
+    status given ["drafted", "accepted", "rejected", "withdrawn", "superseded"] | any(s => s == status)
+    otherwise "invalid"
+
+// The trackers: every card directly under `status/` but the README.
+trackers =
+    cards
+    | filter(c => regex.is_match(c.path, "^status/[a-z-]+\\.md$") and c.path != "status/README.md")
+    | sort(by = c => c.path)
+
+// A list of links, or `—` for none.
+fn or_dash(s: String) : String = "—" given s == "" otherwise s
+
+// The trackers that name a proposal, as links, or `—` for none.
+fn cited_by(id: String) : String =
+    or_dash(trackers
+        | filter(t => regex.is_match(t.body, "(?i)" + id))
+        | map(t => "[" + t.name + "](" + t.name + ".md)")
+        | join(", "))
+
+// A proposal as the table shows it.
+type ProposalRow { proposal : String, title : String, status : String, trackers : String }
+
+// A proposal's row, from its id and its record.
+fn row(id: String, c: Card) : ProposalRow =
+    ProposalRow(
+        proposal = "[" + id + "](../proposals/" + id + "/README.md)",
+        title = regex.replace_first(c.title, "^HMD-[0-9]{4}: *", ""),
+        status = checked(status_of(c.body)),
+        trackers = cited_by(id),
+    )
+
+cards
+| filter(c => regex.is_match(c.path, "^proposals/HMD-[0-9]{4}/README\\.md$"))
+| sort(by = c => c.path)
+| map(c => row(regex.find(c.path, "HMD-[0-9]{4}").unwrap_or(c.name), c))
+| Table(columns = ["proposal", "title", "status", "trackers"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=25c66357438d status=ok -->
+| proposal                                    | title                                                                             | status     | trackers                                                                                                |
+| ------------------------------------------- | --------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------- |
+| [HMD-0001](../proposals/HMD-0001/README.md) | MVP — grammar, resolver, and `hmd lint`                                           | drafted    | [hmd](hmd.md), [lang](lang.md), [pages](pages.md), [ts-core](ts-core.md), [vsc-ext](vsc-ext.md)         |
+| [HMD-0002](../proposals/HMD-0002/README.md) | MkDocs book-mode rendering                                                        | drafted    | [lang](lang.md), [pages](pages.md), [ts-core](ts-core.md), [vsc-ext](vsc-ext.md)                        |
+| [HMD-0003](../proposals/HMD-0003/README.md) | HQL — the Hyper Query Language                                                    | superseded | [lang](lang.md)                                                                                         |
+| [HMD-0004](../proposals/HMD-0004/README.md) | The hyper web — namespaces beyond one tree                                        | drafted    | [hmd](hmd.md), [lang](lang.md)                                                                          |
+| [HMD-0005](../proposals/HMD-0005/README.md) | The HyperMarkDown rename — one identity across domain, repository, and registries | drafted    | [hmd](hmd.md), [pages](pages.md), [vsc-ext](vsc-ext.md)                                                 |
+| [HMD-0006](../proposals/HMD-0006/README.md) | Extended URI for transclusion and link referencing when addressing inside a card  | drafted    | [lang](lang.md), [ts-core](ts-core.md)                                                                  |
+| [HMD-0020](../proposals/HMD-0020/README.md) | `@hypermarkdown/core` — the TypeScript document model                             | drafted    | [hmd](hmd.md), [lang](lang.md), [rs-core](rs-core.md), [ts-core](ts-core.md), [vsc-ext](vsc-ext.md)     |
+| [HMD-0021](../proposals/HMD-0021/README.md) | The VS Code extension — the HyperMarkDown preview surface                         | drafted    | [ts-core](ts-core.md), [vsc-ext](vsc-ext.md)                                                            |
+| [HMD-0022](../proposals/HMD-0022/README.md) | D2 diagrams                                                                       | drafted    | [lang](lang.md), [pages](pages.md)                                                                      |
+| [HMD-0024](../proposals/HMD-0024/README.md) | The `tools/` layout, and a Python language server                                 | drafted    | [hmd](hmd.md), [vsc-ext](vsc-ext.md)                                                                    |
+| [HMD-0025](../proposals/HMD-0025/README.md) | The graph tab — the vault as a picture                                            | drafted    | [vsc-ext](vsc-ext.md)                                                                                   |
+| [HMD-0026](../proposals/HMD-0026/README.md) | HQL cells — a card as a notebook                                                  | drafted    | [lang](lang.md), [ts-core](ts-core.md), [vsc-ext](vsc-ext.md)                                           |
+| [HMD-0027](../proposals/HMD-0027/README.md) | `hypermarkdown` — the resolver as a Rust crate                                    | drafted    | [rs-core](rs-core.md)                                                                                   |
+| [HMD-0028](../proposals/HMD-0028/README.md) | The `[hql]` and `[semantics]` tables, and the semantic index                      | drafted    | [hmd](hmd.md), [semantics](semantics.md)                                                                |
+| [HMD-0029](../proposals/HMD-0029/README.md) | Markdown files are cards                                                          | drafted    | [hmd](hmd.md), [lang](lang.md), [rs-core](rs-core.md), [semantics](semantics.md), [ts-core](ts-core.md) |
+<!-- /hql:output -->

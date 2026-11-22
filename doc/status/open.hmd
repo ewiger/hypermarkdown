@@ -1,0 +1,115 @@
+# Open work
+
+Every row of every tracker's **Open** table, read from the trackers under
+`doc/status/`: its state, the bold lead sentence that names the work, and the
+tracker that owns it. A row's notes, its references, and what unblocks a
+`blocked` row stay in the tracker, one click away; this view only says where
+the work is.
+
+This is a generated view, not a tracker: refresh it with the command in
+[the status README](README.md), and never edit an output by hand. A row reaches
+this view only when it starts with one of the board's states and a bold lead,
+which is the form [the README](README.md) asks every Open row to take.
+
+```hql#eval id=rows hidden
+import regex
+
+// An Open row: its state, the work it names, and the tracker it comes from.
+type OpenRow { state : String, work : String, tracker : String }
+
+// The text of a tracker's `## Open` section, up to the next heading.
+fn open_section(body: String) : String =
+    regex.find(body, "(?s)\\n## Open\\n.*?(\\n## |\\z)").unwrap_or("")
+
+// The Open rows of one tracker.
+fn rows_of(c: Card) : Seq<OpenRow> =
+    regex.find_all(open_section(c.body),
+        "(?m)^\\| (doing|todo|blocked|backlog|parked) \\| \\*\\*[^*]+\\*\\*")
+    | map(line => OpenRow(
+        state = regex.find(line, "^\\| [a-z]+").map(s => regex.replace_first(s, "^\\| ", "")).unwrap_or(""),
+        work = regex.replace_first(regex.replace_first(line, "^\\| [a-z]+ \\| \\*\\*", ""), "\\*\\*$", ""),
+        tracker = "[" + c.name + "](" + c.name + ".md)",
+      ))
+
+cards
+| filter(c => regex.is_match(c.path, "^status/[a-z-]+\\.md$") and c.path != "status/README.md")
+| sort(by = c => c.path)
+| flat_map(c => rows_of(c))
+```
+
+## By state
+
+The number of open rows in each state, across every tracker: the states of
+the board, in the order this view lists them.
+
+```hql#eval
+["doing", "todo", "blocked", "backlog", "parked"]
+| map(s => { state: s, rows: rows | filter(r => r.state == s) | size })
+| Table(columns = ["state", "rows"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=f5d971badf3f status=ok -->
+| state   | rows |
+| ------- | ---- |
+| doing   | 1    |
+| todo    | 22   |
+| blocked | 7    |
+| backlog | 7    |
+| parked  | 2    |
+<!-- /hql:output -->
+
+## Rows
+
+Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
+`parked`, and by tracker within each state.
+
+```hql#eval
+["doing", "todo", "blocked", "backlog", "parked"]
+| flat_map(s => rows | filter(r => r.state == s))
+| map(r => { state: r.state, work: r.work, tracker: r.tracker })
+| Table(columns = ["state", "work", "tracker"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=5ca1b83d37ed status=ok -->
+| state   | work                                                                                               | tracker                   |
+| ------- | -------------------------------------------------------------------------------------------------- | ------------------------- |
+| doing   | Cells, rendered by the tools.                                                                      | [lang](lang.md)           |
+| todo    | Lint text, not just files.                                                                         | [hmd](hmd.md)             |
+| todo    | Invalidate one card at a time                                                                      | [hmd](hmd.md)             |
+| todo    | A determinism test                                                                                 | [hmd](hmd.md)             |
+| todo    | Draw Mermaid diagrams in the site build                                                            | [hmd](hmd.md)             |
+| todo    | Decide whether underlined headings are addressable.                                                | [lang](lang.md)           |
+| todo    | Widen the diagnostic range in the TypeScript implementation's specification                        | [lang](lang.md)           |
+| todo    | State determinism normatively.                                                                     | [lang](lang.md)           |
+| todo    | Settle the address grammar before it is built.                                                     | [lang](lang.md)           |
+| todo    | Clear numeric section references from the documentation.                                           | [lang](lang.md)           |
+| todo    | Finish unifying what a vault and a namespace are across the specification, the HMD tools, and HQL. | [lang](lang.md)           |
+| todo    | Accept Mermaid as a diagram language on par with D2.                                               | [lang](lang.md)           |
+| todo    | The roadmap is behind the releases                                                                 | [pages](pages.md)         |
+| todo    | A screenshot of the example notebook for the cover                                                 | [pages](pages.md)         |
+| todo    | A release workflow.                                                                                | [rs-core](rs-core.md)     |
+| todo    | Depth 0 and 1: summaries generated by a model, schema version 2.                                   | [semantics](semantics.md) |
+| todo    | Subscript.                                                                                         | [ts-core](ts-core.md)     |
+| todo    | LaTeX environments at block level.                                                                 | [ts-core](ts-core.md)     |
+| todo    | Recognise a `mermaid` fence as a diagram.                                                          | [ts-core](ts-core.md)     |
+| todo    | Automate the by-hand checks.                                                                       | [vsc-ext](vsc-ext.md)     |
+| todo    | Filter the graph by namespace and tag                                                              | [vsc-ext](vsc-ext.md)     |
+| todo    | Create the card a relative link points at.                                                         | [vsc-ext](vsc-ext.md)     |
+| todo    | Draw Mermaid diagrams in the preview                                                               | [vsc-ext](vsc-ext.md)     |
+| blocked | The language server itself.                                                                        | [hmd](hmd.md)             |
+| blocked | Redirect the retired domain                                                                        | [hmd](hmd.md)             |
+| blocked | The publication model, and the rule that depends on it.                                            | [ts-core](ts-core.md)     |
+| blocked | Underlined headings.                                                                               | [ts-core](ts-core.md)     |
+| blocked | Report unpublished links.                                                                          | [vsc-ext](vsc-ext.md)     |
+| blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.md)     |
+| blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.md)     |
+| backlog | Address and quote inside a card.                                                                   | [lang](lang.md)           |
+| backlog | Carry an integrity digest on a quotation                                                           | [lang](lang.md)           |
+| backlog | Cross-project namespaces.                                                                          | [lang](lang.md)           |
+| backlog | Self-host the maths typesetter                                                                     | [pages](pages.md)         |
+| backlog | A comparison suite that asks the canonical implementation.                                         | [rs-core](rs-core.md)     |
+| backlog | Say when `--vault` is not a vault.                                                                 | [semantics](semantics.md) |
+| backlog | Parse the in-card address.                                                                         | [ts-core](ts-core.md)     |
+| parked  | Rename the package inside the parked integration suite                                             | [hmd](hmd.md)             |
+| parked  | The integration suite                                                                              | [vsc-ext](vsc-ext.md)     |
+<!-- /hql:output -->

@@ -1,0 +1,14 @@
+# Vault configuration for doc/.
+#
+# The presence of this directory marks doc/ as the vault, so that HQL reads the
+# issues, the proposals and the trackers as cards for the generated views in
+# status/ (see status/README.md, "Generated views").
+#
+# `wiki = "."` is load-bearing in both directions. HQL reads `cards` from the
+# `wiki` location, not from the whole vault, so anything narrower hides
+# issues/, proposals/ and status/ from those views. And hmd resolves `wiki`
+# against this directory, so leaving the key out points it at doc/doc/wiki.
+#
+# The site is unaffected: mkdocs.yml names its own namespace root, doc/wiki,
+# and CI lints with an explicit `--root doc/wiki`.
+wiki = "."
