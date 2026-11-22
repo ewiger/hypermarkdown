@@ -1,0 +1,18 @@
+{#-
+  The cover. A page opts in with `template: home.html` in its front matter,
+  and hides both sidebars there with `hide: [navigation, toc]`. Hiding is the
+  theme's own switch: the sidebars leave the wide layout and the navigation
+  stays in the drawer a phone opens. This template only changes the container,
+  so the page's content runs full width inside `.hmd-home`. Every band is
+  authored in the page itself, so links resolve and the build checks them like
+  any other page. Bands are styled in `doc/wiki/assets/hmd.css`.
+-#}
+{% extends "main.html" %}
+
+{% block container %}
+  <div class="md-content hmd-home" data-md-component="content">
+    <article class="md-content__inner md-typeset">
+      {{ page.content }}
+    </article>
+  </div>
+{% endblock %}

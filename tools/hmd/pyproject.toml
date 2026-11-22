@@ -140,6 +140,11 @@ hmd = "hypermarkdown.cli:main"
 hypermarkdown = "hypermarkdown.mkdocs_plugin:HyperMarkDownPlugin"
 hyper-markdown = "hypermarkdown.mkdocs_plugin:HyperMarkDownPlugin"
 
+# A code sample marked ```hmd is coloured as a card. Pygments discovers lexers
+# through this group, so nothing has to be configured where it is used.
+[project.entry-points."pygments.lexers"]
+hmd = "hypermarkdown.highlight:HmdLexer"
+
 [tool.setuptools.dynamic]
 version = { attr = "hypermarkdown.__version__" }
 

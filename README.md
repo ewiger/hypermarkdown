@@ -36,8 +36,9 @@ connect form a knowledge graph. A card is one `.hmd` file:
   and records, so one query can join the vault with other data.
 
 Every `.md` file is already valid `.hmd`, so an existing tree of markdown files
-is adopted one rename at a time: rename a file from `.md` to `.hmd` when you
-want it in the graph, and the rest stay as they are.
+is adopted one rename at a time. A `.md` file in the tree is already a card
+that other cards can link to and embed. Rename it from `.md` to `.hmd` when
+you want its own links checked, and the rest stay as they are.
 
 ```markdown
 See [[tokens#Rotation|the rotation window]], and say it once rather than twice:

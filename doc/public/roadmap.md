@@ -65,14 +65,32 @@ is being written alongside it.
 
 ## What is coming
 
+### Where the work goes
+
+HyperMarkDown's own work has two priorities.
+
+- **The language specification.** Its first version, 1.0, is the main goal.
+  The text is a 0.1 draft today, and what is written here and in the tools
+  moves until it is fixed.
+- **The VS Code extension.** Bug fixes, and improvements to how a card is
+  presented in the preview.
+
+AI and querying the knowledge graph are built in
+[HQL](https://hql-lang.org/): semantic retrieval, graph traversal, and
+assembling context for a language model from a vault of cards. HQL is a
+separate project with its own releases, and most of what changes next for
+someone using HyperMarkDown arrives through it. HyperMarkDown follows by
+running the newer HQL in the editor and presenting what its cells return.
+
 ### Cards as notebooks
 
-[HQL](https://hql-lang.org/) is a statically typed query and data transformation language
+[HQL](https://hql-lang.org/) is a strongly typed expression and query language
 and a separate project. Inside a `.hmd` file it runs as **cells**: fences
 marked `hql#eval` or `hql#query`. A fence marked plain `hql` is a listing,
 shown as code and never run. `id=<name>` makes a cell's value available to other
-cells; `hidden` evaluates a cell without printing its output. Cells run in
-dependency order, and `hql render` writes each cell's output into the page.
+cells; `hidden` evaluates a cell without printing its output. Only a fence
+marked `hql#eval` or `hql#query` is a cell. Cells run in dependency order, and
+`hql render` writes each cell's output into the page.
 [Cell output](cell-output.md) lists what each kind of value becomes:
 
 ````markdown

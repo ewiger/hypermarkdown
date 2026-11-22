@@ -1,254 +1,787 @@
+---
+template: home.html
+description: >-
+  An AI-ready document language for humans and machines. Markdown with wiki
+  links, structured metadata, rich visuals, semantic relationships, and
+  executable HQL cells.
+hide:
+  - navigation
+  - toc
+---
+<section class="hmd-band hmd-band--hero" markdown>
+<div class="hmd-hero-grid" markdown>
+<div class="hmd-hero-text" markdown>
+
 # HyperMarkDown { .hmd-hero }
 
-HyperMarkDown (`.hmd`) is ordinary Markdown plus rich visuals plus wiki links
-into a knowledge graph. Every `.md` file is already valid `.hmd`.
+<p class="hmd-tagline">An AI-ready document language for humans and machines.</p>
 
-!!! tip "Want to see it in action?"
+Built on the simplicity of Markdown, HyperMarkDown brings together wiki links,
+structured metadata, rich visuals, semantic relationships, and executable HQL
+cells. Write documents, connect ideas, build a mesh of knowledge, and bring it
+to life through computation and AI.
 
-    - *Tools for HyperMarkDown*: the [Quick start](tools/index.md) is two
-      installs — the VS Code-compatible editor extension, then the `hmd` command — and what each one gets you.
-        - *Querying it*: [HQL](https://hql-lang.org/) is a typed query language over a vault of
-      cards, JSON, YAML, and records. A separate project with its own
-      documentation.
-    - *How to write HyperMarkDown*: [The HMD Tutorial](wiki/hmd-tutorial.hmd) is the whole language in one go — every construct, with its source shown beside what it renders.
+<p class="hmd-actions" markdown>[Quick start](tools/index.md){ .md-button .md-button--primary } [Tutorial](wiki/hmd-tutorial.hmd){ .md-button }</p>
 
-## TL;DR
+```sh
+# VS Code: preview, graph, cells
+code --install-extension hypermarkdown.hmd
+# hmd: the linter and site builder
+pip install HyperMarkDown
+```
+
+<p class="hmd-fineprint hmd-fineprint--hero" markdown>The tools implement specification 0.1, a draft.</p>
+
+</div>
+<div class="hmd-term" markdown>
+<div class="hmd-tabbar" role="radiogroup" aria-label="Examples">
+<input type="radio" name="hmd-demo" id="hmd-demo-link" value="link" checked><label for="hmd-demo-link">Link</label>
+<input type="radio" name="hmd-demo" id="hmd-demo-embed" value="embed"><label for="hmd-demo-embed">Embed</label>
+<input type="radio" name="hmd-demo" id="hmd-demo-diagram" value="diagram"><label for="hmd-demo-diagram">Diagram</label>
+<input type="radio" name="hmd-demo" id="hmd-demo-cell" value="cell"><label for="hmd-demo-cell">Cell</label>
+<input type="radio" name="hmd-demo" id="hmd-demo-check" value="check"><label for="hmd-demo-check">Check</label>
+</div>
+<div class="hmd-pane" data-tab="link" markdown>
+
+```hmd title="specs/auth/index.hmd"
+- [[login]]
+- [[logging]] — the **auth** logging card, not the general one
+- [[tokens]] — the **auth** tokens card, not the shared one
+```
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+- [login](https://github.com/ewiger/hypermarkdown/blob/main/examples/small/specs/auth/login.hmd)
+- [logging](https://github.com/ewiger/hypermarkdown/blob/main/examples/small/specs/auth/logging.hmd) — the **auth** logging card, not the general one
+- [tokens](https://github.com/ewiger/hypermarkdown/blob/main/examples/small/specs/auth/tokens.hmd) — the **auth** tokens card, not the shared one
+
+</div>
+
+<p class="hmd-pane__note" markdown>Two cards are named `logging` and two `tokens`. A name is looked up in the card's own folder first.</p>
+
+</div>
+<div class="hmd-pane" data-tab="embed" markdown>
+
+```hmd title="shared/tokens.hmd"
+Tokens rotate every 24 hours, and a rotated token stays valid for a 60-second
+overlap so in-flight requests are not cut off. ^rotation-window
+```
+
+```hmd title="specs/auth/tokens.hmd"
+A token is issued only after a completed [[login]] flow. The issuing service
+never reuses a subject's previous token, even when the previous one is still
+inside its rotation overlap:
+
+![[/shared/tokens#^rotation-window]]
+```
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+A token is issued only after a completed [login](https://github.com/ewiger/hypermarkdown/blob/main/examples/small/specs/auth/login.hmd) flow. The issuing service
+never reuses a subject's previous token, even when the previous one is still
+inside its rotation overlap:
+
+<div class="hmd-embed" markdown>
+<p class="hmd-embed__from">shared/tokens#^rotation-window</p>
+
+Tokens rotate every 24 hours, and a rotated token stays valid for a 60-second
+overlap so in-flight requests are not cut off.
+
+</div>
+</div>
+</div>
+<div class="hmd-pane" data-tab="diagram" markdown>
+
+````hmd title="specs/auth/login.hmd"
+```d2
+client -> edge: credentials
+edge -> auth: verify
+auth -> edge: token
+edge -> client: token + rotation window
+```
+````
+
+<div class="hmd-out" data-label="rendered" markdown>
 
 ```d2
-direction: down
-
-classes: {
-  defined: {
-    style: {
-      fill: "#ffe9b0"
-      stroke: "#d98f00"
-      stroke-width: 2
-    }
-  }
-  assumed: {
-    style: {
-      fill: "#fff7e3"
-      stroke: "#d98f00"
-      stroke-width: 2
-    }
-  }
-  inherited: {
-    style: {
-      fill: "#f2f3f5"
-      stroke: "#8b9199"
-      stroke-width: 2
-    }
-  }
-}
-
-title: "Three layers stack in one file" {
-  near: top-center
-  shape: text
-  style: {
-    font-size: 26
-    bold: true
-  }
-}
-
-card: "notes.hmd" {
-  grid-rows: 3
-  grid-gap: 0
-  style: {
-    fill: transparent
-    stroke: "#8b9199"
-  }
-
-  hyper: "Hyper layer — defined by HyperMarkDown\n[[card]] · [[card#Section]] · [[card#^block]] · ![[embed]] · frontmatter" {
-    class: defined
-  }
-  rich: "Rich layer — borrowed from the ecosystem, and assumed rather than optional\ntables · task lists · footnotes · callouts · TeX · D2 diagrams" {
-    class: assumed
-  }
-  commonmark: "CommonMark — inherited whole, nothing redefined\nheadings · lists · emphasis · links · fenced code" {
-    class: inherited
-  }
-}
-
-note: "The two upper layers are what HyperMarkDown adds, and a specification is what fixes\nthem. The base is left untouched, which is why any .md file is already a valid card." {
-  near: bottom-center
-  shape: text
-  style.font-size: 15
-}
+client -> edge: credentials
+edge -> auth: verify
+auth -> edge: token
+edge -> client: token + rotation window
 ```
 
-* **A syntactic superset of CommonMark.** Rename a `.md` file to `.hmd` and it
-  remains valid. HMD preserves CommonMark constructs while assigning added
-  meaning to HMD syntax such as wikilinks and frontmatter.
+</div>
+</div>
+<div class="hmd-pane" data-tab="cell" markdown>
 
-* **Names, not paths.** `[[tokens]]` is looked up beside the card and then upward
-  through its parent folders. Multiple autodiscovery matches are an error;
-  explicitly ordered import paths use declaration precedence.
+````hmd title="contents.hmd"
+```hql#eval id=books
+cards
+| filter(c => c.name != "contents")
+| sort(by = c => c.title)
+```
+````
 
-* **Documents made of documents.** `![[glossary/token#^definition]]` splices one
-  named block into another page. Write a definition once and embed it everywhere
-  it is needed.
+<div class="hmd-out" data-label="output, saved in the card" markdown>
 
-* **Rich content is assumed, not optional.** TeX mathematics, D2 diagrams,
-  callouts, footnotes, task lists, and tables are part of what a card may carry.
-  A diagram is text in the file and a diff you can read, and it degrades to its
-  own labelled source rather than to a blank space.
+- [dune](https://github.com/ewiger/hypermarkdown/blob/main/examples/notebook/books/dune.hmd)
+- [emma](https://github.com/ewiger/hypermarkdown/blob/main/examples/notebook/books/emma.hmd)
+- [middlemarch](https://github.com/ewiger/hypermarkdown/blob/main/examples/notebook/books/middlemarch.hmd)
+- [the-hobbit](https://github.com/ewiger/hypermarkdown/blob/main/examples/notebook/books/the-hobbit.hmd)
 
-* **The specification is the artifact.** The Python CLI, the MkDocs plugin, and
-  the VS Code extension are implementations around it; they conform to it rather
-  than define it.
+</div>
+</div>
+<div class="hmd-pane" data-tab="check" markdown>
 
-* **What ships today is not the whole of it.** The resolver, linter, embed
-    expander, renderer, and MkDocs plugin are released and in use. [HQL](https://hql-lang.org/),
-  the query language, is released as a separate project at major version zero.
-  Namespaces beyond one tree are specified in outline and unbuilt; where it is
-  all going is the [Roadmap](public/roadmap.md).
+<p class="hmd-pane__note hmd-pane__note--top" markdown>One card added to the example vault, and what `hmd lint` then prints.</p>
 
-## Language
-
-Three layers stack in one file. At the base, **CommonMark**, inherited whole —
-nothing redefined and nothing taken away, which is why a `.md` file is already
-a valid card. Above it a **rich layer** — tables, footnotes, task lists,
-callouts, TeX mathematics, D2 diagrams — taken from the wider Markdown
-ecosystem rather than invented here, and assumed present rather than optional.
-And the **hyper layer** — arguably the most innovative part, and the reason the
-format exists at all: a small set of constructs that are all variations on one
-idea, *naming another document or a part of one*. Those upper two layers are
-what HyperMarkDown adds, and a specification is what fixes them, not
-convention.
-
-```markdown
-See [[tokens]] for the format, or pull one block in whole:
-
-![[glossary/token#^definition]]
+```hmd title="notes.hmd"
+See [[tokens]] for the lifetime rules.
 ```
 
-A card may open with YAML frontmatter, where four keys mean something to the
-toolchain — `tags`, `use`, `import`, `nav` — and every other key belongs to the
-author. The whole language fits on one page and can be learned in one sitting:
-the [HMD Tutorial](wiki/hmd-tutorial.hmd). What that page teaches, the
-[HMD Language Specification](wiki/hmd-lang-spec.hmd) states normatively.
+<div class="hmd-log" markdown>
 
-## Features
+```text title="hmd lint"
+glossary/index.hmd:11:3: warning[HMD001] [[idempotency]] does not resolve to a page
+notes.hmd:1:5: error[HMD002] [[tokens]] matches 2 pages; qualify it (candidates: shared/tokens.hmd, specs/auth/tokens.hmd)
 
-Wiki links to documents, headings, and named blocks; transclusion of any of
-them; filesystem-shaped modules with explicit imports; TeX mathematics, D2
-diagrams, callouts, collapsible sections, footnotes, tables, and the GitHub-
-flavoured Markdown baseline. [HQL](https://hql-lang.org/), a statically typed query and data
-transformation language, is a separate project with its own documentation. It
-queries a vault's cards, frontmatter, and links, and also JSON, YAML, and
-records, with lexical and semantic search and graph traversal. Inside a card
-it runs as cells: fences marked `hql#eval`, whose output is written into the
-page, or `hql#query`, which compute a value for other cells. A plain `hql` fence is a listing and never runs. What
-is planned around cells is in the [Roadmap](public/roadmap.md).
+1 error(s), 1 warning(s)
+```
 
-What a page can carry, shown working rather than described, is
-[Features](public/features.md). How a bare name becomes a page — the spine walk,
-imports, autodiscovery ambiguity, and the module/namespace distinction — is
-[Namespaces](public/namespaces.md).
+</div>
 
-## Tools
+</div>
+</div>
+</div>
+</section>
 
-`hmd` lints a tree, renders a card to markdown or HTML, and dumps the resolved
-graph. A missing target is a warning, because writing forward is how a wiki
-grows. Malformed references and multiple autodiscovery matches are errors;
-ordered wildcard imports resolve by declaration order and report shadowing.
+<section class="hmd-band" markdown>
 
-Installing rather than reading: the editor extension, the package, the query
-language, and what each one gets you is the [Quick start](tools/index.md).
+## One file, three layers { .hmd-section }
 
-Three of them live here, one directory each under `tools/` in the repository,
-each carrying its own version, README, and changelog, and a fourth is a sibling
-repository:
+<p class="hmd-lede" markdown>A card is one text file, `.hmd` or `.md`. CommonMark is the base. HyperMarkDown specifies the hyper layer on top of it, and its tools always enable the rich layer between them.</p>
 
-* **[`hmd`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd)** —
-  the Python implementation, published to PyPI as
-  [`hypermarkdown`](https://pypi.org/project/hypermarkdown/): the CLI
-  (`lint`, `render`, `graph`), the library beneath it, and the MkDocs plugin
-  that builds this site. Canonical — where two implementations disagree, this
-  one defines the answer — and it will host the language server.
+<div class="hmd-layers">
+<p class="hmd-layers__file">notes.hmd</p>
+<div class="hmd-layer hmd-layer--hyper">
+<div class="hmd-layer__head">
+<p class="hmd-label">Hyper layer</p>
+<p class="hmd-layer__note">defined by HyperMarkDown: naming another card, or a part of one</p>
+</div>
+<ul class="hmd-chips">
+<li><code>&#91;&#91;card&#93;&#93;</code></li>
+<li><code>&#91;&#91;card#Section&#93;&#93;</code></li>
+<li><code>&#91;&#91;card#^block&#93;&#93;</code></li>
+<li><code>!&#91;&#91;embed&#93;&#93;</code></li>
+<li><code>^block</code></li>
+<li>frontmatter</li>
+</ul>
+</div>
+<div class="hmd-layer hmd-layer--rich">
+<div class="hmd-layer__head">
+<p class="hmd-label">Rich layer</p>
+<p class="hmd-layer__note">Markdown extensions, enabled in every tool with no switch</p>
+</div>
+<ul class="hmd-chips">
+<li>tables</li>
+<li>task lists</li>
+<li>footnotes</li>
+<li>callouts</li>
+<li>collapsible sections</li>
+<li>TeX</li>
+<li>D2 diagrams</li>
+</ul>
+</div>
+<div class="hmd-layer hmd-layer--base">
+<div class="hmd-layer__head">
+<p class="hmd-label">CommonMark</p>
+<p class="hmd-layer__note">inherited whole</p>
+</div>
+<ul class="hmd-chips">
+<li>headings</li>
+<li>lists</li>
+<li>emphasis</li>
+<li>links</li>
+<li>images</li>
+<li>block quotes</li>
+<li>fenced code</li>
+</ul>
+</div>
+</div>
 
-* **[`hmd-ts-core`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-ts-core)**
-  — `@hypermarkdown/core`, a second implementation of the format in
-  TypeScript rather than extension code, answering to the same
-  [conformance corpus](https://github.com/ewiger/hypermarkdown/tree/main/examples/conformance)
-  the canonical tool does.
+<div class="hmd-pillars" markdown>
 
-* **[`hmd-vsc-ext`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-vsc-ext)**
-  — the VS Code extension: live preview that keeps the embed boundary visible,
-  plus a graph of the vault, red links, and diagnostics.
+<div markdown>
+### Markdown stays valid
 
-* **[`hql`](https://github.com/ewiger/hql)** — the Hyper Query Language, a
-  statically typed query and data transformation language, published on
-  [crates.io](https://crates.io/crates/hql) and documented at
-  [hql-lang.org](https://hql-lang.org/). Pipelines of `filter`, `map`, `sort`,
-  `group`, lexical and semantic search, and graph traversal over a vault's
-  cards, frontmatter, and links, and over JSON, YAML, and records. Inside a
-  card it runs as cells; `hql render` writes their output into the page.
+Every CommonMark document is a syntactically valid card. Three things gain a
+meaning: `[[…]]` is a link, a trailing `^name` names a block, and a `---`
+block at the top is frontmatter. The rich layer adds its own syntax, such as
+`$…$` and `!!!`.
+</div>
 
-Those are the sources. Getting them running — the extension, then the package,
-then the query language, and what each one is for — is the
-[Quick start](tools/index.md).
+<div markdown>
+### Markdown files are cards
 
-Presentation is not part of the language. A card is plain text, so an editor,
-GitHub, or a chat window already shows it. The MkDocs plugin builds a tree of
-cards into a published site — this one, a hand-ordered book with a generated
-wiki inside it — and the extension renders one in the editor as it is typed.
-The trade-offs between them are [Presentation](public/presentation.md).
+A `.md` file in the tree is a target for links and embeds without being
+renamed. Rename it to `.hmd` when its own links should be checked.
+</div>
 
-![The VS Code extension previewing a card: source on the left, rendered card on
-the right, with resolved links, a table, a callout, and a d2
-diagram.](assets/hmd-vsc-ext-screenshot-1.png){ .hmd-shot }
+<div markdown>
+### The language has a specification
 
-*The VS Code extension: the card's source on the left, the rendered card on the
-right, updated as it is typed.*{ .hmd-caption }
+The [Language Specification](wiki/hmd-lang-spec.hmd) states the grammar of
+links, embeds, anchors and frontmatter, the resolution rules and the
+diagnostics, over CommonMark 0.31.2. Cells are defined by HQL, not by it.
+</div>
 
-## Specification
+</div>
+</section>
 
-The normative text is one document, the
-[HMD Language Specification](wiki/hmd-lang-spec.hmd): what a card is, what each
-construct means, and what an implementation must do with it. It describes no
-particular program, and no program's behaviour overrides it.
+<section class="hmd-band hmd-band--alt" markdown>
 
-It is stated against a named baseline — CommonMark 0.31.2 — because "markdown"
-names a family rather than a standard, and a superset of an unnamed dialect
-specifies nothing. And it is versioned apart from the tools that implement it: a
-release of `hmd` does not imply a new language version, and a language version
-does not wait for one. Where two implementations disagree about something the
-text leaves under-determined, the language-neutral conformance corpus decides.
+## Links name cards { .hmd-section }
 
-The language is at 0.1. The text is drafted, and it will move before 1.0.
+<p class="hmd-lede" markdown>`[[tokens]]` is resolved by name. A folder of cards is a vault, its cards and links are a graph, and `hmd lint` checks every `[[link]]` and `![[embed]]` in it.</p>
 
-How it gets there is a separate formal process. A change
-is argued out first as a numbered technical proposal — `HMD-0001`, `HMD-0002`,
-and so on — in the style of RFCs and lightweight ADRs: a problem, the decision
-taken, the alternatives rejected, and a tracker of its own. Most of them are not
-about the language at all, and cover the tools and the presentation layer
-instead: how a bare name is resolved on disk, what the linter reports, how a tree
-of cards becomes a published site. They are working documents, kept for their
-motivation and their rejected alternatives, and where one disagrees with the
-specification the specification is right. The index is
-[Proposals](proposals/README.md).
+<div class="hmd-split" markdown>
+<div class="hmd-graph">
+<svg viewBox="0 0 606 300" role="img" aria-labelledby="hmd-graph-title">
+<title id="hmd-graph-title">Part of the example vault's graph: six cards joined by links and embeds, and one link to a card that is not written yet.</title>
+<defs>
+<marker id="hmd-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="hmd-graph__head" d="M0 0L10 5L0 10z"/></marker>
+<marker id="hmd-arrow-embed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="hmd-graph__head hmd-graph__head--embed" d="M0 0L10 5L0 10z"/></marker>
+<marker id="hmd-arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="hmd-graph__head hmd-graph__head--red" d="M0 0L10 5L0 10z"/></marker>
+</defs>
+<g class="hmd-graph__edges">
+<path class="hmd-graph__edge" marker-end="url(#hmd-arrow)" d="M108 148L172 104"/>
+<path class="hmd-graph__edge hmd-graph__edge--embed" marker-end="url(#hmd-arrow-embed)" d="M126 170H321"/>
+<path class="hmd-graph__edge" marker-end="url(#hmd-arrow)" d="M270 98L338 150"/>
+<path class="hmd-graph__edge" marker-end="url(#hmd-arrow)" d="M271 74L322 54"/>
+<path class="hmd-graph__edge hmd-graph__edge--embed" marker-end="url(#hmd-arrow-embed)" d="M271 86C380 96 440 110 500 148"/>
+<path class="hmd-graph__edge" marker-end="url(#hmd-arrow)" d="M431 170H479"/>
+<path class="hmd-graph__edge" marker-end="url(#hmd-arrow)" d="M377 150V63"/>
+<path class="hmd-graph__edge" marker-end="url(#hmd-arrow)" d="M535 240V193"/>
+<path class="hmd-graph__edge hmd-graph__edge--red" marker-end="url(#hmd-arrow-red)" d="M481 260H434"/>
+</g>
+<g class="hmd-graph__labels">
+<text x="120" y="118" text-anchor="end">[[login]]</text>
+<text x="298" y="140" text-anchor="end">[[shared-tokens]]</text>
+<text x="452" y="104">![[token#^definition]]</text>
+<text x="457" y="296" text-anchor="middle">[[idempotency]]</text>
+</g>
+<g class="hmd-graph__node"><rect x="16" y="150" width="108" height="40" rx="4"/><text x="70" y="166" class="hmd-graph__dir">specs/auth/</text><text x="70" y="181">tokens</text></g>
+<g class="hmd-graph__node"><rect x="161" y="62" width="108" height="40" rx="4"/><text x="215" y="78" class="hmd-graph__dir">specs/auth/</text><text x="215" y="93">login</text></g>
+<g class="hmd-graph__node"><rect x="323" y="150" width="108" height="40" rx="4"/><text x="377" y="166" class="hmd-graph__dir">shared/</text><text x="377" y="181">tokens</text></g>
+<g class="hmd-graph__node"><rect x="323" y="22" width="108" height="40" rx="4"/><text x="377" y="38" class="hmd-graph__dir">shared/</text><text x="377" y="53">retry-policy</text></g>
+<g class="hmd-graph__node"><rect x="481" y="150" width="108" height="40" rx="4"/><text x="535" y="166" class="hmd-graph__dir">glossary/</text><text x="535" y="181">token</text></g>
+<g class="hmd-graph__node"><rect x="481" y="240" width="108" height="40" rx="4"/><text x="535" y="256" class="hmd-graph__dir">glossary/</text><text x="535" y="271">index</text></g>
+<g class="hmd-graph__node hmd-graph__node--red"><rect x="323" y="240" width="108" height="40" rx="4"/><text x="377" y="256" class="hmd-graph__dir">not written yet</text><text x="377" y="271">idempotency</text></g>
+</svg>
+<ul class="hmd-legend">
+<li><span class="hmd-legend__mark"></span>link</li>
+<li><span class="hmd-legend__mark hmd-legend__mark--embed"></span>embed</li>
+<li><span class="hmd-legend__mark hmd-legend__mark--red"></span>red link, a warning</li>
+</ul>
+</div>
+<div class="hmd-forms">
+<p class="hmd-label">What you write</p>
+<dl>
+<dt><code>&#91;&#91;card&#93;&#93;</code></dt><dd>a link to a card, found by name</dd>
+<dt><code>&#91;&#91;card&#124;words&#93;&#93;</code></dt><dd>the same link, showing other words</dd>
+<dt><code>&#91;&#91;card#Heading&#93;&#93;</code></dt><dd>a link to a section of that card</dd>
+<dt><code>text ^name</code></dt><dd>a block anchor: a name for one block</dd>
+<dt><code>&#91;&#91;card#^name&#93;&#93;</code></dt><dd>a link to that block</dd>
+<dt><code>!&#91;&#91;…&#93;&#93;</code></dt><dd>an embed: any of the above, placed in the page</dd>
+</dl>
+</div>
+</div>
 
-## Vision
+<p class="hmd-label hmd-label--row">How a name is found</p>
 
-Markdown became the default plain text, and never got the part HTML had on its
-first day — links that mean something because they point into a knowledge graph,
-and a page that is part of a web rather than a file in a folder. Almost none of
-the ideas here are new; what is being attempted is a coherent specification of
-them.
+<div class="hmd-flow" aria-label="The four steps that resolve a name, in order">
+<div class="hmd-flow__stage">
+<p class="hmd-flow__label">1 · Named imports</p>
+<p class="hmd-flow__note">a name this card imported: <code>from /shared import tokens</code></p>
+</div>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+<div class="hmd-flow__stage">
+<p class="hmd-flow__label">2 · The spine</p>
+<p class="hmd-flow__note">the card's own folder, then each parent folder up to the root</p>
+</div>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+<div class="hmd-flow__stage">
+<p class="hmd-flow__label">3 · Imported paths</p>
+<p class="hmd-flow__note">each <code>from … import *</code>, in the order written</p>
+</div>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+<div class="hmd-flow__stage hmd-flow__stage--accent">
+<p class="hmd-flow__label">4 · Autodiscovery</p>
+<p class="hmd-flow__note">one sweep of the whole vault. Two matches are error HMD002</p>
+</div>
+</div>
 
-The longer argument is that this should not stop at one repository: independently
-authored and independently served HyperMarkDown, named across the gap, read from
-the same source by humans, tools, and AI. That argument, and how much of it is
-still unbuilt, is [Vision](public/vision.md).
+<p class="hmd-fineprint" markdown>The first step that finds the name wins. In the graph, `specs/auth/login` imports `shared/tokens` under the name `shared-tokens`, because a bare `tokens` there is the card in its own folder. A name that is found nowhere is a warning, a red link: a link can be written before its card. Ordinary Markdown links are not checked. The full rules are in [Namespaces](public/namespaces.md).</p>
 
-## Where this is going
+</section>
 
-The tools are released and installable, and the specification is at 0.1 and
-still moving. Which version of what is out, what the writing still owes the
-code, and the large features being aimed at next — semantic search over a
-collection of cards through [HQL](https://hql-lang.org/), and names
-that cross repositories — are the [Roadmap](public/roadmap.md).
+<section class="hmd-band" markdown>
 
-The living example is [the wiki](wiki/README.md), generated from `.hmd` cards in
-this repository.
+## Cards made of cards { .hmd-section }
+
+<p class="hmd-lede" markdown>Put `!` in front of a link and the target is placed in the page instead of linked. A definition is written once and embedded where it is needed.</p>
+
+<div class="hmd-splice">
+<div class="hmd-sheet">
+<p class="hmd-sheet__name">glossary/token.hmd</p>
+<p class="hmd-sheet__title">Token</p>
+<p class="hmd-sheet__block">A bearer credential presented on every request, scoped to one subject and one audience, and valid only until it expires. <code>^definition</code></p>
+<p class="hmd-sheet__rest">The block above carries the anchor <code>^definition</code>, so other cards can embed the one sentence rather than the whole page.</p>
+</div>
+<div class="hmd-splice__via">
+<code>!&#91;&#91;token#^definition&#93;&#93;</code>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+</div>
+<div class="hmd-sheet">
+<p class="hmd-sheet__name">specs/auth/login.hmd</p>
+<p class="hmd-sheet__title">Login</p>
+<p class="hmd-sheet__rest">The glossary definition, embedded by block anchor rather than restated:</p>
+<div class="hmd-embed">
+<p class="hmd-embed__from">glossary/token#^definition</p>
+<p>A bearer credential presented on every request, scoped to one subject and one audience, and valid only until it expires.</p>
+</div>
+</div>
+</div>
+
+<div class="hmd-pillars" markdown>
+
+<div markdown>
+### A card, a section, or a block
+
+`![[shared/tokens]]` embeds the whole card, `![[shared/tokens#Rotation]]`
+one section, and `![[shared/tokens#^rotation-window]]` one named block.
+</div>
+
+<div markdown>
+### Embeds are linted
+
+An embedded card can embed others. A cycle is an error, and so is nesting
+deeper than 16 levels. A missing target is reported like a missing link.
+</div>
+
+<div markdown>
+### In the editor and on export
+
+The editor preview shows an embed as an embed, with the card it came from.
+`hmd render` writes one flat Markdown or HTML file with every embed expanded.
+</div>
+
+</div>
+</section>
+
+<section class="hmd-band hmd-band--alt" markdown>
+
+## Metadata { .hmd-section }
+
+<p class="hmd-lede" markdown>A card can open with YAML frontmatter. The tools read four keys. Every other key is yours.</p>
+
+<div class="hmd-split hmd-split--even" markdown>
+<div markdown>
+<p class="hmd-label">Four keys the tools read</p>
+
+```hmd
+---
+tags: [area/auth, status/accepted]
+use: [no_autodiscovery]
+import:
+  - from /shared import tokens as shared-tokens
+  - from /glossary import *
+nav:
+  order: 10
+  visibility: public
+---
+```
+
+<dl class="hmd-keys">
+<dt><code>tags</code></dt><dd>what the card is about. <code>/</code> separates levels</dd>
+<dt><code>use</code></dt><dd>switches for the card or its folder. Today there is one: autodiscovery</dd>
+<dt><code>import</code></dt><dd>names brought in from other folders</dd>
+<dt><code>nav</code></dt><dd>the card's place in a published site. A card is published only when <code>visibility</code> is <code>public</code></dd>
+</dl>
+</div>
+<div markdown>
+<p class="hmd-label">Your keys, read by a query</p>
+
+```hmd title="books/emma.hmd"
+---
+title: Emma
+metadata:
+  author: Jane Austen
+  status: todo
+---
+```
+
+````hmd title="contents.hmd"
+```hql#query id=todo
+books | filter(c => c.metadata.status == "todo")
+```
+
+```hql#eval
+todo | map(c => c.title)
+```
+````
+
+<div class="hmd-out" data-label="output" markdown>
+
+- Emma
+- The Hobbit
+
+</div>
+
+<p class="hmd-fineprint" markdown>Two of the four book cards have `status: todo`. The two fences are cells: queries that run inside a card, described under [Cards are notebooks](#cards-are-notebooks). HQL reads the keys under `metadata:` as `c.metadata`, and any other key as `c.header`.</p>
+</div>
+</div>
+</section>
+
+<section class="hmd-band" markdown>
+
+## Visuals { .hmd-section }
+
+<p class="hmd-lede" markdown>A diagram, a formula and a callout are text in the card. They are reviewed in a diff like the prose around them.</p>
+
+<div class="hmd-specimens" markdown>
+<div class="hmd-specimen" markdown>
+<p class="hmd-label">Diagram</p>
+
+````hmd
+```d2
+direction: right
+card -> preview: editor
+card -> site: publish
+card -> answer: query
+```
+````
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+```d2
+direction: right
+card -> preview: editor
+card -> site: publish
+card -> answer: query
+```
+
+</div>
+</div>
+<div class="hmd-specimen" markdown>
+<p class="hmd-label">Mathematics</p>
+
+```hmd title="specs/auth/login.hmd"
+Attempt $n$ is delayed by the shared backoff formula with $b = 2$ seconds:
+
+$$
+t_n = U\bigl(0,\; \min(t_{max},\; b \cdot 2^n)\bigr)
+$$
+```
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+Attempt $n$ is delayed by the shared backoff formula with $b = 2$ seconds:
+
+$$
+t_n = U\bigl(0,\; \min(t_{max},\; b \cdot 2^n)\bigr)
+$$
+
+</div>
+</div>
+<div class="hmd-specimen" markdown>
+<p class="hmd-label">Callout</p>
+
+```hmd title="specs/auth/login.hmd"
+!!! note "Why per subject"
+
+    Throttling per address punishes shared egress and misses the attack it is
+    meant to stop.
+```
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+!!! note "Why per subject"
+
+    Throttling per address punishes shared egress and misses the attack it is
+    meant to stop.
+
+</div>
+</div>
+<div class="hmd-specimen" markdown>
+<p class="hmd-label">Task list</p>
+
+```hmd title="specs/auth/login.hmd"
+- [ ] Decide whether step 2 emits an audit event
+- [x] Confirm the throttle key is the subject
+```
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+- [ ] Decide whether step 2 emits an audit event
+- [x] Confirm the throttle key is the subject
+
+</div>
+</div>
+</div>
+
+<p class="hmd-fineprint" markdown>Diagrams are [D2](https://d2lang.com/) and mathematics is TeX. Tables, footnotes, collapsible sections and strikethrough render in the editor preview and on a site too. Where the `d2` program is not installed, a diagram is shown as its own source with a label. Every construct is shown working in [Features](public/features.md).</p>
+
+</section>
+
+<section class="hmd-band hmd-band--alt" markdown>
+
+## Cards are notebooks { .hmd-section }
+
+<p class="hmd-lede" markdown>A card can hold [HQL](https://hql-lang.org/) cells. A cell is a query, it runs, and its output is written into the card as Markdown.</p>
+
+<div class="hmd-split hmd-split--even" markdown>
+<div markdown>
+<p class="hmd-label">Three kinds of fence</p>
+
+<dl class="hmd-keys hmd-keys--first">
+<dt><code>```hql#eval</code></dt><dd>a cell. It runs, and its output is saved under it</dd>
+<dt><code>```hql#query</code></dt><dd>a cell that prints nothing. Other cells read its value</dd>
+<dt><code>```hql</code></dt><dd>a listing. It is an ordinary Markdown code block and is never run</dd>
+</dl>
+
+````hmd title="contents.hmd"
+```hql#eval
+{books: books | size, to_read: todo | size}
+```
+<!-- hql:output hash=779c4eb751ef status=ok -->
+| key     | value |
+| ------- | ----- |
+| books   | 4     |
+| to_read | 2     |
+<!-- /hql:output -->
+````
+
+<p class="hmd-fineprint" markdown>The output sits between two comments, so the card reads the same in any Markdown viewer, with or without HQL installed.</p>
+</div>
+<figure class="hmd-shotframe" markdown>
+![A card in the VS Code preview: a drawn diagram, then an hql#eval cell marked current with Hide code, Edit and Run buttons, then the table the cell produced.](assets/hmd-notebook-cell.png)
+<figcaption>A cell in the VS Code preview, in a larger vault: its state, its code, a Run button, and the table it wrote.</figcaption>
+</figure>
+</div>
+
+<p class="hmd-label hmd-label--row">Cells read each other</p>
+
+<div class="hmd-flow hmd-flow--three" aria-label="Three cells of one card: the second reads the first, the third reads both">
+<div class="hmd-flow__stage">
+<p class="hmd-flow__label hmd-flow__label--code">hql#eval id=books</p>
+<p class="hmd-flow__code"><code>cards | filter(…) | sort(…)</code></p>
+<p class="hmd-flow__note">every card but this one, by title</p>
+</div>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+<div class="hmd-flow__stage">
+<p class="hmd-flow__label hmd-flow__label--code">hql#query id=todo</p>
+<p class="hmd-flow__code"><code>books | filter(…)</code></p>
+<p class="hmd-flow__note">reads <code>books</code>, keeps the unread ones</p>
+</div>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+<div class="hmd-flow__stage hmd-flow__stage--accent">
+<p class="hmd-flow__label hmd-flow__label--code">hql#eval</p>
+<p class="hmd-flow__code"><code>{books: …, to_read: …}</code></p>
+<p class="hmd-flow__note">reads both, writes the table</p>
+</div>
+</div>
+
+<div class="hmd-pillars" markdown>
+
+<div markdown>
+### Run in order
+
+A cell with `id=` gives its value a name. Cells run in the order their reads
+require, and a cell that reads a failed cell is skipped.
+</div>
+
+<div markdown>
+### Stale output is detected
+
+The hash on an output covers the cell's code and the code of every cell it
+reads. The editor marks a cell current or stale without running it.
+</div>
+
+<div markdown>
+### Two ways to run
+
+The VS Code extension runs a cell from a button in the preview and saves its
+output. `hql render` runs a card's cells from the command line.
+</div>
+
+</div>
+
+<p class="hmd-fineprint" markdown>HQL is a strongly typed expression and query language, and a separate project. A cell can query the vault's cards, their metadata and their links, and the same pipelines read JSON, YAML, SQLite, PostgreSQL, Kafka, NATS and lakehouse tables. Its documentation is at [hql-lang.org](https://hql-lang.org/). What each kind of value is written as is [Cell output](public/cell-output.md).</p>
+
+</section>
+
+<section class="hmd-band" markdown>
+
+## Search by meaning { .hmd-section }
+
+<p class="hmd-lede" markdown>`hmd-semantics` embeds each card, and each question you name, into one index file. HQL ranks cards for those questions without a model, and then follows their links.</p>
+
+<div class="hmd-flow" aria-label="From a vault, through the index builder and the index, to a query">
+<div class="hmd-flow__stage">
+<p class="hmd-flow__label">Vault</p>
+<ul class="hmd-chips">
+<li><code>.hmd</code> cards</li>
+<li><code>.md</code> cards</li>
+</ul>
+</div>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+<div class="hmd-flow__stage">
+<p class="hmd-flow__label">Build</p>
+<p class="hmd-flow__code"><code>hmd-semantics build</code></p>
+<p class="hmd-flow__note">embeds each card, and each question given as <code>--query</code>, with a local model or an HTTP endpoint</p>
+</div>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+<div class="hmd-flow__stage">
+<p class="hmd-flow__label">Index</p>
+<p class="hmd-flow__code"><code>.hmd/index.sqlite</code></p>
+<p class="hmd-flow__note">one file, named by <code>[semantics] index</code> in the vault's config. <code>verify</code> reports when it no longer matches the cards</p>
+</div>
+<div class="hmd-flow__arrow" aria-hidden="true"></div>
+<div class="hmd-flow__stage hmd-flow__stage--accent">
+<p class="hmd-flow__label">Query</p>
+<p class="hmd-flow__code"><code>cards | semantic("night hunting birds") | take(3) | expand(depth = 1)</code></p>
+<p class="hmd-flow__note">the three closest cards, and every card one link away</p>
+</div>
+</div>
+
+<div class="hmd-pillars" markdown>
+
+<div markdown>
+### No model at query time
+
+The vectors are computed once, at build. A query reads them from the index,
+so it runs offline and gives the same ranking each time.
+</div>
+
+<div markdown>
+### Questions are named at build
+
+A question has to be named with `--query` when the index is built. A query
+for any other string is an error that says to rebuild.
+</div>
+
+<div markdown>
+### One vector per card <span class="hmd-badge hmd-badge--planned">more planned</span>
+
+Each card is embedded whole. Indexing a one-paragraph and a one-sentence
+summary of each card beside it is planned and not built.
+</div>
+
+</div>
+
+<p class="hmd-fineprint" markdown>The result is cards, so it is Markdown: add `| text` and the ranked cards and their neighbours print as one document, which is what a language model takes as context. The index builder and HQL are separate installs, listed under [Tools](#tools).</p>
+
+</section>
+
+<section class="hmd-band hmd-band--alt" markdown>
+
+## Tools { .hmd-section }
+
+<p class="hmd-lede" markdown>Seven tools read, check, draw or query cards. One more is planned.</p>
+
+<div class="hmd-tiles" markdown>
+
+- [**VS Code extension**](tools/vscode.md) <span>editor</span> <em>Live preview, the vault's graph, diagnostics, and Run buttons on cells.</em>
+- [**hmd**](https://pypi.org/project/hypermarkdown/) <span>command line · Python</span> <em>`lint`, `render`, `graph`, `init` and `info` over a tree of cards.</em>
+- [**MkDocs plugin**](tools/index.md) <span>site</span> <em>Builds a tree of cards into a website. It built this one.</em>
+- [**@hypermarkdown/core**](https://www.npmjs.com/package/@hypermarkdown/core) <span>library · TypeScript</span> <em>Parser, resolver and renderer. The extension's preview runs on it.</em>
+- [**hypermarkdown**](https://crates.io/crates/hypermarkdown) <span>library · Rust</span> <em>The resolver as a crate. It does not lint or render.</em>
+- [**hmd-semantics**](https://pypi.org/project/hypermarkdown-semantics/) <span>index builder · Python</span> <em>Builds and verifies a vault's semantic index.</em>
+- [**HQL**](https://hql-lang.org/) <span>query language · Rust</span> <em>Runs the cells. A separate project with its own documentation.</em>
+- **Language server** <span class="hmd-planned">planned</span> <em>Completion, rename and hover, for editors other than VS Code too.</em>
+
+</div>
+
+<p class="hmd-fineprint" markdown>The specification decides what a card means. The Python, TypeScript and Rust implementations run the same test cases, and where neither settles a question the Python tool's behaviour stands. Cells run in the editor and through HQL; `hmd` and the site build do not run them. A card is plain text, so any editor, GitHub or a chat window shows its source; what each viewer draws is [Presentation](public/presentation.md).</p>
+
+</section>
+
+<section class="hmd-band" markdown>
+
+## How it compares { .hmd-section }
+
+<p class="hmd-lede" markdown>What each format does about links by name, embeds, checking and cells.</p>
+
+<div class="hmd-compare" markdown>
+
+|                | What it is | Links by name | Embeds | Links checked | Cells that run | Readable as plain text | Specification |
+| -------------- | ---------- | ------------- | ------ | ------------- | -------------- | ---------------------- | ------------- |
+| **HyperMarkDown** | Markdown with links by name, embeds, metadata and cells | `[[card]]`, to a card, a heading or a block | `![[card#^block]]`: a card, a section or a block | `hmd lint`: every `[[link]]` and embed, from the command line | HQL cells; output saved in the card | Yes | Yes, for links, embeds and metadata; 0.1 is a draft |
+| CommonMark     | Markdown specification | Paths and URLs | No | Not part of the specification | No | Yes | Yes |
+| GFM            | CommonMark with tables, task lists, strikethrough and autolinks | Paths and URLs | No | Not part of the specification | No | Yes | Yes |
+| Obsidian       | Note-taking app over Markdown files | `[[Note]]`, to a note, a heading or a block | `![[Note#^block]]`: a note, a heading or a block | In the app; its CLI lists unresolved links while the app runs | Not built in | Yes | Help pages; no formal specification |
+| MDX            | Markdown with JSX, compiled to JavaScript | Paths and URLs | A whole file, imported as a component | Not documented | JSX, evaluated when the compiled page runs; no output in the source | Markdown with JSX | No current specification |
+| Jupyter        | JSON notebook of code and Markdown cells | Paths and URLs | No | Not documented | Kernels; outputs saved in the file | No, JSON | Yes, a JSON schema |
+| Quarto         | Pandoc Markdown with executable blocks | Paths | `{{< include >}}`, a whole file | Not documented | knitr or Jupyter; output goes to the rendered document | Yes | Documentation; no formal specification |
+| Org-mode       | Emacs outline and markup format | File paths, or the ID of a headline | `#+INCLUDE`, at export: a file, a headline or lines | `org-lint` | Babel; results saved in the file | Yes | A community syntax document |
+
+</div>
+
+<p class="hmd-fineprint" markdown>Each row other than the first was checked against that project's own documentation on 2026-11-22. "Not documented" means the documentation does not say. The columns are the things HyperMarkDown is for. It is also the youngest row: a draft specification, one editor extension, and GitHub shows a `.hmd` file as source and does not render it.</p>
+
+</section>
+
+<section class="hmd-band hmd-band--alt" markdown>
+
+## Read on { .hmd-section }
+
+<div class="hmd-parts" markdown>
+
+- [**Introduction**](public/introduction.md) <span>The format at a glance, and how to adopt it one file at a time.</span>
+- [**Tutorial**](wiki/hmd-tutorial.hmd) <span>Every construct of the language, with its source beside what it renders.</span>
+- [**Features**](public/features.md) <span>What a card can carry, shown working.</span>
+- [**Language Specification**](wiki/hmd-lang-spec.hmd) <span>The normative text: grammar, resolution, diagnostics.</span>
+- [**Namespaces**](public/namespaces.md) <span>How a name becomes a card: folders, imports, and what is planned across repositories.</span>
+- [**Cell output**](public/cell-output.md) <span>What each kind of value is written as, and how to choose a format.</span>
+- [**Presentation**](public/presentation.md) <span>Editor, site and plain text: what each one shows.</span>
+- [**Vision**](public/vision.md) <span>Independently served cards that link to each other, and how much of that is unbuilt.</span>
+- [**Roadmap**](public/roadmap.md) <span>Released versions, what works today, and what is coming.</span>
+- [**The wiki**](wiki/README.md) <span>This project's own cards, built into this site.</span>
+
+</div>
+</section>
+
+<section class="hmd-band hmd-band--cta" markdown>
+
+## Start { .hmd-section }
+
+<div class="hmd-steps" markdown>
+
+<div markdown>
+### In the editor
+
+The VS Code extension previews a card as you type and runs its cells.
+
+```sh
+code --install-extension hypermarkdown.hmd
+```
+</div>
+
+<div markdown>
+### On the command line
+
+`hmd` checks every `[[link]]` and `![[embed]]` in a vault.
+
+```sh
+pip install HyperMarkDown
+hmd init
+hmd lint
+```
+</div>
+
+</div>
+
+<p class="hmd-fineprint" markdown>What each install gives you is the [Quick start](tools/index.md). The tools implement specification 0.1, a draft; released versions are on the [Roadmap](public/roadmap.md). Code is MIT, documentation and specifications are CC BY 4.0.</p>
+
+</section>

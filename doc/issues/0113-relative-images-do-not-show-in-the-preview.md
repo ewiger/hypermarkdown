@@ -4,6 +4,9 @@
 **Opened**: 2026-11-13
 **Found by**: reading the preview's code while checking it against issue 0010.
 Not yet reproduced in a running editor, and reproducing it is the first step
+**Seen in use**: reported by the project's author on 2026-11-22, with an SVG:
+`![foo](image.svg)` did not show. So the defect is real and not only read
+from the code; a minimal card that reproduces it is still the first step
 
 ## What
 
