@@ -58,6 +58,7 @@ revisiting is that maths loads from a CDN at view time.
 | --- | --- | --- | --- |
 | todo | **The roadmap is behind the releases**: its version table, its news, and a section that lists released cells as coming | It now says where the work goes — the specification's first version and the editor here, AI and graph querying in HQL — and nothing else on it was brought forward. It is the one page that states versions, so it is the one page that has to be right | [the roadmap card](../issues/0013-the-roadmap-is-behind-the-releases.md) |
 | todo | **A screenshot of the example notebook for the cover**, in place of a crop from another vault | Needs the editor opened by hand | [the screenshot card](../issues/0114-a-screenshot-of-the-example-notebook.md) |
+| todo | **Rewrite every `d2` fence as `d2#show`** — in the book, the wiki, the README, and the example vaults, about eighteen fences — so the diagrams still draw once a plain `d2` fence is a listing. A fence that shows D2 source on purpose, inside an outer example fence, stays as it is | Lands with the release that turns the rule on in both implementations, not before it and not after | [[hmd-0030#backwards-compatibility]] |
 | backlog | **Self-host the maths typesetter**, so the site has no runtime dependency on anything it does not ship | Today it loads from a CDN, which is the site's only network dependency at view time. Not argued yet | — |
 
 ## Broken

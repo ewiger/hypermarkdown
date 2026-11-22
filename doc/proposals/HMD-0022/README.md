@@ -292,3 +292,6 @@ npm run -w tools/hmd-vsc-ext test
   then again to the plain CLI dependency implemented here. The artifact pool —
   content addressing, digest stamps, staleness, a render command — was designed
   and dropped as more machinery than the problem has.
+- 2026-11-22: amended by HMD-0030. A diagram is a `d2#show` or
+  `mermaid#show` fence, matched exactly; a plain `d2` fence is a listing. The
+  renderer, bounds, cache, and image delivery here are unchanged.

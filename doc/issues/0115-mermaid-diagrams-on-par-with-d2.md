@@ -103,8 +103,11 @@ editor and another on the site would break parity with itself.
 
 ## Done when
 
-- A proposal (HMD-0030, or an amendment to HMD-0022, whichever reads better)
-  is accepted, and it answers the renderer choice and the questions above.
+- A proposal for the renderer (a new one, or an amendment to HMD-0022) is
+  accepted, and it answers the renderer choice and the questions above. Which
+  fence draws is already answered by HMD-0030: a `mermaid#show` cell, while a
+  plain `mermaid` fence is a listing. That also means a Mermaid block written
+  for GitHub or Obsidian shows as code here until its fence is renamed.
 - `DIAGRAM_LANGUAGES` in `tools/hmd-ts-core/src/diagram/fence.ts` and
   `LANGUAGES` in `tools/hmd/src/hypermarkdown/diagram.py` both contain
   `mermaid`. The engines draw it, and the degraded state reads the same as for
