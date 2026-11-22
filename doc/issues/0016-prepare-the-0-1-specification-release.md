@@ -36,12 +36,13 @@ the format's tracker.
 | Heading matching | The fragment and each heading's visible text are normalised the same way and compared, as Obsidian does: NFC, case folding, punctuation dropped, letters and digits kept in every script, whitespace collapsed. The specification states the rule itself | Naming a Python library made the other implementations copy its behaviour, including its bugs [issue 0014] |
 | Duplicate headings | The first wins and the linter warns; the recommended remedy is an anchor on the heading. The `_1` suffix leaves the language | Anchors are the author's controlled name |
 | Heading paths | `#Chapter#Section` waits for in-card addressing | It is the first step of that grammar |
+| In-card addressing | After 0.1. Its branch rebases onto the 0.1 specification and renumbers its unreleased rules from HMD020 | 0.1 stays small; addresses need both implementations and their own cases |
 | Project root | Only `.hmd/` marks a root; `.git` does not | One marker, one meaning; the editor already works this way |
 | Encoding | UTF-8 only; UTF-16 turned down | git treats it as binary and the tool chain reads UTF-8; newer formats went the same way |
 | Byte-order mark | A leading one is ignored | It is invisible, and today it hides frontmatter |
 | Line endings | `\n`, `\r\n`, or a lone `\r`, as in CommonMark | Inherited from the baseline |
 | Positions | Line and column count Unicode code points from 1; an offset counts UTF-8 bytes | The three tools count differently today, and nothing noticed |
-| Invalid UTF-8 | Reported by a rule of its own, and the file is skipped | A clear error instead of a crash |
+| Invalid UTF-8 | Reported as HMD019, and the file is skipped | A clear error instead of a crash |
 | Card names | Compared after NFC normalisation | A link must resolve the same on macOS and Linux |
 | Determinism | Stated normatively: the same tree gives the same output, whatever the file order | The format relies on it without saying so |
 | Silencing diagnostics | Not in 0.1; the sentence about suppression comments goes | A syntax designed before real use is designed wrong |

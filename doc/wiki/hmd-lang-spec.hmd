@@ -106,8 +106,9 @@ specification: they are neither link targets nor inputs to checking.
 
 A card is UTF-8 and nothing else.
 
-- A card MUST be encoded in UTF-8. UTF-16 and every other encoding are not
-  cards.
+- A card MUST be encoded in UTF-8. A file with a card extension that is not
+  valid UTF-8 MUST be reported as HMD019, an error, at line 1, column 1. It is
+  then not a card: it is neither scanned nor a link target.
 - A single byte-order mark (`EF BB BF`) at the start of a card MUST be
   ignored. Byte 0 of the card, wherever this specification names it, is the
   first byte after it.
@@ -127,8 +128,8 @@ A Markdown card is addressable as a card and is read as CommonMark.
   implementation MUST expose the mapping and MUST NOT interpret any of its keys,
   the four reserved keys included. A block that does not parse as a YAML
   mapping is body text, not HMD009.
-- Its headings are assigned slugs by the rule under *Heading anchors*, so a
-  heading fragment matches them. It has no block anchors.
+- Its headings are matched by the rule under *Heading anchors*, so a heading
+  fragment reaches them. It has no block anchors.
 - It is not checked: no diagnostic is raised from its body.
 - An embed of a Markdown card transcludes its body as CommonMark, with no
   HyperMarkDown expansion inside it.
@@ -248,23 +249,48 @@ A card MAY open with a frontmatter block: a `---` fence that MUST begin at byte
 
 ## Heading anchors
 
-Fragments that name a heading must agree with what the renderer emits, so anchor
-assignment is delegated rather than invented.
+A heading fragment names a heading by its text. Both sides are normalised
+before they are compared, so a link need not repeat a heading's capitalisation
+or punctuation.
 
-- A heading's slug MUST be produced by Python-Markdown's `toc` slugify with `-`
-  as the separator, equivalent to `markdown.extensions.toc.slugify(text, "-")`.
-- Collisions within one card MUST be deduplicated exactly as the `toc` extension
-  does, by appending `_1`, `_2`, … in document order. A fragment naming that
-  text therefore addresses the first such heading, and the `_1` form the second.
-- A `heading_text` fragment MUST be matched by slugifying it and comparing
-  against the card's assigned slugs. Capitalisation and spacing are therefore
-  not significant: the written heading and its slug are equally valid fragments.
-- Two headings in one card that share a slug MUST be reported as HMD011, a
-  warning. Resolution still succeeds by the deduplication rule above.
+- A **heading** is an ATX heading (`# Setup`) or a setext heading (`Setup`
+  over a line of `===` or `---`), as CommonMark defines them. Both forms are
+  addressable. A line inside a masked region is never a heading.
+- A heading's **text** is its content as a reader sees it: inline markup
+  removed, so `# The *fast* path` has the text `The fast path`. A closing run
+  of `#` and a trailing block anchor are not part of it.
+- The **key** of a text, whether a heading's or a fragment's, is computed in
+  four steps:
 
-Reusing the renderer's own rule is what keeps a link and its rendered
-destination from disagreeing. An implementation that assigns slugs differently
-does not conform.
+```text
+key(text):
+  1. normalise to Unicode NFC
+  2. apply Unicode full case folding
+  3. replace every character that is not a letter, a mark, or a number
+     (general categories L, M, N) with a space
+  4. collapse every run of spaces into one, and trim both ends
+```
+
+- A `heading_text` fragment MUST match the first heading, in document order,
+  whose key equals the fragment's key. A fragment that matches no heading is
+  reported as HMD004.
+- Letters and digits of every script are kept. `Ошибка 404`, `Café`, and
+  `数据` each have a key of their own, and accents are significant.
+- Two headings in one card whose keys are equal MUST be reported as HMD011, a
+  warning. A fragment reaches the first of them. The remedy is a block anchor
+  on the heading's line, `# Setup ^setup-linux`, linked as `#^setup-linux`.
+- A heading whose key is empty, such as one made only of symbols, cannot be
+  reached by its text. It can be reached by an anchor.
+
+Link by heading text where the link should read naturally. Anchor a heading
+whose links must survive a rename, or whose text is awkward to type. This
+matching agrees with Obsidian's, which also compares heading text without
+regard to case or punctuation.
+
+How a renderer turns a heading into an HTML `id`, or a fragment into a URL, is
+not part of the language. It may slug the text, percent-encode it, or number
+repeated headings. Whatever it chooses, it MUST rewrite each heading link to
+the `id` it gave the heading that link matched, so the two cannot disagree.
 
 ## The namespace
 
@@ -674,7 +700,7 @@ silence a diagnostic.
 | HMD008 | error | Embed depth limit (16) exceeded |
 | HMD009 | error | Frontmatter is not valid YAML, or not a top-level mapping |
 | HMD010 | error | Malformed wikilink or embed syntax |
-| HMD011 | warning | Two headings in one card share a slug |
+| HMD011 | warning | Two headings in one card have the same key |
 | HMD012 | error | A card and a folder note claim the same name |
 | HMD013 | error | Unrecognised `use` feature, or a malformed `tags` or `nav` value |
 | HMD014 | error | Malformed `import` statement |
@@ -682,6 +708,7 @@ silence a diagnostic.
 | HMD016 | warning | An unqualified reference matched two imported search paths; the earlier won |
 | HMD017 | warning | A published card links to or embeds one that is not published |
 | HMD018 | warning | A card shadows a card of the same name with a later card extension |
+| HMD019 | error | A file with a card extension is not valid UTF-8 |
 
 An unresolved reference is a **warning**: writing forward is permitted, and the
 report is a to-do list. Multiple autodiscovery matches are an **error** because
