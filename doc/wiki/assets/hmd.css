@@ -398,7 +398,7 @@ body:has(.hmd-home) .md-grid {
   color: transparent;
 }
 
-.md-typeset .hmd-hero-text > p:not(.hmd-tagline):not(.hmd-actions) {
+.md-typeset .hmd-hero-text > p:not(.hmd-tagline):not(.hmd-actions):not(.hmd-fineprint) {
   font-size: 0.95rem;
   line-height: 1.6;
   color: var(--md-default-fg-color--light);
@@ -1629,4 +1629,19 @@ body:has(.hmd-home) .md-grid {
   margin: 0.6rem 0 0;
   font-size: 0.66rem;
   color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .hmd-fineprint--hero {
+  margin: 0.6rem 0 0;
+}
+
+.md-typeset .hmd-pane__note {
+  margin: 0.7rem 0 0;
+  font-size: 0.66rem;
+  line-height: 1.5;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .hmd-pane__note--top {
+  margin: 0.7rem 0 0;
 }

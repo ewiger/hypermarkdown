@@ -371,6 +371,42 @@ def test_the_cover_shows_what_the_linter_prints(tmp_path):
         assert line in cover, f"the cover does not show this line of output: {line}"
 
 
+def test_the_cover_is_a_stack_of_bands(built_home):
+    """Every band is a `<section>` directly inside the cover's article, and
+    nothing else is. The bands are authored as HTML around Markdown, where one
+    closing tag too many or too few nests the rest of the page inside whatever
+    was open, and the page still builds."""
+    from html.parser import HTMLParser
+
+    void = {"input", "img", "br", "hr", "meta", "link", "path", "rect", "source", "wbr"}
+
+    class Outline(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.depth = 0
+            self.top = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag in void:
+                return
+            if self.depth == 0:
+                self.top.append((tag, dict(attrs).get("class", "")))
+            self.depth += 1
+
+        def handle_endtag(self, tag):
+            if tag not in void:
+                self.depth -= 1
+
+    outline = Outline()
+    outline.feed(_cover_article(built_home))
+    assert outline.depth == 0, "the cover's tags do not balance"
+    assert len(outline.top) >= 10, f"the cover should be a stack of bands: {outline.top}"
+    for tag, classes in outline.top:
+        assert tag == "section" and "hmd-band" in classes, (
+            f"<{tag} class={classes!r}> sits beside the bands instead of inside one"
+        )
+
+
 def test_the_cover_works_without_a_script(built_home):
     """The window's five tabs are in the page as built: a source and what it
     produces, recorded. The live editor is a sixth tab that a script adds, so
