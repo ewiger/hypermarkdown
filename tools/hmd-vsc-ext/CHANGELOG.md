@@ -21,6 +21,21 @@ against
 
 ## [Unreleased]
 
+## [0.5.2] — 2026-11-22
+
+### Added
+
+- **Windows brings its own `hql`.** The `win32-x64` and `win32-arm64` builds
+  carry `hql.exe` beside `d2.exe`, from toolchain 0.5.2, so Run needs nothing
+  on `PATH` there; `win32-arm64` runs the x64 binary under emulation, as it
+  does `d2`. Only Linux ARM64 still runs cells with an `hql` on `PATH`.
+
+### Changed
+
+- **The extension carries `hql` 0.7.2**, where it carried 0.7.1. A card's
+  path in a cell is written with `/` on every host, so a cell reads a vault
+  the same on Windows as elsewhere. The cell protocol is unchanged.
+
 ## [0.5.1] — 2026-11-16
 
 ### Changed
@@ -334,7 +349,8 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.1...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.2...HEAD
+[0.5.2]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.1...vsc-ext-v0.5.2
 [0.5.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.0...vsc-ext-v0.5.1
 [0.5.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.4...vsc-ext-v0.5.0
 [0.4.4]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.3...vsc-ext-v0.4.4

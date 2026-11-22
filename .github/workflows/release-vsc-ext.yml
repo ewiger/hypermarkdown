@@ -128,15 +128,16 @@ jobs:
       # package that renders no diagrams and says nothing about why — the exact
       # failure this issue exists to remove, moved one layer down.
       #
-      # `hql` is checked the same way on the targets HQL publishes — Linux x64
-      # and both macOS — and nowhere else; the others run cells with an `hql`
-      # on PATH or named in the setting (issue 0111).
+      # `hql` is checked the same way on the targets HQL publishes — Linux x64,
+      # both macOS, and Windows, whose ARM64 VSIX carries the x64 binaries —
+      # and not on Linux ARM64, which runs cells with an `hql` on PATH or
+      # named in the setting (issue 0111).
       - name: Check every VSIX carries its d2, and its hql where HQL ships one
         run: |
           set -euo pipefail
           for vsix in dist-vsix/*.vsix; do
             case "$vsix" in
-              *win32*)                          expected="extension/toolchain/bin/d2.exe" ;;
+              *win32*)                          expected="extension/toolchain/bin/d2.exe extension/toolchain/bin/hql.exe" ;;
               *linux-x64*|*darwin-x64*|*darwin-arm64*)
                                                 expected="extension/toolchain/bin/d2 extension/toolchain/bin/hql" ;;
               *)                                expected="extension/toolchain/bin/d2" ;;

@@ -35,9 +35,9 @@ hands the card to the `hql` binary and writes the answer back in the bytes
 runs in an untrusted workspace. A plain `hql` fence is a listing and never runs
 [[hmd-0026]]. Tested against the real binary and checked by hand in a running
 editor [issue 0110]. Since `0.4.1` the `hql` comes with the extension, from the
-pinned toolchain beside `d2`, on Linux x64 and macOS — `hql` 0.7.1 as of
-`0.5.1`; `hyperMarkdown.hql.path`
-overrides it, and Linux ARM64 and Windows use `hql` on `PATH` [issue 0111].
+pinned toolchain beside `d2`, on Linux x64 and macOS, and on Windows since
+`0.5.2` — `hql` 0.7.2 as of `0.5.2`; `hyperMarkdown.hql.path`
+overrides it, and Linux ARM64 uses `hql` on `PATH` [issue 0111].
 
 **Vaults are now discovered from the card.** A window holds a catalog of
 vaults rather than one project, so a repository carrying several — this one
@@ -75,7 +75,7 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 | Limitation | Why it stands | References |
 | --- | --- | --- |
-| Run needs `hql` on `PATH` on Linux ARM64 and Windows | HQL 0.6.0 publishes no binary for either, so the toolchain archives for them carry `d2` only. A toolchain release picks them up when HQL publishes them | [[hmd-0026#running-a-cell]] |
+| Run needs `hql` on `PATH` on Linux ARM64 | HQL 0.7.2 publishes no binary for it, so the toolchain archive for it carries `d2` only. A toolchain release picks it up when HQL publishes it | [[hmd-0026#running-a-cell]] |
 | Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it | [[hmd-0021#11-webview-hardening]] |
 | A published card linking to a private one is never flagged | The publication model is unported, so nothing here knows whether a card is published at all (rule HMD017) | [[hmd-0002#3-expansion]] |
 | Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core | [[hmd-0020#33-free-syntax]] |
@@ -103,6 +103,9 @@ about 300 MB on first run, which is why it is not in the default test command.
   file it names, resolved from the card's folder: a card in the preview, any
   other file in the editor. Web and mail links open outside the editor, and
   every other scheme is refused [issue 0112].
+- **`hql` on Windows, and 0.7.2** — toolchain 0.5.2 carries `hql.exe` in
+  the Windows archive, and the release gate requires it in both Windows
+  VSIXes. A card's path is written with `/` on every host [HQL issue 0082].
 - **`hql` 0.7.1** — toolchain 0.5.1 carries it. The cell protocol is
   unchanged, and the real-binary tests pass against it.
 - **`hql` 0.7.0** — toolchain 0.5.0 carries it. `--vault` names the vault

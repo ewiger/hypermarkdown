@@ -88,9 +88,9 @@ between a keystroke and the preview. The
 [`hmd` CLI](https://pypi.org/project/hypermarkdown/) remains the canonical
 implementation and CI checks the two against a shared conformance corpus.
 
-Running an HQL cell needs the `hql` binary, and on Linux x64 and macOS the
-extension brings its own, from the same pinned toolchain as `d2`. On Linux ARM64
-and Windows, where HQL publishes no binary yet, put `hql` on `PATH`. Set
+Running an HQL cell needs the `hql` binary, and on Linux x64, macOS and Windows
+the extension brings its own, from the same pinned toolchain as `d2`. On Linux
+ARM64, where HQL publishes no binary yet, put `hql` on `PATH`. Set
 `hyperMarkdown.hql.path` to run cells with a different `hql`. Reading a card's
 saved outputs needs nothing.
 

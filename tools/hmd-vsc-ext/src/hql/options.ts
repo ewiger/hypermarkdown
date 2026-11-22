@@ -6,8 +6,9 @@
  * place that knows they come from a setting and from the VSIX layout.
  *
  * The default is the `hql` the pinned toolchain release puts in a
- * platform-specific VSIX, beside `d2`. HQL publishes Linux x64 and both macOS
- * targets; the other VSIXes carry no `hql`, and fall through to `PATH`.
+ * platform-specific VSIX, beside `d2`. HQL publishes Linux x64, both macOS
+ * targets and Windows x64, which the Windows ARM64 VSIX carries too; the Linux
+ * ARM64 VSIX carries no `hql`, and falls through to `PATH`.
  */
 
 import { existsSync } from "node:fs";

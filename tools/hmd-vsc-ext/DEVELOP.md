@@ -179,9 +179,9 @@ brew install d2      # or see https://d2lang.com
 `npm run package` stages it for you. Everything but diagrams renders with no
 external tool.
 
-**Cells need `hql`, and a released build brings its own** on Linux x64 and
-macOS (issue 0111). The order mirrors `d2`'s: `hyperMarkdown.hql.path`, which
-never falls through; then `toolchain/bin/hql`, which the same toolchain
+**Cells need `hql`, and a released build brings its own** on Linux x64, macOS
+and Windows (issue 0111). The order mirrors `d2`'s: `hyperMarkdown.hql.path`,
+which never falls through; then `toolchain/bin/hql`, which the same toolchain
 archive carries beside `d2` wherever HQL publishes the platform; then `hql` on
 `PATH`. Staging the toolchain into a checkout, as above, gives the Extension
 Development Host the bundled `hql` too.
