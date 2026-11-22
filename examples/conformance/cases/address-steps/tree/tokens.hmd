@@ -1,0 +1,59 @@
+---
+tags: [corpus]
+---
+
+# Tokens
+
+## The limit
+
+A token has a limit. It expires after one hour! Refresh it before then. ^limit
+
+Second paragraph, with `code` and **bold** words.
+
+| key | value |
+| --- | ----- |
+| ttl | 3600  |
+| max | 10    |
+
+```python
+ttl = 3600
+limit = 10
+```
+
+```d2#show
+client -> server
+```
+
+- first item of the list
+- second item, which runs
+  over two lines.
+
+> A quoted sentence. And a second one?
+
+> [!note] Rotation
+> Rotate keys yearly.
+
+!!! warning "Expiry"
+    Tokens expire.
+
+    Even refreshed ones.
+
+$$
+e^{i\pi} + 1 = 0
+$$
+
+![[other]]
+
+<div class="box">
+raw html
+</div>
+
+### Setup
+
+Nested setup text.
+
+## Other
+
+### Setup
+
+Other setup. Two sentences here.

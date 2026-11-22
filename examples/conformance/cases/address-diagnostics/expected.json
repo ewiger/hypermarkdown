@@ -1,0 +1,238 @@
+{
+  "addresses": [
+    {
+      "raw": "[[tokens#Para0]]",
+      "rule": "HMD019",
+      "source": "reader.hmd"
+    },
+    {
+      "raw": "[[tokens#Para3-Para5/Word1]]",
+      "rule": "HMD019",
+      "source": "reader.hmd"
+    },
+    {
+      "digest": "bc59b814f95a8629",
+      "end": 71,
+      "raw": "[[tokens#^limit/Sentence2@sha256-0000000000000000]]",
+      "source": "reader.hmd",
+      "start": 45,
+      "text": "It expires after one hour!"
+    },
+    {
+      "raw": "[[tokens#^nope/Sentence1]]",
+      "rule": "HMD005",
+      "source": "reader.hmd"
+    },
+    {
+      "raw": "[[tokens#a//b]]",
+      "rule": "HMD019",
+      "source": "reader.hmd"
+    },
+    {
+      "raw": "[[tokens#nope/Para1]]",
+      "rule": "HMD004",
+      "source": "reader.hmd"
+    },
+    {
+      "digest": "559aead08264d579",
+      "end": 25,
+      "raw": "[[tokens#other/^limit/Word1]]",
+      "source": "reader.hmd",
+      "start": 24,
+      "text": "A"
+    },
+    {
+      "raw": "[[tokens#other/nope]]",
+      "rule": "HMD004",
+      "source": "reader.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Line2]]",
+      "rule": "HMD019",
+      "source": "reader.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Para9]]",
+      "rule": "HMD020",
+      "source": "reader.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Table1/Word1]]",
+      "rule": "HMD020",
+      "source": "reader.hmd"
+    },
+    {
+      "raw": "[[tokens#w1-Word2]]",
+      "rule": "HMD019",
+      "source": "reader.hmd"
+    }
+  ],
+  "diagnostics": [
+    {
+      "column": 12,
+      "line": 3,
+      "message": "a range selects content, so 'Para3-Para5' must be the last step in [[tokens#Para3-Para5/Word1]]",
+      "path": "reader.hmd",
+      "rule": "HMD019",
+      "severity": "error"
+    },
+    {
+      "column": 41,
+      "line": 3,
+      "message": "a range must spell both ends the same way, not 'w1-Word2' in [[tokens#w1-Word2]]",
+      "path": "reader.hmd",
+      "rule": "HMD019",
+      "severity": "error"
+    },
+    {
+      "column": 61,
+      "line": 3,
+      "message": "'Line2' cannot follow 'the-limit': lines are counted in the card or in one block in [[tokens#the-limit/Line2]]",
+      "path": "reader.hmd",
+      "rule": "HMD019",
+      "severity": "error"
+    },
+    {
+      "column": 88,
+      "line": 3,
+      "message": "ordinals count from 1, so 'Para0' names nothing in [[tokens#Para0]]",
+      "path": "reader.hmd",
+      "rule": "HMD019",
+      "severity": "error"
+    },
+    {
+      "column": 105,
+      "line": 3,
+      "message": "an address has an empty step in [[tokens#a//b]]",
+      "path": "reader.hmd",
+      "rule": "HMD019",
+      "severity": "error"
+    },
+    {
+      "column": 18,
+      "line": 5,
+      "message": "'#the-limit' has 1 paragraph; Para9 is past the end",
+      "path": "reader.hmd",
+      "rule": "HMD020",
+      "severity": "error"
+    },
+    {
+      "column": 45,
+      "line": 5,
+      "message": "Table1 of '#the-limit' is a table, which has no words; address its lines",
+      "path": "reader.hmd",
+      "rule": "HMD020",
+      "severity": "error"
+    },
+    {
+      "column": 79,
+      "line": 5,
+      "message": "tokens.hmd has no heading '#nope'",
+      "path": "reader.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    },
+    {
+      "column": 101,
+      "line": 5,
+      "message": "tokens.hmd has no heading '#nope' in '#other'",
+      "path": "reader.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    },
+    {
+      "column": 123,
+      "line": 5,
+      "message": "tokens.hmd has no block '^nope'",
+      "path": "reader.hmd",
+      "rule": "HMD005",
+      "severity": "error"
+    },
+    {
+      "column": 14,
+      "line": 7,
+      "message": "block '^limit' is not in '#other'; the address was written against an earlier version of tokens.hmd",
+      "path": "reader.hmd",
+      "rule": "HMD021",
+      "severity": "warning"
+    },
+    {
+      "column": 14,
+      "line": 9,
+      "message": "the quoted text has changed: it now hashes to sha256-bc59b814f95a8629, not sha256-0000000000000000",
+      "path": "reader.hmd",
+      "rule": "HMD023",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 15,
+      "message": "'#p3' counts paragraphs rather than naming this heading; anchor the heading to link to it",
+      "path": "tokens.hmd",
+      "rule": "HMD022",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[tokens#Para0]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#Para3-Para5/Word1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#^limit/Sentence2@sha256-0000000000000000]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#^nope/Sentence1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#a//b]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#nope/Para1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#other/^limit/Word1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#other/nope]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Line2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Para9]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Table1/Word1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#w1-Word2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    }
+  ]
+}

@@ -92,9 +92,9 @@ converge on the same missing piece:
 - **The integrity digest is not a security control.** It detects drift by
   accident, not tampering by intent; it is author-supplied and travels with the
   thing it describes.
-- **No implementation.** Neither implementation parses a multi-step fragment
-  today. This is a design record; the work it implies belongs in the trackers,
-  and no rows are added until the design is agreed.
+- **No implementation in this record.** It is a design record; the work it
+  implies is tracked in the language's tracker and in each tool's, and the
+  normative rule is the specification's section *Addresses inside a card*.
 
 ## Specification
 
@@ -521,18 +521,70 @@ operations — which documents convert, what happens to the site build and the
 link checks that currently depend on markdown paths, and whether the vault is a
 second namespace or a widened root — is deliberately left for its own record.
 
+## Decisions for the first implementation
+
+Taken on 2026-11-22, when the canonical implementation began resolving
+addresses. Each answers an open question this record left, or one the
+implementation found; the rules themselves are written into
+[[hmd-lang-spec#addresses-inside-a-card]].
+
+- **The sentence rule stands.** A sentence ends at a word whose last character
+  is `.`, `!`, or `?` — the rule above, restated over words so that "followed by
+  whitespace" needs no second definition. No abbreviation list: word spans are
+  the escape hatch, and a pinned list would be a table every port has to copy.
+- **Words are counted over source text**, so a language server answers without
+  a renderer. Whitespace is pinned to CommonMark's Unicode whitespace, spelled
+  out as code points rather than taken from a host language. Structure is not a
+  word: blockquote and list markers, callout markers, and block anchors are
+  skipped, so `List1/Word1` is the first word of the item, not its `-`.
+- **Blocks are segmented by a line-based rule of the format's own**, not by a
+  CommonMark parse. Nine rules, each short enough to port word for word, decide
+  every boundary; the specification's *Blocks* section is that rule. Two kinds
+  are added to the list above: `Html`, spelled out with no letter, and
+  `Callout`, which covers both `!!!` admonitions and `> [!type]` quotes.
+- **Diagrams are diagram cells.** `Diagram` counts `d2#show` and `mermaid#show`
+  fences, as [HMD-0030](../HMD-0030/README.md) defines them; a plain `d2` fence
+  is `Code`.
+- **Nesting: blocks are counted at the top of a card or section only**, and an
+  address does not descend into a list, a blockquote, or a callout in this
+  version. A block unit after a block is HMD019. The question of descent stays
+  open below.
+- **Sentences and words need a block.** `Sentence` follows a block step or a
+  block unit, and `Word` one of those or a `Sentence`; at section level both are
+  HMD019. They count only in prose blocks — `Para`, `List`, `Blockquote`,
+  `Callout` — and the words of a table or a code block are HMD020, whose
+  message points at its lines.
+- **Line counting.** A first-position `Line` counts the file's lines, frontmatter
+  included, to agree with an editor. After a block it counts that block's lines,
+  without the delimiter lines of a fence or a display-math block.
+- **Heading paths.** A heading step after another heading step matches inside
+  the enclosing section by the unsuffixed slug, so `#other/setup` reaches the
+  `Setup` under `Other` without knowing it is `setup_1`. This is how the format
+  gets Obsidian's `#Chapter#Section`, with `/` rather than a second `#`.
+- **The short letters are exactly the ten assigned.** Any other lowercase letter
+  and digits, and any capitalised word that is not a unit, stays heading text,
+  so `#x1` and `#Chapter2` are headings.
+- **Diagnostics.** HMD019, error: a static rule of the grammar is broken.
+  HMD020, error: a counted step selects nothing, or names a unit its scope has
+  none of. HMD021, warning: a block step outside the section before it. HMD022,
+  warning: a heading shadowed by a short-form step. HMD023, warning: a stale
+  digest. An unknown heading or block step is still HMD004 or HMD005.
+- **Site links** land on the deepest heading the address passes through, the
+  nearest place a built page has an anchor; nothing below a heading has one.
+- **Digest repair is a tool question.** `hmd address` prints a span's digest,
+  which is enough to rewrite one by hand; a command that rewrites it in place is
+  for the tools to add.
+- **One compatibility cost, accepted.** `/` in a heading fragment now separates
+  steps, so `#Input/Output` no longer reaches a heading of that name. No link in
+  this repository writes one, and the slug `inputoutput` still reaches it.
+
 ## Open Questions
 
 - Can the sentence rule be improved without giving up cross-implementation
-  determinism — a pinned abbreviation list, a rule about a following capital, or
-  a decision that the current rule is good enough given that word spans exist as
-  the escape hatch?
-- Should a word be counted over source text or over rendered text, and does the
-  answer change if a language server has to compute it without a renderer?
-- How do nesting block kinds count? A list inside a list and a blockquote inside
-  a blockquote both raise the same unanswered question: whether an inner one is counted
-  at the outer level, only within its parent, or both — and whether descending
-  into one is a step of its own.
+  determinism? Answered for now: it stands, as above.
+- Should an address descend into a list, a blockquote, or a callout — a list
+  item as a unit of its own, a paragraph inside a quote — and is a descent its
+  own step?
 - Should a table be addressable *below* the block level — a row, a column, a
   cell — and if so, does that want its own units or a coordinate spelling?
 - Should an address be able to name a range across two *named* steps — anchor to
@@ -541,13 +593,6 @@ second namespace or a widened root — is deliberately left for its own record.
   sentence through `Word3` of the next, or is the one-scope restriction right?
 - Does the empty authority (`hmd:///card`) earn its place, or should the default
   namespace be required to have an ID before any URI naming it may be written?
-- Should a stale digest be repairable automatically — a command that re-reads the
-  source, shows the difference, and rewrites the digest — and is that a tool
-  question or a format one?
-- What diagnostic numbers do the new failure modes take: an unresolvable step, a
-  block step contradicted by its preceding heading, an ordinal past the end of
-  its scope, a range whose ends are in the wrong order, a range that is not the
-  last step, and a digest that does not match?
 - Should the format define a canonical *shortest* address, so that two tools
   minting an address for the same location produce the same string?
 
@@ -567,3 +612,5 @@ second namespace or a widened root — is deliberately left for its own record.
 ## Changelog
 
 - 2026-09-14: drafted
+- 2026-11-22: decisions for the first implementation; the rule moves into the
+  specification

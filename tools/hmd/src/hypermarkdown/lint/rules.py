@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from .. import address as address_mod
 from ..embed import MAX_EMBED_DEPTH
 from ..model import ERROR, WARNING, Diagnostic, Document, Link
 from ..resolve import CARD_SUFFIXES, INDEX_STEM, Outcome, Workspace
@@ -31,6 +32,12 @@ SEVERITY = {
     "HMD016": WARNING,
     "HMD017": WARNING,
     "HMD018": WARNING,
+    # HMD-0006: addresses inside a card.
+    "HMD019": ERROR,
+    "HMD020": ERROR,
+    "HMD021": WARNING,
+    "HMD022": WARNING,
+    "HMD023": WARNING,
 }
 
 
@@ -47,9 +54,10 @@ def check(workspace: Workspace, paths: list[Path] | None = None) -> list[Diagnos
             # HMD-0029: a Markdown card is not checked; no diagnostic comes
             # from its body.
             continue
-        diagnostics.extend(document.diagnostics)  # HMD009, HMD010, HMD013, HMD014
+        diagnostics.extend(document.diagnostics)  # HMD009, HMD010, HMD013, HMD014, HMD019
         diagnostics.extend(_duplicate_anchors(workspace, document))
         diagnostics.extend(_duplicate_slugs(workspace, document))
+        diagnostics.extend(_shadowed_headings(workspace, document))
         diagnostics.extend(_import_problems(workspace, document))
         diagnostics.extend(_links(workspace, document))
 
@@ -100,6 +108,21 @@ def _duplicate_slugs(workspace: Workspace, document: Document):
                 heading.span.column,
                 f"heading slug collides with an earlier heading; addressable as '#{heading.slug}'",
             )
+
+
+def _shadowed_headings(workspace: Workspace, document: Document):
+    """HMD022 — a heading whose slug a short-form step reads as a unit."""
+    rel = workspace.rel(document.path)
+    for heading in address_mod.shadowed(document):
+        yield _at(
+            document,
+            rel,
+            "HMD022",
+            heading.span.line,
+            heading.span.column,
+            f"'#{heading.slug}' counts {address_mod.plural(address_mod.SHORT_UNITS[heading.slug[0]])} "
+            f"rather than naming this heading; anchor the heading to link to it",
+        )
 
 
 def _import_problems(workspace: Workspace, document: Document):
@@ -164,30 +187,19 @@ def _links(workspace: Workspace, document: Document):
 
 
 def _fragment(workspace: Workspace, document: Document, link: Link, target: Path, rel: str):
-    """HMD004 and HMD005 — the fragment must exist in the resolved page."""
-    if link.fragment is None:
-        return
+    """HMD004, HMD005, HMD020, HMD021, HMD023 — the address must land in the page."""
+    if link.fragment is None or link.address is None:
+        return  # no fragment, or a malformed one already reported as HMD019
     resolved = workspace.documents.get(target)
     if resolved is None:
         return
     span = link.span
-
-    if link.fragment_kind == "block":
-        if link.fragment not in resolved.block_ids():
-            yield _at(
-                document, rel, "HMD005", span.line, span.column,
-                f"{workspace.rel(target)} has no block '^{link.fragment}'",
-            )
-        return
-
-    from ..parse import slug_for  # local import: parse imports the model, not lint
-
-    wanted = slug_for(link.fragment, set())
-    if wanted not in resolved.heading_slugs():
-        yield _at(
-            document, rel, "HMD004", span.line, span.column,
-            f"{workspace.rel(target)} has no heading '#{wanted}'",
-        )
+    result = address_mod.resolve(resolved, link.address, workspace.rel(target))
+    if result.failure is not None:
+        rule, message = result.failure
+        yield _at(document, rel, rule, span.line, span.column, message)
+    for rule, message in result.warnings:
+        yield _at(document, rel, rule, span.line, span.column, message)
 
 
 # -- cross-document rules ------------------------------------------------

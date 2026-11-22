@@ -7,6 +7,7 @@ from pathlib import Path
 
 from markdown.extensions.toc import slugify, unique
 
+from . import address as address_mod
 from . import scan
 from .frontmatter import parse_card_config, parse_yaml, split_frontmatter
 from .model import (
@@ -151,6 +152,13 @@ def _links(text: str, masked: str, rel: str) -> tuple[tuple[Link, ...], list[Dia
         except ValueError as exc:
             diagnostics.append(Diagnostic("HMD010", ERROR, rel, span.line, span.column, f"{exc} in {raw}"))
             continue
+        parsed = None
+        if fragment is not None:
+            written = "^" + fragment if fragment_kind == "block" else fragment
+            try:
+                parsed = address_mod.parse(written)
+            except address_mod.AddressSyntaxError as exc:
+                diagnostics.append(Diagnostic("HMD019", ERROR, rel, span.line, span.column, f"{exc} in {raw}"))
         links.append(
             Link(
                 page_ref=page_ref,
@@ -160,6 +168,7 @@ def _links(text: str, masked: str, rel: str) -> tuple[tuple[Link, ...], list[Dia
                 is_embed=is_embed,
                 raw=raw,
                 span=span,
+                address=parsed,
             )
         )
 
@@ -189,7 +198,11 @@ def _parse_target(inner: str) -> tuple[str, str | None, str | None, str | None]:
     fragment_kind: str | None = None
     if "#" in inner:
         inner, fragment = inner.split("#", 1)
-        if fragment.startswith("^"):
+        if address_mod.is_multi_step(fragment):
+            # HMD-0006: a path of steps. Its grammar is checked by the address
+            # parser, which reports HMD019 rather than HMD010.
+            fragment_kind = "address"
+        elif fragment.startswith("^"):
             fragment_kind, fragment = "block", fragment[1:]
             if not _BLOCK_ID_RE.match(fragment):
                 raise ValueError(f"invalid block id {fragment!r}")

@@ -1,6 +1,19 @@
 {
   "$comment": "Known differences from the canonical implementation. `cases` are conformance cases whose resolutions this crate gets wrong; `rules` are lint rules it does not emit. This crate is a resolver, not a linter: it emits no diagnostic at all, so every rule is listed, each with what the crate does in the situation the rule reports. The runner in tests/corpus.rs fails when a ledgered case passes, when the ledger names a case the corpus does not have, and when the canonical implementation defines a rule that is not listed here, because a ledger that is not kept true stops being read.",
-  "cases": [],
+  "cases": [
+    {
+      "id": "address-steps",
+      "reason": "A fragment of more than one step that starts at a block anchor, such as `#^limit/Sentence2`, is read as an invalid block id, so the reference is left out of the card's links and its resolution is missing.",
+      "deliberate": false,
+      "spec": "HMD-0006, the address after the hash"
+    },
+    {
+      "id": "address-diagnostics",
+      "reason": "A fragment of more than one step that starts at a block anchor, such as `#^limit/Sentence2`, is read as an invalid block id, so the reference is left out of the card's links and its resolution is missing.",
+      "deliberate": false,
+      "spec": "HMD-0006, the address after the hash"
+    }
+  ],
   "rules": [
     {
       "id": "HMD001",
@@ -109,6 +122,36 @@
       "reason": "A card shadowed by one of the same name with an earlier card extension. The earlier extension wins, as in the canonical implementation; `Vault::shadowed_by` names the winner, and the warning is the caller's to report.",
       "deliberate": true,
       "spec": "HMD-0027, what the crate does not do; HMD-0029"
+    },
+    {
+      "id": "HMD019",
+      "reason": "A malformed address. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "deliberate": true,
+      "spec": "HMD-0006, the address after the hash"
+    },
+    {
+      "id": "HMD020",
+      "reason": "An address step that selects nothing in its scope. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "deliberate": true,
+      "spec": "HMD-0006, the address after the hash"
+    },
+    {
+      "id": "HMD021",
+      "reason": "A block step outside the section the address names before it. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "deliberate": true,
+      "spec": "HMD-0006, the address after the hash"
+    },
+    {
+      "id": "HMD022",
+      "reason": "A heading whose slug a short-form step reads as a count. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "deliberate": true,
+      "spec": "HMD-0006, the address after the hash"
+    },
+    {
+      "id": "HMD023",
+      "reason": "A quotation whose integrity digest no longer matches. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "deliberate": true,
+      "spec": "HMD-0006, the address after the hash"
     }
   ]
 }

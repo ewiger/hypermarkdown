@@ -46,11 +46,15 @@ class Link:
 
     page_ref: str
     fragment: str | None
-    fragment_kind: str | None  # "heading" | "block" | None
+    fragment_kind: str | None  # "heading" | "block" | "address" | None
     display: str | None
     is_embed: bool
     raw: str
     span: Span
+    #: The parsed fragment (HMD-0006): set for every fragment that parses, a
+    #: one-step heading or block fragment included. None for a malformed
+    #: address, which is reported as HMD019 and otherwise left unchecked.
+    address: object | None = None
 
     @property
     def target(self) -> str:

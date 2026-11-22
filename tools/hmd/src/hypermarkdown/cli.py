@@ -196,6 +196,73 @@ def render(
 
 
 @app.command()
+def address(
+    card: Path = typer.Argument(..., help="The card the address points into."),
+    fragment: str = typer.Argument(..., help="The address after '#', such as 'setup/Para2/Sentence1'."),
+    root: Optional[Path] = RootOption,
+    output_format: str = FormatOption,
+) -> None:
+    """Resolve an address inside one card to its span, text, and digest."""
+    import json
+
+    from . import address as address_mod
+    from .scan import line_col
+
+    if output_format not in ("text", "json"):
+        typer.echo(f"hmd: unknown format {output_format!r} (expected text or json)", err=True)
+        raise typer.Exit(EXIT_USAGE)
+    workspace = _workspace(root, start=card.resolve().parent)
+    target = card.resolve()
+    document = workspace.documents.get(target)
+    if document is None:
+        typer.echo(f"hmd: not a page inside the namespace root: {card}", err=True)
+        raise typer.Exit(EXIT_USAGE)
+
+    fragment = fragment[1:] if fragment.startswith("#") else fragment
+    rel = workspace.rel(target)
+    try:
+        parsed = address_mod.parse(fragment)
+    except address_mod.AddressSyntaxError as exc:
+        out = {"path": rel, "address": fragment, "rule": "HMD019", "message": str(exc)}
+    else:
+        result = address_mod.resolve(document, parsed, rel)
+        if result.failure is not None:
+            out = {"path": rel, "address": fragment, "rule": result.failure[0], "message": result.failure[1]}
+        else:
+            text = document.text[result.start : result.end]
+            line, column = line_col(document.text, result.start)
+            end_line, end_column = line_col(document.text, result.end)
+            out = {
+                "path": rel,
+                "address": fragment,
+                "start": result.start,
+                "end": result.end,
+                "line": line,
+                "column": column,
+                "end_line": end_line,
+                "end_column": end_column,
+                "digest": f"sha256-{address_mod.digest_of(text)}",
+                "text": text,
+            }
+            if result.warnings:
+                out["warnings"] = [{"rule": r, "message": m} for r, m in result.warnings]
+
+    if output_format == "json":
+        typer.echo(json.dumps(out, ensure_ascii=False, indent=2))
+    elif "rule" in out:
+        typer.echo(f"{rel}: error[{out['rule']}] {out['message']}", err=True)
+    else:
+        typer.echo(out["text"])
+        typer.echo(
+            f"{rel}:{out['line']}:{out['column']}-{out['end_line']}:{out['end_column']} {out['digest']}",
+            err=True,
+        )
+        for warning in out.get("warnings", ()):
+            typer.echo(f"{rel}: warning[{warning['rule']}] {warning['message']}", err=True)
+    raise typer.Exit(EXIT_DIAGNOSTICS if "rule" in out else EXIT_OK)
+
+
+@app.command()
 def info(root: Optional[Path] = RootOption) -> None:
     """Show the resolved root and discovery policy."""
     workspace = _workspace(root)

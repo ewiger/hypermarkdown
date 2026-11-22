@@ -156,8 +156,7 @@ relative     := "./" [ path_component { "/" path_component } ]
 unqualified  := bare_name | unqualified_path
 bare_name    := segment
 unqualified_path := segment "/" segment { "/" segment }
-fragment     := "#" heading_text
-              | "#^" block_id
+fragment     := "#" address    ; see Addresses inside a card
 segment      := 1*( any character except "/" or reserved )
 heading_text := heading_first { heading_char }
 heading_first := any character except "[" / "]" / "|" / "^" / newline
@@ -180,7 +179,9 @@ reserved     := "[" | "]" | "|" | "#" | "^" | newline
 - `/` is the segment separator and MUST NOT appear inside a `segment`.
 - A `heading_text` MUST contain at least one non-whitespace character. `#` and
   `^` MAY appear after its first character; `[`, `]`, `|`, and newline MUST NOT
-  appear because they delimit or terminate the surrounding wikilink.
+  appear because they delimit or terminate the surrounding wikilink, and `/`
+  separates the steps of an address. A fragment of one heading or one block
+  step is the form this grammar has always had.
 - `./` and `../` with no following component are valid relative references to
   the current and parent directory. They resolve only when that directory has a
   folder note, and the ordinary namespace containment rule still applies.
@@ -416,6 +417,186 @@ Once a card is resolved, its fragment is matched against that card.
   matches nothing is reported as HMD005.
 - A fragment MUST NOT influence which card is resolved. Resolution selects the
   card; the fragment then selects within it.
+- A fragment that is an address of more than one step is resolved by
+  *Addresses inside a card*, below. A one-step heading or block fragment is the
+  shortest address and keeps exactly the meaning given here.
+
+## Addresses inside a card
+
+A fragment names a place inside the resolved card. In its general form it is a
+**path of steps**, separated by `/`, each resolved inside the scope the step
+before it selected, so a link can name a section, a block in it, a sentence in
+that block, and a span of words in that sentence. The design and its reasons
+are in [HMD-0006](../proposals/HMD-0006/README.md); this section is the rule.
+
+```text
+address      := step *( "/" step ) [ integrity ]
+step         := named_step / counted_step
+named_step   := heading_text / "^" block_id
+counted_step := unit ordinal [ "-" unit ordinal ]
+unit         := long_unit / short_unit
+long_unit    := "Para" / "Table" / "List" / "Code" / "Blockquote" / "Callout"
+              / "Math" / "Diagram" / "Embed" / "Html" / "Block"
+              / "Sentence" / "Word" / "Line"
+short_unit   := "p" / "t" / "c" / "m" / "d" / "e" / "b" / "s" / "w" / "l"
+ordinal      := %x31-39 *DIGIT
+integrity    := "@sha256-" 16( DIGIT / %x61-66 )
+```
+
+The short units stand for, in order: `Para`, `Table`, `Code`, `Math`,
+`Diagram`, `Embed`, `Block`, `Sentence`, `Word`, `Line`. `List`, `Blockquote`,
+`Callout`, and `Html` have no short form, and a letter once assigned MUST NOT be
+reassigned.
+
+**Reading a step.** A step that matches `counted_step` with a unit on at least
+one end is a counted step, whatever headings the target card has; a step that
+starts with `^` is a block step; every other step is a heading step. A heading
+whose slug is a short unit and an ordinal, such as `p3`, is therefore shadowed
+— reported as HMD022, and reachable by anchoring it. A heading such as
+`Chapter2` or `x1` is not shadowed, because neither word is a unit.
+
+**The static rules.** These are checked where the link is written, without
+reading the target, and a violation is reported as HMD019:
+
+- A step MUST NOT be empty, and an address MUST have at most 32 steps.
+- A range MUST use one unit and one spelling on both ends (`w5-w9` or
+  `Word5-Word9`, never `w5-Word9`), MUST NOT end before it starts, and MUST be
+  the last step.
+- An ordinal MUST be at least 1, MUST NOT have a leading zero, and MUST NOT
+  exceed 1000000.
+- A heading or block step MUST be the first step or follow a heading step.
+- A block unit (`Para` through `Block`) MUST be the first step or follow a
+  heading step. Blocks are counted in a card or in a section, never inside
+  another block, in this version.
+- `Sentence` MUST follow a step that selects a block: a block step or a block
+  unit. `Word` MUST follow one of those or a `Sentence`.
+- `Line` MUST be the first step or follow a step that selects a block, and MUST
+  be the last step.
+- An integrity suffix MUST be `@sha256-` and sixteen lowercase hex digits.
+
+**Scopes.** The first step is resolved against the whole card. Each step then
+selects a scope for the next:
+
+- A **heading step** in first position matches the card's headings by the rule
+  under *Heading anchors*. In any later position it matches the first heading
+  inside the enclosing section whose slug, computed without deduplication,
+  equals the step's — which is what lets `#other/setup` reach the `Setup` under
+  `Other` when an earlier section has a `Setup` too. It selects a **section**:
+  the heading and everything after it up to the next heading of the same or a
+  higher level, clipped to the enclosing section. No match is HMD004.
+- A **block step** matches a block anchor anywhere in the card, as a one-step
+  block fragment does, and selects the anchored block. Its kind is that of the
+  one block it holds by *Blocks* below, or `Para` when it holds several. When it follows a heading
+  step whose section does not contain the anchor, it still resolves, and the
+  mismatch is reported as HMD021. No match is HMD005.
+- A **block unit** counts the blocks of its kind in the card or section, in
+  document order, and selects the one at its ordinal; `Block` counts every
+  block whatever its kind. A range selects from the start of the first to the
+  end of the last.
+- `Sentence` and `Word` count the text of a prose block — `Para`, `List`,
+  `Blockquote`, or `Callout`. In any other block they select nothing, and the
+  address should name the block's lines instead.
+- `Line` in first position counts the lines of the card's file, frontmatter
+  included, so it agrees with an editor's line numbers. After a block it counts
+  the block's lines; in a fenced block or a display-math block the delimiter
+  lines are not counted.
+
+An ordinal past the end of its scope MUST be reported as HMD020 and MUST NOT
+clamp to the last member. A step that names a unit its scope cannot have, such
+as the words of a table, is HMD020 too.
+
+**What is selected.** An address resolves to a span of the card's source bytes:
+
+- a section, from the first byte of its heading line up to the first byte of
+  the heading that ends it, or the end of the card;
+- an anchored block, as for a one-step block fragment: back from the anchored
+  line to the nearest blank line, the anchor and its leading whitespace
+  excluded;
+- a counted block, from the first byte of its first line to the end of its last
+  line, excluding the line ending and a trailing block anchor;
+- a line, from its first byte to its last, excluding the line ending;
+- a sentence or a word, from the first byte of its first word to the last byte
+  of its last.
+
+**The integrity digest.** The digest is SHA-256 over the selected span as UTF-8,
+with no normalisation and no trimming, truncated to its first sixteen lowercase
+hex digits. It is optional, and its absence MUST NOT be a diagnostic. A digest
+that does not match MUST be reported as HMD023 and MUST NOT stop the address
+resolving or the card rendering. It reports accidental drift and is not
+authentication.
+
+### Blocks
+
+Every implementation MUST cut a card into blocks at the same places, or an
+ordinal means two things. The rules are line-based and do not depend on a
+renderer. A card's frontmatter is never a block; within a region, lines are
+read in order, and each line not yet consumed is classified by the first rule it
+matches:
+
+1. A **blank line**, an **ATX heading** line, or a **thematic break** (three or
+   more `-`, `*`, or `_`, optionally separated by spaces or tabs, indented at
+   most three spaces) is not a block and is skipped.
+2. A **fenced block**, found exactly as *Lexical model* finds it, is one block
+   running to its closing fence or, unterminated, to the end of the card. It is
+   a `Diagram` when the first word of its info string is `d2#show` or
+   `mermaid#show`, and a `Code` block otherwise.
+3. A line starting `$$`, indented at most three spaces, opens a **`Math`**
+   block. A line holding a second `$$` closes it — the opening line itself, or
+   the first later line that contains `$$`; unclosed, it runs to the end of the
+   region.
+4. A line starting `!!! ` or `??? ` (or `???+ `) opens an admonition, a
+   **`Callout`**, which continues over every following line that is blank or
+   indented by four spaces or a tab, and ends on the last non-blank one.
+5. A line starting `>`, indented at most three spaces, opens a **`Blockquote`**
+   — a **`Callout`** when the `>` is followed by optional spaces and `[!type]` —
+   which continues up to the next blank line.
+6. A list marker opens a **`List`**: `-`, `*`, or `+`, or one to nine digits and
+   `.` or `)`, indented at most three spaces and followed by a space, a tab, or
+   the end of the line. The list continues over a following line that carries a
+   marker of the same type (the same bullet character, or the same ordered
+   delimiter), over a line indented by two spaces or a tab, across blank lines
+   before either of those, and over a fenced block indented at least one space.
+   Without a blank line before it, any other line also continues the list unless
+   it would interrupt a paragraph. The list ends on its last line that is not
+   blank; a marker of another type starts a new list.
+7. A line starting `<` and a letter, `/`, `!`, or `?`, indented at most three
+   spaces, opens an **`Html`** block, which continues up to the next blank line.
+8. A line containing `|`, followed by a delimiter row — cells of `-` with
+   optional `:` at either end, separated by `|` — opens a **`Table`**, which
+   continues up to the next blank line.
+9. Any other line opens a **paragraph**, which continues up to the next blank
+   line or the next line that interrupts it: an ATX heading, a thematic break,
+   the start of a fenced block, a `>` line, a `$$` line, an admonition line, a
+   bullet item with content, or an ordered item numbered `1` with content. A
+   one-line paragraph that is a single embed, a trailing anchor aside, is an
+   **`Embed`**; any other is a **`Para`**.
+
+Indented code is not a block kind: it is read as paragraph text, as the scanner
+reads it. A line of `===` or `---` under a paragraph is not yet a heading here
+and ends the paragraph as a thematic break; it becomes a heading when underlined
+headings are indexed.
+
+### Sentences and words
+
+- A **word** is a maximal run of characters that are not whitespace, within one
+  line of a prose block. Whitespace is exactly U+0009, U+000A, U+000C, U+000D,
+  U+0020, U+00A0, U+1680, U+2000 to U+200A, U+202F, U+205F, and U+3000 —
+  CommonMark's Unicode whitespace, pinned here rather than taken from a host
+  language. Inline markup is part of the word it touches: `**bold**` is one
+  word.
+- Structure is not a word. At the start of each line, in this order: in a
+  `Blockquote` or a `Callout`, an admonition marker and its type word (`!!!
+  note`), then any run of `>` markers, then a `[!type]` marker; then, in a
+  `List`, a `Blockquote`, or a `Callout`, one list marker. A block anchor is not
+  a word wherever it stands.
+- A **sentence** is a run of words ending at a word whose last character is
+  `.`, `!`, or `?`. Words after the last such word form a final sentence. Words
+  are counted within a sentence when `Word` follows `Sentence`, and within the
+  block otherwise.
+
+The sentence rule splits at abbreviations and decimals, as `e.g.` and `0.5`
+show. That is knowingly wrong and identically wrong everywhere; a citation the
+rule splits badly is better rooted on an anchor and narrowed with a word span.
 
 ## Frontmatter
 
@@ -611,6 +792,10 @@ algorithm above and then expanded in place.
   level.
 - An embed of a block fragment MUST expand to the anchored block with the
   trailing anchor stripped.
+- An embed of any other address MUST expand to exactly the span the address
+  selects, which makes it a quotation of living text rather than a copy. An
+  address that selects nothing leaves the embed as written. A renderer SHOULD
+  show the source address beside the quoted text.
 - Expansion MUST be recursive: embeds inside expanded content are themselves
   expanded.
 - An implementation MUST maintain a stack of resolved `(path, fragment)` pairs.
@@ -649,6 +834,11 @@ suppression comments and CI configuration reference them.
 | HMD016 | warning | An unqualified reference matched two imported search paths; the earlier won |
 | HMD017 | warning | A published card links to or embeds one that is not published |
 | HMD018 | warning | A card shadows a card of the same name with a later card extension |
+| HMD019 | error | An address breaks a static rule of the address grammar |
+| HMD020 | error | An address step selects nothing in its scope |
+| HMD021 | warning | A block step is not inside the section named before it |
+| HMD022 | warning | A heading's slug is read as a short-form counted step |
+| HMD023 | warning | A quotation's integrity digest does not match the text it selects |
 
 An unresolved reference is a **warning**: writing forward is permitted, and the
 report is a to-do list. Multiple autodiscovery matches are an **error** because

@@ -14,6 +14,13 @@ only for the Python API.
 ## [Unreleased]
 
 ### Added
+- **Addresses inside a card.** A link or embed fragment may be a path of steps
+  — `[[tokens#the-limit/Para2/Sentence1]]`, `![[tokens#^limit/Word3-Word9]]` —
+  resolved to a span of the target's source. `hmd lint` reports the five new
+  rules, HMD019 to HMD023; an embed of an address quotes its span; a site link
+  lands on the deepest heading it names. **`hmd address <card> <address>`**
+  prints the span, its text, and its `sha256-` digest, with `--format json` for
+  an editor or a script.
 - **A Pygments lexer for HyperMarkDown**, registered as `hmd` (alias
   `hypermarkdown`, files `*.hmd`). A code sample fenced as ```` ```hmd ```` is
   coloured as a card in MkDocs, in `hmd render --to html`, and anywhere else

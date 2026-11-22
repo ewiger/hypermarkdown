@@ -23,11 +23,11 @@ from mkdocs.exceptions import PluginError
 from mkdocs.plugins import BasePlugin
 from mkdocs.structure.files import File, Files
 
+from . import address as address_mod
 from . import config as config_mod
 from . import diagram, scan, urls
 from .embed import expand
 from .model import Link
-from .parse import slug_for
 from .resolve import Workspace
 
 
@@ -238,14 +238,16 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
                         f'<a class="hmd-redlink" title="{link.target} is not published">{text}</a>'
                     )
                 href = _relative(served, written)
-                if link.fragment is not None and link.fragment_kind == "heading":
-                    href = f"{href}#{slug_for(link.fragment, set())}"
+                anchor = address_mod.page_anchor(link, self.workspace.documents.get(target))
+                if anchor:
+                    href = f"{href}#{anchor}"
                 return f"[{text}]({href})"
             href = urls.href_for(root, source, target)
             if written != registered:
                 href = _relative(posixpath.normpath(posixpath.join(registered, href)), written)
-            if link.fragment is not None and link.fragment_kind == "heading":
-                href = f"{href}#{slug_for(link.fragment, set())}"
+            anchor = address_mod.page_anchor(link, self.workspace.documents.get(target))
+            if anchor:
+                href = f"{href}#{anchor}"
             return f"[{text}]({href})"
 
         expanded = expand(

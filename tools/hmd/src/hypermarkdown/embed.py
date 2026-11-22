@@ -16,6 +16,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import address as address_mod
 from .frontmatter import split_frontmatter
 from .model import ERROR, Diagnostic, Document, Link
 from .parse import slug_for
@@ -131,7 +132,13 @@ def _target_region(document: Document, link: Link) -> tuple[int, int] | None:
         return body_region(document)
     if link.fragment_kind == "block":
         return block_region(document, link.fragment)
-    return section_region(document, link.fragment)
+    if link.fragment_kind == "heading":
+        return section_region(document, link.fragment)
+    # HMD-0006: an address quotes exactly the span it selects.
+    if link.address is None:
+        return None  # malformed, already reported as HMD019
+    result = address_mod.resolve(document, link.address)
+    return (result.start, result.end) if result.ok else None
 
 
 # -- expansion -----------------------------------------------------------

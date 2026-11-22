@@ -21,7 +21,7 @@ import markdown
 
 from ..embed import Expansion, expand
 from ..model import Link
-from ..parse import slug_for
+from ..address import page_anchor
 from ..resolve import Workspace
 
 #: The "free" half of the syntax — everything the format does not own itself
@@ -46,7 +46,7 @@ def render(workspace: Workspace, path: Path, suffix: str = ".md") -> Expansion:
     def rewrite(link: Link, target: Path | None) -> str:
         if target is None:
             return link.raw
-        return f"[{_text(link)}]({_href(home, target, link, suffix)})"
+        return f"[{_text(link)}]({_href(home, target, link, suffix, workspace.documents.get(target))})"
 
     return expand(workspace, path, rewrite=rewrite)
 
@@ -66,12 +66,13 @@ def _text(link: Link) -> str:
     return link.page_ref if link.fragment_kind == "block" else link.target
 
 
-def _href(home: Path, target: Path, link: Link, suffix: str) -> str:
+def _href(home: Path, target: Path, link: Link, suffix: str, document=None) -> str:
     relative = os.path.relpath(target.with_suffix(suffix), home)
     href = posixpath.join(*Path(relative).parts) if relative != "." else ""
 
     # A block id has no anchor in plain markdown, so the fragment is dropped
     # rather than emitted as a link that goes nowhere.
-    if link.fragment is not None and link.fragment_kind == "heading":
-        href = f"{href}#{slug_for(link.fragment, set())}"
+    anchor = page_anchor(link, document)
+    if anchor:
+        href = f"{href}#{anchor}"
     return href

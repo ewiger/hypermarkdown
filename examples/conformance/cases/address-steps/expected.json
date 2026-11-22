@@ -1,0 +1,346 @@
+{
+  "addresses": [
+    {
+      "digest": "bc59b814f95a8629",
+      "end": 95,
+      "raw": "![[tokens#^limit/Sentence2]]",
+      "source": "reader.hmd",
+      "start": 69,
+      "text": "It expires after one hour!"
+    },
+    {
+      "digest": "4d3d7f76b9f0c5bd",
+      "end": 177,
+      "raw": "[[tokens#Block1-Block2]]",
+      "source": "reader.hmd",
+      "start": 48,
+      "text": "A token has a limit. It expires after one hour! Refresh it before then. ^limit\n\nSecond paragraph, with `code` and **bold** words."
+    },
+    {
+      "digest": "ca782b9828c3c6e8",
+      "end": 242,
+      "raw": "[[tokens#Block3]]",
+      "source": "reader.hmd",
+      "start": 179,
+      "text": "| key | value |\n| --- | ----- |\n| ttl | 3600  |\n| max | 10    |"
+    },
+    {
+      "digest": "19578f0503624186",
+      "end": 126,
+      "raw": "[[tokens#Line9]]",
+      "source": "reader.hmd",
+      "start": 48,
+      "text": "A token has a limit. It expires after one hour! Refresh it before then. ^limit"
+    },
+    {
+      "digest": "20efe63aa6059fb8",
+      "end": 688,
+      "raw": "[[tokens#Other/Setup/Para1/Sentence2]]",
+      "source": "reader.hmd",
+      "start": 669,
+      "text": "Two sentences here."
+    },
+    {
+      "digest": "e60e25dfeae6ccbb",
+      "end": 95,
+      "raw": "[[tokens#^limit/Sentence2/Word3-Word5]]",
+      "source": "reader.hmd",
+      "start": 80,
+      "text": "after one hour!"
+    },
+    {
+      "digest": "bc59b814f95a8629",
+      "end": 95,
+      "raw": "[[tokens#^limit/Sentence2]]",
+      "source": "reader.hmd",
+      "start": 69,
+      "text": "It expires after one hour!"
+    },
+    {
+      "digest": "297a97c333881933",
+      "end": 59,
+      "raw": "[[tokens#^limit/w1-w3]]",
+      "source": "reader.hmd",
+      "start": 48,
+      "text": "A token has"
+    },
+    {
+      "digest": "293a04cfa868d4d6",
+      "end": 689,
+      "raw": "[[tokens#other/setup]]",
+      "source": "reader.hmd",
+      "start": 645,
+      "text": "### Setup\n\nOther setup. Two sentences here.\n"
+    },
+    {
+      "digest": "7299424d5017e2ce",
+      "end": 210,
+      "raw": "[[tokens#t1/Line1-Line2]]",
+      "source": "reader.hmd",
+      "start": 179,
+      "text": "| key | value |\n| --- | ----- |"
+    },
+    {
+      "digest": "06e5d4e21dbdf643",
+      "end": 422,
+      "raw": "[[tokens#the-limit/Blockquote1/Sentence2]]",
+      "source": "reader.hmd",
+      "start": 405,
+      "text": "And a second one?"
+    },
+    {
+      "digest": "c3613b1704f54c8b",
+      "end": 451,
+      "raw": "[[tokens#the-limit/Callout1/Word2]]",
+      "source": "reader.hmd",
+      "start": 445,
+      "text": "Rotate"
+    },
+    {
+      "digest": "c43ba433c2cdf2d1",
+      "end": 531,
+      "raw": "[[tokens#the-limit/Callout2/Sentence2]]",
+      "source": "reader.hmd",
+      "start": 511,
+      "text": "Even refreshed ones."
+    },
+    {
+      "digest": "7acf18e6e2f8ec65",
+      "end": 275,
+      "raw": "[[tokens#the-limit/Code1/Line2]]",
+      "source": "reader.hmd",
+      "start": 265,
+      "text": "limit = 10"
+    },
+    {
+      "digest": "8c2ca706705a0868",
+      "end": 312,
+      "raw": "[[tokens#the-limit/Diagram1]]",
+      "source": "reader.hmd",
+      "start": 281,
+      "text": "```d2#show\nclient -> server\n```"
+    },
+    {
+      "digest": "5cb2ec19ca489b9c",
+      "end": 567,
+      "raw": "[[tokens#the-limit/Embed1]]",
+      "source": "reader.hmd",
+      "start": 557,
+      "text": "![[other]]"
+    },
+    {
+      "digest": "1210891a6a160797",
+      "end": 602,
+      "raw": "[[tokens#the-limit/Html1]]",
+      "source": "reader.hmd",
+      "start": 569,
+      "text": "<div class=\"box\">\nraw html\n</div>"
+    },
+    {
+      "digest": "ae88c1ca13cc73bd",
+      "end": 382,
+      "raw": "[[tokens#the-limit/List1/Sentence1]]",
+      "source": "reader.hmd",
+      "start": 316,
+      "text": "first item of the list\n- second item, which runs\n  over two lines."
+    },
+    {
+      "digest": "6d20285a4ef39b21",
+      "end": 552,
+      "raw": "[[tokens#the-limit/Math1/Line1]]",
+      "source": "reader.hmd",
+      "start": 536,
+      "text": "e^{i\\pi} + 1 = 0"
+    },
+    {
+      "digest": "4d3d7f76b9f0c5bd",
+      "end": 177,
+      "raw": "[[tokens#the-limit/Para1-Para2]]",
+      "source": "reader.hmd",
+      "start": 48,
+      "text": "A token has a limit. It expires after one hour! Refresh it before then. ^limit\n\nSecond paragraph, with `code` and **bold** words."
+    },
+    {
+      "digest": "89b0f77ce276d7a1",
+      "end": 157,
+      "raw": "[[tokens#the-limit/Para2/Word4]]",
+      "source": "reader.hmd",
+      "start": 151,
+      "text": "`code`"
+    },
+    {
+      "digest": "ec0f062281fa306f",
+      "end": 177,
+      "raw": "[[tokens#the-limit/Para2]]",
+      "source": "reader.hmd",
+      "start": 128,
+      "text": "Second paragraph, with `code` and **bold** words."
+    },
+    {
+      "digest": "25494783dac8c714",
+      "end": 226,
+      "raw": "[[tokens#the-limit/Table1/Line3]]",
+      "source": "reader.hmd",
+      "start": 211,
+      "text": "| ttl | 3600  |"
+    },
+    {
+      "digest": "ec0f062281fa306f",
+      "end": 177,
+      "raw": "[[tokens#the-limit/p2]]",
+      "source": "reader.hmd",
+      "start": 128,
+      "text": "Second paragraph, with `code` and **bold** words."
+    },
+    {
+      "digest": "99b76f0748161c94",
+      "end": 635,
+      "raw": "[[tokens#the-limit/setup]]",
+      "source": "reader.hmd",
+      "start": 604,
+      "text": "### Setup\n\nNested setup text.\n\n"
+    }
+  ],
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 57,
+      "message": "heading slug collides with an earlier heading; addressable as '#setup_1'",
+      "path": "tokens.hmd",
+      "rule": "HMD011",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "![[tokens#^limit/Sentence2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#Block1-Block2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#Block3]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#Line9]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#Other/Setup/Para1/Sentence2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#^limit/Sentence2/Word3-Word5]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#^limit/Sentence2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#^limit/w1-w3]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#other/setup]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#t1/Line1-Line2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Blockquote1/Sentence2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Callout1/Word2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Callout2/Sentence2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Code1/Line2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Diagram1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Embed1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Html1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/List1/Sentence1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Math1/Line1]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Para1-Para2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Para2/Word4]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Para2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/Table1/Line3]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/p2]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#the-limit/setup]]",
+      "source": "reader.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "![[other]]",
+      "source": "tokens.hmd",
+      "target": "other.hmd"
+    }
+  ]
+}

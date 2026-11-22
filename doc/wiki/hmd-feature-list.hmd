@@ -68,6 +68,7 @@ nobody has committed · `deferred` explicitly postponed to a later spec ·
 | F30 | Category pages | — | Wikipedia, MediaWiki | — | nice to have |
 | F27 | Escapes for reserved characters | — | — | — | nice to have |
 | F28 | A literal `[[` outside a code span | — | — | — | nice to have |
+| F31 | In-card address | `[[page#Section/Para2/Sentence1]]`, `![[page#^id/Word3-Word9]]` | browser text fragments, XPointer, JSON Pointer | the format, [HMD-0006](../proposals/HMD-0006/README.md) | in progress |
 | F29 | Publication gate | `nav:` / `visibility: public` | MediaWiki namespaces, Notion page sharing | the format, [HMD-0002](../proposals/HMD-0002/README.md) §2 | shipped |
 
 F6 is any of F1–F5 with a `!` in front, so it multiplies the table rather than

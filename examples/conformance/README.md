@@ -28,6 +28,10 @@ examples/conformance/cases/<case-name>/
   expected.json   { diagnostics: [...], resolutions: [...] }
 ```
 
+A case whose links hold addresses of more than one step also carries
+`addresses`: for each, sorted by `(source, raw)`, the byte span it selects in
+its target with that span's `text` and `digest`, or the `rule` it failed on.
+
 `diagnostics` is in the sort order of HMD-0001 §8 — `(path, line, column,
 rule)`. `resolutions` maps `(source, raw)` to a resolved root-relative path or
 `null`, sorted. Both are plain data, so neither implementation's object model
@@ -49,6 +53,8 @@ leaks into the contract.
 | `markdown-folder-note` | `index.md` is a folder note; beside `index.hmd` it is HMD018 |
 | `markdown-sweep` | The sweep finds a Markdown card, is HMD002 across modules, and skips a shadowed file |
 | `heading-after-frontmatter` | A heading on the line right below the fence is addressable |
+| `address-steps` | Every step kind resolves to its span: heading paths, anchors, each block unit, short forms, sentences, words, lines, and an embed that quotes |
+| `address-diagnostics` | HMD019 to HMD023, and HMD004 and HMD005 from a step inside an address |
 | `nested-vault` | A directory carrying its own `.hmd/` is another vault: none of its cards load, so a name it shares is not HMD002 |
 
 ## Runners

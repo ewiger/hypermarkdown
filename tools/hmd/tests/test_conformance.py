@@ -5,7 +5,9 @@ implementation, so this runner checks that it still produces what it once
 wrote: a change in canonical behaviour shows up here as a diff to review and
 regenerate, rather than first as a TypeScript failure. The TypeScript runner
 is `tools/hmd-ts-core/test/corpus.test.ts`, and both build the same
-`{diagnostics, resolutions}` shape.
+`{diagnostics, resolutions}` shape. A case that holds addresses of more than
+one step (HMD-0006) also carries `addresses`: where each one landed in its
+target, as a byte span with its text and digest, or the rule it failed on.
 
 A case's `config.toml` sits beside its `tree/`, not inside it, so the tree is
 copied under a fresh project root with that file as its `.hmd/config.toml`.
@@ -20,6 +22,7 @@ from pathlib import Path
 
 import pytest
 
+from hypermarkdown import address as address_mod
 from hypermarkdown import config
 from hypermarkdown.config import CONFIG_NAME, MARKER_DIR
 from hypermarkdown.lint.rules import check
@@ -42,6 +45,7 @@ def run_case(case: Path, scratch: Path) -> dict:
     diagnostics = [d.to_dict() for d in check(workspace)]
 
     resolutions = []
+    addresses = []
     for path in workspace.pages():
         for link in workspace.documents[path].links:
             target = workspace.resolve(path, link.page_ref).path
@@ -52,8 +56,35 @@ def run_case(case: Path, scratch: Path) -> dict:
                     "target": workspace.rel(target) if target else None,
                 }
             )
+            if link.fragment_kind == "address":
+                addresses.append(_address(workspace, path, link, target))
     resolutions.sort(key=lambda r: (r["source"], r["raw"], r["target"] or ""))
-    return {"diagnostics": diagnostics, "resolutions": resolutions}
+    out = {"diagnostics": diagnostics, "resolutions": resolutions}
+    if addresses:
+        addresses.sort(key=lambda a: (a["source"], a["raw"]))
+        out["addresses"] = addresses
+    return out
+
+
+def _address(workspace, path, link, target) -> dict:
+    """Where one address landed: a span of its target, or the rule it failed."""
+    entry = {"raw": link.raw, "source": workspace.rel(path)}
+    if link.address is None:
+        return {**entry, "rule": "HMD019"}
+    document = workspace.documents.get(target) if target else None
+    if document is None:
+        return {**entry, "rule": "HMD001"}
+    result = address_mod.resolve(document, link.address, workspace.rel(target))
+    if result.failure is not None:
+        return {**entry, "rule": result.failure[0]}
+    text = document.text[result.start : result.end]
+    return {
+        **entry,
+        "start": result.start,
+        "end": result.end,
+        "text": text,
+        "digest": address_mod.digest_of(text),
+    }
 
 
 def test_the_corpus_has_cases():

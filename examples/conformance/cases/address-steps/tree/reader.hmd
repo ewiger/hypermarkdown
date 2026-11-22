@@ -1,0 +1,15 @@
+# Reader
+
+Sections and heading paths: [[tokens#the-limit/setup]] [[tokens#other/setup]] [[tokens#Other/Setup/Para1/Sentence2]].
+
+Paragraphs, short and long: [[tokens#the-limit/Para2]] [[tokens#the-limit/p2]] [[tokens#the-limit/Para1-Para2]].
+
+Sentences and words: [[tokens#^limit/Sentence2]] [[tokens#^limit/Sentence2/Word3-Word5]] [[tokens#the-limit/Para2/Word4]] [[tokens#^limit/w1-w3]].
+
+Every block kind: [[tokens#the-limit/Table1/Line3]] [[tokens#the-limit/Code1/Line2]] [[tokens#the-limit/Diagram1]] [[tokens#the-limit/List1/Sentence1]] [[tokens#the-limit/Blockquote1/Sentence2]] [[tokens#the-limit/Callout1/Word2]] [[tokens#the-limit/Callout2/Sentence2]] [[tokens#the-limit/Math1/Line1]] [[tokens#the-limit/Embed1]] [[tokens#the-limit/Html1]].
+
+Counted from the card: [[tokens#Line9]] [[tokens#Block3]] [[tokens#Block1-Block2]] [[tokens#t1/Line1-Line2]].
+
+Quoted:
+
+![[tokens#^limit/Sentence2]]

@@ -42,6 +42,22 @@ The first version of the language: the six constructs, resolution, the severitie
 and the publication model. Still `drafted`, which is what the `0.x` means — a
 construct may still change before `1.0`.
 
+### 2026-11-22
+
+#### Added
+
+- **Addresses inside a card** ([HMD-0006](doc/proposals/HMD-0006/README.md)).
+  A fragment is a path of steps separated by `/`: a heading or a block anchor,
+  then a block counted by kind (`Para2`, `Table1`, `Code3`, or `p2`), then a
+  sentence, a word span, or lines — `[[tokens#the-limit/Para2/Sentence1]]`,
+  `[[tokens#^limit/Word3-Word9]]`. A heading after a heading is a heading path,
+  so `#other/setup` names the `Setup` under `Other`. An embed of an address
+  quotes exactly the span it selects, and an optional `@sha256-` digest reports
+  a quotation whose source has changed. The specification gains the address
+  grammar, the block segmentation every implementation shares, and five
+  diagnostics, **HMD019** to **HMD023**. One-step fragments keep their meaning;
+  `/` in a heading fragment now separates steps.
+
 ### 2026-11-15
 
 #### Changed

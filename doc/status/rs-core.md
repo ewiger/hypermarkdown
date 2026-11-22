@@ -34,6 +34,7 @@ references through this crate and keep no resolution code of its own.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
+| todo | **Resolve in-card addresses.** Parse a fragment into steps, and resolve one against a card to a byte span: headings, anchors, the shared block segmentation, sentences, words and lines. The crate resolves and does not lint, so a failure is a typed error rather than a diagnostic; the corpus spans are what it is compared against | Follows the TypeScript port. Lifts the limitation that a fragment is parsed and never checked | [[hmd-0006#the-address-after-the-hash]], [[hmd-0027#non-goals]] |
 | todo | **A release workflow.** `0.1.0` was published by hand. A tag of the crate's own, in the style of the other tools' tags, should run the gates and publish through a trusted publisher on crates.io, so that no token is stored | Nothing blocks it: crates.io accepts a trusted publisher now that the crate exists | [[hmd-0027#deployment--activation]] |
 | backlog | **A comparison suite that asks the canonical implementation.** The corpus pins seven cases. The TypeScript implementation also compares itself with `hmd` over the wiki and two example vaults; this crate was compared with `hmd` by hand, over those trees and over nine thousand generated ones, with every reference, position and outcome equal, and nothing in the repository repeats that | Needs Python in the crate's CI job, which today installs none | [[hmd-0027#conformance]] |
 
