@@ -1,0 +1,183 @@
+# HMD-0031: Freeze
+
+**Status**: drafted
+**Created**: 2026-11-22
+**Source**: [the release card](../../issues/0016-prepare-the-0-1-specification-release.md),
+the format's tracker, and reviews of the specification as published
+
+## Companion notes
+
+Each note holds one category of findings: what the text or the repository
+says, why it matters, the resolutions on the table, and the questions left.
+
+- [`errata.md`](errata.md) — places where the specification, or a page that
+  describes it, contradicts itself.
+- [`authority.md`](authority.md) — which of the specification, the corpus, and
+  the implementations decides, and what it means to conform.
+- [`corpus.md`](corpus.md) — what the conformance cases compare and what they
+  do not yet cover.
+- [`platforms.md`](platforms.md) — names and paths that resolve differently
+  depending on the filesystem.
+- [`publication.md`](publication.md) — ways private content can reach a
+  published page.
+- [`release.md`](release.md) — what may change after the tag, and the
+  questions the release itself has to answer.
+
+## Abstract
+
+HyperMarkDown 0.1 is to be a frozen release of the specification: one text,
+one corpus, and a rule for which of them decides. This record collects, in one
+place, everything known that stands between the current text and that release.
+It restates the decisions already written into the specification, then sorts
+every open finding into six categories, each in a note of its own. It decides
+nothing new. Its purpose is to be complete, so that the fixing starts from one
+list rather than from several conversations.
+
+## Motivation
+
+- **The findings are scattered.** The decisions of 2026-11-22 are in the
+  release card, their work in the format's tracker, and the findings of
+  reviews in conversations that leave no record. A version that is to be
+  frozen needs one inventory of what is still open.
+- **Some findings are conflicts, not tasks.** The specification says no program
+  overrides it, while the corpus says one program generates every expected
+  answer. A conflict like that has to be decided before anyone fixes code
+  against either side.
+- **Fixing first and consolidating later loses findings.** A finding fixed
+  alone does not show up as part of a pattern, such as the corpus pinning
+  one implementation's wording.
+
+## Goals
+
+- Every known finding against 0.1 is in exactly one category, stated so that
+  it reads without the conversation it came from.
+- Every conflict is phrased as a question with its candidate answers.
+- The record is complete enough that accepting it means the remaining work is
+  only writing and fixing.
+
+## Non-goals
+
+- **Fixing anything.** Errata, code, and cases are changed after this record is
+  accepted. Their work then goes to the trackers.
+- **In-card addressing**, heading paths, and quotation digests, which come
+  after 0.1 and renumber their rules from HMD020.
+- **Cross-project namespaces**, beyond the reserved spelling.
+- **Defining the constructs over the CommonMark parse**, a candidate for 0.2.
+- **An escape mechanism** and **a way to silence a diagnostic**, both absent
+  from 0.1 by decision.
+- **HQL's syntax**, which is HQL's.
+
+## What 0.1 already settles
+
+These decisions are written into the specification. They are not reopened by
+this record, and every finding below is read against them.
+
+| Topic | Resolution |
+| --- | --- |
+| Baseline | CommonMark 0.31.2, named by version; where the two disagree about inherited syntax, CommonMark is right |
+| Extras | Tables, task lists, strikethrough, subscript, footnotes, callouts, maths, attribute lists, Markdown inside HTML, and drawn diagrams are listed one by one and marked non-normative |
+| Cells | `hql#eval`, `hql#query`, `d2#show`, and `mermaid#show` are the cell kinds, matched exactly; a plain `hql`, `d2`, or `mermaid` fence is a listing; a cell body is masked |
+| Card types | `.hmd`, `.md`, `.markdown`, in that priority; a Markdown card is addressed and embedded, never scanned or checked |
+| Encoding | UTF-8 only; a leading byte-order mark is ignored; line endings as in CommonMark; invalid UTF-8 is HMD019 and the file is not a card |
+| Names | A reference and a name on disk are compared after NFC |
+| Spans | Offsets count UTF-8 bytes from 0; line and column start at 1; a column counts code points |
+| Headings | ATX and setext headings are both headings; a fragment matches the first heading with an equal key (NFC, full case folding, everything but letters, marks and numbers to spaces, spaces collapsed); equal keys are HMD011, with an anchor as the remedy |
+| HTML ids | Not the language's; a renderer rewrites each heading link to the `id` of the heading it matched |
+| Project root | Only `.hmd/` marks one |
+| Determinism | The same tree gives the same resolutions, expansions, and byte-identical diagnostics, on any platform and in any listing order |
+| Embeds | A link inside expanded content resolves as in the card it was written in, with that card's imports and toggles |
+| Imports | Imported search paths stay after the spine |
+| Suppression | Nothing silences a diagnostic |
+| Publication | `nav`, visibility, and HMD017 stay in the language; publication is opt-in and private by default |
+| Diagnostics | HMD001 to HMD019, with the severities in the specification's table |
+
+## Findings, by category
+
+### Errata
+
+The text contradicts itself in three places. The resolution algorithm
+computes a written card extension and then never passes it to the binding
+step, except in the sweep. The grammar admits `a:b` as a name while the text
+calls the reserved `namespace:path` form malformed. And one paragraph says an
+embed of a Markdown card points at a page, while embed expansion says it
+transcludes the body. Pages around the specification also carry stale counts
+and a stale description of heading matching. Details in [`errata.md`](errata.md).
+
+### Authority and conformance
+
+The specification ranks itself above every program, but the corpus names the
+Python package canonical and generates every expected result from it, so in
+practice the package decides. The specification also knows one kind of
+conforming implementation, and that kind must report every diagnostic. The Rust
+crate resolves and reports nothing, so as written it cannot conform. Details
+in [`authority.md`](authority.md).
+
+### The corpus
+
+The thirteen cases pin resolutions and diagnostics, and the TypeScript runner
+also compares each diagnostic's English message. Nothing pins construct spans,
+whose units 0.1 just changed, or the text an embed expands to. No case covers
+publication, a written extension outside the unqualified form, or the
+divergences the specification permits. Details in [`corpus.md`](corpus.md).
+
+### Platforms
+
+Names are compared after NFC, but the text says nothing about case. On a
+case-insensitive filesystem a link resolves that is a forward reference on
+Linux, which breaks the determinism rule. Card identity across drive letters
+and separators is implied, not stated. Details in [`platforms.md`](platforms.md).
+
+### Publication
+
+A Markdown card's effective visibility is always public. Its body can therefore
+apparently be expanded into a published page even from inside a private
+folder. Nested embeds, fragment embeds, and what a degraded embed may show
+are stated loosely or not at all, and none of it is tested. Details in
+[`publication.md`](publication.md).
+
+### Release
+
+The text says its version moves only when constructs change. It does not say
+whether a correction like the extension erratum is a 0.1 revision or a new
+version. The site renders with a library that does not follow CommonMark. The
+anchor that 0.1 recommends as the remedy for duplicate headings has an
+undecided embed behaviour. Details in [`release.md`](release.md).
+
+## Adding a finding
+
+A finding from any further review joins the category it belongs to, written
+as the notes write theirs: what the text says, why it matters, the candidate
+resolutions, and the question. A finding that fits no category opens a new
+note, listed under *Companion notes*. The record moves to accepted when every
+question in every note has an answer.
+
+## Open questions
+
+Each note ends with its own list; together they are the questions this record
+exists to close.
+
+- [Errata](errata.md#open-questions)
+- [Authority and conformance](authority.md#open-questions)
+- [The corpus](corpus.md#open-questions)
+- [Platforms](platforms.md#open-questions)
+- [Publication](publication.md#open-questions)
+- [Release](release.md#open-questions)
+
+## See also
+
+- [The release card](../../issues/0016-prepare-the-0-1-specification-release.md)
+  — the decisions of 2026-11-22, the readability actions, and the steps to the
+  release.
+- [The specification](../../wiki/hmd-lang-spec.hmd) — the normative text the
+  findings are read against.
+- [The conformance corpus](../../../examples/conformance/README.md) — the cases
+  and their runners.
+- [The format's tracker](../../status/lang.md) — where the work goes once this
+  record is accepted.
+- [The CommonMark dataset card](../../issues/0015-commonmark-examples-as-a-test-dataset.md)
+  — the parallel track 0.1 does not wait on.
+
+## Changelog
+
+- 2026-11-22: drafted, from the release card and a review of the published
+  specification
