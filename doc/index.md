@@ -544,7 +544,7 @@ $$
 <dl class="hmd-keys hmd-keys--first">
 <dt><code>```hql#eval</code></dt><dd>a cell. It runs, and its output is saved under it</dd>
 <dt><code>```hql#query</code></dt><dd>a cell that prints nothing. Other cells read its value</dd>
-<dt><code>```hql</code></dt><dd>a listing. The editor shows it as code and does not run it</dd>
+<dt><code>```hql</code></dt><dd>a listing. It is an ordinary Markdown code block and is never run</dd>
 </dl>
 
 ````hmd title="contents.hmd"
@@ -609,8 +609,7 @@ reads. The editor marks a cell current or stale without running it.
 ### Two ways to run
 
 The VS Code extension runs a cell from a button in the preview and saves its
-output. `hql render --emit after --in-place` does it from the command line,
-where today every fence runs, a plain `hql` one included.
+output. `hql render` runs a card's cells from the command line.
 </div>
 
 </div>
