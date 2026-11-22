@@ -23,7 +23,9 @@ and its extras, diagram cells, underlined headings, heading matching, the
 project-root marker, the encoding, determinism, suppression, toggles across an
 embed, import order, and where publication lives. What is left is writing them
 into the specification and bringing the implementations into line, and both are
-open rows below. Still open beyond 0.1: one reserved language — cross-project
+open rows below. [The release card](../issues/0016-prepare-the-0-1-specification-release.md)
+collects the decisions, the readability actions, and the steps to the release
+in one place. Still open beyond 0.1: one reserved language — cross-project
 namespaces — with a name, constraints, and no syntax at all. The other, the query language, is no longer
 this project's to design: [HQL](https://hql-lang.org/) shipped as its own project with its own
 grammar and documentation, and the record that reserved it here is superseded.

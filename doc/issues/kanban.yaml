@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0016, the editor line's is 0116.
-  last_id: 115 # highest assigned overall; per stream — Python 15, editor 115
+  # the Python line's next issue is 0017, the editor line's is 0116.
+  last_id: 115 # highest assigned overall; per stream — Python 16, editor 115
   items:
     backlog:
       - id: "0008"
@@ -43,6 +43,9 @@ board:
         title: "There is no way to search the wiki from the preview"
         file: 0106-search-the-wiki-from-the-preview.md
     todo:
+      - id: "0016"
+        title: "Prepare the 0.1 specification release"
+        file: "0016-prepare-the-0-1-specification-release.md"
       - id: "0014"
         title: "A heading in a non-Latin script cannot be linked"
         file: "0014-non-latin-headings-cannot-be-linked.md"
