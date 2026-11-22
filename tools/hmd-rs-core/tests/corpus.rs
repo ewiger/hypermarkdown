@@ -2,8 +2,10 @@
 //!
 //! Every case under `examples/conformance/cases/` is loaded and resolved, and
 //! the resolutions must equal the `resolutions` of the case's `expected.json`,
-//! which the canonical implementation wrote. Diagnostics are not compared:
-//! this crate is a resolver and emits none.
+//! which the canonical implementation wrote. A case that holds addresses of
+//! more than one step also carries `addresses`, each a UTF-8 byte span or the
+//! rule it failed on, and those must be equal too. Diagnostics are not
+//! compared: this crate is a resolver and emits none.
 //!
 //! A case named in `conformance-xfail.json` is expected to differ. A ledgered
 //! case that matches fails the run, because an expected failure that starts
@@ -13,7 +15,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use hypermarkdown::{CONFIG_NAME, Config, FsHost, Vault};
+use hypermarkdown::{Address, CONFIG_NAME, Card, Config, Fragment, FsHost, Vault, digest_of};
 use serde_json::{Value, json};
 
 /// This crate's directory.
@@ -126,6 +128,55 @@ fn resolutions(case: &Path) -> Value {
         .collect()
 }
 
+/// Where each address of more than one step lands, in the shape and order of
+/// `expected.json`'s `addresses`.
+fn addresses(case: &Path) -> Value {
+    let config = match fs::read_to_string(case.join(CONFIG_NAME)) {
+        Ok(text) => Config::parse(&text).expect("the case's config.toml parses"),
+        Err(_) => Config::default(),
+    };
+    let tree = case.join("tree");
+    let vault = Vault::load(&FsHost::new(tree.clone()), config).expect("the case loads");
+
+    let mut rows: Vec<(String, String, Value)> = Vec::new();
+    for page in vault.pages() {
+        for link in &page.links {
+            let Some(Fragment::Address(fragment)) = &link.fragment else {
+                continue;
+            };
+            let base = |extra: Value| {
+                let mut entry = json!({ "raw": link.raw, "source": page.path });
+                for (key, value) in extra.as_object().expect("an object") {
+                    entry[key] = value.clone();
+                }
+                entry
+            };
+            let entry = match (
+                Address::parse(fragment),
+                vault.resolve(&page.path, &link.page).path(),
+            ) {
+                (Err(error), _) => base(json!({ "rule": error.rule() })),
+                (Ok(_), None) => base(json!({ "rule": "HMD001" })),
+                (Ok(address), Some(target)) => {
+                    let source = fs::read_to_string(tree.join(target)).expect("the target reads");
+                    match Card::read(target, &source).locate(&address, target) {
+                        Err(error) => base(json!({ "rule": error.rule() })),
+                        Ok(located) => base(json!({
+                            "start": located.start,
+                            "end": located.end,
+                            "text": located.text,
+                            "digest": digest_of(&located.text),
+                        })),
+                    }
+                }
+            };
+            rows.push((page.path.clone(), link.raw.clone(), entry));
+        }
+    }
+    rows.sort_by(|a, b| (&a.0, &a.1).cmp(&(&b.0, &b.1)));
+    rows.into_iter().map(|(_, _, entry)| entry).collect()
+}
+
 #[test]
 fn the_corpus_has_cases() {
     assert!(!case_names().is_empty());
@@ -152,7 +203,13 @@ fn every_case_resolves_as_the_canonical_implementation_does() {
             "{name}: expected.json has no resolutions"
         );
         let actual = resolutions(&case);
-        let matches = actual == expected;
+        let expected_addresses = read_json(&case.join("expected.json"))["addresses"].clone();
+        let actual_addresses = if expected_addresses.is_null() {
+            Value::Null
+        } else {
+            addresses(&case)
+        };
+        let matches = actual == expected && actual_addresses == expected_addresses;
 
         if expected_to_fail.contains(name) {
             if matches {
@@ -162,7 +219,7 @@ fn every_case_resolves_as_the_canonical_implementation_does() {
             }
         } else if !matches {
             failures.push(format!(
-                "{name}: resolutions differ\n  expected: {expected}\n  actual:   {actual}"
+                "{name}: resolutions or addresses differ\n  expected: {expected}\n  actual:   {actual}\n  expected addresses: {expected_addresses}\n  actual addresses:   {actual_addresses}"
             ));
         }
     }

@@ -130,6 +130,11 @@
         "title": "Run All HQL Cells",
         "category": "HyperMarkDown",
         "icon": "$(run-all)"
+      },
+      {
+        "command": "hyperMarkdown.copyAddress",
+        "title": "Copy Address of Selection",
+        "category": "HyperMarkDown"
       }
     ],
     "menus": {
@@ -169,6 +174,17 @@
         {
           "command": "hyperMarkdown.runAllCells",
           "when": "editorLangId == hmd && isWorkspaceTrusted"
+        },
+        {
+          "command": "hyperMarkdown.copyAddress",
+          "when": "editorLangId == hmd"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "hyperMarkdown.copyAddress",
+          "when": "editorLangId == hmd",
+          "group": "9_cutcopypaste@5"
         }
       ]
     },

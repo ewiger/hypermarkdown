@@ -20,7 +20,8 @@ export const IR_VERSION = 3;
 export type ResolutionState = "resolved" | "unresolved" | "ambiguous" | "escapes";
 
 export interface FragmentRef {
-  kind: "heading" | "block";
+  /** `address` is a fragment of more than one step (HMD-0006). */
+  kind: "heading" | "block" | "address";
   value: string;
   slug: string | null;
 }

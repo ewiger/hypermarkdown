@@ -235,8 +235,9 @@ def address(
             out = {
                 "path": rel,
                 "address": fragment,
-                "start": result.start,
-                "end": result.end,
+                # UTF-8 byte offsets, as the specification counts a span.
+                "start": len(document.text[: result.start].encode("utf-8")),
+                "end": len(document.text[: result.end].encode("utf-8")),
                 "line": line,
                 "column": column,
                 "end_line": end_line,

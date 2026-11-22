@@ -218,7 +218,8 @@ content.addEventListener("click", (event) => {
       vscode.postMessage({
         type: "openTarget",
         path,
-        fragment: link.dataset["hmdFragment"] ?? null,
+        // The fragment as written, `^` and every step included (HMD-0006).
+        fragment: link.dataset["hmdAddress"] ?? link.dataset["hmdFragment"] ?? null,
       });
       return;
     }

@@ -13,6 +13,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { digestOf, resolveAddress, utf8Offset } from "../src/address.js";
 import { check } from "../src/lint.js";
 import { parseConfigToml } from "../src/config.js";
 import { Workspace, DEFAULT_CONFIG } from "../src/workspace.js";
@@ -24,6 +25,8 @@ const casesDir = resolve(repoRoot, "examples/conformance/cases");
 interface Expected {
   diagnostics: Array<Record<string, unknown>>;
   resolutions: Array<{ source: string; raw: string; target: string | null }>;
+  /** Present when a case holds addresses of more than one step (HMD-0006). */
+  addresses?: Array<Record<string, unknown>>;
 }
 
 // The ledger belongs to this package, so it is named relative to this package
@@ -66,15 +69,36 @@ async function runCase(name: string): Promise<Expected> {
   });
 
   const resolutions: Expected["resolutions"] = [];
+  const addresses: Array<Record<string, unknown>> = [];
   for (const source of workspace.pages()) {
     const document = workspace.documents.get(source);
     if (document === undefined) continue;
     for (const link of document.links) {
-      resolutions.push({
-        source,
-        raw: link.raw,
-        target: workspace.resolve(source, link.pageRef).path,
-      });
+      const target = workspace.resolve(source, link.pageRef).path;
+      resolutions.push({ source, raw: link.raw, target });
+      if (link.fragmentKind !== "address") continue;
+      // Where one address landed: a UTF-8 byte span, or the rule it failed.
+      const entry: Record<string, unknown> = { raw: link.raw, source };
+      const targetDoc = target === null ? undefined : workspace.documents.get(target);
+      if (!link.address) {
+        addresses.push({ ...entry, rule: "HMD019" });
+      } else if (targetDoc === undefined) {
+        addresses.push({ ...entry, rule: "HMD001" });
+      } else {
+        const result = resolveAddress(targetDoc, link.address, target!);
+        if (result.failure !== null) {
+          addresses.push({ ...entry, rule: result.failure[0] });
+        } else {
+          const text = targetDoc.text.slice(result.start, result.end);
+          addresses.push({
+            ...entry,
+            start: utf8Offset(targetDoc.text, result.start),
+            end: utf8Offset(targetDoc.text, result.end),
+            text,
+            digest: digestOf(text),
+          });
+        }
+      }
     }
   }
   resolutions.sort(
@@ -82,7 +106,13 @@ async function runCase(name: string): Promise<Expected> {
       compare(a.source, b.source) || compare(a.raw, b.raw) || compare(a.target ?? "", b.target ?? ""),
   );
 
-  return { diagnostics, resolutions };
+  if (addresses.length === 0) return { diagnostics, resolutions };
+  addresses.sort(
+    (a, b) =>
+      compare(a["source"] as string, b["source"] as string) ||
+      compare(a["raw"] as string, b["raw"] as string),
+  );
+  return { diagnostics, resolutions, addresses };
 }
 
 function compare(a: string, b: string): number {

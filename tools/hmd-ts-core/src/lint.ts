@@ -9,16 +9,14 @@
 import {
   ERROR,
   WARNING,
-  blockIds,
   compareDiagnostics,
-  headingSlugs,
   type Diagnostic,
   type Link,
   type ParsedDocument,
   type Severity,
 } from "./model.js";
+import { resolveAddress, shadowedHeadings, SHORT_UNITS, plural } from "./address.js";
 import { CARD_SUFFIXES, INDEX_STEM, pageParts } from "./paths.js";
-import { slugify } from "./slug.js";
 import type { Workspace } from "./workspace.js";
 
 /**
@@ -48,6 +46,12 @@ export const SEVERITY: Readonly<Record<string, Severity>> = {
   HMD015: ERROR,
   HMD016: WARNING,
   HMD018: WARNING,
+  // HMD-0006: addresses inside a card.
+  HMD019: ERROR,
+  HMD020: ERROR,
+  HMD021: WARNING,
+  HMD022: WARNING,
+  HMD023: WARNING,
 };
 
 function at(
@@ -79,9 +83,10 @@ export function check(workspace: Workspace, paths?: readonly string[]): Diagnost
     if (document === undefined) continue;
     // HMD-0029: a Markdown card is not checked; no diagnostic comes from its body.
     if (document.kind === "markdown") continue;
-    diagnostics.push(...document.diagnostics); // HMD009, HMD010, HMD013, HMD014
+    diagnostics.push(...document.diagnostics); // HMD009, HMD010, HMD013, HMD014, HMD019
     diagnostics.push(...duplicateAnchors(document));
     diagnostics.push(...duplicateSlugs(document));
+    diagnostics.push(...shadowed(document));
     diagnostics.push(...importProblems(workspace, document));
     diagnostics.push(...linkRules(workspace, document));
   }
@@ -138,6 +143,20 @@ function duplicateSlugs(document: ParsedDocument): Diagnostic[] {
     );
   }
   return out;
+}
+
+/** HMD022 — a heading whose slug a short-form step reads as a unit. */
+function shadowed(document: ParsedDocument): Diagnostic[] {
+  return shadowedHeadings(document).map((heading) =>
+    at(
+      "HMD022",
+      document.path,
+      heading.span.line,
+      heading.span.column,
+      `'#${heading.slug}' counts ${plural(SHORT_UNITS[heading.slug[0]!]!)} ` +
+        `rather than naming this heading; anchor the heading to link to it`,
+    ),
+  );
 }
 
 /** HMD003 and HMD015 raised while building the import table. */
@@ -207,40 +226,26 @@ function linkRules(workspace: Workspace, document: ParsedDocument): Diagnostic[]
   return out;
 }
 
-/** HMD004 and HMD005 — the fragment must exist in the resolved page. */
+/** HMD004, HMD005, HMD020, HMD021, HMD023 — the address must land in the page. */
 function fragmentRules(
   workspace: Workspace,
   document: ParsedDocument,
   link: Link,
   target: string,
 ): Diagnostic[] {
-  if (link.fragment === null) return [];
+  if (link.fragment === null || !link.address) return [];
   const resolved = workspace.documents.get(target);
   if (resolved === undefined) return [];
   const { span } = link;
-
-  if (link.fragmentKind === "block") {
-    if (!blockIds(resolved).has(link.fragment)) {
-      return [
-        at(
-          "HMD005",
-          document.path,
-          span.line,
-          span.column,
-          `${target} has no block '^${link.fragment}'`,
-        ),
-      ];
-    }
-    return [];
+  const result = resolveAddress(resolved, link.address, target);
+  const out: Diagnostic[] = [];
+  if (result.failure !== null) {
+    out.push(at(result.failure[0], document.path, span.line, span.column, result.failure[1]));
   }
-
-  const wanted = slugify(link.fragment);
-  if (!headingSlugs(resolved).has(wanted)) {
-    return [
-      at("HMD004", document.path, span.line, span.column, `${target} has no heading '#${wanted}'`),
-    ];
+  for (const [rule, message] of result.warnings) {
+    out.push(at(rule, document.path, span.line, span.column, message));
   }
-  return [];
+  return out;
 }
 
 // -- cross-document rules ------------------------------------------------

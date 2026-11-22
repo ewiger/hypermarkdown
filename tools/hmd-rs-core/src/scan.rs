@@ -87,7 +87,7 @@ fn fence(line: &str) -> Option<Fence<'_>> {
 }
 
 /// The region of each fenced code block, closed or not.
-fn fenced_regions(body: &[char]) -> Vec<Region> {
+pub(crate) fn fenced_regions(body: &[char]) -> Vec<Region> {
     let text: String = body.iter().collect();
     let mut regions = Vec::new();
     let mut open: Option<(char, usize, usize)> = None;

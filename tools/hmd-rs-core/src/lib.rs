@@ -51,6 +51,7 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod address;
 mod config;
 mod error;
 mod frontmatter;
@@ -62,6 +63,10 @@ mod scan;
 mod text;
 mod vault;
 
+pub use address::{
+    Address, AddressError, Card, Located, MAX_ORDINAL, MAX_STEPS, Step, Unit, Warning, digest_of,
+    is_multi_step, is_shadowed_slug, locate,
+};
 pub use config::{CONFIG_NAME, Config, DEFAULT_WIKI, MARKER_DIR, Mode, find_vault_root};
 pub use error::Error;
 pub use host::{Entry, EntryKind, FsHost, Host, MemoryHost};

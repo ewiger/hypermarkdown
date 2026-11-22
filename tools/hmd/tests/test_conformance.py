@@ -80,8 +80,9 @@ def _address(workspace, path, link, target) -> dict:
     text = document.text[result.start : result.end]
     return {
         **entry,
-        "start": result.start,
-        "end": result.end,
+        # UTF-8 byte offsets: the one unit every implementation shares.
+        "start": len(document.text[: result.start].encode("utf-8")),
+        "end": len(document.text[: result.end].encode("utf-8")),
         "text": text,
         "digest": address_mod.digest_of(text),
     }

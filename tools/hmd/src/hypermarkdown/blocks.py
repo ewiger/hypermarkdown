@@ -1,5 +1,9 @@
 """Block segmentation, and the text units inside a block (HMD-0006).
 
+Every class in these patterns is ASCII on purpose — `[0-9]`, `[ \t]` — and no
+string is stripped of "whitespace" in the host language's sense, because
+Python's, JavaScript's and Rust's notions differ and a port must not drift.
+
 An address counts blocks, sentences, words, and lines, so every implementation
 has to cut a card into those units at exactly the same places. The rules here
 are therefore line-based and mechanical rather than a CommonMark parse: each
@@ -49,12 +53,12 @@ TERMINATORS = frozenset(".!?")
 _ATX_RE = re.compile(r"^ {0,3}#{1,6}(?:[ \t]|$)")
 _BREAK_RE = re.compile(r"^ {0,3}(?:(?:-[ \t]*){3,}|(?:\*[ \t]*){3,}|(?:_[ \t]*){3,})$")
 _QUOTE_RE = re.compile(r"^ {0,3}>")
-_CALLOUT_QUOTE_RE = re.compile(r"^ {0,3}>[ \t]*\[![^\]\s]+\]")
+_CALLOUT_QUOTE_RE = re.compile(r"^ {0,3}>[ \t]*\[![^\] \t]+\]")
 _ADMONITION_RE = re.compile(r"^(?:!!!|\?\?\?\+?)[ \t]")
 _MATH_RE = re.compile(r"^ {0,3}\$\$")
 _HTML_RE = re.compile(r"^ {0,3}<[A-Za-z/!?]")
 _BULLET_RE = re.compile(r"^ {0,3}(?P<marker>[-*+])(?:[ \t]|$)")
-_ORDERED_RE = re.compile(r"^ {0,3}(?P<number>\d{1,9})(?P<delim>[.)])(?:[ \t]|$)")
+_ORDERED_RE = re.compile(r"^ {0,3}(?P<number>[0-9]{1,9})(?P<delim>[.)])(?:[ \t]|$)")
 _DELIMITER_ROW_RE = re.compile(r"^ {0,3}\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$")
 _EMBED_LINE_RE = re.compile(r"^[ \t]*!\[\[[^\[\]\n]*\]\][ \t]*$")
 _ANCHOR_TAIL_RE = re.compile(r"[ \t]+\^[A-Za-z0-9][A-Za-z0-9_-]{0,63}[ \t]*$")
@@ -62,9 +66,9 @@ _ANCHOR_TAIL_RE = re.compile(r"[ \t]+\^[A-Za-z0-9][A-Za-z0-9_-]{0,63}[ \t]*$")
 # Line prefixes that are structure, not words.
 # Matched with `pattern.match(line, offset)`, so none of them carries `^`.
 _QUOTE_PREFIX_RE = re.compile(r"[ \t]*(?:>[ \t]?)+")
-_LIST_PREFIX_RE = re.compile(r"[ \t]*(?:[-*+]|\d{1,9}[.)])(?=[ \t]|$)")
-_CALLOUT_PREFIX_RE = re.compile(r"[ \t]*\[![^\]\s]+\][+-]?")
-_ADMONITION_PREFIX_RE = re.compile(r"(?:!!!|\?\?\?\+?)[ \t]+\S+")
+_LIST_PREFIX_RE = re.compile(r"[ \t]*(?:[-*+]|[0-9]{1,9}[.)])(?=[ \t]|$)")
+_CALLOUT_PREFIX_RE = re.compile(r"[ \t]*\[![^\] \t]+\][+-]?")
+_ADMONITION_PREFIX_RE = re.compile(r"(?:!!!|\?\?\?\+?)[ \t]+[^ \t]+")
 
 
 @dataclass(frozen=True)
@@ -127,10 +131,10 @@ def _interrupts_paragraph(line: str, fence: bool) -> bool:
     if _MATH_RE.match(line) or _ADMONITION_RE.match(line):
         return True
     m = _BULLET_RE.match(line)
-    if m and line[m.end() :].strip():
+    if m and line[m.end() :].strip(" \t"):
         return True
     m = _ORDERED_RE.match(line)
-    return bool(m and m.group("number") == "1" and line[m.end() :].strip())
+    return bool(m and m.group("number") == "1" and line[m.end() :].strip(" \t"))
 
 
 def segment(text: str, start: int, end: int, body_offset: int = 0) -> list[Block]:
@@ -171,8 +175,8 @@ def segment(text: str, start: int, end: int, body_offset: int = 0) -> list[Block
         if line.start in fences:
             j = through(min(fences[line.start], end))
             last = j - 1
-            info = scan._FENCE_RE.match(content).group("info").strip()
-            word = info.split(None, 1)[0] if info else ""
+            info = scan._FENCE_RE.match(content).group("info").strip(" \t")
+            word = re.split(r"[ \t]", info, maxsplit=1)[0]
             kind = DIAGRAM if word in DIAGRAM_INFOS else CODE
             closes = last > i and scan._FENCE_RE.match(line_text(last).rstrip())
             body_last = last - 1 if closes else last

@@ -13,6 +13,7 @@ import { VaultCatalog } from "./catalog.js";
 import { createCard } from "./commands/createCard.js";
 import { DiagnosticPublisher } from "./diagnostics.js";
 import { CellLensProvider, cellAtCursor } from "./hql/runner.js";
+import { registerLinks } from "./links.js";
 import { PreviewPanel, VIEW_TYPE, type PanelState } from "./preview/panel.js";
 
 /** Gates the editor title-bar button: this window holds at least one vault. */
@@ -98,6 +99,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await createCard(catalog, await catalog.openCard(editor.document.uri), target.trim());
     }),
   );
+
+  context.subscriptions.push(...registerLinks(catalog));
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {

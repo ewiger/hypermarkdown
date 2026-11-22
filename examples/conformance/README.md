@@ -54,6 +54,7 @@ leaks into the contract.
 | `markdown-sweep` | The sweep finds a Markdown card, is HMD002 across modules, and skips a shadowed file |
 | `heading-after-frontmatter` | A heading on the line right below the fence is addressable |
 | `address-steps` | Every step kind resolves to its span: heading paths, anchors, each block unit, short forms, sentences, words, lines, and an embed that quotes |
+| `address-unicode` | Spans counted in UTF-8 bytes over umlauts, CJK, an emoji, and the pinned Unicode whitespace |
 | `address-diagnostics` | HMD019 to HMD023, and HMD004 and HMD005 from a step inside an address |
 | `nested-vault` | A directory carrying its own `.hmd/` is another vault: none of its cards load, so a name it shares is not HMD002 |
 
@@ -62,8 +63,9 @@ leaks into the contract.
 - **TypeScript** — `tools/hmd-ts-core/test/corpus.test.ts`, part of
   `npm run -w @hypermarkdown/core test`.
 - **Rust** — `tools/hmd-rs-core/tests/corpus.rs`, part of `cargo test` in
-  `tools/hmd-rs-core/`. It compares `resolutions` only: the crate is a resolver
-  and emits no diagnostics.
+  `tools/hmd-rs-core/`. It compares `resolutions`, and `addresses` where a
+  case has them, but not `diagnostics`: the crate is a resolver and emits
+  none.
 - **Python** — `tools/hmd/tests/test_conformance.py`, part of
   `uv run python -m pytest`. A case's `config.toml` is copied in as the tree's
   `.hmd/config.toml`; a marker further down the tree is part of the case.

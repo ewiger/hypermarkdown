@@ -12,7 +12,7 @@
  * block is a callout body, not code.
  */
 
-const FENCE_RE = /^([ \t]*)(`{3,}|~{3,})(.*)$/;
+export const FENCE_RE = /^([ \t]*)(`{3,}|~{3,})(.*)$/;
 const HTML_COMMENT_RE = /<!--[\s\S]*?-->/g;
 const CODE_SPAN_RE = /(`+)([\s\S]+?)\1/g;
 
@@ -43,7 +43,7 @@ function stripEol(line: string): string {
 }
 
 /** Yield [start, end) for each fenced code block, closed or not. */
-function fencedRegions(text: string): Region[] {
+export function fencedRegions(text: string): Region[] {
   const regions: Region[] = [];
   let openFence: string | null = null;
   let openStart = 0;

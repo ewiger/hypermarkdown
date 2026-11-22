@@ -21,6 +21,12 @@ pub enum Fragment {
     /// A block, written `[[page#^id]]`; holds the block identifier without its
     /// `^`.
     Block(String),
+    /// An address of more than one step (HMD-0006), written
+    /// `[[page#Heading/Para2/Sentence1]]`; holds the text after `#` as
+    /// written. It is kept whether or not it is well-formed: parse it with
+    /// [`Address::parse`](crate::Address::parse), and resolve it with
+    /// [`Card::locate`](crate::Card::locate).
+    Address(String),
 }
 
 /// Why the text between `[[` and `]]` is not a reference.
@@ -89,6 +95,9 @@ impl Reference {
         };
 
         let (rest, fragment) = match rest.split_once('#') {
+            Some((rest, fragment)) if crate::address::is_multi_step(fragment) => {
+                (rest, Some(Fragment::Address(fragment.to_owned())))
+            }
             Some((rest, fragment)) => match fragment.strip_prefix('^') {
                 Some(id) if is_block_id(id) => (rest, Some(Fragment::Block(id.to_owned()))),
                 Some(id) => return Err(ReferenceError::InvalidBlockId(id.to_owned())),

@@ -36,6 +36,26 @@ export {
   type WorkspaceConfig,
 } from "./workspace.js";
 export { check, summarize, MAX_EMBED_DEPTH, SEVERITY } from "./lint.js";
+export {
+  AddressSyntaxError,
+  bodyOffset,
+  digestOf,
+  isMultiStep,
+  locateFragment,
+  mintAddress,
+  parseAddress,
+  resolveAddress,
+  utf8Offset,
+  writtenFragment,
+  LONG_UNITS,
+  SHORT_UNITS,
+  type Address,
+  type Location,
+  type Resolution as AddressResolution,
+  type Step,
+  type Unit,
+} from "./address.js";
+export { segment, words, sentences, type Block as AddressBlock, type BlockKind } from "./blocks.js";
 export { expand, bodySlice, isFailure, type Expansion, type Slice } from "./expand.js";
 export {
   Renderer,

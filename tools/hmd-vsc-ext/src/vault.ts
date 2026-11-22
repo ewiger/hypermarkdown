@@ -20,6 +20,7 @@ import {
   type Diagnostic,
   type DocumentIR,
   type Graph,
+  type ParsedDocument,
   type ProjectConfig,
 } from "@hypermarkdown/core";
 
@@ -107,6 +108,18 @@ export class Vault implements vscode.Disposable {
 
   diagnostics(): Diagnostic[] {
     return this.workspace === null ? [] : check(this.workspace);
+  }
+
+  /** The parsed card at `rel`, an unsaved buffer included. */
+  document(rel: string): ParsedDocument | undefined {
+    return this.workspace?.documents.get(rel);
+  }
+
+  /** The card a page reference written in `source` resolves to, or null. */
+  resolvePath(source: string, pageRef: string): string | null {
+    if (this.workspace === null) return null;
+    const result = this.workspace.resolve(source, pageRef);
+    return result.outcome === "resolved" ? result.path : null;
   }
 
   render(rel: string): DocumentIR | null {

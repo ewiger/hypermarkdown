@@ -51,9 +51,9 @@ MAX_STEPS = 32
 _INTEGRITY_RE = re.compile(r"@sha256-(?P<digest>[^/]*)$")
 _DIGEST_RE = re.compile(r"^[0-9a-f]{16}$")
 _BLOCK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
-_COUNTED_RE = re.compile(r"^(?P<u1>[A-Za-z]+)(?P<n1>\d+)(?:-(?P<u2>[A-Za-z]+)(?P<n2>\d+))?$")
+_COUNTED_RE = re.compile(r"^(?P<u1>[A-Za-z]+)(?P<n1>[0-9]+)(?:-(?P<u2>[A-Za-z]+)(?P<n2>[0-9]+))?$")
 #: A heading whose slug has this shape is shadowed by a short-form step.
-SHADOW_RE = re.compile(r"^[" + "".join(sorted(SHORT_UNITS)) + r"]\d+(?:-[a-z]+\d+)?$")
+SHADOW_RE = re.compile(r"^[" + "".join(sorted(SHORT_UNITS)) + r"][0-9]+(?:-[a-z]+[0-9]+)?$")
 
 
 @dataclass(frozen=True)
@@ -160,7 +160,7 @@ def parse(fragment: str) -> Address:
 
     steps: list[Step] = []
     for part in parts:
-        if not part.strip():
+        if not part.strip(" \t"):
             raise AddressSyntaxError("an address has an empty step" if len(parts) > 1 else "empty fragment")
         if part.startswith("^"):
             block_id = part[1:]
@@ -168,7 +168,7 @@ def parse(fragment: str) -> Address:
                 raise AddressSyntaxError(f"invalid block id {block_id!r}")
             steps.append(Step(ANCHOR, part, block_id))
             continue
-        counted = _counted(part.strip()) if part == part.strip() else None
+        counted = _counted(part)
         if counted is not None:
             steps.append(counted)
             continue
@@ -465,7 +465,7 @@ def _anchor_region(document: Document, block_id: str, floor: int) -> tuple[int, 
         while start > floor:
             previous_end = start - 1
             previous_start = text.rfind("\n", 0, previous_end) + 1
-            if previous_start < floor or not text[previous_start:previous_end].strip():
+            if previous_start < floor or not text[previous_start:previous_end].strip(" \t\r"):
                 break
             start = previous_start
         return start, anchor.span.start

@@ -21,6 +21,18 @@ against
 
 ## [Unreleased]
 
+### Added
+
+- **Addresses inside a card.** Go to Definition on any `[[link]]` opens its
+  card at the heading, block or passage it names, and selects a passage.
+  Hovering an address shows the text it quotes and where from. Typing after
+  `#` or `/` inside a link offers the target's headings, anchors, and the units
+  that may come next. **Copy Address of Selection**, in the editor's context
+  menu, copies `[[/card#address]]` for the selection; when the address would
+  root on a count, it offers to anchor the block first, so the address
+  survives a block being added above it. A link clicked in the preview selects
+  the passage its address names.
+
 ## [0.5.2] — 2026-11-22
 
 ### Added

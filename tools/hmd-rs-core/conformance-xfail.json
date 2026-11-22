@@ -1,19 +1,6 @@
 {
   "$comment": "Known differences from the canonical implementation. `cases` are conformance cases whose resolutions this crate gets wrong; `rules` are lint rules it does not emit. This crate is a resolver, not a linter: it emits no diagnostic at all, so every rule is listed, each with what the crate does in the situation the rule reports. The runner in tests/corpus.rs fails when a ledgered case passes, when the ledger names a case the corpus does not have, and when the canonical implementation defines a rule that is not listed here, because a ledger that is not kept true stops being read.",
-  "cases": [
-    {
-      "id": "address-steps",
-      "reason": "A fragment of more than one step that starts at a block anchor, such as `#^limit/Sentence2`, is read as an invalid block id, so the reference is left out of the card's links and its resolution is missing.",
-      "deliberate": false,
-      "spec": "HMD-0006, the address after the hash"
-    },
-    {
-      "id": "address-diagnostics",
-      "reason": "A fragment of more than one step that starts at a block anchor, such as `#^limit/Sentence2`, is read as an invalid block id, so the reference is left out of the card's links and its resolution is missing.",
-      "deliberate": false,
-      "spec": "HMD-0006, the address after the hash"
-    }
-  ],
+  "cases": [],
   "rules": [
     {
       "id": "HMD001",
@@ -35,13 +22,13 @@
     },
     {
       "id": "HMD004",
-      "reason": "A heading fragment the resolved card does not have. Headings and their slugs are not read, so a fragment is parsed and never checked.",
+      "reason": "A heading fragment the resolved card does not have. A one-step fragment is parsed and never checked; an address that names a missing heading makes `Card::locate` return `AddressError::NoHeading`.",
       "deliberate": true,
       "spec": "HMD-0027, what the crate does not do"
     },
     {
       "id": "HMD005",
-      "reason": "A block fragment the resolved card does not have. Block anchors are not read, so a fragment is parsed and never checked.",
+      "reason": "A block fragment the resolved card does not have. A one-step fragment is parsed and never checked; an address that names a missing anchor makes `Card::locate` return `AddressError::NoBlock`.",
       "deliberate": true,
       "spec": "HMD-0027, what the crate does not do"
     },
@@ -125,33 +112,33 @@
     },
     {
       "id": "HMD019",
-      "reason": "A malformed address. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "reason": "A malformed address. `Address::parse` returns `AddressError::Syntax`; the diagnostic is the caller's to report.",
       "deliberate": true,
-      "spec": "HMD-0006, the address after the hash"
+      "spec": "HMD-0006, the address after the hash; HMD-0027, what the crate does not do"
     },
     {
       "id": "HMD020",
-      "reason": "An address step that selects nothing in its scope. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "reason": "An address step that selects nothing in its scope. `Card::locate` returns `AddressError::Nothing`; the diagnostic is the caller's to report.",
       "deliberate": true,
-      "spec": "HMD-0006, the address after the hash"
+      "spec": "HMD-0006, the address after the hash; HMD-0027, what the crate does not do"
     },
     {
       "id": "HMD021",
-      "reason": "A block step outside the section the address names before it. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "reason": "A block step outside the section the address names before it. `Card::locate` resolves and carries `Warning::Moved`; the diagnostic is the caller's to report.",
       "deliberate": true,
-      "spec": "HMD-0006, the address after the hash"
+      "spec": "HMD-0006, the address after the hash; HMD-0027, what the crate does not do"
     },
     {
       "id": "HMD022",
-      "reason": "A heading whose slug a short-form step reads as a count. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "reason": "A heading whose slug a short-form step reads as a count. `is_shadowed_slug` answers for a slug; the diagnostic is the caller's to report.",
       "deliberate": true,
-      "spec": "HMD-0006, the address after the hash"
+      "spec": "HMD-0006, the address after the hash; HMD-0027, what the crate does not do"
     },
     {
       "id": "HMD023",
-      "reason": "A quotation whose integrity digest no longer matches. This crate emits no diagnostic. Once addresses are resolved here, a failure is a typed error the caller reports; until then a fragment is parsed and never checked.",
+      "reason": "A quotation whose integrity digest no longer matches. `Card::locate` resolves and carries `Warning::Stale`; the diagnostic is the caller's to report.",
       "deliberate": true,
-      "spec": "HMD-0006, the address after the hash"
+      "spec": "HMD-0006, the address after the hash; HMD-0027, what the crate does not do"
     }
   ]
 }

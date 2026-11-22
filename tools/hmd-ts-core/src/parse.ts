@@ -7,6 +7,7 @@
  * construct becomes a diagnostic and the rest of the card parses normally.
  */
 
+import { AddressSyntaxError, isMultiStep, parseAddress, type Address } from "./address.js";
 import { parseCardConfig, parseYaml, splitFrontmatter } from "./frontmatter.js";
 import {
   ERROR,
@@ -182,7 +183,24 @@ function collectLinks(
       });
       continue;
     }
-    links.push({ ...target, isEmbed: found.isEmbed, raw, span });
+    let address: Address | null = null;
+    if (target.fragment !== null) {
+      const written = target.fragmentKind === "block" ? `^${target.fragment}` : target.fragment;
+      try {
+        address = parseAddress(written);
+      } catch (exc) {
+        if (!(exc instanceof AddressSyntaxError)) throw exc;
+        diagnostics.push({
+          rule: "HMD019",
+          severity: ERROR,
+          path: rel,
+          line: span.line,
+          column: span.column,
+          message: `${exc.message} in ${raw}`,
+        });
+      }
+    }
+    links.push({ ...target, isEmbed: found.isEmbed, raw, span, address });
   }
 
   for (const start of scan.findUnterminated(masked)) {
@@ -229,7 +247,11 @@ export function parseTarget(inner: string): ParsedTarget {
   if (hash !== -1) {
     fragment = rest.slice(hash + 1);
     rest = rest.slice(0, hash);
-    if (fragment.startsWith("^")) {
+    if (isMultiStep(fragment)) {
+      // HMD-0006: a path of steps, whose grammar the address parser checks and
+      // reports as HMD019 rather than HMD010.
+      fragmentKind = "address";
+    } else if (fragment.startsWith("^")) {
       fragmentKind = "block";
       fragment = fragment.slice(1);
       if (!BLOCK_ID_RE.test(fragment)) {

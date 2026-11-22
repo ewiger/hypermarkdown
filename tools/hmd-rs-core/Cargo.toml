@@ -16,11 +16,15 @@ include = ["src/**", "tests/**", "conformance-xfail.json", "README.md", "CHANGEL
 name = "hypermarkdown"
 
 [dependencies]
-# Frontmatter is YAML and `.hmd/config.toml` is TOML; everything else is std.
+# Frontmatter is YAML and `.hmd/config.toml` is TOML; heading slugs need
+# Unicode normalisation; everything else is std.
 # `serde` is what both parsers are driven through, and adds no crate of its own.
 serde = "1"
 serde_yaml_ng = "0.10"
 toml = { version = "1.1", default-features = false, features = ["std", "parse", "serde"] }
+# Heading slugs follow Python-Markdown, which NFKD-normalises before it drops
+# what is not ASCII; std has no Unicode normalisation.
+unicode-normalization = "0.1"
 
 [dev-dependencies]
 serde_json = "1"

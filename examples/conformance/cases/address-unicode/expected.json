@@ -1,0 +1,85 @@
+{
+  "addresses": [
+    {
+      "digest": "f0f0222970addc44",
+      "end": 112,
+      "raw": "[[größe#Line5]]",
+      "source": "reader.hmd",
+      "start": 25,
+      "text": "Naïve café 😀 owners. Zweiter Satz mit　Ideographic space! Dritter​Satz? ^ueber"
+    },
+    {
+      "digest": "1ad4cda4f2684f19",
+      "end": 58,
+      "raw": "[[größe#^ueber/Word3-Word5]]",
+      "source": "reader.hmd",
+      "start": 38,
+      "text": "😀 owners. Zweiter"
+    },
+    {
+      "digest": "3b2e79bc71937994",
+      "end": 129,
+      "raw": "[[größe#Über uns/List1/Word2]]",
+      "source": "reader.hmd",
+      "start": 126,
+      "text": "の"
+    },
+    {
+      "digest": "b451981e6ab26798",
+      "end": 89,
+      "raw": "[[größe#über-uns/Para1/Sentence2]]",
+      "source": "reader.hmd",
+      "start": 51,
+      "text": "Zweiter Satz mit　Ideographic space!"
+    },
+    {
+      "digest": "02c09c023c16bd0e",
+      "end": 105,
+      "raw": "[[größe#über-uns/Para1/Sentence3]]",
+      "source": "reader.hmd",
+      "start": 90,
+      "text": "Dritter​Satz?"
+    },
+    {
+      "digest": "f0443a342c5ef547",
+      "end": 42,
+      "raw": "[[größe#über-uns/p1/s1/w3]]",
+      "source": "reader.hmd",
+      "start": 38,
+      "text": "😀"
+    }
+  ],
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "[[größe#Line5]]",
+      "source": "reader.hmd",
+      "target": "größe.hmd"
+    },
+    {
+      "raw": "[[größe#^ueber/Word3-Word5]]",
+      "source": "reader.hmd",
+      "target": "größe.hmd"
+    },
+    {
+      "raw": "[[größe#Über uns/List1/Word2]]",
+      "source": "reader.hmd",
+      "target": "größe.hmd"
+    },
+    {
+      "raw": "[[größe#über-uns/Para1/Sentence2]]",
+      "source": "reader.hmd",
+      "target": "größe.hmd"
+    },
+    {
+      "raw": "[[größe#über-uns/Para1/Sentence3]]",
+      "source": "reader.hmd",
+      "target": "größe.hmd"
+    },
+    {
+      "raw": "[[größe#über-uns/p1/s1/w3]]",
+      "source": "reader.hmd",
+      "target": "größe.hmd"
+    }
+  ]
+}

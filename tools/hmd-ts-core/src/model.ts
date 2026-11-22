@@ -6,6 +6,8 @@
  * read from the same positions.
  */
 
+import type { Address } from "./address.js";
+
 export const ERROR = "error";
 export const WARNING = "warning";
 
@@ -33,7 +35,8 @@ export interface Anchor {
   span: Span;
 }
 
-export type FragmentKind = "heading" | "block";
+/** `address` is a fragment of more than one step (HMD-0006). */
+export type FragmentKind = "heading" | "block" | "address";
 
 /** A `[[wikilink]]` or, when `isEmbed`, a `![[embed]]`. */
 export interface Link {
@@ -44,6 +47,12 @@ export interface Link {
   isEmbed: boolean;
   raw: string;
   span: Span;
+  /**
+   * The parsed fragment (HMD-0006): set for every fragment that parses, a
+   * one-step heading or block fragment included. Null for a malformed address,
+   * which is reported as HMD019 and otherwise left unchecked.
+   */
+  address?: Address | null;
 }
 
 /** The link as written, minus any display text — for diagnostics. */

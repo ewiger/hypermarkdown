@@ -8,6 +8,7 @@
  * ever runs.
  */
 
+import { writtenFragment } from "./address.js";
 import MarkdownIt from "markdown-it";
 import footnote from "markdown-it-footnote";
 import taskLists from "markdown-it-task-lists";
@@ -374,6 +375,9 @@ export class Renderer {
     if (result.path !== null) attrs.push(["data-hmd-path", result.path]);
     if (link.fragment !== null) attrs.push(["data-hmd-fragment", link.fragment]);
     if (link.fragmentKind !== null) attrs.push(["data-hmd-fragment-kind", link.fragmentKind]);
+    // The fragment as written, `^` included: what an editor locates (HMD-0006).
+    const written = writtenFragment(link);
+    if (written !== null) attrs.push(["data-hmd-address", written]);
     if (result.candidates.length > 0) {
       attrs.push(["data-hmd-candidates", result.candidates.join(",")]);
     }
@@ -425,7 +429,7 @@ export class Renderer {
       return { ...base, document: null, failure: `${result.path} is not loaded` };
     }
 
-    const expansion = expand(targetDoc, link.fragment, link.fragmentKind);
+    const expansion = expand(targetDoc, link.fragment, link.fragmentKind, link.address ?? null);
     if (isFailure(expansion)) {
       return { ...base, document: null, failure: `${result.path} has ${expansion.reason}` };
     }

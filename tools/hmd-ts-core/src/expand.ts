@@ -8,7 +8,8 @@
  */
 
 import { splitFrontmatter } from "./frontmatter.js";
-import type { ParsedDocument } from "./model.js";
+import { resolveAddress, type Address } from "./address.js";
+import type { FragmentKind, ParsedDocument } from "./model.js";
 import { lineStarts } from "./scan.js";
 import { slugify } from "./slug.js";
 
@@ -51,11 +52,25 @@ export function bodySlice(document: ParsedDocument): Slice {
 export function expand(
   document: ParsedDocument,
   fragment: string | null,
-  fragmentKind: "heading" | "block" | null,
+  fragmentKind: FragmentKind | null,
+  address: Address | null = null,
 ): Expansion {
   if (fragment === null) return bodySlice(document);
   if (fragmentKind === "block") return expandBlock(document, fragment);
+  if (fragmentKind === "address") return expandAddress(document, address);
   return expandSection(document, fragment);
+}
+
+/** HMD-0006: an address quotes exactly the span it selects. */
+function expandAddress(document: ParsedDocument, address: Address | null): Expansion {
+  if (address === null) return { reason: "a malformed address" };
+  const result = resolveAddress(document, address);
+  if (result.failure !== null) return { reason: result.failure[1] };
+  const text = document.text.slice(result.start, result.end).trim();
+  const lead = document.text.slice(result.start, result.end).search(/\S/);
+  const begin = result.start + Math.max(lead, 0);
+  const startLine = document.text.slice(0, begin).split("\n").length;
+  return { text, startLine };
 }
 
 function expandSection(document: ParsedDocument, fragment: string): Expansion {

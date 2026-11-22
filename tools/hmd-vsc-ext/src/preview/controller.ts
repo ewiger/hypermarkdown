@@ -13,7 +13,7 @@
 
 import * as vscode from "vscode";
 
-import { IR_VERSION, SUFFIX, cardSuffix } from "@hypermarkdown/core";
+import { IR_VERSION, SUFFIX, cardSuffix, locateFragment } from "@hypermarkdown/core";
 
 import { sameCard, type CardRef, type VaultCatalog } from "../catalog.js";
 import { createCard } from "../commands/createCard.js";
@@ -306,7 +306,16 @@ export class PreviewController implements vscode.Disposable {
       viewColumn: this.sourceColumn(),
     });
 
-    const target = line ?? this.lineOfFragment({ vault: source.vault, rel: path }, fragment);
+    // A passage — a count, a sentence, a word — is selected, so the reader
+    // sees exactly what the link names; a heading or a block moves the cursor.
+    const span = line === null ? this.spanOfFragment({ vault: source.vault, rel: path }, fragment) : null;
+    if (span !== null && span.passage) {
+      const range = new vscode.Range(document.positionAt(span.start), document.positionAt(span.end));
+      editor.selection = new vscode.Selection(range.start, range.end);
+      editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+      return;
+    }
+    const target = line ?? span?.line ?? null;
     if (target !== null) {
       const at = Math.min(Math.max(target - 1, 0), document.lineCount - 1);
       editor.selection = new vscode.Selection(at, 0, at, 0);
@@ -400,12 +409,26 @@ export class PreviewController implements vscode.Disposable {
     }
   }
 
+  /**
+   * The 1-indexed line a fragment lands on — a heading, a block, or any
+   * address (HMD-0006) — located by the core exactly as the linter does.
+   */
   private lineOfFragment(card: CardRef, fragment: string | null): number | null {
+    const span = this.spanOfFragment(card, fragment);
+    return span === null ? null : span.line;
+  }
+
+  private spanOfFragment(
+    card: CardRef,
+    fragment: string | null,
+  ): { line: number; start: number; end: number; passage: boolean } | null {
     if (fragment === null) return null;
-    const ir = card.vault.render(card.rel);
-    if (ir === null) return null;
-    const heading = ir.headings.find((h) => h.slug === fragment || h.text === fragment);
-    return heading?.line ?? null;
+    const document = card.vault.document(card.rel);
+    if (document === undefined) return null;
+    const at = locateFragment(document, fragment);
+    if (at === null) return null;
+    const line = document.text.slice(0, at.start).split("\n").length;
+    return { line, ...at };
   }
 
   // -- full screen -----------------------------------------------------

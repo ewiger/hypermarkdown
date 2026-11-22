@@ -16,7 +16,22 @@ crates.io. Implementation state is tracked in
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Addresses inside a card** (HMD-0006). `Address::parse` reads the steps
+  after `#` and checks every static rule; `Card::read` and `Card::locate`
+  resolve an address against one card to a UTF-8 byte span, its text, and any
+  warnings; `locate` does both. Heading slugs, block anchors, the block
+  segmentation, sentences, words, and lines follow the canonical
+  implementation, and the corpus compares every span. A failure is an
+  `AddressError` and a warning a `Warning`, each naming the rule it stands for.
+  Depends on `unicode-normalization`, for heading slugs.
+
+### Changed
+
+- **`Fragment::Address`** holds a fragment of more than one step, which was
+  read as heading text, or dropped when it began with `^`. Exhaustive matches
+  on `Fragment` need the new arm.
 
 ## [0.2.0] — 2026-11-15
 

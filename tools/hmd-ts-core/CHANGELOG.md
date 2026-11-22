@@ -21,6 +21,25 @@ point in
 
 ## [Unreleased]
 
+### Added
+
+- **Addresses inside a card** ([HMD-0006](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0006/README.md)). A fragment of more than one
+  step — `[[tokens#the-limit/Para2/Sentence1]]`, `[[tokens#^limit/Word3-Word9]]`
+  — is a link of `fragmentKind` `"address"` carrying its parsed `address`, and
+  resolves to a span of the target exactly as the canonical implementation
+  resolves it: the same block segmentation, sentences, words and lines, held
+  to it by three corpus cases. `check` reports HMD019 to HMD023, an embed of an
+  address renders the quoted span, and a rendered link carries
+  `data-hmd-address`, the fragment as written. New exports: `parseAddress`,
+  `resolveAddress`, `locateFragment`, `mintAddress` (the long-form address of a
+  selection, rooted on an anchor or a heading where there is one), `digestOf`,
+  `segment`, `words` and `sentences`.
+
+### Changed
+
+- `FragmentKind` and the IR's `FragmentRef.kind` gain `"address"`. A `/` in a
+  heading fragment now separates steps.
+
 ## [0.3.0] — 2026-11-15
 
 ### Added
