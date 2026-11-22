@@ -39,7 +39,9 @@ full-width bands, each making one claim and showing it — after the sibling
 project's site did the same and became much easier to read. The shell is in:
 the cover's own template, the hero with the project's tagline, and a window of
 five tabs that each show a card's source beside what it produces. The bands
-that tell the rest of the format are the open rows below.
+that tell the language are in as well: three layers, links, embeds, metadata,
+and visuals, each with a diagram drawn in the page. The bands for computation,
+search, tools, and comparison are the open rows below.
 
 **What remains open** is one decision deliberately not being taken — which
 successor to follow when the site generator's 2.0 arrives without a plugin
@@ -50,8 +52,7 @@ revisiting is that maths loads from a CDN at view time.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| doing | **The cover's language bands** — three layers in one file, links that name cards, cards made of cards, metadata, and visuals, each with its own diagram drawn in HTML and CSS so it follows the colour scheme | The old three-layer diagram and the Language and Features prose retire once every claim in them is on a band or in a chapter | — |
-| todo | **The cover's computation and reach bands** — cards as notebooks, search by meaning, the tools as tiles, a comparison with other formats and notebooks, and the pages to read next | Every statement about another tool is checked against that tool's own documentation before it ships. The old Tools, Specification, and Vision prose retires with it | — |
+| doing | **The cover's computation and reach bands** — cards as notebooks, search by meaning, the tools as tiles, a comparison with other formats and notebooks, and the pages to read next | Every statement about another tool is checked against that tool's own documentation before it ships. The old Tools, Specification, and Vision prose retires with it | — |
 | todo | **A live card editor on the cover**, running the TypeScript implementation in the browser: type in a card, watch links, embeds, and diagnostics change | The static source-and-result pairs stay as the page without a script | [`ts-core.md`](ts-core.md) |
 | todo | **A link-preview card**, with Open Graph and Twitter tags on every page | — | — |
 | todo | **The roadmap's version table is behind the registries** | Found while rebuilding the cover; the roadmap is the one page that states versions, so it is the one page that has to be right | — |
@@ -77,6 +78,14 @@ revisiting is that maths loads from a CDN at view time.
 
 ## Done
 
+- **The cover's language bands** — one file in three layers; links that name
+  cards, with part of the example vault's real graph and the four steps that
+  find a name; an embed drawn as a block in one card appearing inside another;
+  frontmatter, the four keys the tools read, and a query reading a key of the
+  author's own; and a diagram, a formula, a callout, and a task list each shown
+  as source over result. The diagrams are HTML, CSS, and one inline drawing,
+  coloured from the scheme's variables. The old three-layer diagram and the
+  Language prose are retired.
 - **The cover's shell** — its own template, full width with both sidebars
   hidden and the navigation still in the phone's drawer; the hero with the
   project's tagline; a window of five tabs, each a card's source beside what it
@@ -146,6 +155,8 @@ run permanently.
 
 ## Changelog
 
+- 2026-11-22: the cover's language bands, five of them, and the diagrams they
+  carry.
 - 2026-11-22: the cover's shell — template, hero, the tabbed window of
   source-and-result pairs, and the guards that keep its samples true.
 - 2026-10-19: the HQL tab, linking the sibling project's site from the top bar,

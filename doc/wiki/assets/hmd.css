@@ -567,7 +567,8 @@ body:has(.hmd-home) .md-grid {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--hmd-bolt);
-  background: var(--md-default-bg-color);
+  background: var(--hmd-paper);
+  border-radius: 0.2rem;
 }
 
 .md-typeset .hmd-out > :first-child {
@@ -716,7 +717,7 @@ body:has(.hmd-home) .md-grid {
   color: var(--md-default-fg-color--light);
 }
 
-.md-typeset .hmd-chips {
+.md-typeset ul.hmd-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
@@ -725,7 +726,7 @@ body:has(.hmd-home) .md-grid {
   list-style: none;
 }
 
-.md-typeset .hmd-chips li {
+.md-typeset ul.hmd-chips li {
   margin: 0;
   padding: 0.1rem 0.5rem;
   font-size: 0.68rem;
@@ -984,4 +985,437 @@ body:has(.hmd-home) .md-grid {
   .md-typeset .hmd-parts > ul > li:hover {
     transform: none;
   }
+}
+
+/* Two columns that become one. */
+.hmd-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.hmd-split--even {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+@media screen and (max-width: 60em) {
+  .hmd-split,
+  .hmd-split--even {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.md-typeset .hmd-label--row {
+  margin: 2.2rem 0 0;
+}
+
+.md-typeset .hmd-label--row + .hmd-flow {
+  margin-top: 0.8rem;
+  margin-bottom: 0;
+}
+
+/* The three layers of a card, drawn as the file that holds them. */
+.hmd-layers {
+  position: relative;
+  margin: 0.6rem 0 2.4rem;
+  padding: 1.5rem 0.9rem 0.9rem;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.3rem;
+  background: var(--hmd-paper);
+}
+
+.md-typeset .hmd-layers__file {
+  position: absolute;
+  top: -0.65rem;
+  left: 0.8rem;
+  margin: 0;
+  padding: 0 0.5rem;
+  font-family: var(--md-code-font-family);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.2rem;
+}
+
+.hmd-layer {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  gap: 0.6rem 1.4rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-left: 3px solid var(--md-default-fg-color--lighter);
+}
+
+.hmd-layer + .hmd-layer {
+  border-top: 0;
+}
+
+.hmd-layer--hyper {
+  border-left-color: var(--hmd-bolt);
+  background: var(--hmd-bolt-soft);
+}
+
+.hmd-layer--rich {
+  border-left-color: var(--hmd-bolt);
+}
+
+.md-typeset .hmd-layer .hmd-label {
+  margin: 0 0 0.15rem;
+}
+
+.md-typeset .hmd-layer--base .hmd-label {
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .hmd-layer__note {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .hmd-layer--hyper ul.hmd-chips li {
+  border-color: var(--hmd-bolt);
+}
+
+.md-typeset .hmd-chips code {
+  padding: 0;
+  font-size: 0.95em;
+  background: none;
+}
+
+@media screen and (max-width: 45em) {
+  .hmd-layer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The graph: cards as nodes, links as edges. Colours come from the scheme's
+   own variables, so it is drawn once and reads in both. */
+.hmd-graph {
+  overflow-x: auto;
+}
+
+.hmd-graph svg {
+  display: block;
+  width: 100%;
+  min-width: 30rem;
+  height: auto;
+}
+
+.hmd-graph__node rect {
+  fill: var(--hmd-paper);
+  stroke: var(--md-default-fg-color--lighter);
+  stroke-width: 1;
+}
+
+.hmd-graph__node text {
+  font-family: var(--md-code-font-family);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-anchor: middle;
+  fill: var(--md-default-fg-color);
+}
+
+.hmd-graph__node text.hmd-graph__dir {
+  font-size: 9px;
+  font-weight: 400;
+  fill: var(--md-default-fg-color--light);
+}
+
+.hmd-graph__node--red rect {
+  fill: none;
+  stroke: var(--hmd-red);
+  stroke-dasharray: 4 3;
+}
+
+.hmd-graph__node--red text:not(.hmd-graph__dir) {
+  fill: var(--hmd-red);
+}
+
+.hmd-graph__edge {
+  fill: none;
+  stroke: var(--md-default-fg-color--light);
+  stroke-width: 1.2;
+}
+
+.hmd-graph__edge--embed {
+  stroke: var(--hmd-bolt);
+  stroke-width: 3;
+}
+
+.hmd-graph__edge--red {
+  stroke: var(--hmd-red);
+  stroke-dasharray: 4 3;
+}
+
+.hmd-graph__head {
+  fill: var(--md-default-fg-color--light);
+}
+
+.hmd-graph__head--embed {
+  fill: var(--hmd-bolt);
+}
+
+.hmd-graph__head--red {
+  fill: var(--hmd-red);
+}
+
+.hmd-graph__labels text {
+  font-family: var(--md-code-font-family);
+  font-size: 9.5px;
+  fill: var(--md-default-fg-color--light);
+  paint-order: stroke;
+  stroke: var(--hmd-band);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+[data-md-color-scheme="default"] {
+  --hmd-red: #b3261e;
+}
+
+[data-md-color-scheme="slate"] {
+  --hmd-red: #f2b8b5;
+}
+
+.md-typeset ul.hmd-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.68rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset ul.hmd-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.hmd-legend__mark {
+  width: 1.4rem;
+  border-top: 1.5px solid var(--md-default-fg-color--light);
+}
+
+.hmd-legend__mark--embed {
+  border-top: 3px solid var(--hmd-bolt);
+}
+
+.hmd-legend__mark--red {
+  border-top: 1.5px dashed var(--hmd-red);
+}
+
+/* A two-column list: what is written, and what it means. */
+.md-typeset .hmd-forms dl,
+.md-typeset dl.hmd-keys {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0;
+  margin: 0;
+  font-size: 0.76rem;
+}
+
+.md-typeset .hmd-forms dt,
+.md-typeset .hmd-forms dd,
+.md-typeset dl.hmd-keys dt,
+.md-typeset dl.hmd-keys dd {
+  margin: 0;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .hmd-forms dt,
+.md-typeset dl.hmd-keys dt {
+  padding-right: 1rem;
+  white-space: nowrap;
+}
+
+.md-typeset .hmd-forms dt code,
+.md-typeset dl.hmd-keys dt code {
+  color: var(--hmd-bolt);
+  font-weight: 600;
+  background: none;
+  padding: 0;
+}
+
+.md-typeset .hmd-forms dd,
+.md-typeset dl.hmd-keys dd {
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset dl.hmd-keys {
+  margin-top: 0.8rem;
+}
+
+/* An embed, drawn: a block in one card, the same block inside another. */
+.hmd-splice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 12rem minmax(0, 1fr);
+  align-items: center;
+  margin: 0.6rem 0 2.4rem;
+}
+
+.hmd-sheet {
+  position: relative;
+  padding: 1.5rem 1.1rem 0.9rem;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.3rem;
+  background: var(--hmd-paper);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.md-typeset .hmd-sheet__name {
+  position: absolute;
+  top: -0.65rem;
+  left: 0.8rem;
+  margin: 0;
+  padding: 0 0.5rem;
+  font-family: var(--md-code-font-family);
+  font-size: 0.66rem;
+  font-weight: 700;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.2rem;
+}
+
+.md-typeset .hmd-sheet__title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.md-typeset .hmd-sheet__block {
+  margin: 0 -0.5rem 0.6rem;
+  padding: 0.4rem 0.5rem;
+  outline: 1.5px dashed var(--hmd-bolt);
+  border-radius: 0.2rem;
+}
+
+.md-typeset .hmd-sheet__block code {
+  color: var(--hmd-bolt);
+  font-weight: 600;
+  background: none;
+  padding: 0;
+}
+
+.md-typeset .hmd-sheet__rest {
+  margin: 0 0 0.6rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .hmd-sheet .hmd-embed p:last-child {
+  margin: 0 0 0.4rem;
+}
+
+.md-typeset .hmd-splice__via {
+  display: grid;
+  gap: 0.2rem;
+  justify-items: stretch;
+  text-align: center;
+}
+
+.md-typeset .hmd-splice__via code {
+  justify-self: center;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--hmd-bolt);
+  background: none;
+  padding: 0;
+}
+
+.hmd-splice__via .hmd-flow__arrow {
+  height: 1rem;
+}
+
+@media screen and (max-width: 60em) {
+  .hmd-splice {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .md-typeset .hmd-splice__via {
+    padding: 0.6rem 0;
+  }
+
+  .hmd-splice__via .hmd-flow__arrow {
+    height: 1.6rem;
+  }
+}
+
+/* Specimens: a construct's source over what it renders to. */
+.hmd-specimens {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.6rem 2rem;
+}
+
+.md-typeset .hmd-specimen > .hmd-label {
+  margin: 0;
+}
+
+.md-typeset .hmd-specimen pre {
+  margin: 0.4rem 0 0;
+}
+
+.md-typeset .hmd-specimen pre > code,
+.md-typeset .hmd-split pre > code {
+  font-size: 0.68rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.md-typeset .hmd-split .highlight + .highlight,
+.md-typeset .hmd-split .highlight + dl {
+  margin-top: 0.8rem;
+}
+
+.md-typeset .hmd-specimen .hmd-out,
+.md-typeset .hmd-split .hmd-out {
+  margin-top: 1.1rem;
+}
+
+.md-typeset .hmd-out .admonition {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+}
+
+.md-typeset .hmd-out .arithmatex {
+  overflow-x: auto;
+}
+
+@media screen and (max-width: 60em) {
+  .hmd-specimens {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.md-typeset .hmd-lede code,
+.md-typeset .hmd-fineprint code {
+  white-space: nowrap;
+}
+
+.md-typeset .hmd-flow__note code {
+  white-space: nowrap;
+}
+
+.md-typeset .hmd-pillars code {
+  white-space: nowrap;
+}
+
+/* A drawn diagram takes its whole sheet, white in both schemes. */
+.md-typeset .hmd-out:has(> .hmd-diagram) {
+  background: #ffffff;
+}
+
+.hmd-home .md-typeset .hmd-out > .hmd-diagram img {
+  padding: 0;
 }
