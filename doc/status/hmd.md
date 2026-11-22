@@ -58,6 +58,7 @@ commit: the retired domain does not redirect.
 | blocked | **The language server itself.** A `pygls` server, so completion, rename, and hover exist for any editor rather than only the one embedding the TypeScript implementation | Waits on the two index changes above, and on whether it is a subcommand or its own script | [[hmd-0024#the-language-server-is-python-on-pygls]] |
 | blocked | **Redirect the retired domain** to the current one, preserving paths | Registrar configuration, not a commit. See Broken | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
 | parked | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name | Waits on that branch being picked up | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]] |
+| todo | **Draw Mermaid diagrams in the site build**, through the same module and the same bounds as D2, with the same labelled placeholder when no renderer is installed | Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains `mermaid` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.md) |
 
 ## Broken
 
