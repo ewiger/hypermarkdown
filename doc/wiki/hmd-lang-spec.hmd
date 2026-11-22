@@ -59,6 +59,17 @@ example, `[[foo]]` is literal text in CommonMark and a wikilink in
 HyperMarkDown, while a leading `---` block that matches the grammar below is
 frontmatter in HyperMarkDown.
 
+**Extras are not the language.** Tools commonly render more than CommonMark:
+tables, footnotes, callouts, maths, and the rest listed under *Extras*. Those
+constructs come on top of the baseline, are not part of HyperMarkDown, and are
+listed so that a reader knows exactly what they are. A conforming
+implementation need not render any of them.
+
+**Determinism.** The same tree MUST produce the same result — the same
+resolutions, the same expansions, and byte-identical diagnostics — however
+often it is processed, on whichever platform, and in whatever order its files
+were created or are listed by the filesystem.
+
 **Arbitration.** Where two implementations disagree about behaviour this
 document leaves under-determined, the language-neutral conformance corpus at
 `examples/conformance/cases/` decides, and a case that starts passing or failing
@@ -66,8 +77,8 @@ unexpectedly is a defect in the implementation rather than in the corpus.
 
 ## Documents
 
-A **card** is one file with a **card extension**. It MUST be valid UTF-8. The
-card extensions, in priority order, are exactly:
+A **card** is one file with a **card extension**. The card extensions, in
+priority order, are exactly:
 
 ```text
 .hmd  .md  .markdown
@@ -90,6 +101,21 @@ Cards are addressed within a single rooted subtree of the filesystem, the
 namespace if and only if it lies inside that root and has a card extension.
 Files with any other extension MUST be ignored for the purposes of this
 specification: they are neither link targets nor inputs to checking.
+
+### Encoding
+
+A card is UTF-8 and nothing else.
+
+- A card MUST be encoded in UTF-8. UTF-16 and every other encoding are not
+  cards.
+- A single byte-order mark (`EF BB BF`) at the start of a card MUST be
+  ignored. Byte 0 of the card, wherever this specification names it, is the
+  first byte after it.
+- A line ends at `\n`, at `\r\n`, or at a `\r` not followed by `\n`, as in
+  CommonMark.
+- A name in a reference and a name on disk MUST be compared after both are
+  normalised to Unicode NFC. The same name can be stored in two forms, and a
+  reference must resolve the same way on every platform.
 
 ### Markdown cards
 
@@ -127,7 +153,9 @@ specification owns and leaves every other byte to whatever renders the document.
 - Masking MUST preserve byte offsets, so that every extracted construct carries
   an exact source span.
 - Every construct MUST record a span of `(start_offset, end_offset, line,
-  column)`, with `line` and `column` 1-indexed.
+  column)`. Offsets count UTF-8 bytes from the start of the card, starting at
+  0. `line` and `column` start at 1, and `column` counts Unicode code points,
+  so a column is the same in every implementation whatever its string type.
 - Scanning MUST NOT depend on filesystem iteration order, on the contents of any
   other file, or on any state outside the card's own bytes. Everything
   cross-file belongs to resolution.
@@ -245,10 +273,10 @@ addressable by an HMD page reference. Ordinary Markdown links remain able to
 address files and URLs outside that subtree.
 
 - The **project root** is the nearest ancestor directory containing a `.hmd/`
-  directory, falling back to the nearest ancestor containing `.git`. A project
-  root marked by `.hmd/` is a **vault**: the directory one `.hmd/config.toml`
-  configures. A vault is where the settings are; it is not where the cards
-  are.
+  directory, and nothing else marks one: a `.git` directory does not. A
+  project root is a **vault**: the directory one `.hmd/config.toml`
+  configures. A tree with no `.hmd/` above it has no project root, and its
+  namespace root has to be named directly.
 - The **cards location** is the `wiki` setting of `.hmd/config.toml`: where
   inside the vault the cards start. It is a path resolved relative to the
   project root, defaulting to `doc/wiki`. `wiki = "."` puts the cards directly
@@ -613,6 +641,10 @@ algorithm above and then expanded in place.
   trailing anchor stripped.
 - Expansion MUST be recursive: embeds inside expanded content are themselves
   expanded.
+- A link or embed inside expanded content MUST be resolved as if it were read
+  in the card it was written in: from that card's directory, with that card's
+  imports and its own `use` toggles. Embedding a card never changes what its
+  links mean.
 - An implementation MUST maintain a stack of resolved `(path, fragment)` pairs.
   Re-entering a pair already on the stack is a cycle and MUST be reported as
   HMD007 rather than allowed to recur.
@@ -627,7 +659,8 @@ algorithm above and then expanded in place.
 ## Diagnostics
 
 Rule identifiers are stable. They MUST NOT be renumbered once released, because
-suppression comments and CI configuration reference them.
+CI configuration and documentation reference them. This version has no way to
+silence a diagnostic.
 
 | ID | Severity | Condition |
 | --- | --- | --- |
@@ -686,15 +719,68 @@ between a card and the content it embedded is gone, and so is the provenance of
 each link. That is correct for a shipping format and wrong for anything that
 needs to show a reader where content came from.
 
-## Not in this version
+## Cells
 
-The following are **rejected**: a second diagram notation alongside the one the
-rich layer already provides.
+A **cell** is a fenced code block that a tool runs or draws. Its kind is the
+first word of the fence's info string, and the cell kinds are exactly:
+
+| Kind | What it is |
+| --- | --- |
+| `hql#eval` | an [HQL](https://hql-lang.org/) query whose output is saved in the card |
+| `hql#query` | an HQL query that runs for the cells that read it, and keeps no output |
+| `d2#show` | a diagram in D2 |
+| `mermaid#show` | a diagram in Mermaid |
+
+- Kinds MUST be matched exactly and case-sensitively. A fence of any other kind
+  is an ordinary fenced block.
+- A plain `hql`, `d2`, or `mermaid` fence is a **listing**: source shown as
+  code, never run and never drawn. A listing is how a card shows such source
+  without invoking it.
+- A cell's body is masked like that of every fenced block. It yields no link,
+  no embed, no anchor, and no edge in the graph.
+- An `hql#eval` cell MAY be followed by its saved output, between an
+  `<!-- hql:output … -->` and an `<!-- /hql:output -->` marker. The output is
+  ordinary card content: a link in it is a link like any other. A card with
+  cells and saved outputs is a well-formed card.
+- The syntax inside a cell, its attributes, the output markers, and the hash
+  that tells a current output from a stale one are HQL's, and are specified
+  there.
+
+*Suggested presentation, not a rule.* Show a cell's output or drawing first,
+with its source behind a toggle. Run an HQL cell only when the reader asks,
+and write its output into the card. Draw a diagram cell when the card opens
+and again when the reader asks, and never write the drawing into the card.
+
+## Extras
+
+This section is **not normative**. It lists the constructs beyond CommonMark
+0.31.2 that this project's site and tools render, so that a reader knows what
+they are and where their syntax comes from. They are not part of the
+language: a conforming implementation need not render any of them, and none of
+them changes what a HyperMarkDown construct means.
+
+| Extra | Written | Syntax from |
+| --- | --- | --- |
+| Tables | pipe-delimited rows, with a delimiter row under the header | GitHub Flavored Markdown |
+| Task lists | `- [ ] open` and `- [x] done` | GitHub Flavored Markdown |
+| Strikethrough | `~~text~~` | GitHub Flavored Markdown |
+| Subscript | `~text~` | PyMdown Extensions |
+| Footnotes | `text[^1]`, with `[^1]: the note` elsewhere | PHP Markdown Extra |
+| Callouts | `!!! note "Title"`, then a body indented four spaces | Python-Markdown |
+| Collapsible callouts | `??? note` closed, `???+ note` open | PyMdown Extensions |
+| Maths | `$…$` inline, `$$…$$` on lines of its own | TeX |
+| Attribute lists | `{: .class }` after a block | Python-Markdown |
+| Markdown inside HTML | `<div markdown>` | Python-Markdown |
+| Drawn diagrams | a `d2#show` or `mermaid#show` cell | D2, Mermaid |
+
+## Not in this version
 
 The following are **deferred**, specified nowhere yet and not to be inferred
 from their absence: inline properties, highlights, templates and parameterised
-transclusion, a query language over the document graph, backlinks and generated
-category pages, and heading-level shifting on embed.
+transclusion, backlinks and generated category pages, and heading-level
+shifting on embed. Querying the document graph is
+[HQL](https://hql-lang.org/)'s, a language of its own; a card carries it in
+cells.
 
 The following is **reserved**: a cross-namespace address of the form
 `namespace:path/to/card`. The spelling is claimed so that it cannot be given
