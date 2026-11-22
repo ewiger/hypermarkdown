@@ -24,8 +24,10 @@ to life through computation and AI.
 <p class="hmd-actions" markdown>[Quick start](tools/index.md){ .md-button .md-button--primary } [Tutorial](wiki/hmd-tutorial.hmd){ .md-button }</p>
 
 ```sh
-code --install-extension hypermarkdown.hmd   # VS Code: preview, graph, cells
-pip install HyperMarkDown                    # hmd: the linter and site builder
+# VS Code: preview, graph, cells
+code --install-extension hypermarkdown.hmd
+# hmd: the linter and site builder
+pip install HyperMarkDown
 ```
 
 <p class="hmd-fineprint hmd-fineprint--hero" markdown>The tools implement specification 0.1, a draft.</p>
