@@ -30,6 +30,7 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0028](HMD-0028/README.md) | drafted | The `[hql]` and `[semantics]` tables, and the semantic index | [semantics](../status/semantics.md), [hmd](../status/hmd.md) |
 | [HMD-0029](HMD-0029/README.md) | drafted | Markdown files are cards | [lang](../status/lang.md), [hmd](../status/hmd.md), [ts-core](../status/ts-core.md), [rs-core](../status/rs-core.md), [semantics](../status/semantics.md) |
 | [HMD-0030](HMD-0030/README.md) | drafted | Diagram cells — `d2#show` and `mermaid#show`, drawn like HQL cells with Show in place of Run | [vsc-ext](../status/vsc-ext.md), [ts-core](../status/ts-core.md), [hmd](../status/hmd.md), [lang](../status/lang.md), [pages](../status/pages.md) |
+| HMD-0031 | reserved | Freeze — the resolutions HyperMarkDown 0.1 depends on | — |
 
 ## Progress is tracked per tool
 
