@@ -75,15 +75,22 @@ def _selected(workspace: Workspace, paths: list[Path] | None) -> list[Path] | No
     if not paths:
         return None
     selected: list[Path] = []
+    # A file that is not UTF-8 is not a card, but naming it is how its HMD019
+    # is asked for.
+    files = [*workspace.pages(), *workspace.undecodable]
     for raw in paths:
         candidate = raw.resolve()
         if candidate.is_dir():
-            selected.extend(p for p in workspace.pages() if candidate in p.parents or candidate == p.parent)
+            selected.extend(p for p in files if candidate in p.parents or candidate == p.parent)
         elif card_suffix(candidate.name):
-            if candidate not in workspace.documents:
+            if candidate in workspace.undecodable:
+                selected.append(candidate)
+                continue
+            card = workspace.card(candidate)
+            if card is None:
                 typer.echo(f"hmd: not inside the namespace root: {raw}", err=True)
                 raise typer.Exit(EXIT_USAGE)
-            selected.append(candidate)
+            selected.append(card)
         else:
             typer.echo(f"hmd: not a card ({', '.join(CARD_SUFFIXES)}) or directory: {raw}", err=True)
             raise typer.Exit(EXIT_USAGE)
@@ -178,8 +185,8 @@ def render(
         raise typer.Exit(EXIT_USAGE)
 
     workspace = _workspace(root)
-    target = path.resolve()
-    if target not in workspace.documents:
+    target = workspace.card(path.resolve())
+    if target is None:
         typer.echo(f"hmd: not a page inside the namespace root: {path}", err=True)
         raise typer.Exit(EXIT_USAGE)
 

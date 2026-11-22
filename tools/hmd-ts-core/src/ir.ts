@@ -1,5 +1,5 @@
 /**
- * The document IR (HMD-0020 §7).
+ * The document IR (HMD-0020).
  *
  * Ordinary GFM content is an opaque HTML island; every HyperMarkDown
  * construct survives as a typed node. That split is the whole design: the
@@ -13,16 +13,18 @@ import type { Span } from "./model.js";
  * version refuses to render rather than guessing — a stale webview after an
  * extension update is the ordinary case, not an exotic one.
  *
- * 2 — `DiagramBlock` joins the union (HMD-0022 §4).
- * 3 — `CellBlock` joins the union (HMD-0026). */
-export const IR_VERSION = 3;
+ * 2 — `DiagramBlock` joins the union (HMD-0022).
+ * 3 — `CellBlock` joins the union (HMD-0026).
+ * 4 — headings and heading fragments carry a `key` in place of a `slug`. */
+export const IR_VERSION = 4;
 
 export type ResolutionState = "resolved" | "unresolved" | "ambiguous" | "escapes";
 
 export interface FragmentRef {
   kind: "heading" | "block";
   value: string;
-  slug: string | null;
+  /** The heading key a heading fragment is matched by; null for a block id. */
+  key: string | null;
 }
 
 export interface TargetRef {
@@ -123,8 +125,10 @@ export type Block = HtmlBlock | EmbedBlock | DiagramBlock | CellBlock;
 
 export interface HeadingRef {
   level: number;
+  /** What a reader sees, inline markup removed. */
   text: string;
-  slug: string;
+  /** What a heading fragment is matched against; see `headingKey`. */
+  key: string;
   line: number;
 }
 

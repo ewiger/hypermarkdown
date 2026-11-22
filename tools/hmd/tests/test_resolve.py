@@ -261,7 +261,7 @@ def test_a_markdown_card_exposes_frontmatter_and_is_not_scanned(build_workspace)
     assert document.frontmatter["title"] == "A"
     assert document.links == ()
     assert document.anchors == ()
-    assert [h.slug for h in document.headings] == ["a"]
+    assert [h.key for h in document.headings] == ["a"]
     # The reserved keys are not interpreted, and HyperMarkdown does not gate it.
     assert ws.visibility(ws.root / "a.md") == "public"
 

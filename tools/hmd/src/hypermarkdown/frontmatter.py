@@ -12,6 +12,7 @@ import yaml
 
 from .imports import ImportError_, parse_statement
 from .model import VISIBILITIES, CardConfig, ImportStmt, NavConfig
+from .scan import split_lines
 
 RESERVED_KEYS = frozenset({"tags", "use", "import", "nav"})
 
@@ -33,7 +34,7 @@ def split_frontmatter(text: str) -> tuple[str | None, str, int]:
     if not text.startswith(_FENCE):
         return None, text, 0
 
-    lines = text.splitlines(keepends=True)
+    lines = split_lines(text)
     if not lines or lines[0].rstrip("\r\n") != _FENCE:
         return None, text, 0
 

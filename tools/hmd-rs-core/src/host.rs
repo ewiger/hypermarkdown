@@ -59,6 +59,14 @@ pub trait Host {
     fn list(&self, dir: &str) -> io::Result<Vec<Entry>>;
 
     /// Reads the file at `path` as UTF-8 text.
+    ///
+    /// A file that is not valid UTF-8 must fail with
+    /// [`io::ErrorKind::InvalidData`], as [`std::fs::read_to_string`] does:
+    /// such a file is not a card, and [`Vault::load`](crate::Vault::load)
+    /// skips it and lists it in
+    /// [`Vault::undecodable`](crate::Vault::undecodable) rather than failing.
+    /// A leading byte-order mark may be kept or dropped; the card is read
+    /// without it either way.
     fn read(&self, path: &str) -> io::Result<String>;
 }
 

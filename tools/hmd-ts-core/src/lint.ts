@@ -1,9 +1,10 @@
 /**
- * The rule set (HMD-0001 §8) — a port of `tools/hmd/src/hypermarkdown/lint/rules.py`.
+ * The rule set: the specification's Diagnostics table — a port of
+ * `tools/hmd/src/hypermarkdown/lint/rules.py`.
  *
  * Rule IDs are stable and are never renumbered. This implementation MUST NOT
  * allocate new ones: rule ID allocation belongs to the canonical
- * implementation (HMD-0020 §9).
+ * implementation (HMD-0020).
  */
 
 import {
@@ -11,14 +12,13 @@ import {
   WARNING,
   blockIds,
   compareDiagnostics,
-  headingSlugs,
+  findHeading,
   type Diagnostic,
   type Link,
   type ParsedDocument,
   type Severity,
 } from "./model.js";
 import { CARD_SUFFIXES, INDEX_STEM, pageParts } from "./paths.js";
-import { slugify } from "./slug.js";
 import type { Workspace } from "./workspace.js";
 
 /**
@@ -48,6 +48,7 @@ export const SEVERITY: Readonly<Record<string, Severity>> = {
   HMD015: ERROR,
   HMD016: WARNING,
   HMD018: WARNING,
+  HMD019: ERROR,
 };
 
 function at(
@@ -72,7 +73,7 @@ function at(
 /** Lint `paths`, or the whole namespace tree. */
 export function check(workspace: Workspace, paths?: readonly string[]): Diagnostic[] {
   const targets = paths ?? workspace.pages();
-  const diagnostics: Diagnostic[] = [];
+  const diagnostics: Diagnostic[] = undecodable(workspace, paths);
 
   for (const path of targets) {
     const document = workspace.documents.get(path);
@@ -81,7 +82,7 @@ export function check(workspace: Workspace, paths?: readonly string[]): Diagnost
     if (document.kind === "markdown") continue;
     diagnostics.push(...document.diagnostics); // HMD009, HMD010, HMD013, HMD014
     diagnostics.push(...duplicateAnchors(document));
-    diagnostics.push(...duplicateSlugs(document));
+    diagnostics.push(...duplicateHeadings(document));
     diagnostics.push(...importProblems(workspace, document));
     diagnostics.push(...linkRules(workspace, document));
   }
@@ -95,6 +96,21 @@ export function check(workspace: Workspace, paths?: readonly string[]): Diagnost
 }
 
 // -- per-document rules --------------------------------------------------
+
+/**
+ * HMD019 — a file with a card extension that is not UTF-8 is not a card.
+ *
+ * Reported for every such file when the whole tree is linted, and for the ones
+ * named when `paths` is given: naming the file is how its HMD019 is asked for.
+ */
+function undecodable(workspace: Workspace, paths?: readonly string[]): Diagnostic[] {
+  const selected = paths === undefined ? null : new Set(paths);
+  const out: Diagnostic[] = [];
+  for (const [path, message] of workspace.undecodable()) {
+    if (selected === null || selected.has(path)) out.push(at("HMD019", path, 1, 1, message));
+  }
+  return out;
+}
 
 /** HMD006 — a block id must be unique within its page. */
 function duplicateAnchors(document: ParsedDocument): Diagnostic[] {
@@ -119,21 +135,35 @@ function duplicateAnchors(document: ParsedDocument): Diagnostic[] {
   return out;
 }
 
-/** HMD011 — two headings sharing a base slug are addressed by `_1` suffixes. */
-function duplicateSlugs(document: ParsedDocument): Diagnostic[] {
+/**
+ * HMD011 — a heading has the same key as an earlier one in the card.
+ *
+ * A fragment reaches the first of them, so every later one is unreachable by
+ * its text. A later heading that carries a block anchor is reachable by it:
+ * the author has applied the remedy, and nothing is reported. A heading whose
+ * key is empty is unreachable by text anyway, and two of them collide over
+ * nothing.
+ */
+function duplicateHeadings(document: ParsedDocument): Diagnostic[] {
   const out: Diagnostic[] = [];
+  const anchored = new Set(document.anchors.map((anchor) => anchor.span.line));
+  const first = new Map<string, number>();
   for (const heading of document.headings) {
-    const cut = heading.slug.lastIndexOf("_");
-    if (cut <= 0) continue;
-    const suffix = heading.slug.slice(cut + 1);
-    if (suffix === "" || !/^[0-9]+$/.test(suffix)) continue;
+    if (heading.key === "") continue;
+    const line = first.get(heading.key);
+    if (line === undefined) {
+      first.set(heading.key, heading.span.line);
+      continue;
+    }
+    if (anchored.has(heading.span.line)) continue;
     out.push(
       at(
         "HMD011",
         document.path,
         heading.span.line,
         heading.span.column,
-        `heading slug collides with an earlier heading; addressable as '#${heading.slug}'`,
+        `heading '${heading.text}' has the same key as the heading on line ${line}, ` +
+          "which a fragment reaches instead; anchor this one with a block id to link to it",
       ),
     );
   }
@@ -234,10 +264,15 @@ function fragmentRules(
     return [];
   }
 
-  const wanted = slugify(link.fragment);
-  if (!headingSlugs(resolved).has(wanted)) {
+  if (findHeading(resolved, link.fragment) === null) {
     return [
-      at("HMD004", document.path, span.line, span.column, `${target} has no heading '#${wanted}'`),
+      at(
+        "HMD004",
+        document.path,
+        span.line,
+        span.column,
+        `${target} has no heading '#${link.fragment}'`,
+      ),
     ];
   }
   return [];
@@ -252,10 +287,11 @@ function folderNoteCollisions(workspace: Workspace, targets: readonly string[]):
   for (const page of workspace.pages()) {
     if (workspace.shadowedBy(page) !== null) continue;
     const stem = pageParts(page).join("/");
-    const note = CARD_SUFFIXES.map((suffix) => `${stem}/${INDEX_STEM}${suffix}`).find((each) =>
-      workspace.documents.has(each),
+    // Looked up the way binding looks, so names compare in NFC.
+    const note = CARD_SUFFIXES.map((suffix) => workspace.card(`${stem}/${INDEX_STEM}${suffix}`)).find(
+      (each) => each !== null,
     );
-    if (note === undefined) continue;
+    if (note === undefined || note === null) continue;
     if (!wanted.has(page) && !wanted.has(note)) continue;
     out.push(
       at("HMD012", page, 1, 1, `${page} and ${note} both claim the name '${stem}'; the file wins`),

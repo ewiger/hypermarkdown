@@ -82,6 +82,7 @@ fn open(card: &Path) -> Option<Vault> {
 | Nested vaults | a directory below the root that holds its own `.hmd/` is another vault, and none of its cards load |
 | Fragments | a heading (`#Heading`), a block (`#^block`) and the display text after a bar are split off a reference and reported with it |
 | Configuration | `wiki`, `[discovery] autodiscovery` and `[discovery] mode` of `.hmd/config.toml` |
+| Encoding | a card is UTF-8, and a file with a card extension that is not is no card (`Vault::undecodable`); one leading byte-order mark is ignored; a line ends at `\n`, `\r\n` or a lone `\r`; names compare in NFC |
 
 A fragment is parsed and not checked: the crate does not read headings or block
 anchors, so it cannot say whether `[[tokens#Rotation]]` names a heading that

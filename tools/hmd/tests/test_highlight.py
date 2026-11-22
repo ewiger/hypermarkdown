@@ -29,7 +29,10 @@ def test_pygments_finds_the_lexer_by_name():
     assert isinstance(get_lexer_by_name("hypermarkdown"), HmdLexer)
 
 
-CARDS = sorted(p for p in EXAMPLES.rglob("*.hmd") if p.is_file())
+#: The corpus case that is deliberately not UTF-8, so not a card to lex.
+NOT_UTF8 = EXAMPLES / "conformance" / "cases" / "invalid-utf8" / "tree" / "bad.hmd"
+
+CARDS = sorted(p for p in EXAMPLES.rglob("*.hmd") if p.is_file() and p != NOT_UTF8)
 
 
 @pytest.mark.parametrize("card", CARDS, ids=lambda p: p.name)

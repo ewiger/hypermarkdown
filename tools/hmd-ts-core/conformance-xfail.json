@@ -23,18 +23,6 @@
       "spec": "HMD-0020 \u00a73.3"
     },
     {
-      "id": "setext-headings",
-      "reason": "markdown-it recognises setext headings (`Title` over `=====`); the canonical scanner finds ATX headings only, so a setext heading has no slug on the Python side and is not addressable by `[[Page#Section]]`.",
-      "deliberate": false,
-      "spec": "HMD-0001 \u00a71"
-    },
-    {
-      "id": "astral-plane-columns",
-      "reason": "Column numbers count UTF-16 code units here and code points in Python, so a diagnostic after an emoji on the same line can differ by one per astral character.",
-      "deliberate": false,
-      "spec": "HMD-0020 \u00a77"
-    },
-    {
       "id": "katex-vs-mathjax",
       "reason": "Math is typeset by KaTeX here and by whatever MathJax the MkDocs site loads there. Both render the same LaTeX; the HTML around it differs.",
       "deliberate": true,

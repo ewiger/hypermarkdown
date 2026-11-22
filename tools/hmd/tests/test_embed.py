@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from hypermarkdown import config
 from hypermarkdown.embed import expand
+from hypermarkdown.resolve import Workspace
 
 
 def page(ws, rel):
@@ -44,6 +46,28 @@ def test_block_embed_strips_the_anchor_marker(build_workspace):
     assert "the definition\nsecond line" in out
     assert "^def" not in out
     assert "first paragraph" not in out and "after" not in out
+
+
+def test_an_anchor_on_a_heading_embeds_the_whole_section(build_workspace):
+    ws = build_workspace(
+        {
+            "a.hmd": "# A\n\n![[b#^linux]]\n\n![[b#Linux]]\n",
+            "b.hmd": "# B\n\n## Linux ^linux\n\nkeep\n\n### Deeper\n\nalso keep\n\n## macOS\n\ndrop\n",
+        }
+    )
+    out = expand(ws, page(ws, "a.hmd")).text
+    assert out.count("## Linux\n\nkeep\n\n### Deeper\n\nalso keep\n") == 2
+    assert "drop" not in out and "^linux" not in out
+
+
+def test_anchors_are_not_rendered_in_the_card_itself(build_workspace):
+    ws = build_workspace(
+        {"a.hmd": "# A ^top\n\nprose ^p\n\n```markdown\ncode ^kept\n```\n"}
+    )
+    out = expand(ws, page(ws, "a.hmd")).text
+    assert "^top" not in out and "^p" not in out
+    assert "# A\n\nprose\n" in out
+    assert "code ^kept" in out
 
 
 def test_expansion_is_recursive(build_workspace):
@@ -91,3 +115,39 @@ def test_headings_are_not_shifted(build_workspace):
 def test_an_embed_inside_a_code_fence_is_not_expanded(build_workspace):
     ws = build_workspace({"a.hmd": "# A\n\n```\n![[b]]\n```\n", "b.hmd": "# B\n\nbody\n"})
     assert "body" not in expand(ws, page(ws, "a.hmd")).text
+
+
+def test_a_setext_section_ends_at_the_next_heading_of_either_form(build_workspace):
+    ws = build_workspace(
+        {
+            "a.hmd": "# A\n\n![[b#Wanted]]\n\n![[b#Last]]\n",
+            "b.hmd": (
+                "B\n===\n\nWanted\n------\n\nkeep\n\n### Deeper\n\nalso keep\n\n"
+                "## Next\n\ndrop\n\nLast\n====\n\nthe end\n"
+            ),
+        }
+    )
+    out = expand(ws, page(ws, "a.hmd")).text
+    assert "keep" in out and "also keep" in out
+    assert "drop" not in out
+    assert out.rstrip().endswith("Last\n====\n\nthe end")
+
+
+def test_an_atx_section_ends_at_a_setext_heading(build_workspace):
+    ws = build_workspace(
+        {
+            "a.hmd": "# A\n\n![[b#Wanted]]\n",
+            "b.hmd": "## Wanted\n\nkeep\n\nNext\n----\n\ndrop\n",
+        }
+    )
+    out = expand(ws, page(ws, "a.hmd")).text
+    assert "keep" in out and "drop" not in out
+
+
+def test_a_crlf_card_embeds_its_anchored_block(tmp_path):
+    (tmp_path / "a.hmd").write_text("# A\n\n![[b#^here]]\n", encoding="utf-8")
+    (tmp_path / "b.hmd").write_bytes(b"# B\r\n\r\nfirst line\r\nsecond line ^here\r\n")
+    ws = Workspace(config.load(root_override=tmp_path))
+    out = expand(ws, page(ws, "a.hmd")).text
+    assert "first line\r\nsecond line" in out
+    assert "# B" not in out and "^here" not in out

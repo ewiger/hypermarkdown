@@ -16,6 +16,7 @@ import {
   cardSuffix,
   buildGraph,
   check,
+  decodeCard,
   parse,
   type Diagnostic,
   type DocumentIR,
@@ -105,6 +106,11 @@ export class Vault implements vscode.Disposable {
     return this.workspace?.pages() ?? [];
   }
 
+  /** A card's text as the index holds it, or null when it is not a card. */
+  text(rel: string): string | null {
+    return this.workspace?.documents.get(rel)?.text ?? null;
+  }
+
   diagnostics(): Diagnostic[] {
     return this.workspace === null ? [] : check(this.workspace);
   }
@@ -155,7 +161,11 @@ export class Vault implements vscode.Disposable {
       const rel = this.relFor(uri);
       if (rel === null || this.workspace === null) return;
       try {
-        this.workspace.addDocument(rel, parse(rel, await this.host.readFile(rel)));
+        // Bytes, so a file that is not UTF-8 is reported (HMD019) rather than
+        // indexed with its undecodable bytes replaced.
+        const read = decodeCard(await this.host.readBytes(rel));
+        if (read.ok) this.workspace.addDocument(rel, parse(rel, read.text));
+        else this.workspace.addUndecodable(rel, read.message);
       } catch {
         return;
       }

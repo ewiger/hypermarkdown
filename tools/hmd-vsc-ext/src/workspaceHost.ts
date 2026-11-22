@@ -41,6 +41,17 @@ export class VsCodeHost implements WorkspaceHost {
     return decoder.decode(await vscode.workspace.fs.readFile(this.uriFor(rel)));
   }
 
+  /**
+   * The bytes, which the core decodes itself: a card that is not UTF-8 is not
+   * a card (HMD019), and a decoder that replaces what it cannot read hides
+   * that. An unsaved buffer is already text, and is encoded back.
+   */
+  async readBytes(rel: string): Promise<Uint8Array> {
+    const override = this.overrides().get(rel);
+    if (override !== undefined) return new TextEncoder().encode(override);
+    return vscode.workspace.fs.readFile(this.uriFor(rel));
+  }
+
   async listDirectory(rel: string): Promise<DirEntry[]> {
     const entries = await vscode.workspace.fs.readDirectory(this.uriFor(rel));
     return entries.map(([name, kind]) => ({

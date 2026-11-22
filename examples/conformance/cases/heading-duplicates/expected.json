@@ -1,0 +1,29 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 7,
+      "message": "heading 'setup!' has the same key as the heading on line 3, which a fragment reaches instead; anchor this one with a block id to link to it",
+      "path": "setup.hmd",
+      "rule": "HMD011",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "![[setup#Setup]]",
+      "source": "host.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#SETUP]]",
+      "source": "host.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#^setup-linux]]",
+      "source": "host.hmd",
+      "target": "setup.hmd"
+    }
+  ]
+}

@@ -13,7 +13,7 @@
 
 import * as vscode from "vscode";
 
-import { IR_VERSION, SUFFIX, cardSuffix } from "@hypermarkdown/core";
+import { IR_VERSION, SUFFIX, cardSuffix, headingKey } from "@hypermarkdown/core";
 
 import { sameCard, type CardRef, type VaultCatalog } from "../catalog.js";
 import { createCard } from "../commands/createCard.js";
@@ -404,7 +404,10 @@ export class PreviewController implements vscode.Disposable {
     if (fragment === null) return null;
     const ir = card.vault.render(card.rel);
     if (ir === null) return null;
-    const heading = ir.headings.find((h) => h.slug === fragment || h.text === fragment);
+    // The first heading with the fragment's key, as the core's link check reads it.
+    const wanted = headingKey(fragment);
+    if (wanted === "") return null;
+    const heading = ir.headings.find((h) => h.key === wanted);
     return heading?.line ?? null;
   }
 

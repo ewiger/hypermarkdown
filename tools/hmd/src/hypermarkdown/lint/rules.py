@@ -1,4 +1,4 @@
-"""The rule set (HMD-0001 §8).
+"""The rule set: the specification's Diagnostics table.
 
 Rule IDs are stable and are never renumbered once released; CI configuration and
 suppression will reference them.
@@ -31,13 +31,14 @@ SEVERITY = {
     "HMD016": WARNING,
     "HMD017": WARNING,
     "HMD018": WARNING,
+    "HMD019": ERROR,
 }
 
 
 def check(workspace: Workspace, paths: list[Path] | None = None) -> list[Diagnostic]:
     """Lint `paths`, or the whole namespace tree."""
     targets = paths if paths is not None else workspace.pages()
-    diagnostics: list[Diagnostic] = []
+    diagnostics: list[Diagnostic] = list(_undecodable(workspace, paths))
 
     for path in targets:
         document = workspace.documents.get(path)
@@ -49,7 +50,7 @@ def check(workspace: Workspace, paths: list[Path] | None = None) -> list[Diagnos
             continue
         diagnostics.extend(document.diagnostics)  # HMD009, HMD010, HMD013, HMD014
         diagnostics.extend(_duplicate_anchors(workspace, document))
-        diagnostics.extend(_duplicate_slugs(workspace, document))
+        diagnostics.extend(_duplicate_headings(workspace, document))
         diagnostics.extend(_import_problems(workspace, document))
         diagnostics.extend(_links(workspace, document))
 
@@ -66,6 +67,16 @@ def _at(document: Document, rel: str, rule: str, line: int, column: int, message
 
 
 # -- per-document rules --------------------------------------------------
+
+
+def _undecodable(workspace: Workspace, paths: list[Path] | None):
+    """HMD019 — a file with a card extension that is not UTF-8 is not a card."""
+    selected = workspace.undecodable if paths is None else set(paths)
+    for path in sorted(workspace.undecodable):
+        if path in selected:
+            yield Diagnostic(
+                "HMD019", SEVERITY["HMD019"], workspace.rel(path), 1, 1, workspace.undecodable[path]
+            )
 
 
 def _duplicate_anchors(workspace: Workspace, document: Document):
@@ -86,20 +97,36 @@ def _duplicate_anchors(workspace: Workspace, document: Document):
             seen[anchor.block_id] = anchor.span.line
 
 
-def _duplicate_slugs(workspace: Workspace, document: Document):
-    """HMD011 — two headings sharing a base slug are addressed by `_1` suffixes."""
+def _duplicate_headings(workspace: Workspace, document: Document):
+    """HMD011 — a heading has the same key as an earlier one in the card.
+
+    A fragment reaches the first of them, so every later one is unreachable by
+    its text. A later heading that carries a block anchor is reachable by it:
+    the author has applied the remedy, and nothing is reported. A heading whose
+    key is empty is unreachable by text anyway, and two of them collide over
+    nothing.
+    """
     rel = workspace.rel(document.path)
+    anchored = {anchor.span.line for anchor in document.anchors}
+    first: dict[str, int] = {}
     for heading in document.headings:
-        base, _, suffix = heading.slug.rpartition("_")
-        if base and suffix.isdigit():
-            yield _at(
-                document,
-                rel,
-                "HMD011",
-                heading.span.line,
-                heading.span.column,
-                f"heading slug collides with an earlier heading; addressable as '#{heading.slug}'",
-            )
+        if not heading.key:
+            continue
+        if heading.key not in first:
+            first[heading.key] = heading.span.line
+            continue
+        if heading.span.line in anchored:
+            continue
+        yield _at(
+            document,
+            rel,
+            "HMD011",
+            heading.span.line,
+            heading.span.column,
+            f"heading '{heading.text}' has the same key as the heading on line "
+            f"{first[heading.key]}, which a fragment reaches instead; anchor this "
+            f"one with a block id to link to it",
+        )
 
 
 def _import_problems(workspace: Workspace, document: Document):
@@ -180,13 +207,10 @@ def _fragment(workspace: Workspace, document: Document, link: Link, target: Path
             )
         return
 
-    from ..parse import slug_for  # local import: parse imports the model, not lint
-
-    wanted = slug_for(link.fragment, set())
-    if wanted not in resolved.heading_slugs():
+    if resolved.find_heading(link.fragment) is None:
         yield _at(
             document, rel, "HMD004", span.line, span.column,
-            f"{workspace.rel(target)} has no heading '#{wanted}'",
+            f"{workspace.rel(target)} has no heading '#{link.fragment}'",
         )
 
 
@@ -200,11 +224,12 @@ def _folder_note_collisions(workspace: Workspace, targets: list[Path]):
         if page in workspace.shadowed:
             continue
         directory = page.parent / workspace.parts(page)[-1]
+        # Looked up the way binding looks, so names compare in NFC.
         note = next(
             (
-                directory / f"{INDEX_STEM}{suffix}"
+                found
                 for suffix in CARD_SUFFIXES
-                if directory / f"{INDEX_STEM}{suffix}" in workspace.documents
+                if (found := workspace.card(directory / f"{INDEX_STEM}{suffix}")) is not None
             ),
             None,
         )

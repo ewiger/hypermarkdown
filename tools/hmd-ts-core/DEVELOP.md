@@ -83,6 +83,24 @@ callers need, and throws with the search printed if it cannot. It replaced a fix
 `../../..`, which resolved somewhere wrong rather than erroring when the nesting
 depth changed.
 
+## The case-folding table is generated
+
+JavaScript has no Unicode case folding, and `toLowerCase` is a different
+mapping. [`src/casefold.ts`](src/casefold.ts) is therefore a table, written by
+[`scripts/casefold.py`](scripts/casefold.py) from the canonical
+implementation's own `str.casefold` — the `C` and `F` statuses of
+`CaseFolding.txt` — and never edited by hand. Regenerate it when the Python
+the canonical implementation runs on moves to a new Unicode version:
+
+```bash
+uv run python tools/hmd-ts-core/scripts/casefold.py
+```
+
+The letter, mark, and number classes a heading key keeps come from the
+JavaScript engine's `\p{L}`, `\p{M}`, and `\p{N}` instead, so a character
+assigned in a Unicode version one side knows and the other does not can key
+differently until both catch up.
+
 ## Before you open a pull request
 
 ```bash

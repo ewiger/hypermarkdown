@@ -10,6 +10,7 @@ import { load as yamlLoad, JSON_SCHEMA, YAMLException } from "js-yaml";
 
 import { ImportSyntaxError, parseStatement } from "./imports.js";
 import type { CardConfig, ImportStmt } from "./model.js";
+import { splitLines, stripEol } from "./scan.js";
 
 export const RESERVED_KEYS: ReadonlySet<string> = new Set(["tags", "use", "import"]);
 
@@ -34,25 +35,16 @@ export interface FrontmatterSplit {
 export function splitFrontmatter(text: string): FrontmatterSplit {
   if (!text.startsWith(FENCE)) return { raw: null, body: text, bodyOffset: 0 };
 
-  const lines: string[] = [];
-  let start = 0;
-  for (let i = 0; i < text.length; i += 1) {
-    if (text[i] === "\n") {
-      lines.push(text.slice(start, i + 1));
-      start = i + 1;
-    }
-  }
-  if (start < text.length) lines.push(text.slice(start));
-
+  const lines = splitLines(text);
   const first = lines[0];
-  if (first === undefined || first.replace(/\r?\n$/, "") !== FENCE) {
+  if (first === undefined || stripEol(first) !== FENCE) {
     return { raw: null, body: text, bodyOffset: 0 };
   }
 
   let offset = first.length;
   for (let i = 1; i < lines.length; i += 1) {
     const line = lines[i]!;
-    if (line.replace(/\r?\n$/, "") === FENCE) {
+    if (stripEol(line) === FENCE) {
       const raw = text.slice(first.length, offset);
       const end = offset + line.length;
       return { raw, body: text.slice(end), bodyOffset: end };
@@ -76,7 +68,7 @@ export function parseYaml(raw: string): Record<string, unknown> {
   }
   if (data === null || data === undefined) return {};
   if (typeof data !== "object" || Array.isArray(data)) {
-    throw new Error(`frontmatter must be a mapping, got ${Array.isArray(data) ? "list" : typeof data}`);
+    throw new Error(`frontmatter must be a mapping, got ${typeName(data)}`);
   }
   return data as Record<string, unknown>;
 }

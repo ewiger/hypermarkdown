@@ -1,0 +1,27 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "not valid UTF-8 (byte 5 cannot be decoded), so it is not a card",
+      "path": "bad.hmd",
+      "rule": "HMD019",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 3,
+      "message": "[[bad]] does not resolve to a page",
+      "path": "good.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[bad]]",
+      "source": "good.hmd",
+      "target": null
+    }
+  ]
+}

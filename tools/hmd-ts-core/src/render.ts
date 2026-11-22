@@ -31,6 +31,7 @@ import { mathPlugin } from "./parse/math.js";
 import { MAX_EMBED_DEPTH } from "./lint.js";
 import type { Anchor, Link, ParsedDocument, Span } from "./model.js";
 import { split } from "./paths.js";
+import { columnOffset, headingKey } from "./unicode.js";
 import type { Workspace } from "./workspace.js";
 
 const SENTINEL_PREFIX = "xHMDxREFx";
@@ -113,7 +114,7 @@ export class Renderer {
       headings: document.headings.map((h) => ({
         level: h.level,
         text: h.text,
-        slug: h.slug,
+        key: h.key,
         line: h.span.line,
       })),
       anchors: document.anchors.map((a) => a.blockId),
@@ -129,7 +130,9 @@ export class Renderer {
     depth: number,
     stack: readonly string[],
   ): Block[] {
-    const lines = slice.text.split("\n");
+    // Every line ending the scanner knows, so a line here is the line a span
+    // names — a lone `\r` included.
+    const lines = slice.text.split(/\r\n|\r|\n/);
     const firstLine = slice.startLine;
     const lastLine = firstLine + lines.length - 1;
 
@@ -330,16 +333,19 @@ export class Renderer {
   ): string {
     const edits: Array<{ start: number; end: number; replacement: string }> = [];
 
+    // A span's column counts code points; slicing the line needs code units.
     for (const link of links) {
-      const start = link.span.column - 1;
+      const start = columnOffset(line, link.span.column);
       const index = refs.length;
       refs.push({ html: this.inlineHtml(document, link) });
       edits.push({ start, end: start + link.raw.length, replacement: sentinel(index) });
     }
 
+    // Block anchors are never rendered: the marker and the blanks before it go.
     for (const anchor of anchors) {
-      const start = anchor.span.column - 1;
-      edits.push({ start, end: start + (anchor.span.end - anchor.span.start), replacement: "" });
+      const start = columnOffset(line, anchor.span.column);
+      const length = (anchor.span.indexEnd ?? 0) - (anchor.span.index ?? 0);
+      edits.push({ start, end: start + length, replacement: "" });
     }
 
     edits.sort((a, b) => b.start - a.start);
@@ -510,7 +516,9 @@ function targetRef(link: Link): TargetRef {
     fragment:
       link.fragment === null
         ? null
-        : { kind: link.fragmentKind ?? "heading", value: link.fragment, slug: null },
+        : link.fragmentKind === "block"
+          ? { kind: "block", value: link.fragment, key: null }
+          : { kind: "heading", value: link.fragment, key: headingKey(link.fragment) },
     display: link.display,
   };
 }

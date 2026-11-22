@@ -25,9 +25,11 @@ from mkdocs.structure.files import File, Files
 
 from . import config as config_mod
 from . import diagram, scan, urls
+from markdown.extensions.toc import slugify as toc_slugify
+
 from .embed import expand
 from .model import Link
-from .parse import slug_for
+from .render.ids import heading_ids
 from .resolve import Workspace
 
 
@@ -74,6 +76,11 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         self.prefix = ""
         self.docs_dir: Path | None = None
         self.engine = diagram.D2Engine()
+        #: Card -> the `toc` id of each of its headings on its built page.
+        self._ids: dict[Path, list[str]] = {}
+        #: How `toc` is configured for this site: slugify, separator, and
+        #: whether `attr_list` lets a heading name its own id.
+        self._toc: tuple = (toc_slugify, "-", False)
 
     # -- collection ------------------------------------------------------
 
@@ -88,6 +95,8 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         root = Path(self.config.root).resolve() if self.config.root else docs_dir
         self.workspace = Workspace(config_mod.load(root_override=root))
         self.prefix = _prefix(docs_dir, self.workspace.root)
+        self._ids = {}
+        self._toc = _toc_settings(config)
 
         for path in self.workspace.pages():
             if self.workspace.documents[path].is_markdown:
@@ -238,20 +247,47 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
                         f'<a class="hmd-redlink" title="{link.target} is not published">{text}</a>'
                     )
                 href = _relative(served, written)
-                if link.fragment is not None and link.fragment_kind == "heading":
-                    href = f"{href}#{slug_for(link.fragment, set())}"
-                return f"[{text}]({href})"
+                return f"[{text}]({href}{self._fragment(link, target)})"
             href = urls.href_for(root, source, target)
             if written != registered:
                 href = _relative(posixpath.normpath(posixpath.join(registered, href)), written)
-            if link.fragment is not None and link.fragment_kind == "heading":
-                href = f"{href}#{slug_for(link.fragment, set())}"
-            return f"[{text}]({href})"
+            return f"[{text}]({href}{self._fragment(link, target)})"
 
         expanded = expand(
             self.workspace, source, rewrite=rewrite, can_embed=self.workspace.is_public
         ).text
         return self._diagrams(self._relink(expanded, written, registered))
+
+    def _fragment(self, link: Link, target: Path) -> str:
+        """`#id` for a heading link, naming the id `toc` gives the heading it matched.
+
+        The language matches the fragment by key and leaves the id to the
+        renderer, so the two are computed apart and then joined here: the link
+        names whatever id the heading actually carries on its page, a `_1`
+        suffix included. A fragment that matched no heading (HMD004) and a
+        block fragment, which has no id on the page, link to the page alone.
+        """
+        if link.fragment is None or link.fragment_kind != "heading":
+            return ""
+        document = self.workspace.documents[target]
+        heading = document.find_heading(link.fragment)
+        if heading is None:
+            return ""
+        if target not in self._ids:
+            slugify, separator, attr_list = self._toc
+            # A Markdown card's page is built by MkDocs from the file itself,
+            # with nothing expanded into it.
+            can_embed = None if document.is_markdown else self.workspace.is_public
+            self._ids[target] = heading_ids(
+                self.workspace,
+                target,
+                can_embed=can_embed,
+                slugify=slugify,
+                separator=separator,
+                attr_list=attr_list,
+            )
+        anchor = self._ids[target][document.headings.index(heading)]
+        return f"#{anchor}" if anchor else ""
 
     def _written_dir(self, source: Path, registered: str) -> str:
         """The directory a card's own relative links were written against.
@@ -378,6 +414,17 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         if self.workspace is not None:
             server.watch(str(self.workspace.root))
         return server
+
+
+def _toc_settings(config) -> tuple:
+    """The site's `toc` slugify and separator, and whether `attr_list` is on."""
+    toc = (config.mdx_configs or {}).get("toc", {}) or {}
+    names = {
+        extension if isinstance(extension, str) else type(extension).__module__
+        for extension in config.markdown_extensions
+    }
+    attr_list = any(name.rsplit(".", 1)[-1] == "attr_list" for name in names)
+    return toc.get("slugify", toc_slugify), toc.get("separator", "-"), attr_list
 
 
 def _prefix(docs_dir: Path, root: Path) -> str:

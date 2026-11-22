@@ -9,6 +9,7 @@ can never change what an already-working link means.
 
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -22,6 +23,33 @@ SUFFIX = ".hmd"
 #: one name, the earlier extension wins.
 CARD_SUFFIXES = (".hmd", ".md", ".markdown")
 INDEX_STEM = "index"
+
+#: The UTF-8 byte-order mark. One at the start of a card is ignored, and byte 0
+#: of the card is the byte after it.
+BOM = b"\xef\xbb\xbf"
+
+
+def read_card(path: Path) -> str:
+    """A card's text: its bytes decoded as UTF-8, a leading BOM dropped.
+
+    Read as bytes, not through a text-mode `open`, whose universal newlines
+    would turn every `\r\n` into `\n` and shift every offset after it. Raises
+    `UnicodeDecodeError` for a file that is not UTF-8, which is then not a card
+    (HMD019).
+    """
+    data = path.read_bytes()
+    if data.startswith(BOM):
+        data = data[len(BOM) :]
+    return data.decode("utf-8")
+
+
+def nfc(value: str) -> str:
+    """`value` in Unicode NFC, the form every name is compared in."""
+    return unicodedata.normalize("NFC", value)
+
+
+def _nfc_path(path: Path) -> Path:
+    return Path(nfc(str(path)))
 
 
 def card_suffix(name: str) -> str | None:
@@ -73,20 +101,46 @@ class Workspace:
         self.shadowed: dict[Path, Path] = {}
         #: Roots of the vaults nested below this one; their cards are not ours.
         self._nested_roots: frozenset[Path] = frozenset()
+        #: Files with a card extension that are not UTF-8 -> why (HMD019).
+        #: None of them is a card: not scanned, not a target, not a page.
+        self.undecodable: dict[Path, str] = {}
+        #: A card's path in NFC -> its path as stored on disk. A reference and
+        #: a name on disk are compared in NFC, because the same name can be
+        #: stored in either form and must resolve the same way everywhere.
+        self._by_nfc: dict[Path, Path] = {}
+        #: The same, for every directory below the root (import origins).
+        self._dirs_by_nfc: dict[Path, Path] = {}
         self._load()
 
     # -- loading ---------------------------------------------------------
 
     def _load(self) -> None:
         self._nested_roots = self._find_nested_roots()
+        # Sorted, so nothing below depends on the order the filesystem lists
+        # a directory in, or the order its files were created in.
         for path in sorted(self.root.rglob("*")):
+            if path.is_dir():
+                if not self._hidden(path) and not self._in_nested_vault(path):
+                    self._dirs_by_nfc.setdefault(_nfc_path(path), path)
+                continue
             suffix = card_suffix(path.name)
             if suffix is None or path.name == suffix:
                 continue
             if not path.is_file() or self._hidden(path) or self._in_nested_vault(path):
                 continue
+            try:
+                text = read_card(path)
+            except UnicodeDecodeError as exc:
+                self.undecodable[path] = (
+                    f"not valid UTF-8 (byte {exc.start} cannot be decoded), so it is not a card"
+                )
+                continue
+            if _nfc_path(path) in self._by_nfc:
+                # Two names on disk that are one name in NFC. Only the first,
+                # in sorted order, is the card at that name.
+                continue
+            self._by_nfc[_nfc_path(path)] = path
             self._pages.append(path)
-            text = path.read_text(encoding="utf-8")
             read = parse if suffix == SUFFIX else parse_markdown
             self.documents[path] = read(path, text, self.rel(path))
 
@@ -94,8 +148,8 @@ class Workspace:
         # extension claim one name; the earliest extension is the card at it.
         claims: dict[tuple[Path, str], list[Path]] = {}
         for path in self._pages:
-            stem = path.name[: -len(card_suffix(path.name))]
-            claims.setdefault((path.parent, stem), []).append(path)
+            stem = nfc(path.name[: -len(card_suffix(path.name))])
+            claims.setdefault((_nfc_path(path.parent), stem), []).append(path)
         for paths in claims.values():
             ranked = sorted(paths, key=lambda p: CARD_SUFFIXES.index(card_suffix(p.name)))
             for loser in ranked[1:]:
@@ -106,7 +160,7 @@ class Workspace:
                 # Reachable only by a reference that writes its extension, so
                 # never a sweep candidate.
                 continue
-            parts = self.parts(path)
+            parts = tuple(nfc(part) for part in self.parts(path))
             self._by_parts.setdefault(parts, []).append(path)
             # A folder note is also addressable by its directory's name, so a
             # bare name means the same thing in phase 1 and phase 3.
@@ -151,6 +205,10 @@ class Workspace:
     def pages(self) -> list[Path]:
         return list(self._pages)
 
+    def card(self, path: Path) -> Path | None:
+        """The card at `path` as stored on disk, comparing names in NFC."""
+        return self._by_nfc.get(_nfc_path(path))
+
     # -- §5.1 binding ----------------------------------------------------
 
     def bind(
@@ -171,12 +229,12 @@ class Workspace:
         suffixes = (suffix,) if suffix else CARD_SUFFIXES
         base = directory.joinpath(*parts[:-1])
         for each in suffixes:
-            candidate = base / f"{parts[-1]}{each}"
-            if candidate in self.documents:
+            candidate = self.card(base / f"{parts[-1]}{each}")
+            if candidate is not None:
                 return candidate
         for each in suffixes:
-            folder_note = directory.joinpath(*parts) / f"{INDEX_STEM}{each}"
-            if folder_note in self.documents:
+            folder_note = self.card(directory.joinpath(*parts) / f"{INDEX_STEM}{each}")
+            if folder_note is not None:
                 return folder_note
         return None
 
@@ -203,7 +261,8 @@ class Workspace:
                 continue
             # A nested vault is another namespace, so a directory inside one
             # does not exist as far as this vault is concerned.
-            if not directory.is_dir() or self._in_nested_vault(directory):
+            directory = self._directory(directory)
+            if directory is None or self._in_nested_vault(directory):
                 table.problems.append(("HMD015", f"import ref {stmt.ref!r} does not exist"))
                 continue
 
@@ -231,6 +290,12 @@ class Workspace:
 
         table.search_paths = tuple(search)
         return table
+
+    def _directory(self, path: Path) -> Path | None:
+        """The directory at `path` as stored on disk, comparing names in NFC."""
+        if path == self.root:
+            return path
+        return self._dirs_by_nfc.get(_nfc_path(path))
 
     def _import_dir(self, source: Path, stmt: ImportStmt) -> Path | None:
         if stmt.ref.startswith("/"):
@@ -304,6 +369,7 @@ class Workspace:
     # -- §5.2 the algorithm ----------------------------------------------
 
     def resolve(self, source: Path, page_ref: str) -> Resolution:
+        page_ref = nfc(page_ref)
         suffix = card_suffix(page_ref)
         stem = page_ref[: -len(suffix)] if suffix else page_ref
 

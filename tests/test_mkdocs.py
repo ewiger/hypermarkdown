@@ -720,3 +720,42 @@ def test_an_embedded_diagram_renders_in_the_host_page(tmp_path):
 
     site = build(tmp_path, docs, markdown_extensions=_rich_extensions())
     assert "hmd-diagram" in (site / "index.html").read_text()
+
+
+# -- heading links land on the id the heading carries --------------------
+
+
+def _ids(html: str) -> list[str]:
+    return re.findall(r'<h[1-6] id="([^"]*)"', html)
+
+
+def test_a_heading_link_names_the_id_toc_gave_the_matched_heading(tmp_path):
+    """The language matches by key and leaves the id to the renderer; the link
+    must still land on the heading it matched, whatever `toc` called it."""
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.hmd").write_text(
+        PUBLIC
+        + "# Home\n\n[[card#setup]] [[card#ошибка 404]] [[card#数据]] [[card#Usage]] "
+        "[[card#the fast path]] [[card#nope]]\n",
+        encoding="utf-8",
+    )
+    (docs / "card.hmd").write_text(
+        PUBLIC
+        + "# Card\n\n![[part]]\n\n## Setup\n\n## Ошибка 404!\n\n## 数据\n\n"
+        "Usage\n-----\n\n## The *fast* path\n",
+        encoding="utf-8",
+    )
+    (docs / "part.hmd").write_text(PUBLIC + "## Setup\n\nembedded\n", encoding="utf-8")
+
+    site = build(tmp_path, docs)
+    card = _ids((site / "card" / "index.html").read_text())
+    home = (site / "index.html").read_text()
+    # The paragraph of links, not the nav's own links to the card.
+    paragraph = re.search(r"<p>(.*?)</p>", home, re.DOTALL).group(1)
+    hrefs = re.findall(r'href="card/(#[^"]*)?"', paragraph)
+
+    # The embedded `Setup` comes first on the page and takes `setup`, so the
+    # card's own one — the one `[[card#setup]]` matched — is `setup_1`.
+    assert card == ["card", "setup", "setup_1", "404", "_1", "usage", "the-fast-path"]
+    assert hrefs == ["#setup_1", "#404", "#_1", "#usage", "#the-fast-path", ""]

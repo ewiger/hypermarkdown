@@ -23,7 +23,7 @@ def build(workspace: Workspace) -> dict:
                 "tags": list(document.card.tags),
                 "frontmatter": _plain(document.frontmatter),
                 "headings": [
-                    {"level": h.level, "text": h.text, "slug": h.slug, "line": h.span.line}
+                    {"level": h.level, "text": h.text, "key": h.key, "line": h.span.line}
                     for h in document.headings
                 ],
                 "anchors": [a.block_id for a in document.anchors],

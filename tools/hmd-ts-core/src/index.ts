@@ -6,9 +6,18 @@
  * one carries the bug (HMD-0020 §10).
  */
 
-export { parse, parseMarkdown, parseTarget, RESERVED_CHARS, SUFFIX } from "./parse.js";
-export { mask, lineCol, lineStarts, PositionIndex } from "./scan.js";
-export { slugify, slugFor, unique } from "./slug.js";
+export {
+  headingContent,
+  parse,
+  parseMarkdown,
+  parseTarget,
+  visibleText,
+  RESERVED_CHARS,
+  SUFFIX,
+} from "./parse.js";
+export { mask, lineCol, lineStarts, splitLines, PositionIndex } from "./scan.js";
+export { caseFold, columnOffset, headingKey, nfc } from "./unicode.js";
+export { cardText, decodeCard, firstInvalidByte, type DecodedCard } from "./encoding.js";
 export {
   splitFrontmatter,
   parseYaml,

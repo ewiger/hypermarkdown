@@ -21,6 +21,83 @@ point in
 
 ## [Unreleased]
 
+The HyperMarkDown 0.1 rules for encoding, the lexical model, and heading
+anchors, matching the canonical implementation case for case.
+
+### Added
+
+- **An anchored repeat heading is not HMD011.** A heading whose key equals an
+  earlier one's is reported only when it carries no block anchor, as in the
+  canonical implementation.
+- **Setext headings are headings.** `Setup` over a line of `===` or `---` is
+  indexed and addressable like `# Setup`, at level 1 or 2, and ends an embedded
+  section the way an ATX heading does. A `---` after a blank line is still a
+  thematic break, and no line inside a fence, a comment, a block quote, a list
+  item, an HTML block, or indented code is ever part of one.
+- **HMD019**, an error: a file with a card extension that is not valid UTF-8,
+  reported at line 1, column 1 with the first byte that cannot be decoded. The
+  file is then not a card: not parsed, not a page, not a link target.
+  `Workspace.undecodable()` lists them, and `Workspace.addUndecodable` records
+  one for a host that feeds files incrementally.
+- `WorkspaceHost.readBytes`, optional and preferred when present: the core
+  decodes the bytes itself, fatally, which is the only way it can tell a file
+  that is not UTF-8. `MemoryHost` takes bytes as well as text. `decodeCard`,
+  `cardText`, and `firstInvalidByte` are exported.
+- `headingKey`, `caseFold`, `nfc`, `visibleText`, `headingContent`,
+  `columnOffset`, and `splitLines` are exported, and `findHeading` replaces
+  `headingSlugs`. Full case folding comes from a table generated from the
+  canonical implementation's `str.casefold` by `scripts/casefold.py`, because
+  `toLowerCase` is a different mapping: it leaves `ß` alone and keeps final
+  sigma apart.
+
+### Changed
+
+- **A heading fragment matches by key, not by slug.** The key is the text in
+  NFC, case-folded, with every character that is not a letter, mark, or number
+  turned into a space and the spaces collapsed: `[[card#ошибка 404]]` reaches
+  `# Ошибка 404!`, `[[card#STRASSE]]` reaches `Straße`, and `[[card#Cafe]]` no
+  longer reaches `Café`. A fragment matches the first heading with its key;
+  the `_1` suffix that reached a repeat is gone, and a repeat is reached by a
+  block anchor on its line.
+- **HMD011 reports headings with the same key**, at each repeat, naming the
+  line of the heading a fragment reaches instead, in the canonical wording.
+- **HMD004 names the fragment as written**, `has no heading '#Cafe Menu'`.
+- A heading's text is what a reader sees, inline markup removed: `## The *fast*
+  path` is `The fast path`. `Heading.slug` is replaced by `Heading.key`, and the
+  IR moves to version 4: `HeadingRef` and `FragmentRef` carry a `key` in place
+  of a `slug`.
+- **Columns count code points; span offsets count UTF-8 bytes** from byte 0
+  of the card. `Span.index` and `Span.indexEnd` keep the UTF-16 range for
+  slicing the text.
+- **A line ends at `\n`, `\r\n`, or a lone `\r`**, in the scanner, the
+  frontmatter fence, expansion, and the renderer. A form feed or U+2028 does
+  not end one, and a code span cannot cross a blank line in any of the three
+  spellings.
+- **A leading byte-order mark is ignored**, so frontmatter after one is
+  frontmatter.
+- **Names compare in NFC**: a reference and a name on disk match whether
+  either is stored composed or decomposed, for cards, import origins, and the
+  folder-note collision check. Of two files whose names are one name in NFC,
+  the first in sorted order is the card.
+- An anchor on a heading's line names that heading: `![[b#^linux]]` on
+  `## Linux ^linux` embeds the whole section, as `![[b#Linux]]` does. A block
+  anchor's span ends at its id, and no anchor is ever rendered, in the card
+  itself or embedded; one inside a code fence is code.
+
+### Removed
+
+- `slugify`, `slugFor`, and `unique`, the Python-Markdown `toc` slugger. The
+  language no longer matches by slug, and the renderer gives headings no id.
+
+### Fixed
+
+- Columns after a character outside the Basic Multilingual Plane, and setext
+  headings, now agree with the canonical implementation; the
+  `astral-plane-columns` and `setext-headings` entries leave the divergence
+  ledger.
+- `frontmatter must be a mapping, got str` names a scalar's type the way the
+  canonical implementation does, where it said `string`.
+
 ## [0.3.0] — 2026-11-15
 
 ### Added

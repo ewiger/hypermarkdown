@@ -16,7 +16,28 @@ crates.io. Implementation state is tracked in
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **A file that is not valid UTF-8 is not a card.** A file with a card
+  extension that does not decode is not loaded and no reference resolves to
+  it, where it used to fail `Vault::load` with `Error::Io`.
+  `Vault::undecodable` lists such files, in path order; the canonical
+  implementation reports each as HMD019. A `Host` signals one by failing
+  `read` with `io::ErrorKind::InvalidData`, as `FsHost` does.
+
+### Changed
+
+- **A leading byte-order mark is ignored**, so frontmatter after one is
+  frontmatter, and line 1, column 1 is the character after it.
+- **A line ends at `\n`, `\r\n` or a lone `\r`, and nowhere else.** A form
+  feed, U+2028 and the other boundaries of Python's `str.splitlines` no longer
+  end a line, so they no longer open or close a fence or frontmatter, and no
+  longer move the line of a reference after them.
+- **Names compare in Unicode NFC.** A reference and a name on disk match
+  whether either is stored composed or decomposed, and so do an import's
+  directory, the names it imports and their local names. Of two files whose
+  paths are one path in NFC, the first in path order is the card and the other
+  is not loaded. This adds `unicode-normalization` as a dependency.
 
 ## [0.2.0] — 2026-11-15
 

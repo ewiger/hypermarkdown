@@ -141,7 +141,9 @@ pub struct Link {
     pub embed: bool,
     /// The line the reference starts on, counted from 1.
     pub line: usize,
-    /// The column the reference starts at, counted from 1 in characters.
+    /// The column the reference starts at, counted from 1 in Unicode code
+    /// points, so it is the same number in every implementation whatever its
+    /// string type.
     pub column: usize,
 }
 
@@ -178,8 +180,10 @@ pub struct Page {
 impl Page {
     /// Parses the text of the card at `path`.
     ///
-    /// `\r\n` and a lone `\r` are read as `\n` first, so lines and columns
-    /// count in text whose only line terminator is `\n`. A path ending in `.md`
+    /// One leading byte-order mark is dropped first, so frontmatter after it
+    /// is frontmatter and line 1, column 1 is the character after it. A line
+    /// ends at `\n`, `\r\n` or a lone `\r`, and at nothing else. A path
+    /// ending in `.md`
     /// or `.markdown` is a Markdown card: it has no links, no imports and no
     /// `use` key, whatever its text holds.
     pub fn parse(path: impl Into<String>, text: &str) -> Page {
@@ -193,7 +197,7 @@ impl Page {
                 imports: Vec::new(),
             };
         }
-        let text = text::universal_newlines(text);
+        let text = text::universal_newlines(text::strip_bom(text));
         let (raw_yaml, body_start) = frontmatter::split(&text);
         let card = raw_yaml.map(frontmatter::card).unwrap_or_default();
 
@@ -386,6 +390,26 @@ mod tests {
     fn carriage_returns_end_lines() {
         let page = Page::parse("a.hmd", "one\r\ntwo\r[[b]]\r\n");
         assert_eq!((page.links[0].line, page.links[0].column), (3, 1));
+    }
+
+    #[test]
+    fn no_other_boundary_ends_a_line() {
+        let page = Page::parse("a.hmd", "a\u{0c}b\u{2028}c\u{85} [[d]]\n");
+        assert_eq!((page.links[0].line, page.links[0].column), (1, 8));
+    }
+
+    #[test]
+    fn a_leading_byte_order_mark_is_not_part_of_the_card() {
+        let page = Page::parse("a.hmd", "\u{feff}---\nuse: no_autodiscovery\n---\n[[b]]\n");
+        assert_eq!(page.autodiscovery, Some(false));
+        assert_eq!((page.links[0].line, page.links[0].column), (4, 1));
+
+        let page = Page::parse("a.hmd", "\u{feff}[[b]]");
+        assert_eq!((page.links[0].line, page.links[0].column), (1, 1));
+
+        // Only one: a second mark is text, so the fence is not the first line.
+        let page = Page::parse("a.hmd", "\u{feff}\u{feff}---\nuse: no_autodiscovery\n---\n");
+        assert_eq!(page.autodiscovery, None);
     }
 
     #[test]

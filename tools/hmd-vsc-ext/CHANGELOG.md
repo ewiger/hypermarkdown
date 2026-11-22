@@ -21,6 +21,22 @@ against
 
 ## [Unreleased]
 
+### Changed
+
+- **Follows the HyperMarkDown 0.1 heading rules** from `@hypermarkdown/core`:
+  opening a heading link from the preview finds the first heading whose key
+  is the fragment's, so case, punctuation, and composed or decomposed accents
+  no longer matter, and setext headings are found.
+- A diagnostic on a line with a character outside the Basic Multilingual
+  Plane is underlined at the right column: the core counts columns in code
+  points, and the extension converts them to the editor's code units.
+
+### Added
+
+- **HMD019 in the Problems panel**: a card file that is not valid UTF-8 is
+  reported on itself, line 1, instead of being indexed with its undecodable
+  bytes replaced. The vault reads cards as bytes for this.
+
 ## [0.5.2] — 2026-11-22
 
 ### Added

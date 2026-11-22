@@ -32,9 +32,9 @@ CONFIG_TEMPLATE = """\
 # HyperMarkdown project configuration.
 #
 # This directory doubles as the project root marker — `hmd` finds a project by
-# walking up from the working directory looking for `.hmd/`, falling back to
-# `.git/`. Only the settings below are read; every other key is ignored, so the
-# file is safe to extend.
+# walking up from the working directory looking for `.hmd/`, and nothing else
+# marks one. Only the settings below are read; every other key is ignored, so
+# the file is safe to extend.
 
 # The cards location: where inside this project the cards start, relative to
 # this project root. It names the namespace root. Every `.hmd` card beneath
@@ -94,14 +94,16 @@ class ConfigError(Exception):
 
 
 def find_project_root(start: Path) -> Path | None:
-    """Nearest ancestor holding `.hmd/`, else nearest holding `.git`."""
+    """Nearest ancestor holding `.hmd/`, or None.
+
+    Only `.hmd/` marks a project root. A `.git` directory does not: every
+    repository has one, and a repository is not a vault until it says so. A
+    tree with no marker above it has its namespace root named directly.
+    """
     start = start.resolve()
     candidates = [start, *start.parents] if start.is_dir() else list(start.parents)
     for parent in candidates:
         if (parent / MARKER_DIR).is_dir():
-            return parent
-    for parent in candidates:
-        if (parent / ".git").exists():
             return parent
     return None
 
@@ -130,8 +132,8 @@ def load(root_override: Path | None = None, start: Path | None = None) -> Config
     project = find_project_root(start)
     if project is None:
         raise ConfigError(
-            f"no project root above {start}: expected a .hmd/ or .git directory. "
-            f"Pass --root to name the namespace root directly."
+            f"no project root above {start}: expected a .hmd/ directory. "
+            f"Run `hmd init`, or pass --root to name the namespace root directly."
         )
 
     data, source = _read(project)
@@ -279,8 +281,7 @@ def _checked_name(value: str) -> str:
 def _enclosing_project(project: Path) -> Path | None:
     """The nearest ancestor already carrying a `.hmd/`, if any.
 
-    Only the marker counts, not the `.git` fallback — every repository would
-    answer to that one, and nesting inside a repository is the normal case.
+    Only the marker counts, the same rule `find_project_root` follows.
     """
     start = project.resolve()
     for parent in start.parents:

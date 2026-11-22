@@ -10,8 +10,8 @@
 //! four-space indent continues a callout body or a footnote, so a reference
 //! inside one is a reference.
 //!
-//! Offsets are counted in characters, as the canonical implementation counts
-//! them, which is what makes a column the same number in both.
+//! Offsets are counted in characters, Unicode code points, because a column
+//! counts code points in every implementation.
 
 use crate::text;
 

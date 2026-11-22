@@ -2,7 +2,7 @@
  * A `node:fs` host, for tests only.
  *
  * It lives in the test tree rather than in `src/` because the package itself
- * must import no Node builtins (HMD-0020 §1).
+ * must import no Node builtins (HMD-0020).
  */
 
 import { readdir, readFile } from "node:fs/promises";
@@ -15,6 +15,10 @@ export class NodeHost implements WorkspaceHost {
 
   async readFile(rel: string): Promise<string> {
     return readFile(join(this.root, rel), "utf8");
+  }
+
+  async readBytes(rel: string): Promise<Uint8Array> {
+    return new Uint8Array(await readFile(join(this.root, rel)));
   }
 
   async listDirectory(rel: string): Promise<DirEntry[]> {

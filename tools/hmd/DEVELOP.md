@@ -76,15 +76,15 @@ the configuration.
 
 ```text
 src/hypermarkdown/
-  scan.py          masking, fences, offsets — text in, spans out
+  scan.py          masking, fences, headings, spans in UTF-8 bytes and code points
   parse.py         the grammar of HMD-0001; never throws on partial input
   frontmatter.py   `tags`, `use`, `import`, `nav`; HMD013 for a bad value
   imports.py       the two import forms
   resolve.py       the four phases, the spine walk, and the workspace index
   embed.py         expansion, depth cap, cycle detection, `can_embed`
   urls.py          source-relative link rewriting
-  lint/            HMD001–HMD017, plus text and JSON reporters
-  render/          flat markdown and HTML
+  lint/            HMD001–HMD019, plus text and JSON reporters
+  render/          flat markdown and HTML, and the heading ids `toc` assigns
   diagram.py       d2 fences
   mkdocs_plugin.py the only file that imports MkDocs
   cli.py           argument parsing and formatting, nothing else

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { parse, parseTarget } from "../src/parse.js";
-import { slugFor, slugify, unique } from "../src/slug.js";
+import { headingContent, parse, parseTarget, visibleText } from "../src/parse.js";
+import { caseFold, headingKey } from "../src/unicode.js";
 
 describe("grammar", () => {
   it("parses every part of a full target", () => {
@@ -82,36 +82,90 @@ describe("frontmatter", () => {
   });
 });
 
-describe("slugs", () => {
-  it("matches the toc extension on ASCII", () => {
-    expect(slugify("The `hmd` CLI")).toBe("the-hmd-cli");
-    expect(slugify("A/B testing!")).toBe("ab-testing");
+describe("heading keys", () => {
+  it("folds case and punctuation away and keeps every script", () => {
+    expect(headingKey("Ошибка 404!")).toBe("ошибка 404");
+    expect(headingKey("Café — Menu")).toBe(headingKey("CAFÉ, menu"));
+    expect(headingKey("数据 · 分析")).toBe("数据 分析");
   });
 
-  it("folds Extended Latin to ASCII", () => {
-    expect(slugify("Žlutý kůň")).toBe("zluty-kun");
+  it("keeps accents significant", () => {
+    expect(headingKey("Café")).not.toBe(headingKey("Cafe"));
   });
 
-  it("drops a heading that slugs to nothing, then numbers it", () => {
-    const used = new Set<string>();
-    expect(slugFor("!!!", used)).toBe("_1");
+  it("compares composed and decomposed text alike", () => {
+    expect(headingKey("Cafe\u0301")).toBe(headingKey("Caf\u00e9"));
   });
 
-  it("deduplicates in document order", () => {
-    const used = new Set<string>();
-    expect(slugFor("Notes", used)).toBe("notes");
-    expect(slugFor("Notes", used)).toBe("notes_1");
-    expect(slugFor("Notes", used)).toBe("notes_2");
+  it("applies full case folding, which toLowerCase is not", () => {
+    expect(caseFold("Straße")).toBe("strasse");
+    expect(caseFold("\u1e9e")).toBe("ss"); // capital sharp s
+    expect(caseFold("ΣΑΣ ς")).toBe("σασ σ"); // final sigma folds to sigma
+    expect(caseFold("\ufb03")).toBe("ffi"); // a ligature unfolds
+    expect(headingKey("STRASSE")).toBe(headingKey("Straße"));
   });
 
-  it("increments an existing numeric suffix", () => {
-    const used = new Set(["a_1"]);
-    expect(unique("a_1", used)).toBe("a_2");
+  it("is empty for a heading with no letters or numbers", () => {
+    expect(headingKey("!!! — ???")).toBe("");
+  });
+});
+
+describe("heading text", () => {
+  it("removes inline markup the way a reader sees it", () => {
+    expect(visibleText("The *fast* path")).toBe("The fast path");
+    expect(visibleText("The `hmd` CLI")).toBe("The hmd CLI");
+    expect(visibleText("See [the guide](guide.md) and ![logo](a.png)")).toBe("See the guide and logo");
+    expect(visibleText("[[guide#Install|Installing]] or [[guide#Install]]")).toBe("Installing or guide");
+    expect(visibleText("a <b>bold</b> <!-- note --> move")).toBe("a bold move");
+    expect(visibleText("Fish &amp; chips &#x41;")).toBe("Fish & chips A");
   });
 
-  it("slugs headings from the original text, not the masked copy", () => {
+  it("keeps a delimiter that flanks nothing, and an intraword underscore", () => {
+    expect(visibleText("2 * 3")).toBe("2 * 3");
+    expect(visibleText("snake_case and _emphasis_")).toBe("snake_case and emphasis");
+  });
+
+  it("drops the markers, the closing run, and a trailing anchor", () => {
+    expect(headingContent("## Setup ##")).toBe("Setup");
+    expect(headingContent("## Setup ^setup-linux")).toBe("Setup");
+    expect(headingContent("Two\nlines\n----")).toBe("Two\nlines");
+  });
+
+  it("reads headings from the original text, not the masked copy", () => {
     const doc = parse("a.hmd", "## The `hmd` CLI\n");
-    expect(doc.headings[0]!.slug).toBe("the-hmd-cli");
+    expect(doc.headings[0]!.text).toBe("The hmd CLI");
+    expect(doc.headings[0]!.key).toBe("the hmd cli");
+  });
+});
+
+describe("setext headings", () => {
+  const levels = (text: string) =>
+    parse("a.hmd", text).headings.map((h) => [h.level, h.text, h.span.line]);
+
+  it("finds a paragraph over === or --- as a level 1 or 2 heading", () => {
+    expect(levels("Guide\n=====\n\nInstall\n-------\n")).toEqual([
+      [1, "Guide", 1],
+      [2, "Install", 4],
+    ]);
+  });
+
+  it("joins a multi-line paragraph into one heading", () => {
+    expect(levels("Two\nlines\n---\n")).toEqual([[2, "Two lines", 1]]);
+  });
+
+  it("reads a --- after a blank line as a thematic break", () => {
+    expect(levels("Prose.\n\n---\n")).toEqual([]);
+  });
+
+  it("finds no heading inside a fence, a quote, a list, or indented code", () => {
+    expect(levels("```\nHidden\n------\n```\n")).toEqual([]);
+    expect(levels("> quoted\n---\n")).toEqual([]);
+    expect(levels("- item\n---\n")).toEqual([]);
+    expect(levels("    code\n---\n")).toEqual([]);
+  });
+
+  it("does not take frontmatter for a paragraph", () => {
+    expect(levels("---\ntags: [a]\n---\nTitle\n=====\n")).toEqual([[1, "Title", 4]]);
   });
 });
 

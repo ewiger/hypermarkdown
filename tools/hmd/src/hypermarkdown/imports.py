@@ -7,6 +7,7 @@ the statement reads at a glance, which nested `from:`/`names:` keys would not.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 from .model import ImportStmt
 
@@ -57,6 +58,7 @@ def parse_statement(raw: str) -> ImportStmt:
         if not nm:
             raise ImportError_(f"expected '<name>' or '<name> as <alias>', got {part!r}")
         name = nm.group("name")
-        bindings.append((name, nm.group("alias") or name))
+        # The local name is compared after NFC, as every name is.
+        bindings.append((name, unicodedata.normalize("NFC", nm.group("alias") or name)))
 
     return ImportStmt(ref=ref, wildcard=False, bindings=tuple(bindings), raw=raw.strip())

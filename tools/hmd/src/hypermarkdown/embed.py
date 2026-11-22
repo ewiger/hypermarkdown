@@ -1,4 +1,4 @@
-"""Embed expansion (HMD-0001 §6).
+"""Embed expansion.
 
 Expansion is textual: an embed is replaced by the target's bytes, with no
 heading-level shifting, so the operation stays reversible by inspection. It is
@@ -17,8 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .frontmatter import split_frontmatter
-from .model import ERROR, Diagnostic, Document, Link
-from .parse import slug_for
+from .model import ERROR, Anchor, Diagnostic, Document, Heading, Link
 from .resolve import Outcome, Workspace
 
 #: Called with each non-embed link and the page it resolved to, or None when it
@@ -90,43 +89,61 @@ def body(document: Document) -> str:
 
 
 def section_region(document: Document, fragment: str) -> tuple[int, int] | None:
-    """A heading and everything up to the next heading of the same or higher level."""
-    wanted = slug_for(fragment, set())
-    for index, heading in enumerate(document.headings):
-        if heading.slug != wanted:
-            continue
-        end = len(document.text)
-        for following in document.headings[index + 1 :]:
-            if following.level <= heading.level:
-                end = following.span.start
-                break
-        return heading.span.start, end
-    return None
+    """A heading and everything up to the next heading of the same or higher level.
+
+    The heading is the first whose key is the fragment's. ATX and setext
+    headings end each other's sections alike: a setext heading's level is 1
+    under `===` and 2 under `---`.
+    """
+    heading = document.find_heading(fragment)
+    if heading is None:
+        return None
+    return _section_of(document, heading)
+
+
+def _section_of(document: Document, heading: Heading) -> tuple[int, int]:
+    index = document.headings.index(heading)
+    end = len(document.text)
+    for following in document.headings[index + 1 :]:
+        if following.level <= heading.level:
+            end = following.span.index
+            break
+    return heading.span.index, end
 
 
 def block_region(document: Document, block_id: str) -> tuple[int, int] | None:
     """The anchored block, with its trailing ``^id`` marker excluded.
 
     A block runs back from the anchored line to the nearest blank line, since
-    the anchor marks the end of a block rather than the start of one.
+    the anchor marks the end of a block rather than the start of one. An anchor
+    on a heading's line names that heading, and its block is the heading's
+    whole section, exactly as for a heading fragment.
     """
     text = document.text
     floor, _ = body_region(document)
     for anchor in document.anchors:
         if anchor.block_id != block_id:
             continue
-        start = text.rfind("\n", 0, anchor.span.start) + 1
+        start = _line_start(text, anchor.span.index)
+        for heading in document.headings:
+            if _line_start(text, heading.span.index) == start:
+                return _section_of(document, heading)
         while start > floor:
-            previous_end = start - 1
-            previous_start = text.rfind("\n", 0, previous_end) + 1
+            previous_end = start - (2 if text.startswith("\r\n", start - 2) else 1)
+            previous_start = _line_start(text, previous_end)
             if previous_start < floor or not text[previous_start:previous_end].strip():
                 break
             start = previous_start
-        return start, anchor.span.start
+        return start, anchor.span.index
     return None
 
 
-def _target_region(document: Document, link: Link) -> tuple[int, int] | None:
+def _line_start(text: str, index: int) -> int:
+    """The index of the first character of the line `index` is on."""
+    return max(text.rfind("\n", 0, index), text.rfind("\r", 0, index)) + 1
+
+
+def target_region(document: Document, link: Link) -> tuple[int, int] | None:
     if link.fragment is None:
         return body_region(document)
     if link.fragment_kind == "block":
@@ -147,12 +164,23 @@ def _region(
     rewrite: Rewrite | None,
     can_embed: CanEmbed | None = None,
 ) -> str:
-    """Copy `document.text[start:end]`, substituting the links inside it."""
+    """Copy `document.text[start:end]`, substituting the links inside it.
+
+    Block anchors are dropped on the way: an anchor and its leading whitespace
+    are not part of the block's content and are never rendered.
+    """
     out: list[str] = []
     cursor = start
 
-    for link in document.links:
-        if not (start <= link.span.start < end):
+    edits: list[Link | Anchor] = [
+        *(link for link in document.links if start <= link.span.index < end),
+        *(anchor for anchor in document.anchors if start <= anchor.span.index < end),
+    ]
+    edits.sort(key=lambda edit: edit.span.index)
+    for link in edits:
+        if isinstance(link, Anchor):
+            out.append(document.text[cursor : link.span.index])
+            cursor = link.span.index_end
             continue
         if link.is_embed:
             replacement = _embed(workspace, document, link, stack, diagnostics, rewrite, can_embed)
@@ -162,9 +190,9 @@ def _region(
             replacement = rewrite(link, target)
         else:
             continue
-        out.append(document.text[cursor : link.span.start])
+        out.append(document.text[cursor : link.span.index])
         out.append(replacement)
-        cursor = link.span.end
+        cursor = link.span.index_end
 
     out.append(document.text[cursor:end])
     return "".join(out)
@@ -193,7 +221,7 @@ def _embed(
     if target is None:
         return link.raw
 
-    region = _target_region(target, link)
+    region = target_region(target, link)
     if region is None:
         return link.raw  # HMD004/HMD005, already reported by lint
 

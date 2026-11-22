@@ -1,7 +1,8 @@
 # Conformance corpus
 
 Language-neutral fixtures shared by every implementation of HyperMarkDown.
-Specified by [HMD-0020](../../doc/proposals/HMD-0020/README.md) §10.
+Specified by [HMD-0020](../../doc/proposals/HMD-0020/README.md), under its
+conformance, canonicity, and drift-ledger section.
 
 This corpus is what replaces principle P5 (*one implementation*). Two
 implementations of one grammar drift silently unless something fails loudly;
@@ -28,8 +29,8 @@ examples/conformance/cases/<case-name>/
   expected.json   { diagnostics: [...], resolutions: [...] }
 ```
 
-`diagnostics` is in the sort order of HMD-0001 §8 — `(path, line, column,
-rule)`. `resolutions` maps `(source, raw)` to a resolved root-relative path or
+`diagnostics` is in the specification's diagnostic sort order — `(path, line,
+column, rule)`. `resolutions` maps `(source, raw)` to a resolved root-relative path or
 `null`, sorted. Both are plain data, so neither implementation's object model
 leaks into the contract.
 
@@ -50,6 +51,12 @@ leaks into the contract.
 | `markdown-sweep` | The sweep finds a Markdown card, is HMD002 across modules, and skips a shadowed file |
 | `heading-after-frontmatter` | A heading on the line right below the fence is addressable |
 | `nested-vault` | A directory carrying its own `.hmd/` is another vault: none of its cards load, so a name it shares is not HMD002 |
+| `heading-keys-unicode` | Fragments match headings by key across scripts: Cyrillic, accented Latin, CJK, and full case folding (`STRASSE` reaches `Straße`); `Cafe` does not reach `Café`, HMD004 |
+| `heading-duplicates` | Headings with equal keys are HMD011 at each repeat without an anchor; a fragment reaches the first, and an anchored repeat is reached by `#^id` and not reported |
+| `setext-headings` | `Title` over `===` or `---` is addressable; a `---` after a blank line and an underline inside a fence are not headings, HMD004 |
+| `column-code-points` | A column counts code points: an emoji and accented letters before the link put it at 13, not at its byte or UTF-16 offset |
+| `invalid-utf8` | A card file that is not UTF-8 is HMD019 at 1:1 and is not a card, so a link to it is HMD001 |
+| `bom-frontmatter` | A leading byte-order mark is ignored, so the `---` after it opens frontmatter whose `use` turns the sweep off |
 
 ## Runners
 

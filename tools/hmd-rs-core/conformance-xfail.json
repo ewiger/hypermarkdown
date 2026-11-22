@@ -22,7 +22,7 @@
     },
     {
       "id": "HMD004",
-      "reason": "A heading fragment the resolved card does not have. Headings and their slugs are not read, so a fragment is parsed and never checked.",
+      "reason": "A heading fragment the resolved card does not have. Headings and their keys are not read, so a fragment is parsed and never checked.",
       "deliberate": true,
       "spec": "HMD-0027, what the crate does not do"
     },
@@ -64,7 +64,7 @@
     },
     {
       "id": "HMD011",
-      "reason": "Two headings in one card sharing a slug. Headings are not read.",
+      "reason": "Two headings in one card sharing a key. Headings are not read.",
       "deliberate": true,
       "spec": "HMD-0027, what the crate does not do"
     },
@@ -109,6 +109,12 @@
       "reason": "A card shadowed by one of the same name with an earlier card extension. The earlier extension wins, as in the canonical implementation; `Vault::shadowed_by` names the winner, and the warning is the caller's to report.",
       "deliberate": true,
       "spec": "HMD-0027, what the crate does not do; HMD-0029"
+    },
+    {
+      "id": "HMD019",
+      "reason": "A file with a card extension that is not valid UTF-8. It is not a card, as in the canonical implementation: not loaded, and no reference resolves to it; `Vault::undecodable` lists it, and the error is the caller's to report.",
+      "deliberate": true,
+      "spec": "HMD-0027, what the crate does not do; the specification's Encoding"
     }
   ]
 }

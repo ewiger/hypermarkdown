@@ -1,0 +1,19 @@
+{
+  "diagnostics": [
+    {
+      "column": 13,
+      "line": 3,
+      "message": "[[missing]] does not resolve to a page",
+      "path": "card.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[missing]]",
+      "source": "card.hmd",
+      "target": null
+    }
+  ]
+}

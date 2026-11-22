@@ -21,6 +21,57 @@ only for the Python API.
   distinct tokens, and a fenced block inside the sample is coloured as its own
   language. Nothing has to be configured; Pygments finds the lexer through an
   entry point.
+- **An anchored repeat heading is not HMD011.** A heading whose key equals an
+  earlier one's is reported only when it carries no block anchor: the anchor
+  is the remedy, and makes the heading reachable.
+- **An anchor on a heading embeds its section.** `![[card#^setup-linux]]`,
+  where `^setup-linux` ends a heading's line, expands that heading's whole
+  section, exactly as `![[card#Linux]]` does, instead of the heading line alone.
+- **Setext headings are headings.** `Setup` over a line of `===` or `---` is
+  indexed and addressable like `# Setup`, at level 1 or 2, and ends an embedded
+  section the way an ATX heading does. A `---` after a blank line is still a
+  thematic break, a `---` frontmatter fence is still frontmatter, and no line
+  inside a fence or a comment is ever a heading.
+- **HMD019**, an error: a file with a card extension that is not valid UTF-8,
+  reported at line 1, column 1. The file is then not a card — not scanned, not
+  a link target, not in the graph — where it used to stop the run with a
+  `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
+
+### Changed
+- **A heading fragment matches by key, not by slug** — the HyperMarkDown 0.1
+  rule. The key is the text in NFC, case-folded, with every character that is
+  not a letter, mark, or number turned into a space and the spaces collapsed.
+  `[[card#ошибка 404]]` reaches `# Ошибка 404!`, `[[card#STRASSE]]` reaches
+  `Straße`, and `[[card#Cafe]]` no longer reaches `Café`: accents are
+  significant, and letters of every script are kept, where the old slug
+  dropped them. A fragment matches the first heading with its key; the `_1`
+  suffix that reached a repeat is gone, so `[[card#setup_1]]` is now HMD004 and
+  a repeat is reached by a block anchor on its line.
+- **HMD011 reports headings with the same key**, at each repeat, naming the
+  line of the heading a fragment reaches instead. It used to report a slug
+  collision and suggest the `_1` address.
+- A heading's text is what a reader sees: `## The *fast* path` is
+  `The fast path` in the graph and in the derived nav, without its markup. The
+  graph's `slug` field is replaced by `key`.
+- **HMD004 names the fragment as written**, `has no heading '#Cafe Menu'`,
+  rather than its slug.
+- The MkDocs plugin and `hmd render` rewrite each heading link to the id
+  Python-Markdown's `toc` gives the heading the link matched — numbered `_1`
+  when an embedded heading of the same slug comes first on the page, `_1` for
+  a heading `toc` cannot slug at all, and the id set by `attr_list`'s `{#id}`.
+  A link whose fragment matched nothing links to the page.
+- **Spans count UTF-8 bytes; columns count code points.** A span's offsets are
+  byte offsets from byte 0 of the card, and a line ends at `\n`, `\r\n`, or a
+  lone `\r`. Cards are read as bytes, so a `\r\n` file keeps its offsets, and a
+  block anchor on a `\r\n` line is found. A form feed or U+2028 no longer
+  starts a line.
+- **A leading byte-order mark is ignored**, so frontmatter after one is
+  frontmatter.
+- **Names compare in NFC.** A reference and a name on disk match whether
+  either is stored composed or decomposed, for cards and for import origins.
+- **Only `.hmd/` marks a project root.** The `.git` fallback is gone: a tree
+  with no `.hmd/` above it is refused with a pointer to `hmd init` and
+  `--root`, where it used to load the repository root as a project.
 
 ## [0.4.0] — 2026-11-15
 
@@ -45,6 +96,15 @@ only for the Python API.
   sweep is HMD002.
 
 ### Fixed
+- **Block anchors are no longer rendered.** `hmd render` and the site printed
+  the trailing `^id` of every anchored block, including the tutorial paragraph
+  that says its anchor cannot be seen. Expansion now drops each anchor and its
+  leading whitespace, in a card's own text and in embedded text alike; an
+  anchor shown inside a fenced block stays.
+- **An import alias is compared after NFC**, like every other name, so a
+  decomposed alias is reachable by a composed reference.
+- **A code span does not cross a blank line in a `\r\n` or `\r` card.** The
+  test looked for two `\n` in a row and missed a blank line written with `\r`.
 - **A heading right below the frontmatter fence is a heading.** The fence was
   blanked together with its line breaks, so the first body line read as
   indented: `# Title` directly under `---` produced no heading, and a fragment
