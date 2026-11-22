@@ -269,6 +269,108 @@ def test_the_cover_renders_its_hero(built_home):
     assert "{ .hmd-hero }" not in built_home, "attr_list is not enabled"
 
 
+def _cover_article(home: str) -> str:
+    """The cover's own content, without the theme's chrome around it."""
+    match = re.search(r'<article class="md-content__inner md-typeset">(.*?)</article>', home, re.S)
+    assert match is not None, "the cover has no article"
+    return match.group(1)
+
+
+COVER = ROOT / "doc" / "index.md"
+
+#: Where the cover's samples come from. A sample titled with a path is looked
+#: up under each of these, so the title a reader sees is the path inside the
+#: example vault.
+SAMPLE_VAULTS = (ROOT / "examples" / "small", ROOT / "examples" / "notebook")
+
+
+def _cover_samples() -> list[tuple[str, str]]:
+    """Every titled `hmd` sample on the cover, as (title, body)."""
+    text = COVER.read_text(encoding="utf-8")
+    return [
+        (m.group(2), m.group(3))
+        for m in re.finditer(r'^(`{3,})hmd title="([^"]+)"\n(.*?)\n\1$', text, re.S | re.M)
+    ]
+
+
+def test_the_cover_is_full_width(built_home):
+    """The cover has its own template: content in `.hmd-home`, both sidebars
+    hidden. The navigation stays in the page, hidden rather than removed,
+    because it is also the drawer a phone opens."""
+    assert 'class="md-content hmd-home"' in built_home
+    assert re.search(r'class="md-sidebar md-sidebar--primary"[^>]*\bhidden\b', built_home)
+    assert re.search(r'class="md-sidebar md-sidebar--secondary"[^>]*\bhidden\b', built_home)
+
+
+def test_the_cover_cites_no_internal_record(built_home):
+    """A numbered proposal is a working record. The cover says what a thing is
+    and links to its page; it does not send a visitor into the records."""
+    assert not re.search(r"HMD-\d{4}", _cover_article(built_home))
+
+
+def test_the_cover_states_no_tool_version(built_home):
+    """The roadmap is the one page that states versions. A version repeated on
+    the cover is a second copy to keep true. The CommonMark baseline is the
+    exception: it names the standard the format extends, not a release."""
+    text = re.sub(r"<[^>]+>", "", _cover_article(built_home))
+    text = re.sub(r"CommonMark \d+\.\d+\.\d+", "", text)
+    found = re.findall(r"\b\d+\.\d+\.\d+\b", text)
+    assert not found, f"version numbers on the cover: {found}"
+
+
+def test_every_link_on_the_cover_reaches_a_built_page(built_site, built_home):
+    """`validation.links.not_found` is `info` for the whole site, because cards
+    link out to repository files. The cover gets the strict check here."""
+    missing = []
+    for href in re.findall(r'href="([^"]+)"', _cover_article(built_home)):
+        if re.match(r"[a-z]+:|#|//", href):
+            continue
+        target = built_site / href.split("#")[0]
+        if not (target.is_file() or (target / "index.html").is_file()):
+            missing.append(href)
+    assert not missing, f"cover links with no page behind them: {missing}"
+
+
+def test_the_cover_shows_the_examples_as_they_are():
+    """A sample titled with a card's path is that card's text, word for word.
+    The cover shows source beside what it produces, and a sample that drifted
+    from its file would show output the source no longer gives."""
+    samples = _cover_samples()
+    assert samples, "the cover carries no titled samples"
+    checked = 0
+    for title, body in samples:
+        files = [vault / title for vault in SAMPLE_VAULTS if (vault / title).is_file()]
+        if not files:
+            continue
+        checked += 1
+        assert any(body in f.read_text(encoding="utf-8") for f in files), (
+            f"the cover's sample of {title} is not in that card"
+        )
+    assert checked >= 4, "most of the cover's samples should come from the examples"
+
+
+def test_the_cover_shows_what_the_linter_prints(tmp_path):
+    """The Check sample is one card added to the example vault and the
+    linter's output for it. The output on the cover is what `hmd lint` prints
+    today, line for line."""
+    if shutil.which("hmd") is None:
+        pytest.skip("hmd is not installed")
+    notes = dict(_cover_samples()).get("notes.hmd")
+    assert notes is not None, "the cover has no notes.hmd sample"
+
+    vault = tmp_path / "small"
+    shutil.copytree(ROOT / "examples" / "small", vault)
+    (vault / "notes.hmd").write_text(notes + "\n", encoding="utf-8")
+    result = subprocess.run(
+        ["hmd", "lint", "--root", str(vault)], capture_output=True, text=True
+    )
+    cover = COVER.read_text(encoding="utf-8")
+    printed = [line for line in result.stdout.splitlines() if line.strip()]
+    assert printed, "hmd lint printed nothing"
+    for line in printed:
+        assert line in cover, f"the cover does not show this line of output: {line}"
+
+
 def test_the_site_names_its_repository(built_home):
     assert "ewiger/hypermarkdown" in built_home
     # `extra.generator: false` leaves the project's own license line alone in

@@ -33,6 +33,14 @@ statement of state decays silently, because nothing builds against it. The
 roadmap is now the one page that carries those claims, which is what makes them
 cheap to keep true.
 
+**The cover is being rebuilt.** It was a chapter with a hero on top: sidebars,
+one diagram, one screenshot, and long prose. It is becoming a page of its own —
+full-width bands, each making one claim and showing it — after the sibling
+project's site did the same and became much easier to read. The shell is in:
+the cover's own template, the hero with the project's tagline, and a window of
+five tabs that each show a card's source beside what it produces. The bands
+that tell the rest of the format are the open rows below.
+
 **What remains open** is one decision deliberately not being taken — which
 successor to follow when the site generator's 2.0 arrives without a plugin
 system — and a handful of accepted constraints, of which the one worth
@@ -42,6 +50,11 @@ revisiting is that maths loads from a CDN at view time.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
+| doing | **The cover's language bands** — three layers in one file, links that name cards, cards made of cards, metadata, and visuals, each with its own diagram drawn in HTML and CSS so it follows the colour scheme | The old three-layer diagram and the Language and Features prose retire once every claim in them is on a band or in a chapter | — |
+| todo | **The cover's computation and reach bands** — cards as notebooks, search by meaning, the tools as tiles, a comparison with other formats and notebooks, and the pages to read next | Every statement about another tool is checked against that tool's own documentation before it ships. The old Tools, Specification, and Vision prose retires with it | — |
+| todo | **A live card editor on the cover**, running the TypeScript implementation in the browser: type in a card, watch links, embeds, and diagnostics change | The static source-and-result pairs stay as the page without a script | [`ts-core.md`](ts-core.md) |
+| todo | **A link-preview card**, with Open Graph and Twitter tags on every page | — | — |
+| todo | **The roadmap's version table is behind the registries** | Found while rebuilding the cover; the roadmap is the one page that states versions, so it is the one page that has to be right | — |
 | backlog | **Self-host the maths typesetter**, so the site has no runtime dependency on anything it does not ship | Today it loads from a CDN, which is the site's only network dependency at view time. Not argued yet | — |
 
 ## Broken
@@ -59,10 +72,18 @@ revisiting is that maths loads from a CDN at view time.
 | A missing link target is reported, not fatal | Cards link out to the repository with ordinary relative links whose targets are real files but not site pages. The cost is that a genuinely broken relative link also only warns — links between cards are checked by the linter instead | [[hmd-0002#4-red-links-and-md]] |
 | A diagram fence without the `d2` binary degrades to a labelled placeholder and the build stays green | Deliberate: a missing binary must not fail a build. The cost is that an environment without it ships placeholders silently | [[hmd-0022#2-what-the-consumer-does]] |
 | Directory-style URLs are required, and turning them off is a hard error | A card and its folder note share one URL, so this is a requirement rather than a preference | [[hmd-0002#1-output-urls]] |
-| Branding is configuration, CSS, and one script — no template overrides | An override pins the site to the theme's internal template structure, which is exactly what the version pin already has to be careful about. The cost is that anything needing new markup is out of reach at build time; the theme's own grid-card syntax is one escape hatch, and the HQL tab's script is the other — it builds its per-letter markup from the link the theme emitted, so the theme's templates stay untouched and the tab is still a working link without it | — |
+| Only one of the theme's own templates is shadowed, the footer's | A shadowed template pins the site to the theme's internal structure, which is exactly what the version pin already has to be careful about. The cover's template extends the theme's page rather than replacing a part of it, and changes one block; the HQL tab's script builds its per-letter markup from the link the theme emitted, so the tab is still a working link without it | — |
+| A drawn diagram keeps a white ground in the dark scheme | `d2` draws dark ink into an image, and an image cannot be restyled from the page. The cover draws its own diagrams in HTML and CSS for this reason; diagrams in chapters and cards are unchanged | — |
 
 ## Done
 
+- **The cover's shell** — its own template, full width with both sidebars
+  hidden and the navigation still in the phone's drawer; the hero with the
+  project's tagline; a window of five tabs, each a card's source beside what it
+  produces, taken word for word from the example vaults; and a closing band
+  with the two installs. Guards hold the cover to the examples, to the
+  linter's real output, to working links, and to stating no version and citing
+  no internal record.
 - **The sibling project, everywhere the site lists its parts** — an HQL tab in
   the top bar that links to its own site, styled as an outlined amber button
   that stretches as the name spells itself out letter by letter on hover
@@ -120,10 +141,13 @@ run permanently.
 | --- | --- |
 | Which successor to follow when the current site generator's 2.0 makes the plugin impossible — a fork that keeps the plugin interface, the theme author's own successor, or the project's own builder? Nothing needs choosing while the current version works, and the reason it can wait is structural: the generator touches exactly one file. Resolution, expansion, URLs, and linting do not import it. The one thing that genuinely leans on it is that the generator computes and validates URLs while the plugin only names sources — a successor has to offer that, or the plugin takes it over | [[hmd-0001#9-mkdocs-integration]] |
 | Does the plugin own the site's markdown-extension list, or only document it? | [[hmd-0001#9-mkdocs-integration]] |
+| The project's name was decided twice with different capitals. It is `HyperMarkDown`; which later records still say otherwise, and are they worth a pass of their own or only re-spelling when next touched? | — |
 | Should the site self-host its maths typesetter to drop its last runtime dependency, or is a CDN acceptable for a documentation site? | — |
 
 ## Changelog
 
+- 2026-11-22: the cover's shell — template, hero, the tabbed window of
+  source-and-result pairs, and the guards that keep its samples true.
 - 2026-10-19: the HQL tab, linking the sibling project's site from the top bar,
   and HQL written into every page that lists the project's tools.
 - 2026-09-15: the roadmap page, replacing the cover's status section, and the

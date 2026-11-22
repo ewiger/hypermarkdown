@@ -47,12 +47,14 @@ use_directory_urls: true
 theme:
   name: material
 
-  # Exactly one template is overridden: `partials/copyright.html`, which carries
-  # the two-license footer. The directory is a sibling of `mkdocs.yml` rather
-  # than anything under `docs_dir`, because these are theme sources and not
-  # pages. Anything added here shadows a Material template of the same path, so
-  # a new file is a fork of that template and has to be re-diffed on a theme
-  # upgrade — worth doing rarely and on purpose.
+  # Two files live here. `partials/copyright.html` shadows Material's own and
+  # carries the two-license footer. `home.html` is the cover's template: it
+  # extends `main.html` rather than shadowing anything, and a page opts into it
+  # in its front matter. The directory is a sibling of `mkdocs.yml` rather than
+  # anything under `docs_dir`, because these are theme sources and not pages.
+  # A file that shadows a Material template of the same path is a fork of that
+  # template and has to be re-diffed on a theme upgrade — worth doing rarely
+  # and on purpose.
   custom_dir: overrides
 
   # The bolt from the README, as a real asset rather than an emoji character —
@@ -239,6 +241,9 @@ markdown_extensions:
   # a standing cost for a marker one page uses once.
   - attr_list
   - footnotes
+  # The cover is a stack of `<section>` bands with Markdown inside them, which
+  # is what the `markdown` attribute on an HTML element asks for.
+  - md_in_html
   - tables
   - toc:
       permalink: true

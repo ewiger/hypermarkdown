@@ -80,6 +80,10 @@ commit: the retired domain does not redirect.
 
 ## Done
 
+- **A syntax highlighter for cards** — a code sample marked `hmd` is coloured
+  as a card wherever Pygments is used: links, embeds, block anchors, and
+  frontmatter stand out, and a fenced block inside the sample is coloured as
+  its own language.
 - **The format, entire** — masking and the link grammar, heading slugs taken
   from Python-Markdown so links and rendered anchors cannot disagree, the
   two-phase resolution search with its whole-tree fallback, folder notes, both

@@ -1,5 +1,17 @@
 # 2026-08-10 — the HyperMarkdown identity
 
+> **Withdrawn on 2026-11-22.** The prose spelling is **`HyperMarkDown`**, with
+> the internal capital `D`, as the original naming decision fixed it. The pass
+> this memo describes was never applied: the site, the README, the
+> specification, the tests, and the extension all kept `HyperMarkDown`, and the
+> project's author settled the question in that spelling's favour while the
+> cover was being rebuilt. What stands from this memo is the other half:
+> `hypermarkdown` in identifiers, `https://hypermarkdown.org` as the canonical
+> host, and the observation that separating the human name from the machine
+> name is what makes the human one cheap to change. The few records that wrote
+> `HyperMarkdown` in the meantime are re-spelled as they are next touched. The
+> text below is kept as the record of what was argued.
+
 A second pass over the project's name, taken days after
 [HMD-0005](../proposals/HMD-0005/README.md) shipped the first one. Recorded here
 because the decision is a convention rather than a code change, and because the

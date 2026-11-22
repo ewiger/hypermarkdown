@@ -1,7 +1,187 @@
+---
+template: home.html
+hide:
+  - navigation
+  - toc
+---
+<section class="hmd-band hmd-band--hero" markdown>
+<div class="hmd-hero-grid" markdown>
+<div class="hmd-hero-text" markdown>
+
 # HyperMarkDown { .hmd-hero }
 
-HyperMarkDown (`.hmd`) is ordinary Markdown plus rich visuals plus wiki links
-into a knowledge graph. Every `.md` file is already valid `.hmd`.
+<p class="hmd-tagline">An AI-ready document language for humans and machines.</p>
+
+Built on the simplicity of Markdown, HyperMarkDown brings together wiki links,
+structured metadata, rich visuals, semantic relationships, and executable HQL
+cells. Write documents, connect ideas, build a mesh of knowledge, and bring it
+to life through computation and AI.
+
+<p class="hmd-actions" markdown>[Quick start](tools/index.md){ .md-button .md-button--primary } [Tutorial](wiki/hmd-tutorial.hmd){ .md-button }</p>
+
+```sh
+pip install HyperMarkDown
+```
+
+</div>
+<div class="hmd-term" markdown>
+<div class="hmd-tabbar" role="radiogroup" aria-label="What a card can hold">
+<input type="radio" name="hmd-demo" id="hmd-demo-link" value="link" checked><label for="hmd-demo-link">Link</label>
+<input type="radio" name="hmd-demo" id="hmd-demo-embed" value="embed"><label for="hmd-demo-embed">Embed</label>
+<input type="radio" name="hmd-demo" id="hmd-demo-diagram" value="diagram"><label for="hmd-demo-diagram">Diagram</label>
+<input type="radio" name="hmd-demo" id="hmd-demo-cell" value="cell"><label for="hmd-demo-cell">Cell</label>
+<input type="radio" name="hmd-demo" id="hmd-demo-check" value="check"><label for="hmd-demo-check">Check</label>
+</div>
+<div class="hmd-pane" data-tab="link" markdown>
+
+```hmd title="specs/auth/tokens.hmd"
+What authentication does with a token. The wire format and lifetime rules are
+shared and live in [[/shared/tokens]]; this card only covers issuance.
+
+## Issuance
+
+A token is issued only after a completed [[login]] flow.
+```
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+What authentication does with a token. The wire format and lifetime rules are
+shared and live in [/shared/tokens](https://github.com/ewiger/hypermarkdown/blob/main/examples/small/shared/tokens.hmd); this card only covers issuance.
+
+#### Issuance
+
+A token is issued only after a completed [login](https://github.com/ewiger/hypermarkdown/blob/main/examples/small/specs/auth/login.hmd) flow.
+
+</div>
+</div>
+<div class="hmd-pane" data-tab="embed" markdown>
+
+```hmd title="shared/tokens.hmd"
+Tokens rotate every 24 hours, and a rotated token stays valid for a 60-second
+overlap so in-flight requests are not cut off. ^rotation-window
+```
+
+```hmd title="specs/auth/tokens.hmd"
+The issuing service
+never reuses a subject's previous token, even when the previous one is still
+inside its rotation overlap:
+
+![[/shared/tokens#^rotation-window]]
+```
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+The issuing service
+never reuses a subject's previous token, even when the previous one is still
+inside its rotation overlap:
+
+<div class="hmd-embed" markdown>
+<p class="hmd-embed__from">shared/tokens#^rotation-window</p>
+
+Tokens rotate every 24 hours, and a rotated token stays valid for a 60-second
+overlap so in-flight requests are not cut off.
+
+</div>
+</div>
+</div>
+<div class="hmd-pane" data-tab="diagram" markdown>
+
+````hmd title="specs/auth/login.hmd"
+```d2
+client -> edge: credentials
+edge -> auth: verify
+auth -> edge: token
+edge -> client: token + rotation window
+```
+````
+
+<div class="hmd-out" data-label="rendered" markdown>
+
+```d2
+client -> edge: credentials
+edge -> auth: verify
+auth -> edge: token
+edge -> client: token + rotation window
+```
+
+</div>
+</div>
+<div class="hmd-pane" data-tab="cell" markdown>
+
+````hmd title="contents.hmd"
+```hql#eval id=books
+cards
+| filter(c => c.name != "contents")
+| sort(by = c => c.title)
+```
+````
+
+<div class="hmd-out" data-label="output, saved in the card" markdown>
+
+- [dune](https://github.com/ewiger/hypermarkdown/blob/main/examples/notebook/books/dune.hmd)
+- [emma](https://github.com/ewiger/hypermarkdown/blob/main/examples/notebook/books/emma.hmd)
+- [middlemarch](https://github.com/ewiger/hypermarkdown/blob/main/examples/notebook/books/middlemarch.hmd)
+- [the-hobbit](https://github.com/ewiger/hypermarkdown/blob/main/examples/notebook/books/the-hobbit.hmd)
+
+</div>
+</div>
+<div class="hmd-pane" data-tab="check" markdown>
+
+```hmd title="notes.hmd"
+See [[tokens]] for the lifetime rules.
+```
+
+<div class="hmd-log" markdown>
+
+```text title="hmd lint"
+glossary/index.hmd:11:3: warning[HMD001] [[idempotency]] does not resolve to a page
+notes.hmd:1:5: error[HMD002] [[tokens]] matches 2 pages; qualify it (candidates: shared/tokens.hmd, specs/auth/tokens.hmd)
+
+1 error(s), 1 warning(s)
+```
+
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="hmd-band hmd-band--cta" markdown>
+
+## Start { .hmd-section }
+
+<div class="hmd-steps" markdown>
+
+<div markdown>
+### In the editor
+
+The VS Code extension previews a card as you type and runs its cells.
+
+```sh
+ext install hypermarkdown.hmd
+```
+</div>
+
+<div markdown>
+### On the command line
+
+`hmd` checks every link and embed in a tree of cards.
+
+```sh
+pip install HyperMarkDown
+hmd init
+hmd lint
+```
+</div>
+
+</div>
+
+<p class="hmd-fineprint" markdown>What each install gives you is the [Quick start](tools/index.md). The language is before 1.0 and still changes; released versions are on the [Roadmap](public/roadmap.md). Code is MIT, documentation and specifications are CC BY 4.0.</p>
+
+</section>
+
+<section class="hmd-band hmd-prose" markdown>
 
 !!! tip "Want to see it in action?"
 
@@ -219,8 +399,7 @@ text leaves under-determined, the language-neutral conformance corpus decides.
 The language is at 0.1. The text is drafted, and it will move before 1.0.
 
 How it gets there is a separate formal process. A change
-is argued out first as a numbered technical proposal — `HMD-0001`, `HMD-0002`,
-and so on — in the style of RFCs and lightweight ADRs: a problem, the decision
+is argued out first as a numbered technical proposal in the style of RFCs and lightweight ADRs: a problem, the decision
 taken, the alternatives rejected, and a tracker of its own. Most of them are not
 about the language at all, and cover the tools and the presentation layer
 instead: how a bare name is resolved on disk, what the linter reports, how a tree
@@ -252,3 +431,5 @@ that cross repositories — are the [Roadmap](public/roadmap.md).
 
 The living example is [the wiki](wiki/README.md), generated from `.hmd` cards in
 this repository.
+
+</section>

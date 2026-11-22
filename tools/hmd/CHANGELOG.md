@@ -13,6 +13,15 @@ only for the Python API.
 
 ## [Unreleased]
 
+### Added
+- **A Pygments lexer for HyperMarkDown**, registered as `hmd` (alias
+  `hypermarkdown`, files `*.hmd`). A code sample fenced as ```` ```hmd ```` is
+  coloured as a card in MkDocs, in `hmd render --to html`, and anywhere else
+  Pygments is used: wikilinks, embeds, block anchors, and frontmatter are
+  distinct tokens, and a fenced block inside the sample is coloured as its own
+  language. Nothing has to be configured; Pygments finds the lexer through an
+  entry point.
+
 ## [0.4.0] — 2026-11-15
 
 ### Added
