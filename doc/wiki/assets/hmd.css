@@ -1419,3 +1419,90 @@ body:has(.hmd-home) .md-grid {
 .hmd-home .md-typeset .hmd-out > .hmd-diagram img {
   padding: 0;
 }
+
+.hmd-flow--three {
+  grid-template-columns: 1fr 2rem 1fr 2rem 1fr;
+}
+
+@media screen and (max-width: 60em) {
+  .hmd-flow--three {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.md-typeset .hmd-flow__code code {
+  overflow-wrap: anywhere;
+}
+
+.md-typeset dl.hmd-keys--first {
+  margin: 0 0 1rem;
+}
+
+.md-typeset .hmd-split .hmd-fineprint {
+  margin-top: 0.8rem;
+}
+
+/* A screenshot is a picture of another program. The frame says so, and a tall
+   one is cut at the bottom and faded out rather than shrunk until it cannot
+   be read. */
+.md-typeset figure.hmd-shotframe {
+  position: relative;
+  display: block;
+  width: auto;
+  margin: 0;
+  text-align: left;
+}
+
+.md-typeset figure.hmd-shotframe p {
+  position: relative;
+  max-height: 27rem;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.5rem;
+  box-shadow: 0 1.2rem 2.4rem -1rem rgba(0, 0, 0, 0.35);
+  background: #121316;
+}
+
+.md-typeset figure.hmd-shotframe p::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3rem;
+  background: linear-gradient(transparent, #121316);
+}
+
+.md-typeset figure.hmd-shotframe img {
+  display: block;
+  width: 100%;
+}
+
+.md-typeset figure.hmd-shotframe figcaption {
+  max-width: none;
+  margin: 0.6rem 0 0;
+  font-size: 0.7rem;
+  font-style: normal;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .hmd-pillars h3 .hmd-badge {
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+
+.md-typeset .hmd-flow__label--code {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.68rem;
+}
+
+.hmd-flow + .hmd-pillars {
+  margin-top: 2.4rem;
+}
+
+.md-typeset .hmd-fineprint {
+  max-width: 56rem;
+  line-height: 1.6;
+}

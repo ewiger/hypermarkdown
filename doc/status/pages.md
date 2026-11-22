@@ -40,8 +40,10 @@ project's site did the same and became much easier to read. The shell is in:
 the cover's own template, the hero with the project's tagline, and a window of
 five tabs that each show a card's source beside what it produces. The bands
 that tell the language are in as well: three layers, links, embeds, metadata,
-and visuals, each with a diagram drawn in the page. The bands for computation,
-search, tools, and comparison are the open rows below.
+and visuals, each with a diagram drawn in the page. So are the bands for cards
+as notebooks, search by meaning, the tools, a comparison with other formats,
+and the pages to read next, and the old prose is gone from the cover. What is
+left is a live editor in the hero and a link-preview card.
 
 **What remains open** is one decision deliberately not being taken — which
 successor to follow when the site generator's 2.0 arrives without a plugin
@@ -52,8 +54,7 @@ revisiting is that maths loads from a CDN at view time.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| doing | **The cover's computation and reach bands** — cards as notebooks, search by meaning, the tools as tiles, a comparison with other formats and notebooks, and the pages to read next | Every statement about another tool is checked against that tool's own documentation before it ships. The old Tools, Specification, and Vision prose retires with it | — |
-| todo | **A live card editor on the cover**, running the TypeScript implementation in the browser: type in a card, watch links, embeds, and diagnostics change | The static source-and-result pairs stay as the page without a script | [`ts-core.md`](ts-core.md) |
+| doing | **A live card editor on the cover**, running the TypeScript implementation in the browser: type in a card, watch links, embeds, and diagnostics change | The static source-and-result pairs stay as the page without a script | [`ts-core.md`](ts-core.md) |
 | todo | **A link-preview card**, with Open Graph and Twitter tags on every page | — | — |
 | todo | **The roadmap's version table is behind the registries** | Found while rebuilding the cover; the roadmap is the one page that states versions, so it is the one page that has to be right | — |
 | backlog | **Self-host the maths typesetter**, so the site has no runtime dependency on anything it does not ship | Today it loads from a CDN, which is the site's only network dependency at view time. Not argued yet | — |
@@ -78,6 +79,15 @@ revisiting is that maths loads from a CDN at view time.
 
 ## Done
 
+- **The cover's computation and reach bands** — cards as notebooks, with the
+  three kinds of fence, three cells of the example notebook reading each other,
+  and a current screenshot of a cell in the editor; search by meaning, as the
+  path from a vault through the index to a query, with its limits stated; the
+  tools as tiles, the unbuilt one marked planned; a comparison with CommonMark,
+  GFM, Obsidian, MDX, Jupyter, Quarto, and Org-mode, each row checked against
+  that project's own documentation on 2026-11-22; and the pages to read next.
+  The Features, Tools, Specification, and Vision prose is retired from the
+  cover, and with it the cover's citation of the proposals.
 - **The cover's language bands** — one file in three layers; links that name
   cards, with part of the example vault's real graph and the four steps that
   find a name; an embed drawn as a block in one card appearing inside another;
@@ -155,6 +165,8 @@ run permanently.
 
 ## Changelog
 
+- 2026-11-22: the cover's remaining bands — notebooks, search, tools,
+  comparison, reading list — and the last of the old prose retired.
 - 2026-11-22: the cover's language bands, five of them, and the diagrams they
   carry.
 - 2026-11-22: the cover's shell — template, hero, the tabbed window of
