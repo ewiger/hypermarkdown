@@ -24,10 +24,11 @@ to life through computation and AI.
 <p class="hmd-actions" markdown>[Quick start](tools/index.md){ .md-button .md-button--primary } [Tutorial](wiki/hmd-tutorial.hmd){ .md-button }</p>
 
 ```sh
-pip install HyperMarkDown
+code --install-extension hypermarkdown.hmd   # VS Code: preview, graph, cells
+pip install HyperMarkDown                    # hmd: the linter and site builder
 ```
 
-<p class="hmd-fineprint hmd-fineprint--hero" markdown>The command-line tool. The language is before 1.0 and still changes.</p>
+<p class="hmd-fineprint hmd-fineprint--hero" markdown>The tools implement specification 0.1, a draft.</p>
 
 </div>
 <div class="hmd-term" markdown>
@@ -714,7 +715,7 @@ summary of each card beside it is planned and not built.
 
 |                | What it is | Links by name | Embeds | Links checked | Cells that run | Readable as plain text | Specification |
 | -------------- | ---------- | ------------- | ------ | ------------- | -------------- | ---------------------- | ------------- |
-| **HyperMarkDown** | Markdown with links by name, embeds, metadata and cells | `[[card]]`, to a card, a heading or a block | `![[card#^block]]`: a card, a section or a block | `hmd lint`: every `[[link]]` and embed, from the command line | HQL cells; output saved in the card | Yes | Yes, for links, embeds and metadata; before 1.0 |
+| **HyperMarkDown** | Markdown with links by name, embeds, metadata and cells | `[[card]]`, to a card, a heading or a block | `![[card#^block]]`: a card, a section or a block | `hmd lint`: every `[[link]]` and embed, from the command line | HQL cells; output saved in the card | Yes | Yes, for links, embeds and metadata; 0.1 is a draft |
 | CommonMark     | Markdown specification | Paths and URLs | No | Not part of the specification | No | Yes | Yes |
 | GFM            | CommonMark with tables, task lists, strikethrough and autolinks | Paths and URLs | No | Not part of the specification | No | Yes | Yes |
 | Obsidian       | Note-taking app over Markdown files | `[[Note]]`, to a note, a heading or a block | `![[Note#^block]]`: a note, a heading or a block | In the app; its CLI lists unresolved links while the app runs | Not built in | Yes | Help pages; no formal specification |
@@ -725,7 +726,7 @@ summary of each card beside it is planned and not built.
 
 </div>
 
-<p class="hmd-fineprint" markdown>Each row other than the first was checked against that project's own documentation on 2026-11-22. "Not documented" means the documentation does not say. The columns are the things HyperMarkDown is for. It is also the youngest row: before 1.0, with one editor extension, and GitHub shows a `.hmd` file as source and does not render it.</p>
+<p class="hmd-fineprint" markdown>Each row other than the first was checked against that project's own documentation on 2026-11-22. "Not documented" means the documentation does not say. The columns are the things HyperMarkDown is for. It is also the youngest row: a draft specification, one editor extension, and GitHub shows a `.hmd` file as source and does not render it.</p>
 
 </section>
 
@@ -779,6 +780,6 @@ hmd lint
 
 </div>
 
-<p class="hmd-fineprint" markdown>What each install gives you is the [Quick start](tools/index.md). The language is before 1.0 and still changes; released versions are on the [Roadmap](public/roadmap.md). Code is MIT, documentation and specifications are CC BY 4.0.</p>
+<p class="hmd-fineprint" markdown>What each install gives you is the [Quick start](tools/index.md). The tools implement specification 0.1, a draft; released versions are on the [Roadmap](public/roadmap.md). Code is MIT, documentation and specifications are CC BY 4.0.</p>
 
 </section>
