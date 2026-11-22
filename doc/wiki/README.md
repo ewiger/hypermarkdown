@@ -16,7 +16,7 @@ subfolders.
    base is a graph of them. Start here.
 2. [HMD Tutorial](hmd-tutorial.hmd) — the syntax, taught start to finish. Read
    it once and you can write HyperMarkDown.
-3. [HMD Language Specification](hmd-lang-spec.hmd) — the normative text behind
+3. [HyperMarkDown Language Specification](hmd-lang-spec.hmd) — the normative text behind
    the tutorial: grammar, resolution, diagnostics, and what a conforming
    implementation owes. Consult it when the answer has to be exact.
 4. [Feature list](hmd-feature-list.hmd) — every supported construct as a numbered

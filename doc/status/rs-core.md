@@ -17,10 +17,10 @@ website in [`pages.md`](pages.md).
 
 ## Status
 
-**Written, passing every corpus case, and published as `hypermarkdown` 0.1.0.** The crate loads a
+**Written, passing every corpus case, and published as `hypermarkdown` 0.2.0.** The crate loads a
 vault, finds its references, and resolves them by path, named import, spine,
 imported directory and autodiscovery, with ambiguity and a climb above the root
-as outcomes of their own. All seven corpus cases produce the resolutions the
+as outcomes of their own. All thirteen corpus cases produce the resolutions the
 canonical implementation wrote, and the list of differing cases in the ledger
 is empty. 96 tests.
 
@@ -35,7 +35,7 @@ references through this crate and keep no resolution code of its own.
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
 | todo | **A release workflow.** `0.1.0` was published by hand. A tag of the crate's own, in the style of the other tools' tags, should run the gates and publish through a trusted publisher on crates.io, so that no token is stored | Nothing blocks it: crates.io accepts a trusted publisher now that the crate exists | [[hmd-0027#deployment--activation]] |
-| backlog | **A comparison suite that asks the canonical implementation.** The corpus pins seven cases. The TypeScript implementation also compares itself with `hmd` over the wiki and two example vaults; this crate was compared with `hmd` by hand, over those trees and over nine thousand generated ones, with every reference, position and outcome equal, and nothing in the repository repeats that | Needs Python in the crate's CI job, which today installs none | [[hmd-0027#conformance]] |
+| backlog | **A comparison suite that asks the canonical implementation.** The corpus pins thirteen cases. The TypeScript implementation also compares itself with `hmd` over the wiki and two example vaults; this crate was compared with `hmd` by hand, over those trees and over nine thousand generated ones, with every reference, position and outcome equal, and nothing in the repository repeats that | Needs Python in the crate's CI job, which today installs none | [[hmd-0027#conformance]] |
 
 ## Broken
 
@@ -57,11 +57,14 @@ implementation gains a rule the ledger does not name.
 | `[[notes.]]`, a name ending in a dot, binds `notes.hmd` | The canonical implementation takes this from `pathlib`, which changed it: Python 3.14 answers `notes.hmd` and Python 3.12 and 3.13 answer `notes..hmd`. The crate follows the newest | [[hmd-0027#what-the-crate-does]] |
 | Frontmatter that defines one YAML anchor twice is read | The canonical YAML reader refuses a repeated anchor, so the card's `use` and `import` keys are dropped there and honored here | [[hmd-0027#what-the-crate-does]] |
 | A symbolic link to a directory is not walked by the `std::fs` host | A link must not make the walk loop or leave the tree. A linked file is a card | [[hmd-0027#security-considerations]] |
-| Vault discovery looks for `.hmd/` only | The canonical command-line tool falls back to the nearest `.git` when no marker is found. A library that is handed a path has no use for a guess | [[hmd-0027#the-programming-interface]] |
 | The corpus does not pin every rule | No case covers an absolute or relative reference, a wildcard import, `recursive` mode, or the `use` key. Those are held by this crate's unit tests, written from the canonical code | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
 
 ## Done
 
+- **The HyperMarkDown 0.1 rules a resolver needs** — an undecodable file is
+  not loaded and is listed by `Vault::undecodable`, a byte-order mark is
+  ignored, lines end only at the three CommonMark endings, and names compare
+  after NFC through `unicode-normalization`; unreleased.
 - **Markdown cards** — `.md` and `.markdown` files load as `Kind::Markdown`
   cards, bind after `.hmd`, a written extension binds only itself, and a
   shadowed card is named by `Vault::shadowed_by`; released as 0.2.0
@@ -103,6 +106,9 @@ None.
 
 ## Changelog
 
+- 2026-11-22: the 0.1 rules are implemented, unreleased.
+- 2026-11-22: the released version, `0.2.0`, and the corpus count, thirteen
+  cases, match the crate and the corpus.
 - 2026-11-15: the question of whether `Vault::open` keeps honoring `wiki` is
   closed: it does. `wiki` is the cards location, where inside a vault the cards
   start, and stays in the format (issue 0011).

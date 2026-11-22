@@ -18,7 +18,7 @@ toolchain.
 What the package holds:
 
 - **The core** — scanner, parser, heading slugs, frontmatter, resolver, the
-  sixteen diagnostics, embed expansion, and the markdown and HTML renderers.
+  eighteen diagnostics, embed expansion, and the markdown and HTML renderers.
 - **The `hmd` command** — `lint`, `render`, `graph`, and `init` over that core.
 - **The MkDocs plugin** — the same core wired into a site build, so a tree of
   cards becomes a book.
@@ -34,7 +34,7 @@ implementation in [`ts-core.md`](ts-core.md), its editor in
 ## Status
 
 **Complete and released.** Everything the format specifies is implemented —
-grammar, resolution, the sixteen diagnostics, embed expansion, both renderers,
+grammar, resolution, the eighteen diagnostics, embed expansion, both renderers,
 the site plugin, publication. 331 tests, the shared corpus, three lint runs
 over real trees, and a site build stand behind that. `hypermarkdown`
 is on PyPI through a trusted publisher, each tool owns its own README, changelog,
@@ -87,6 +87,14 @@ commit: the retired domain does not redirect.
 
 ## Done
 
+- **The HyperMarkDown 0.1 rules** — heading fragments match by key, setext
+  headings are headings, HMD019 reports undecodable files, a byte-order mark is
+  ignored, all three line endings are lines, names compare after NFC (import
+  aliases included), offsets count UTF-8 bytes and columns code points, only
+  `.hmd/` marks a vault, an anchor on a heading embeds its section, an anchored
+  repeat heading is not HMD011, and block anchors are no longer rendered — the
+  tutorial's "you cannot see it" paragraph showed its own. A determinism test
+  and six corpus cases stand behind it; unreleased.
 - **A syntax highlighter for cards** — a code sample marked `hmd` is coloured
   as a card wherever Pygments is used: links, embeds, block anchors, and
   frontmatter stand out, and a fenced block inside the sample is coloured as
@@ -169,6 +177,8 @@ improvement.
 
 ## Changelog
 
+- 2026-11-22: the 0.1 rules are implemented, unreleased.
+- 2026-11-22: the diagnostic count, eighteen, matches the code.
 - 2026-09-14: rewritten in the shape the trackers now use — status first in
   prose, then open work, broken, gaps, and done last. Work-point numbers are
   gone: a row is named by what it is. The header now says what HyperMarkDown is,

@@ -182,7 +182,7 @@ construct may still change before `1.0`.
 
 #### Added
 
-- **The language.** Six constructs on top of GitHub-flavored markdown —
+- **The language.** Six constructs on top of CommonMark —
   wikilinks, aliased links, heading links, block anchors, block references, and
   the three embed forms — and nothing else owned. Every `.md` file is already a
   valid `.hmd` file.

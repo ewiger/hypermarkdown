@@ -91,6 +91,9 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Done
 
+- **The 0.1 rules from the core** — following a heading link matches by key,
+  diagnostics convert code-point columns to the editor's UTF-16 ones, and an
+  undecodable card is reported as HMD019; unreleased.
 - **A cell runs in its card's directory** — HQL is started in the directory
   holding the card, not the vault root, so a relative path in a cell resolves
   beside the card and HQL's upward search for the card's HQL project starts
@@ -181,6 +184,7 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-22: follows the core's 0.1 rules, unreleased.
 - 2026-11-15: a cell runs in its card's directory, which is what HQL's record
   of projects and vaults asks of a host: the source directory of a cell is
   the directory of its document.

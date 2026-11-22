@@ -1,0 +1,9 @@
+# Setup
+
+## Linux ^setup-linux
+
+Install the package and run `hmd init`.
+
+## macOS
+
+Install it with Homebrew. Tokens are explained in [[tokens]].

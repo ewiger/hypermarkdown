@@ -11,7 +11,7 @@
 ## What
 
 HyperMarkDown works in practice, and the language is small: six constructs,
-four frontmatter keys, eighteen diagnostics. 0.1 is to be a real, frozen
+four frontmatter keys, nineteen diagnostics. 0.1 is to be a real, frozen
 release of the specification, not a permanent draft. 1.0 stays the later
 promise of stability.
 
@@ -89,9 +89,7 @@ not yet confirmed one by one:
    every resolution phase, non-Latin and duplicate headings, a non-ASCII
    column, and a vault whose `wiki` is not `.`.
 4. **Correct the stale claims.** Each tracker states which specification
-   version its tool conforms to. Today they disagree: "sixteen diagnostics"
-   against eighteen, "seven corpus cases" against thirteen, npm 0.2.0 against
-   0.3.0.
+   version its tool conforms to.
 5. **Release:**
    - date 0.1 in the language's changelog;
    - tag it;

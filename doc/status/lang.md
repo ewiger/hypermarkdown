@@ -18,12 +18,13 @@ proposals. Everything the first version needs is decided: the grammar, the
 resolution search, the four frontmatter keys, nineteen diagnostics, embed
 expansion, and publication.
 
-**The questions holding 0.1 back were decided on 2026-11-22.** The baseline
-and its extras, diagram cells, underlined headings, heading matching, the
-project-root marker, the encoding, determinism, suppression, toggles across an
-embed, import order, and where publication lives. What is left is writing them
-into the specification and bringing the implementations into line, and both are
-open rows below. [The release card](../issues/0016-prepare-the-0-1-specification-release.md)
+**The questions holding 0.1 back were decided on 2026-11-22, and are written
+into the specification and into all three implementations.** The baseline and
+its extras, diagram cells, underlined headings, heading matching, the root
+marker, the encoding, determinism, suppression, toggles across an embed, import
+order, where publication lives, and an anchor on a heading. The shared corpus
+grew by six cases to pin them, and every implementation passes it. What is left
+before the tag are the open questions below and the release steps. [The release card](../issues/0016-prepare-the-0-1-specification-release.md)
 collects the decisions, the readability actions, and the steps to the release
 in one place. Still open beyond 0.1: one reserved language — cross-project
 namespaces — with a name, constraints, and no syntax at all. The other, the query language, is no longer
@@ -31,25 +32,20 @@ this project's to design: [HQL](https://hql-lang.org/) shipped as its own projec
 grammar and documentation, and the record that reserved it here is superseded.
 What this side still owes is how a card carries a query.
 
-**Nothing is being written right now.** The format moves when an implementation
-finds a question it cannot answer, and the current one is publication.
+**Being written now: the 0.1 release.** The specification was restructured
+for reading on 2026-11-22 — a contents list, a table of terms, one example vault
+followed through the sections, and each section's rules ahead of a short *Why*.
 
 ## Open
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **Match headings by the new rule in both implementations.** The specification now states it under *Heading anchors*, with no reference to a library: a fragment and each heading's text are reduced to a key — NFC, full case folding, everything but letters, marks, and numbers turned to spaces, spaces collapsed — and compared. Left: both implementations, in one commit, and corpus cases. Decided for 0.1: a heading fragment matches by normalising both the fragment and each heading's visible text and comparing the results, which is what Obsidian does and what both implementations do today. The rule is stated in full — Unicode NFC, then case folding; punctuation and symbols dropped; letters and digits kept in every script, accents included; whitespace collapsed — and no longer reads "Python-Markdown's slugify". Two headings that normalise alike: the first wins and the linter warns, and the remedy the specification recommends is an anchor on the heading. The `_1` suffix leaves the language; a site may still use it in its URLs | Heading paths such as `#Chapter#Section`, which Obsidian has, wait for the address grammar | [[hmd-0001#3-heading-anchors]], [[hmd-0020#4-heading-slugs]], [[hmd-0006#the-address-after-the-hash]], [the issue card](../issues/0014-non-latin-headings-cannot-be-linked.md) |
-| todo | **Finish the encoding rules.** The specification now states UTF-8 only, the byte-order mark, line endings, NFC names, and the units of a span. A file that is not valid UTF-8 is HMD019. Left: the implementations. Decided for 0.1: a card is UTF-8 and nothing else; UTF-16 was weighed and turned down, because git treats it as binary, the tool chain reads UTF-8, and newer formats have moved the same way. Around it: a leading byte-order mark is ignored, so it can no longer hide frontmatter; a line ends at `\n`, `\r\n`, or a lone `\r`, as in CommonMark; a diagnostic's line and column count Unicode code points from 1, and an offset counts UTF-8 bytes; a file that is not valid UTF-8 is reported by a rule of its own and skipped, instead of crashing the tool; and card names are compared after NFC normalisation, so a link resolves the same on macOS and Linux | The implementations need fixing too: today the canonical one counts characters, the TypeScript one UTF-16 units, and the Rust one bytes. The corpus never noticed, because every expected diagnostic sits at line 1, column 1; it gains a case with a non-ASCII column. The new rule's identifier is the canonical implementation's to allocate | [[hmd-lang-spec#documents]], [[hmd-lang-spec#lexical-model]] |
-| todo | **Correct the pages that contradict the baseline.** The specification now says extras are not the language, under *Conformance*, and lists every extra the site renders, with its syntax and origin, under *Extras*. Left: the changelog and the features page. Decided for 0.1: the baseline is CommonMark 0.31.2, named by version and not explained; the specification points at it. Everything the site and the tools render beyond it — tables, task lists, strikethrough, footnotes, callouts, maths, diagram cells — goes in a section of its own in the specification, listed one by one with its syntax and where the syntax comes from, and marked non-normative: an extra comes on top of CommonMark, a conforming implementation need not render it, and none of them changes what a HyperMarkDown construct means. The changelog's "on top of GitHub-flavored markdown" and the features page's claim that GitHub tables are valid HyperMarkDown are corrected to match | Conformance to CommonMark itself is tested by the dataset track, not by prose [issue 0015] | [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/), [[hmd-lang-spec#conformance]], [the dataset card](../issues/0015-commonmark-examples-as-a-test-dataset.md) |
-| todo | **Index underlined headings.** The specification now says a setext heading is a heading. Decided for 0.1: a heading is a heading whichever way it is written, so `Setup` over a line of `===` or `---` is addressable exactly as `# Setup` is. Neither implementation indexes them today, so a link to one fails in the editor and in the linter while a built site anchors it anyway. Both scanners index them in the same change, with a case in the shared corpus | The specification had never mentioned heading syntax, which is how the two implementations came to agree by accident | [[hmd-0001#3-heading-anchors]], [[hmd-0020#4-heading-slugs]] |
-| todo | **Widen the diagnostic range in the TypeScript implementation's specification**, which names sixteen rules while publication introduced a seventeenth. It forbids *allocating* new identifiers, which is right, but as written it also forbids implementing one already allocated | Blocks the publication port in that implementation | [[hmd-0020#9-diagnostics]] |
-| todo | **Test determinism.** Decided for 0.1, and the specification now states it under *Conformance*: the same tree gives the same resolutions, expansions, and byte-identical diagnostics whatever the order its files were created or are listed in. What is left is the test, which is the canonical implementation's to write | Nothing blocks it | [[hmd-0020#11-determinism-and-resource-bounds]] |
 | doing | **Cells, rendered by the tools.** [HQL](https://hql-lang.org/) defines how a card carries a query: cells with an `id`, a `hidden` flag, and output written after the cell behind hashed markers. Which fences are cells is now decided here: `hql#eval` and `hql#query` run, `hql#query` is `hql#eval hidden`, and a bare `hql` fence is a listing and never runs. Diagrams are cells too, and that is decided for 0.1: `d2#show` and `mermaid#show` are diagram cells, and a plain `d2` or `mermaid` fence is a listing, exactly as a plain `hql` fence is. The editor preview renders HQL cells; the specification now names the cell kinds, says their bodies are opaque to the resolver and that a card with cells and saved outputs is a valid card, and suggests a presentation without requiring one. What is left is the site build. How a tool runs or draws a cell is a suggestion in the specification, not a rule; the editor's behaviour is in its records | `hql render` 0.6.0 still runs bare `hql` fences and writes outputs for queries, so the editor masks both; HQL is asked to adopt the rules, and to write `mermaid#show` from its `mermaid` step | [[hmd-0026#which-fences-run]], [[hmd-0030#which-fences-are-diagram-cells]], [[hmd-0003]] |
 | todo | **Settle the address grammar before it is built.** Comes after 0.1, decided on 2026-11-22: its branch rebases onto the 0.1 specification, adopts the new heading matching for its heading steps, and renumbers its unreleased rules from HMD020, since 0.1 takes HMD019. Sentence segmentation, how nesting block kinds count, whether a table is addressable below block level, and whether a range may span two named steps. Each one changes what an already-written address means, so all of them are cheaper now than after the first card cites one | Holds the record at drafted rather than accepted; nothing else waits on it | [[hmd-0006#open-questions]] |
 | backlog | **Address and quote inside a card.** The fragment becomes a path of steps — a heading or anchor, then a block kind, a sentence, a word span — so a citation names a passage rather than a document, and an embed of one quotes exactly that passage. Needs a fragment parser and block boundaries in both implementations, held together by the shared corpus | Specified and unimplemented; the grammar's open questions come first | [[hmd-0006#the-address-after-the-hash]], [[hmd-0006#quoting-an-address-that-yields-its-text]] |
 | backlog | **Carry an integrity digest on a quotation**, so a source that changes under a quote is reported instead of drifting silently. The digest is optional, is not authentication, and a mismatch is a diagnostic rather than a refusal to render | Waits on quoting; the digest is the part that makes a quote checkable rather than merely traceable | [[hmd-0006#the-integrity-digest]] |
 | todo | **Clear numeric section references from the documentation.** Roughly seven hundred and seventy places cite a location by section sign and number — unclickable, checked by nothing, and wrong the moment anything is renumbered. Each becomes a reference that names its target | The rule is stated; the sweep is its own pass, and the tree has to become cards before the references resolve | [[hmd-0006#writing-a-reference-instead-of-a-number]], [[hmd-0006#outlook-the-documentation-becomes-a-vault]] |
-| todo | **Finish unifying what a vault and a namespace are across the specification, the HMD tools, and HQL.** Decided: a vault is the directory marked by `.hmd/`, the namespace is the tree of cards a reference resolves in, and `wiki` stays as the cards location, where inside the vault the cards start. The specification, the Namespaces page and the README say so. Also decided, for 0.1: `.git` does not mark a root, only `.hmd/` does, and the specification says so; the canonical command line still has to drop its fallback. The editor already looks for `.hmd/` alone. Left to decide and correct: the one schema for binding another vault, and the address form for a card in another vault. Left to build: a conformance case whose `wiki` is not `.`, and HQL reading `wiki`, which HQL tracks as its own issue 0079 | The tools still agree only where a configuration says `wiki = "."`: HQL and the semantic index builder read cards from the vault itself. Comes before cross-project namespaces, which builds on the answer | [the issue card](../issues/0011-vault-and-namespace-drift-between-hmd-and-hql.md), [[hmd-0004#the-address-form]] |
+| todo | **Finish unifying what a vault and a namespace are across the specification, the HMD tools, and HQL.** Decided: a vault is the directory marked by `.hmd/`, the namespace is the tree of cards a reference resolves in, and `wiki` stays as the cards location, where inside the vault the cards start. The specification, the Namespaces page and the README say so. Also decided, for 0.1: `.git` does not mark a root, only `.hmd/` does; the specification, the canonical command line, the editor, and the Rust crate all agree. Left to decide and correct: the one schema for binding another vault, and the address form for a card in another vault. Left to build: a conformance case whose `wiki` is not `.`, which needs all three corpus runners to read `wiki` instead of taking `tree/` as the namespace root, and HQL reading `wiki`, which HQL tracks as its own issue 0079 | The tools still agree only where a configuration says `wiki = "."`: HQL and the semantic index builder read cards from the vault itself. Comes before cross-project namespaces, which builds on the answer | [the issue card](../issues/0011-vault-and-namespace-drift-between-hmd-and-hql.md), [[hmd-0004#the-address-form]] |
 | backlog | **Cross-project namespaces.** How one project binds a name to another project's cards: the binding schema, resolution against a second local tree, fetching a remote one, and linting an address that points outside | The vocabulary, the address form, and where a binding may live are settled; the schema is not | [[hmd-0004#the-address-form]], [[hmd-0006#the-uri]] |
 | todo | **Test the scanner against CommonMark's own examples.** The CommonMark 0.31.2 specification ships about 650 examples, each a Markdown input with its exact expected HTML, and every serious parser runs them as its conformance suite. Vendor them beside the corpus and add a masking oracle: the regions the scanner masks — code spans, fenced code, HTML comments — compared with the ones a reference parser reports, over the examples and over fuzzed input, with every mismatch minimised into a case. An example with no `[[` must also yield no construct at all | A parallel track; 0.1 does not wait on it. The examples are CC BY-SA 4.0, so they need a folder with their own licence file rather than the MIT corpus | [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/), [[hmd-lang-spec#lexical-model]], [[hmd-0020#31-masking]], [the dataset card](../issues/0015-commonmark-examples-as-a-test-dataset.md) |
 | backlog | **Grow the CommonMark examples into a differential dataset.** Generate inputs, run them through several parsers (cmark, commonmark.js, markdown-it, pulldown-cmark), and keep each disagreement as a case: either the CommonMark text is silent there, or one parser is wrong and the text decides. The reference parser's branch coverage measures how complete the dataset is | Follows the oracle. Completeness in the strict sense is impossible — the inputs are infinite — so the measure is coverage, not a count | [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/) |
@@ -80,8 +76,8 @@ nothing is wrong yet, only unstated.
 ## Done
 
 - **The grammar** — the link forms, what is masked from scanning, and the
-  heading anchors, whose algorithm is adopted from Python-Markdown so a link and
-  its rendered destination cannot disagree.
+  heading anchors, matched by a key the specification states itself, with a
+  renderer bound to rewrite each heading link to the `id` it gave that heading.
 - **Resolution** — a name is looked for beside the card, then in each folder
   above without recursion, nearest winning, with a whole-tree sweep only if that
   finds nothing and two matches in the sweep an error rather than a tie-break.
@@ -96,11 +92,30 @@ nothing is wrong yet, only unstated.
 - **Markdown cards** — a `.md` or `.markdown` file in the namespace is a card
   that is addressed and embedded but not scanned; `.hmd` wins a shared name and
   the loser is HMD018 [HMD-0029].
+- **The TypeScript implementation's specification follows the diagnostics
+  table** — it named `HMD001` through `HMD016`, which forbade implementing a
+  rule already allocated; it now takes every rule the language specification
+  allocates, and still allocates none of its own.
 - **Diagnostics** — nineteen rules with stable identifiers, severities, and
   positions. HMD019, a file that is not valid UTF-8, was allocated by the
   specification ahead of the implementations.
 - **Embeds** — whole card, section, or block, with a depth cap and cycles an
   error.
+- **The 0.1 decisions, in the implementations** — heading fragments match by
+  key in the canonical and the TypeScript implementation; underlined headings
+  are headings in both; HMD019, the byte-order mark, the three line endings,
+  NFC names, and code-point columns with UTF-8 byte offsets in all three; the
+  `.git` fallback is gone from the command line; determinism has a test; an
+  anchor on a heading embeds its section, and an anchored repeat heading is
+  not HMD011. Six corpus cases pin them: Unicode heading keys, duplicate
+  headings, underlined headings, a code-point column, invalid UTF-8, and a
+  byte-order mark before frontmatter.
+- **The baseline corrections around the specification** — the Features page
+  and the changelog no longer build on GitHub-flavored Markdown, and the
+  Introduction no longer calls a proposal the normative specification.
+- **What has to agree with CommonMark in 0.1** — the constructs, found where a
+  CommonMark reading puts them; rendering the inherited Markdown is outside
+  conformance in this version, since the site's own renderer keeps older rules.
 - **The 0.1 decisions without code behind them** — the specification now says
   that nothing silences a diagnostic, that a link inside an embed resolves as
   in the card it was written in, with that card's imports and toggles, that
@@ -143,11 +158,36 @@ withdrew two dozen claims.
 | How do nesting block kinds count — is a list inside a list counted at the outer level, only within its parent, or both? | [[hmd-0006#every-block-kind-is-addressable-by-its-type]] |
 | Should a table be addressable below the block level — a row, a column, a cell — and does that want its own units or a coordinate spelling? | [[hmd-0006#counted-steps-cite-an-ordinal-inside-the-enclosing-scope]] |
 | Should an address name a range across two *named* steps, anchor to anchor, rather than only a range within one unit? | [[hmd-0006#counted-steps-cite-an-ordinal-inside-the-enclosing-scope]] |
-| An anchor at the end of a heading's line names that heading and is not part of its text. Does an embed of it, `![[card#^setup-linux]]`, expand the heading's whole section, as a heading fragment does, or only the heading line, as any other block anchor would? | [[hmd-lang-spec#heading-anchors]], [[hmd-lang-spec#embed-expansion]] |
+| Which Unicode version do heading keys follow? The key depends on general categories and case folding, and the TypeScript implementation's are Unicode 17 while the canonical one's are Unicode 16, so 4699 characters new in Unicode 17 key differently. Pinning a version — and generating both implementations' tables from it, as the case-folding table already is — would close the gap | [[hmd-lang-spec#heading-anchors]] |
+| What is a wikilink's text inside a heading? The implementations read a wikilink in a heading as its display text, or, without one, as its page reference less the fragment; the specification says only that inline markup is removed | [[hmd-lang-spec#heading-anchors]] |
+| Do attribute-list braces count in a heading's key? `## Setup {#install}` keys as `setup install` today, so `#Setup` does not reach it, while the site's `id` honours `{#install}`. Attribute lists are an extra, which argues for keeping them out of the language | [[hmd-lang-spec#heading-anchors]], [[hmd-lang-spec#extras]] |
+| Is a fragment whose key is empty, such as `#***`, a missing heading (HMD004, today) or a malformed link (HMD010)? | [[hmd-lang-spec#heading-anchors]] |
+| Does HMD019 apply to `.md` and `.markdown` files, which are never checked? Today it does, since an undecodable file cannot be a card of any kind | [[hmd-lang-spec#encoding]] |
+| Two names on disk that are equal after NFC: the first in sorted order is the card and the other is dropped silently in all three implementations. Should that be a diagnostic, and is "sorted" by code point or by UTF-16 unit? | [[hmd-lang-spec#encoding]] |
 | Is the long form canonical when a tool mints an address, so two tools produce the same string for one location? | [[hmd-0006#both-spellings-and-which-one-is-which]] |
 
 ## Changelog
 
+- 2026-11-22: the 0.1 decisions are in all three implementations and pinned by
+  six new corpus cases; an anchor on a heading embeds its section, an anchored
+  repeat heading is not HMD011, and for 0.1 only the constructs have to agree
+  with CommonMark. The specification gained a contents list, a table of terms,
+  an example vault checked by a test, rules ahead of a short *Why* in every
+  section, rule identifiers that trail their condition instead of standing in
+  for it, *Project configuration* as a section of its own, and the title
+  HyperMarkDown Language Specification; it no longer links internal proposals.
+  Six questions the implementations met are open below.
+- 2026-11-22: the TypeScript implementation's specification no longer caps
+  its rules at sixteen, which unblocks the publication port there.
+- 2026-11-22: editorial corrections to the specification, none changing a
+  rule: `discovery_mode` and its `spine` value are defined, the grammar reads
+  top down, a lone capital NOT no longer looks like a keyword, the diagnostics
+  table says where each rule is defined, the sentence claiming nothing but the
+  graph is checked now names the frontmatter and the encoding, and the
+  changelog link points at the repository. Around it: the Features page and the
+  changelog no longer build on GitHub-flavored Markdown, the Introduction no
+  longer calls a proposal the normative specification, and the trackers'
+  diagnostic counts and released versions match the code.
 - 2026-11-22: the specification's heading rule is written out in full and no
   longer names a library; setext headings are headings; HMD019 reports a file
   that is not valid UTF-8. In-card addressing is ordered after 0.1.

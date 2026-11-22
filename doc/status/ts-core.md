@@ -13,10 +13,10 @@ implementation in [`hmd.md`](hmd.md), the editor that embeds this one in
 
 ## Status
 
-**Released on npm at `0.2.0`, complete for everything except the card
+**Released on npm at `0.3.0`, complete for everything except the card
 publication model, and agreeing with the canonical implementation byte for byte
 on everything it implements.** Cards parse,
-resolve, expand, and render; all sixteen diagnostics are there; callouts, math,
+resolve, expand, and render; seventeen of the eighteen diagnostics are there, all but the publication rule; callouts, math,
 and D2 diagrams work. 144 tests, and the agreement is checked by linting three
 real trees — the wiki and two example vaults — against the canonical linter and
 comparing the output exactly.
@@ -24,10 +24,10 @@ comparing the output exactly.
 **The one real gap is the card publication model** — the registry sense of the
 word is settled, and this is the other one: the frontmatter key that says
 whether a card is published, the rule that it inherits from folder notes, and
-the warning when a published card links to a private one. It is blocked, not
-forgotten — the proposal that specifies this implementation stops at sixteen
-rules and the seventeenth belongs to a different proposal, so the port needs
-that settled first.
+the warning when a published card links to a private one. It was blocked
+on the proposal that specifies this implementation, which stopped at sixteen
+rules; that proposal now follows the language specification's table, so the
+port is open work.
 
 Two smaller differences from the website are now work rather than footnotes:
 subscript, and LaTeX environments written without dollar signs.
@@ -36,7 +36,7 @@ subscript, and LaTeX environments written without dollar signs.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| blocked | **The publication model, and the rule that depends on it.** Parse `nav` as a mapping of order and visibility, inherit visibility from the nearest ancestor folder note defaulting to private, and warn when a published card links to or embeds an unpublished one. Four files; reproduce the canonical behaviour exactly and keep the embed veto a decision the caller passes in, so a later policy change has somewhere to land | Blocked on which proposal owns publication here: this implementation's spec stops at sixteen rules and this is the seventeenth [HMD017] | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
+| todo | **The publication model, and the rule that depends on it.** Parse `nav` as a mapping of order and visibility, inherit visibility from the nearest ancestor folder note defaulting to private, and warn when a published card links to or embeds an unpublished one. Four files; reproduce the canonical behaviour exactly and keep the embed veto a decision the caller passes in, so a later policy change has somewhere to land | Unblocked on 2026-11-22: this implementation's spec now follows the language specification's diagnostics table rather than stopping at sixteen rules [HMD017] | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | todo | **Subscript.** `~x~` is subscript on the website and nothing here — not a math gap at all: it comes from a markdown extension, and markdown-it's builtin covers only `~~strikethrough~~`. One line to wire in `markdown-it-sub`, a new dependency | Then the ledgered difference is deleted, because a ledger entry that stops diverging fails the build | [[hmd-0020#33-free-syntax]] |
 | todo | **LaTeX environments at block level.** `\begin{align}` on its own is math on the website and prose here, because this implementation only recognises a block that opens with `$$`. The likeliest real-world hit of the KaTeX-versus-MathJax difference, and the only one not written down | Not currently ledgered | [[hmd-0020#33-free-syntax]] |
 | backlog | **Parse the in-card address.** A fragment becomes a path of steps rather than one slug, and block kinds, sentences, and words become countable. This implementation and the canonical one must agree on every boundary or an ordinal means two things, so the cases land in the shared corpus first | Waits on the format settling the grammar | [[hmd-0006#the-address-after-the-hash]], [[hmd-0006#every-block-kind-is-addressable-by-its-type]] |
@@ -72,6 +72,12 @@ canonical side warns and this one stays silent.
 
 ## Done
 
+- **The HyperMarkDown 0.1 rules** — the canonical implementation's, case for
+  case: heading keys with a case-folding table generated from Python, setext
+  headings, HMD019 through an optional `readBytes` on the host, the byte-order
+  mark, line endings, NFC names, code-point columns and UTF-8 offsets, the
+  anchor-on-heading embed, unrendered anchors, and HMD011 silenced by an
+  anchor. The slugger is gone and the IR is version 4; unreleased.
 - **Markdown cards** — `.md` and `.markdown` cards, binding by card extension,
   HMD018 and `Workspace.shadowedBy`, held to the corpus; released as 0.3.0
   [HMD-0029].
@@ -87,7 +93,7 @@ canonical side warns and this one stays silent.
   a card beneath one is ignored, and an import into one is HMD015, matching the
   canonical implementation. `inNestedVault` lets a host skip such a card before
   parsing it. Ships in `0.2.0`, with a shared corpus case [issue 0009]
-- **Released** — `0.1.0`, `0.1.1`, and `0.2.0` on npm as `@hypermarkdown/core`,
+- **Released** — `0.1.0`, `0.1.1`, `0.2.0`, and `0.3.0` on npm as `@hypermarkdown/core`,
   tagged `ts-core-vX.Y.Z`. The first version was published by hand, because npm
   configures trusted publishing per package and a package must exist before it
   can be configured; every version since goes out from `release-ts-core.yml`
@@ -100,7 +106,7 @@ canonical side warns and this one stays silent.
 - **The resolver** — the four-phase search, spine walk, whole-tree sweep, folder
   notes, imports, and a workspace index behind a host port that touches no Node
   builtins, so it runs in a browser.
-- **All sixteen diagnostics**, sorted and worded identically to the canonical
+- **Seventeen diagnostics**, every one but HMD017, sorted and worded identically to the canonical
   linter.
 - **The corpus and its ledger** — cases generated from the canonical
   implementation, with every accepted difference written down.
@@ -125,12 +131,15 @@ environment variable is set, which CI does.
 
 | Question | References |
 | --- | --- |
-| Which proposal owns publication in this implementation? Its own spec enumerates sixteen rules and says nothing about publication, which belongs to the rendering proposal. The port needs that amendment before it is written | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | Should the port wait for the policy question? What a published-to-private link *should* do is itself unsettled on the canonical side — a blocked link, a page that exists but is unlisted, or nothing, chosen per site — so porting today's warning could mean porting it twice. Against that: matching the canonical implementation exactly is the contract, whatever it later becomes (issue 0008) | [[hmd-0002#4-red-links-and-md]] |
 | Does the graph data have to match the canonical `hmd graph` output exactly? It carries a heading count where the canonical side emits heading objects, and omits frontmatter, anchors, and imports. The editor proposal says the graph tab consumes "the same data", which these shapes do not quite satisfy | [[hmd-0021#10-deferred-tabs]], [[hmd-0020#7-the-document-ir]] |
 
 ## Changelog
 
+- 2026-11-22: the 0.1 rules are implemented, unreleased.
+- 2026-11-22: the released version, `0.3.0`, and the diagnostic count, seventeen
+  of eighteen, match the package; the publication port is unblocked, since this
+  implementation's spec now follows the language's diagnostics table.
 - 2026-09-15: the npm release is stated here rather than only in the package's
   own changelog, and "publication" is qualified everywhere it appears — the
   tracker meant the card visibility model throughout, while the root changelog

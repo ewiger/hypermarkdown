@@ -59,8 +59,8 @@ See [[tokens]] for the token format, or pull the definition in whole:
 
 That is the entire surface. The whole language fits on one page and can be
 learned in one sitting: the [HMD Tutorial](../wiki/hmd-tutorial.hmd), with the
-[HMD Language Specification](../wiki/hmd-lang-spec.hmd) behind it for the exact
-rules.
+[HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) behind it for
+the exact rules.
 
 ## Documents that assemble themselves
 

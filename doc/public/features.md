@@ -2,8 +2,8 @@
 
 ## TL;DR
 
-* **Markdown compatible.** Standard Markdown is valid HyperMarkDown, including
-  the GitHub-flavoured parts: fenced code, tables, task lists, strikethrough.
+* **Markdown compatible.** Every CommonMark document is valid HyperMarkDown.
+  Tables, task lists, and strikethrough render too, as extras on top.
 
 * **Wiki links.** Link to a document, a heading, or a single block:
   `[[page]]`, `[[page#Section]]`, `[[page#^block]]`. Alias with
@@ -15,7 +15,8 @@
 * **Modules and namespaces.** Folders are modules. A bare name is searched
   beside the card, then upward through its parents. An explicit path
   (`[[/shared/tokens]]`) or a frontmatter import crosses module boundaries and
-  makes the dependency visible. Two matches is an error, not a guess.
+  makes the dependency visible. A name found twice in the whole-tree search is
+  an error, not a guess.
 
 * **Metadata.** YAML frontmatter carries tags, imports, navigation hints, and
   anything your own tooling needs.
@@ -205,7 +206,7 @@ nobody rewrites a wiki by hand. The full argument is
 
 - [The HMD Tutorial](../wiki/hmd-tutorial.hmd) — every construct, in order, in
   one sitting.
-- [The HMD Language Specification](../wiki/hmd-lang-spec.hmd) — the normative
+- [The HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) — the normative
   text: grammar, resolution, diagnostics.
 - [The feature list](../wiki/hmd-feature-list.hmd) — the full inventory,
   including what was deferred or rejected.
