@@ -1,10 +1,10 @@
 # 0023 — Rename `wiki` to `location_path`
 
-**Column**: todo
+**Column**: done — closed 2026-11-24
 **Opened**: 2026-11-24
-**Related**: [the format's tracker](../status/lang.md),
-[the vault directory card](0021-specify-the-vault-directory-and-its-boundary.md),
-[the drift between HMD and HQL](0011-vault-and-namespace-drift-between-hmd-and-hql.md),
+**Related**: [the format's tracker](../../status/lang.md),
+[the vault directory card](../0021-specify-the-vault-directory-and-its-boundary.md),
+[the drift between HMD and HQL](../0011-vault-and-namespace-drift-between-hmd-and-hql.md),
 [[hmd-lang-spec#project-configuration]]
 
 ## What
@@ -33,3 +33,12 @@ repository.
 - A configuration that sets `wiki` is rejected with an error naming
   `location_path`, and each implementation pins that with a unit test.
 - No configuration in the repository sets `wiki`.
+
+## Closed
+
+Closed on 2026-11-24, with every line of *Done when* met in Python, Rust, and
+TypeScript: the default `.`, an empty or absent configuration, a relative
+`location_path`, a namespace root that never resolves into a nested vault, an
+explicit root that overrides the setting, and `wiki` refused with an error
+naming `location_path`, pinned by a unit test in each. No configuration in
+the repository sets `wiki`.
