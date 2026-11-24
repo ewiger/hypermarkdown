@@ -27,6 +27,9 @@ crates.io. Implementation state is tracked in
 
 ### Changed
 
+- **A backslash anywhere in a reference is refused**: in its page, its
+  fragment, or its display. `Reference::parse` returns the new
+  `ReferenceError::Backslash`, and the link is left out of the card's links.
 - **`Import::parse` takes only spaces and tabs as whitespace**, between a
   statement's words and on either side of a comma, as the grammar's `WS`
   says, and refuses a name or alias holding `:` or a reserved character.

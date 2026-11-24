@@ -38,6 +38,9 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **A backslash anywhere in a wikilink is HMD010**: in its path, its
+  fragment, or its display. A backslash is never a path separator and
+  escapes nothing; one before `[[` is outside the link and changes nothing.
 - **An `import` statement takes only spaces and tabs as whitespace**, between
   its words and on either side of a comma, as the grammar's `WS` says; another
   whitespace character there is HMD014. An imported name or alias is a

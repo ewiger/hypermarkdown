@@ -263,6 +263,10 @@ def _parse_target(inner: str) -> tuple[str, str | None, str | None, str | None]:
 
     Raises `ValueError` for anything malformed (HMD010).
     """
+    # A backslash is never a path separator and escapes nothing, so it may
+    # stand nowhere in a wikilink: not in the path, the fragment, or the display.
+    if "\\" in inner:
+        raise ValueError("backslash in wikilink")
     if not inner.strip():
         raise ValueError("empty link target")
 
