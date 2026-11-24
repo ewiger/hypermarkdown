@@ -210,6 +210,29 @@ impl Vault {
     /// setting names.
     pub fn open(vault_root: &Path) -> Result<Vault, Error> {
         let config = Config::read(vault_root)?;
+        // The namespace root has to lie in this vault. A directory between the
+        // vault and the root that carries its own `.hmd` is another vault, and
+        // its cards are never this one's; the vault's own marker is not
+        // counted.
+        let mut directory = vault_root.to_path_buf();
+        for part in config.location_path.split('/') {
+            if part.is_empty() || part == "." {
+                continue;
+            }
+            directory.push(part);
+            if directory.join(MARKER_DIR).is_dir() {
+                let nested = directory
+                    .strip_prefix(vault_root)
+                    .unwrap_or(&directory)
+                    .to_string_lossy()
+                    .replace(std::path::MAIN_SEPARATOR, "/");
+                return Err(Error::config(format!(
+                    "`location_path` {:?} resolves into the nested vault at {nested}; \
+                     the namespace root must lie in the vault that names it",
+                    config.location_path
+                )));
+            }
+        }
         let root = config.namespace_root(vault_root);
         if !root.is_dir() {
             return Err(Error::config(format!(

@@ -137,6 +137,42 @@ fn a_vault_whose_configuration_sets_wiki_is_not_opened() {
 }
 
 #[test]
+fn a_location_path_into_a_nested_vault_is_refused() {
+    for location in ["inner", "inner/notes", "./inner/notes"] {
+        let config = format!("location_path = \"{location}\"\n");
+        let root = tree(
+            &format!("open-into-nested-{}", location.replace(['/', '.'], "-")),
+            &[
+                (".hmd/config.toml", config.as_str()),
+                ("inner/.hmd/config.toml", ""),
+                ("inner/notes/a.hmd", ""),
+            ],
+        );
+        let err = Vault::open(&root).expect_err("a root inside a nested vault is refused");
+        assert!(matches!(err, Error::Config { .. }), "{err}");
+        let message = err.to_string();
+        assert!(
+            message.contains("`location_path`") && message.contains("nested vault at inner"),
+            "{message}"
+        );
+    }
+}
+
+#[test]
+fn a_location_path_beside_a_nested_vault_is_read() {
+    let root = tree(
+        "open-beside-nested",
+        &[
+            (".hmd/config.toml", "location_path = \"notes\"\n"),
+            ("inner/.hmd/config.toml", ""),
+            ("notes/a.hmd", ""),
+        ],
+    );
+    let vault = Vault::open(&root).expect("the vault opens");
+    assert_eq!(vault.pages().len(), 1);
+}
+
+#[test]
 fn an_unusable_configuration_file_is_an_error() {
     let root = tree("open-bad", &[(".hmd/config.toml", "location_path = [")]);
     assert!(matches!(Vault::open(&root), Err(Error::Config { .. })));

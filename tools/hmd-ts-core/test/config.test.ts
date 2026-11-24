@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { ConfigError, DEFAULT_LOCATION_PATH, parseConfigToml } from "../src/config.js";
+import {
+  ConfigError,
+  DEFAULT_LOCATION_PATH,
+  checkLocationPath,
+  parseConfigToml,
+} from "../src/config.js";
 
 describe("`.hmd/config.toml`", () => {
   it("reads the namespace root from `location_path`", () => {
@@ -25,5 +30,24 @@ describe("`.hmd/config.toml`", () => {
 
   it("rejects a `location_path` that is not a string", () => {
     expect(() => parseConfigToml("location_path = 3\n")).toThrow(ConfigError);
+  });
+
+  it("refuses a `location_path` that resolves into a nested vault", async () => {
+    // `inner/` carries its own `.hmd/`, so it is another vault: a namespace
+    // root at it or below it is refused, and the error names the key and the
+    // nested vault.
+    const markers = new Set(["inner"]);
+    const hasMarker = async (directory: string) => markers.has(directory);
+
+    for (const path of ["inner", "inner/notes", "./inner/notes/"]) {
+      await expect(checkLocationPath(path, hasMarker)).rejects.toThrow(ConfigError);
+      await expect(checkLocationPath(path, hasMarker)).rejects.toThrow(
+        "resolves into the nested vault at inner",
+      );
+    }
+    // The vault itself, and a sibling of the nested vault, are fine.
+    for (const path of [".", "", "notes", "notes/inner"]) {
+      await expect(checkLocationPath(path, hasMarker)).resolves.toBeUndefined();
+    }
   });
 });

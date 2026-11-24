@@ -27,6 +27,10 @@ crates.io. Implementation state is tracked in
 
 ### Changed
 
+- **A `location_path` that resolves into a nested vault is refused.**
+  `Vault::open` returns `Error::Config`, naming `location_path` and the nested
+  vault, when a directory between the vault and the namespace root carries
+  its own `.hmd`.
 - **Breaking: `wiki` is renamed `location_path`, and its default is `.`**, the
   vault itself, where it was `doc/wiki`. `Config::wiki` is
   `Config::location_path`, and `DEFAULT_WIKI` is `DEFAULT_LOCATION_PATH`. A

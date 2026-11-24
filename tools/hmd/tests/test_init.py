@@ -363,3 +363,27 @@ def test_cli_init_then_lint_is_clean(tmp_path, monkeypatch):
     result = runner.invoke(app, ["lint"])
 
     assert result.exit_code == 0
+
+
+@pytest.mark.parametrize("location", ["inner", "inner/notes", "./inner/notes"])
+def test_a_location_path_into_a_nested_vault_is_refused(tmp_path, location):
+    """`inner/` carries its own `.hmd/`, so it is another vault: a namespace root
+    at it or below it is refused, and the error names the key and the vault."""
+    (tmp_path / ".hmd").mkdir()
+    (tmp_path / ".hmd" / "config.toml").write_text(f'location_path = "{location}"\n', encoding="utf-8")
+    (tmp_path / "inner" / ".hmd").mkdir(parents=True)
+    (tmp_path / "inner" / "notes").mkdir()
+
+    with pytest.raises(config.ConfigError, match="nested vault at inner") as refused:
+        config.load(start=tmp_path)
+
+    assert "`location_path`" in str(refused.value)
+
+
+def test_a_location_path_beside_a_nested_vault_is_read(tmp_path):
+    (tmp_path / ".hmd").mkdir()
+    (tmp_path / ".hmd" / "config.toml").write_text('location_path = "notes"\n', encoding="utf-8")
+    (tmp_path / "inner" / ".hmd").mkdir(parents=True)
+    (tmp_path / "notes").mkdir()
+
+    assert config.load(start=tmp_path).root == (tmp_path / "notes").resolve()

@@ -26,6 +26,11 @@ anchors, matching the canonical implementation case for case.
 
 ### Added
 
+- **`checkLocationPath`**, exported: refuses, with a `ConfigError` naming
+  `location_path` and the nested vault, a `location_path` that resolves into
+  a nested vault. The core has no filesystem, so the caller says which
+  directories carry `.hmd/`; the VS Code extension calls it when it reads a
+  vault's config, and does not open a vault it refuses.
 - **`DirEntry.leavesRoot`**, optional: a host sets it on a symbolic link whose
   target lies outside the namespace root. Nothing through such an entry is a
   card, and a reference whose path meets it is `escapes`, HMD003. `ESCAPES` is

@@ -17,6 +17,7 @@ import * as vscode from "vscode";
 
 import {
   CONFIG_NAME,
+  checkLocationPath,
   DEFAULT_PROJECT_CONFIG,
   MARKER_DIR,
   parseConfigToml,
@@ -143,10 +144,16 @@ async function readConfig(projectRoot: vscode.Uri): Promise<ProjectConfig | null
   const configUri = vscode.Uri.joinPath(projectRoot, MARKER_DIR, CONFIG_NAME);
   if (!(await exists(configUri))) return { ...DEFAULT_PROJECT_CONFIG };
   try {
-    return parseConfigToml(
+    const config = parseConfigToml(
       decoder.decode(await vscode.workspace.fs.readFile(configUri)),
       `${MARKER_DIR}/${CONFIG_NAME}`,
     );
+    // A namespace root inside a nested vault is refused like an unreadable
+    // config: the vault is not opened, and the user is told why.
+    await checkLocationPath(config.locationPath, (directory) =>
+      exists(vscode.Uri.joinPath(projectRoot, ...directory.split("/"), MARKER_DIR)),
+    );
+    return config;
   } catch (exc) {
     const key = configUri.toString();
     if (!reported.has(key)) {

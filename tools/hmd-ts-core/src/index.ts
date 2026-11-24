@@ -27,6 +27,7 @@ export {
 } from "./frontmatter.js";
 export { parseStatement, isQualified, ImportSyntaxError } from "./imports.js";
 export {
+  checkLocationPath,
   parseConfigToml,
   ConfigError,
   DEFAULT_PROJECT_CONFIG,

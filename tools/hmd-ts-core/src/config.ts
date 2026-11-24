@@ -73,3 +73,29 @@ export function parseConfigToml(text: string, source: string | null = null): Pro
 
   return { locationPath, autodiscovery, mode: mode as "both" | "recursive", source };
 }
+
+/**
+ * Refuse a `location_path` that resolves into a nested vault.
+ *
+ * The namespace root has to lie in the vault whose config names it: a
+ * directory between the vault and the root that carries its own `.hmd/` is
+ * another vault, and its cards are never the enclosing vault's. `hasMarker`
+ * answers for a directory given relative to the vault, with `/` between its
+ * components; the vault's own marker is never asked about. The core has no
+ * filesystem, so the host supplies it.
+ */
+export async function checkLocationPath(
+  locationPath: string,
+  hasMarker: (directory: string) => Promise<boolean>,
+): Promise<void> {
+  const parts = locationPath.split("/").filter((part) => part !== "" && part !== ".");
+  for (let end = 1; end <= parts.length; end += 1) {
+    const directory = parts.slice(0, end).join("/");
+    if (await hasMarker(directory)) {
+      throw new ConfigError(
+        `\`location_path\` "${locationPath}" resolves into the nested vault at ${directory}; ` +
+          `the namespace root must lie in the vault that names it`,
+      );
+    }
+  }
+}

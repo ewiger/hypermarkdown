@@ -38,6 +38,10 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **A `location_path` that resolves into a nested vault is refused.** If a
+  directory between the vault and the namespace root carries its own `.hmd/`,
+  the vault is not loaded, and the error names `location_path` and the nested
+  vault.
 - **A block anchor's position starts at its `^`**, not at the spaces or
   tabs before it, so HMD006 points at the `^`. The blanks before the anchor
   still go with it when a block is embedded or rendered.

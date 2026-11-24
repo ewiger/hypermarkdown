@@ -150,6 +150,7 @@ def load(root_override: Path | None = None, start: Path | None = None) -> Config
         raise ConfigError(f"`location_path` must be a string in {source}")
 
     root = (project / location).resolve()
+    _check_not_in_nested_vault(project, location, source)
     if not root.is_dir():
         raise ConfigError(f"namespace root does not exist: {root}")
 
@@ -235,6 +236,27 @@ def init(
         overwritten=overwritten,
         enclosing=enclosing,
     )
+
+
+def _check_not_in_nested_vault(project: Path, location: str, source: Path | None) -> None:
+    """Refuse a `location_path` that resolves into a nested vault.
+
+    The namespace root has to lie in the vault whose config names it. A
+    directory between the vault and the root that carries its own `.hmd/` is
+    another vault, and its cards are never this vault's. The vault's own marker
+    is not counted.
+    """
+    directory = project
+    for part in PurePosixPath(location).parts:
+        if part in (".", "/"):
+            continue
+        directory = directory / part
+        if (directory / MARKER_DIR).is_dir():
+            raise ConfigError(
+                f"`location_path` {location!r} in {source} resolves into the nested vault at "
+                f"{directory.relative_to(project).as_posix()}; the namespace root must lie in "
+                f"the vault that names it"
+            )
 
 
 def _location_setting(value: str) -> str:
