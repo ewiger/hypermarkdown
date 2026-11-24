@@ -58,9 +58,6 @@ board:
       - id: "0016"
         title: "Prepare the 0.1 specification release"
         file: "0016-prepare-the-0-1-specification-release.md"
-      - id: "0018"
-        title: "Validate the grammar"
-        file: "0018-validate-the-grammar.md"
       - id: "0019"
         title: "Review lexical compatibility with CommonMark"
         file: "0019-lexical-compatibility-with-commonmark.md"
@@ -93,6 +90,9 @@ board:
         file: 0115-mermaid-diagrams-on-par-with-d2.md
     doing: []
     done:
+      - id: "0018"
+        title: "Validate the grammar"
+        file: "archive/0018-validate-the-grammar.md"
       - id: "0022"
         title: "Align the implementations with the finalized 0.1 decisions"
         file: "archive/0022-align-implementations-with-the-0-1-decisions.md"

@@ -4,7 +4,7 @@
 **Opened**: 2026-11-24
 **Related**: [the format's tracker](../status/lang.md),
 [issue 0015](0015-commonmark-examples-as-a-test-dataset.md),
-[issue 0018](0018-validate-the-grammar.md),
+[issue 0018](archive/0018-validate-the-grammar.md),
 [[hmd-lang-spec#lexical-model]], [[hmd-lang-spec#conformance-to-the-standard]]
 
 ## What

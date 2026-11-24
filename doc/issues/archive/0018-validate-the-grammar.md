@@ -1,11 +1,11 @@
 # 0018 — Validate the grammar
 
-**Column**: done
+**Column**: done — closed 2026-11-24
 **Opened**: 2026-11-24
-**Related**: [the format's tracker](../status/lang.md),
-[the release card](0016-prepare-the-0-1-specification-release.md),
+**Related**: [the format's tracker](../../status/lang.md),
+[the release card](../0016-prepare-the-0-1-specification-release.md),
 [[hmd-lang-spec#grammar]], [[hmd-lang-spec#lexical-model]],
-[the conformance corpus](../../examples/conformance/README.md)
+[the conformance corpus](../../../examples/conformance/README.md)
 
 ## What
 

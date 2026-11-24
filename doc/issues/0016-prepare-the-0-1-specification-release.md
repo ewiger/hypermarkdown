@@ -7,7 +7,7 @@
 [HMD-0030](../proposals/HMD-0030/README.md),
 [issue 0014](archive/0014-non-latin-headings-cannot-be-linked.md),
 [issue 0015](0015-commonmark-examples-as-a-test-dataset.md),
-[issue 0018](0018-validate-the-grammar.md)
+[issue 0018](archive/0018-validate-the-grammar.md)
 
 ## What
 
