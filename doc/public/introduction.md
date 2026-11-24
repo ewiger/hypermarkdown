@@ -82,7 +82,7 @@ to follow.
 
 ## Where the full picture lives
 
-- [The HMD Language Specification](../wiki/hmd-lang-spec.hmd) is the normative
+- [The HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) is the normative
   text behind it: the grammar, the resolution algorithm, and the diagnostics,
   stated exactly.
 - [The feature list](../wiki/hmd-feature-list.hmd) is the exhaustive
@@ -90,8 +90,6 @@ to follow.
   what is deferred or absent, so nothing gets re-argued from scratch.
 - [MD ↔ HMD interoperability](../wiki/md-hmd-interop.hmd) makes the argument
   that `.hmd` stands to `.md` as TypeScript stands to JavaScript.
-- [HMD-0001](../proposals/HMD-0001/README.md) is the normative specification
-  behind all of the above.
 
 !!! tip "Read next"
 

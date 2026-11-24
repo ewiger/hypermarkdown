@@ -9,7 +9,7 @@
 
 import * as vscode from "vscode";
 
-import type { Diagnostic as HmdDiagnostic } from "@hypermarkdown/core";
+import { columnOffset, type Diagnostic as HmdDiagnostic } from "@hypermarkdown/core";
 
 import type { VaultCatalog } from "./catalog.js";
 import { debounce } from "./debounce.js";
@@ -67,14 +67,24 @@ export class DiagnosticPublisher implements vscode.Disposable {
 
     const suppressed = cursorLines(vault);
     const byPath = new Map<string, vscode.Diagnostic[]>();
+    const lines = new Map<string, string[]>();
+    const lineOf = (path: string, line: number): string | undefined => {
+      let text = lines.get(path);
+      if (text === undefined) {
+        text = vault.text(path)?.split(/\r\n|\r|\n/) ?? [];
+        lines.set(path, text);
+      }
+      return text[line - 1];
+    };
 
     for (const diagnostic of vault.diagnostics()) {
       if (scope === "open" && !open.has(diagnostic.path)) continue;
       if (suppressed.get(diagnostic.path) === diagnostic.line) continue;
-      push(byPath, diagnostic.path, toVsCode(diagnostic));
+      push(byPath, diagnostic.path, toVsCode(diagnostic, lineOf(diagnostic.path, diagnostic.line)));
     }
 
-    for (const rel of vault.pages()) {
+    // A file that is not UTF-8 is not a page, and its HMD019 still belongs on it.
+    for (const rel of new Set([...vault.pages(), ...byPath.keys()])) {
       if (scope === "open" && !open.has(rel)) continue;
       this.collection.set(vault.uriFor(rel), byPath.get(rel) ?? []);
     }
@@ -92,11 +102,21 @@ function cursorLines(vault: Vault): Map<string, number> {
   return out;
 }
 
-export function toVsCode(diagnostic: HmdDiagnostic): vscode.Diagnostic {
-  // Core positions are 1-indexed; a vscode.Position is 0-indexed.
+/**
+ * One core diagnostic as VS Code's.
+ *
+ * Core positions are 1-indexed and a core column counts code points; a
+ * `vscode.Position` is 0-indexed and counts UTF-16 code units. `lineText`, the
+ * line the diagnostic is on, is what converts one into the other — without it
+ * the column is taken as is, which is right on any line with no character
+ * outside the Basic Multilingual Plane before it.
+ */
+export function toVsCode(diagnostic: HmdDiagnostic, lineText?: string): vscode.Diagnostic {
   const line = Math.max(diagnostic.line - 1, 0);
-  const column = Math.max(diagnostic.column - 1, 0);
-  const range = new vscode.Range(line, column, line, column + 1);
+  const start = Math.max(diagnostic.column, 1);
+  const column = lineText === undefined ? start - 1 : columnOffset(lineText, start);
+  const end = lineText === undefined ? column + 1 : columnOffset(lineText, start + 1);
+  const range = new vscode.Range(line, column, line, Math.max(end, column + 1));
 
   const out = new vscode.Diagnostic(
     range,

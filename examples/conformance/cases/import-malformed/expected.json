@@ -1,0 +1,19 @@
+{
+  "diagnostics": [
+    {
+      "column": 5,
+      "line": 3,
+      "message": "expected 'from <ref> import <names>', got 'import tokens from /shared'",
+      "path": "bad.hmd",
+      "rule": "HMD014",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[tokens]]",
+      "source": "fine.hmd",
+      "target": "shared/tokens.hmd"
+    }
+  ]
+}

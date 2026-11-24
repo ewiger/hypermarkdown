@@ -1,0 +1,29 @@
+{
+  "diagnostics": [
+    {
+      "column": 15,
+      "line": 2,
+      "message": "a.hmd has no block '^Tail'",
+      "path": "index.hmd",
+      "rule": "HMD005",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[a#^Tail]]",
+      "source": "index.hmd",
+      "target": "a.hmd"
+    },
+    {
+      "raw": "[[a#^tab]]",
+      "source": "index.hmd",
+      "target": "a.hmd"
+    },
+    {
+      "raw": "[[a#^tail]]",
+      "source": "index.hmd",
+      "target": "a.hmd"
+    }
+  ]
+}

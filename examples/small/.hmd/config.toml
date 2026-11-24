@@ -4,8 +4,6 @@
 # tree is self-contained: lint it with
 #   hmd lint --root examples/small
 
-wiki = "."
-
 [discovery]
 autodiscovery = true
 mode = "both"

@@ -1,0 +1,29 @@
+{
+  "diagnostics": [
+    {
+      "column": 5,
+      "line": 3,
+      "message": "expected '<name>' or '<name> as <alias>', got 'a AS x'",
+      "path": "upper-as.hmd",
+      "rule": "HMD014",
+      "severity": "error"
+    },
+    {
+      "column": 5,
+      "line": 3,
+      "message": "expected 'from <ref> import <names>', got 'From /shared import a'",
+      "path": "upper-from.hmd",
+      "rule": "HMD014",
+      "severity": "error"
+    },
+    {
+      "column": 5,
+      "line": 3,
+      "message": "expected 'from <ref> import <names>', got 'from /shared Import a'",
+      "path": "upper-import.hmd",
+      "rule": "HMD014",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from hypermarkdown.render import flat
+from hypermarkdown.render.ids import heading_ids
 
 
 def page(ws, rel):
@@ -77,3 +78,67 @@ def test_the_example_fixture_renders_without_diagnostics(example_workspace):
     # The block embed of the glossary definition is inlined, marker stripped.
     assert "A bearer credential presented on every request" in result.text
     assert "^definition" not in result.text
+
+
+# -- heading ids ---------------------------------------------------------
+
+
+def test_a_repeated_heading_links_to_the_id_toc_gives_it(build_workspace):
+    """The language reaches the first `Setup`; `toc` names it `setup`, and a
+    fragment written differently still lands there."""
+    ws = build_workspace(
+        {"a.hmd": "# A\n\n[[b#setup!]]\n", "b.hmd": "# B\n\n## Intro\n\n## Setup\n\n## Setup\n"}
+    )
+    assert "(b.md#setup)" in flat.render(ws, page(ws, "a.hmd")).text
+
+
+def test_an_embedded_heading_takes_its_id_first(build_workspace):
+    """`toc` numbers repeats across the page, embeds included, so a card's own
+    `Setup` after an embedded one is `setup_1` on its page."""
+    ws = build_workspace(
+        {
+            "a.hmd": "# A\n\n[[b#Setup]]\n",
+            "b.hmd": "# B\n\n![[c]]\n\n## Setup\n",
+            "c.hmd": "## Setup\n\nembedded\n",
+        }
+    )
+    assert heading_ids(ws, page(ws, "b.hmd")) == ["b", "setup_1"]
+    assert "(b.md#setup_1)" in flat.render(ws, page(ws, "a.hmd")).text
+
+
+def test_a_heading_toc_cannot_slug_still_gets_its_id(build_workspace):
+    ws = build_workspace({"a.hmd": "# A\n\n[[b#数据]]\n", "b.hmd": "# B\n\n## 数据\n"})
+    assert heading_ids(ws, page(ws, "b.hmd")) == ["b", "_1"]
+    assert "(b.md#_1)" in flat.render(ws, page(ws, "a.hmd")).text
+
+
+def test_ids_match_python_markdown_on_the_rendered_page(build_workspace):
+    import re
+
+    ws = build_workspace(
+        {
+            "b.hmd": (
+                "# B\n\n![[c]]\n\n## Ошибка 404!\n\nSetup\n-----\n\n## The *fast* path\n\n"
+                "## Setup\n\n## 数据\n"
+            ),
+            "c.hmd": "## Setup\n",
+        }
+    )
+    html = flat.to_html(ws, page(ws, "b.hmd")).text
+    rendered = re.findall(r'<h[1-6] id="([^"]*)"', html)
+    b = ws.documents[page(ws, "b.hmd")]
+    ids = heading_ids(ws, page(ws, "b.hmd"))
+    assert len(ids) == len(b.headings)
+    # The card's own headings are the rendered ones less the embedded `Setup`.
+    assert ids == [rendered[0], *rendered[2:]]
+
+
+def test_an_unmatched_fragment_links_to_the_page(build_workspace):
+    ws = build_workspace({"a.hmd": "# A\n\n[[b#Nope]]\n", "b.hmd": "# B\n"})
+    assert "(b.md)" in flat.render(ws, page(ws, "a.hmd")).text
+
+
+def test_attr_list_sets_an_id_outright(build_workspace):
+    ws = build_workspace({"b.hmd": "# B\n\n## Setup {#install .wide}\n\n## Setup\n"})
+    assert heading_ids(ws, page(ws, "b.hmd"), attr_list=True) == ["b", "install", "setup"]
+    assert heading_ids(ws, page(ws, "b.hmd")) == ["b", "setup-install-wide", "setup"]

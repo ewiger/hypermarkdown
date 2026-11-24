@@ -12,7 +12,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as vscode from "vscode";
 
@@ -46,7 +46,7 @@ beforeEach(async () => {
   await write("doc/wiki/topic.hmd", "# Topic\n");
 
   // ... and an example tree that is its own vault, rooted at itself.
-  await write("examples/sorting/.hmd/config.toml", 'wiki = "."\n');
+  await write("examples/sorting/.hmd/config.toml", 'location_path = "."\n');
   await write("examples/sorting/complexity.hmd", "# Complexity\n\nSee [[quicksort]].\n");
   await write("examples/sorting/quicksort.hmd", "# Quicksort\n");
 
@@ -69,11 +69,13 @@ describe("which vault claims a card", () => {
     const wikiCard = await catalog.openCard(uri("doc/wiki/topic.hmd"));
     const exampleCard = await catalog.openCard(uri("examples/sorting/complexity.hmd"));
 
-    expect(wikiCard?.rel).toBe("topic.hmd");
+    // With no `.hmd/` above it, a card belongs to the folder's own vault, whose
+    // namespace root is the folder itself: `location_path` defaults to `.`.
+    expect(wikiCard?.rel).toBe("doc/wiki/topic.hmd");
     expect(exampleCard?.rel).toBe("complexity.hmd");
 
     // The same path in two vaults is two cards, so the roots must differ.
-    expect(wikiCard?.vault.root.toString()).toBe(uri("doc/wiki").toString());
+    expect(wikiCard?.vault.root.toString()).toBe(vscode.Uri.file(folder).toString());
     expect(exampleCard?.vault.root.toString()).toBe(uri("examples/sorting").toString());
     expect(exampleCard?.vault).not.toBe(wikiCard?.vault);
   });
@@ -101,9 +103,10 @@ describe("which vault claims a card", () => {
 
   it("keeps the folder's own root for cards with no marker above them", async () => {
     // `doc/wiki` works with no `.hmd/` at the repository root, which is what
-    // the fallback exists for.
+    // the fallback exists for. The folder is the namespace root, since
+    // `location_path` defaults to `.`.
     const card = await catalog.openCard(uri("doc/wiki/index.hmd"));
-    expect(card?.rel).toBe("index.hmd");
+    expect(card?.rel).toBe("doc/wiki/index.hmd");
     expect(card?.vault.projectRoot.toString()).toBe(vscode.Uri.file(folder).toString());
   });
 
@@ -135,7 +138,7 @@ describe("a vault nested inside an indexed one (issue 0009)", () => {
   async function nest(): Promise<void> {
     // `doc/wiki/public` is its own vault, inside the folder's `doc/wiki`, and
     // holds a card named like one of the outer vault's.
-    await write("doc/wiki/public/.hmd/config.toml", 'wiki = "."\n');
+    await write("doc/wiki/public/.hmd/config.toml", 'location_path = "."\n');
     await write("doc/wiki/public/topic.hmd", "# Inner topic\n\nSee [[/topic]].\n");
     // `beforeEach` indexed the folder's vault before the nested one existed.
     catalog.dispose();
@@ -146,7 +149,9 @@ describe("a vault nested inside an indexed one (issue 0009)", () => {
   it("is not part of the outer vault", async () => {
     await nest();
     const outer = await catalog.openCard(uri("doc/wiki/index.hmd"));
-    expect(outer?.vault.pages()).toEqual(["index.hmd", "topic.hmd"]);
+    // The outer vault is the folder itself; the example vault and the nested
+    // one are other namespaces, so neither contributes a page.
+    expect(outer?.vault.pages()).toEqual(["doc/wiki/index.hmd", "doc/wiki/topic.hmd"]);
     // `[[topic]]` is unique in the outer vault, so nothing is ambiguous.
     expect(outer?.vault.diagnostics()).toEqual([]);
   });
@@ -160,5 +165,43 @@ describe("a vault nested inside an indexed one (issue 0009)", () => {
     expect(inner?.rel).toBe("topic.hmd");
     expect(inner?.vault.root.toString()).toBe(uri("doc/wiki/public").toString());
     expect(inner?.vault.diagnostics()).toEqual([]);
+  });
+});
+
+describe("a vault whose config sets `wiki`", () => {
+  async function reopen(): Promise<void> {
+    catalog.dispose();
+    catalog = new VaultCatalog(vscode.Uri.file("/ext"));
+    await catalog.initialize();
+  }
+
+  it("is refused: the error names both keys, and none of its cards opens", async () => {
+    const shown = vi.spyOn(vscode.window, "showErrorMessage");
+    await write("examples/legacy/.hmd/config.toml", 'wiki = "."\n');
+    await write("examples/legacy/old.hmd", "# Old\n");
+    await reopen();
+
+    expect(await catalog.openCard(uri("examples/legacy/old.hmd"))).toBeNull();
+    // Not claimed by the folder's vault either: that would show the card in a
+    // namespace it is not part of.
+    expect(catalog.cardFor(uri("examples/legacy/old.hmd"))).toBeNull();
+    expect(catalog.loaded().map((vault) => vault.root.toString())).not.toContain(
+      uri("examples/legacy").toString(),
+    );
+
+    const messages = shown.mock.calls.map((call) => String(call[0]));
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("`wiki`");
+    expect(messages[0]).toContain("`location_path`");
+    shown.mockRestore();
+  });
+
+  it("refuses the folder's own vault when the folder's config sets it", async () => {
+    await write(".hmd/config.toml", 'location_path = "doc/wiki"\nwiki = "doc/wiki"\n');
+    await reopen();
+
+    expect(await catalog.openCard(uri("doc/wiki/topic.hmd"))).toBeNull();
+    // A vault with a config of its own is unaffected.
+    expect(await catalog.openCard(uri("examples/sorting/complexity.hmd"))).not.toBeNull();
   });
 });

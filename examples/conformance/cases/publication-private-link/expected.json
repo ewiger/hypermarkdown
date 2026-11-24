@@ -1,0 +1,42 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 8,
+      "message": "[[secret]] links to secret.hmd, which is not published; it renders as a red link",
+      "path": "public.hmd",
+      "rule": "HMD017",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 10,
+      "message": "![[secret]] embeds secret.hmd, which is not published; it renders as a red link",
+      "path": "public.hmd",
+      "rule": "HMD017",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[secret]]",
+      "source": "draft.hmd",
+      "target": "secret.hmd"
+    },
+    {
+      "raw": "![[secret]]",
+      "source": "public.hmd",
+      "target": "secret.hmd"
+    },
+    {
+      "raw": "[[open]]",
+      "source": "public.hmd",
+      "target": "open.hmd"
+    },
+    {
+      "raw": "[[secret]]",
+      "source": "public.hmd",
+      "target": "secret.hmd"
+    }
+  ]
+}

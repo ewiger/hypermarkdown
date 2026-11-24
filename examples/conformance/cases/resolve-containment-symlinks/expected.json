@@ -1,0 +1,76 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 3,
+      "message": "[[esc]] resolves outside the namespace root",
+      "path": "src.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 4,
+      "message": "[[/out/leak]] resolves outside the namespace root",
+      "path": "src.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 5,
+      "message": "[[leak]] does not resolve to a page",
+      "path": "src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 6,
+      "message": "[[../outside/secret]] resolves outside the namespace root",
+      "path": "src.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 8,
+      "message": "[[./real/../../outside/secret]] resolves outside the namespace root",
+      "path": "src.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[../outside/secret]]",
+      "source": "src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[./real/../../outside/secret]]",
+      "source": "src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[./real/../real/inside]]",
+      "source": "src.hmd",
+      "target": "real/inside.hmd"
+    },
+    {
+      "raw": "[[/out/leak]]",
+      "source": "src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[esc]]",
+      "source": "src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[leak]]",
+      "source": "src.hmd",
+      "target": null
+    }
+  ]
+}

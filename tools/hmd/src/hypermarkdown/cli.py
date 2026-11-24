@@ -32,7 +32,9 @@ EXIT_OK = 0
 EXIT_DIAGNOSTICS = 1
 EXIT_USAGE = 2
 
-RootOption = typer.Option(None, "--root", help="Namespace root (default: the `wiki` setting, or doc/wiki).")
+RootOption = typer.Option(
+    None, "--root", help="Namespace root (default: the `location_path` setting, or the vault itself)."
+)
 FormatOption = typer.Option("text", "--format", help="Output format: text or json.")
 
 
@@ -75,15 +77,22 @@ def _selected(workspace: Workspace, paths: list[Path] | None) -> list[Path] | No
     if not paths:
         return None
     selected: list[Path] = []
+    # A file that is not UTF-8 is not a card, but naming it is how its HMD019
+    # is asked for.
+    files = [*workspace.pages(), *workspace.undecodable]
     for raw in paths:
         candidate = raw.resolve()
         if candidate.is_dir():
-            selected.extend(p for p in workspace.pages() if candidate in p.parents or candidate == p.parent)
+            selected.extend(p for p in files if candidate in p.parents or candidate == p.parent)
         elif card_suffix(candidate.name):
-            if candidate not in workspace.documents:
+            if candidate in workspace.undecodable:
+                selected.append(candidate)
+                continue
+            card = workspace.card(candidate)
+            if card is None:
                 typer.echo(f"hmd: not inside the namespace root: {raw}", err=True)
                 raise typer.Exit(EXIT_USAGE)
-            selected.append(candidate)
+            selected.append(card)
         else:
             typer.echo(f"hmd: not a card ({', '.join(CARD_SUFFIXES)}) or directory: {raw}", err=True)
             raise typer.Exit(EXIT_USAGE)
@@ -93,13 +102,17 @@ def _selected(workspace: Workspace, paths: list[Path] | None) -> list[Path] | No
 @app.command()
 def init(
     path: Optional[Path] = typer.Argument(None, help="Project root to initialise (default: the working directory)."),
-    wiki: str = typer.Option(config_mod.DEFAULT_WIKI, "--wiki", help="Namespace root, relative to the project root."),
+    location_path: str = typer.Option(
+        config_mod.DEFAULT_LOCATION_PATH,
+        "--location-path",
+        help="Namespace root, relative to the project root (default: the project root itself).",
+    ),
     name: Optional[str] = typer.Option(None, "--name", help="Namespace name (default: the project directory's name)."),
     force: bool = typer.Option(False, "--force", help="Replace an existing .hmd/config.toml."),
 ) -> None:
     """Create `.hmd/config.toml` and the namespace root it names."""
     try:
-        result = config_mod.init(path, wiki=wiki, name=name, force=force)
+        result = config_mod.init(path, location_path=location_path, name=name, force=force)
     except config_mod.ConfigError as exc:
         typer.echo(f"hmd: {exc}", err=True)
         raise typer.Exit(EXIT_USAGE)
@@ -113,7 +126,7 @@ def init(
 
     typer.echo(f"project:   {result.project}{note(result.project)}")
     typer.echo(f"config:    {result.config}{note(result.config)}")
-    typer.echo(f"wiki:      {result.wiki}{note(result.wiki)}")
+    typer.echo(f"location:  {result.location}{note(result.location)}")
     typer.echo(
         f"namespace: {result.name} ({result.provider})"
         f"{' — from the directory name' if result.derived_name else ''}"
@@ -178,8 +191,8 @@ def render(
         raise typer.Exit(EXIT_USAGE)
 
     workspace = _workspace(root)
-    target = path.resolve()
-    if target not in workspace.documents:
+    target = workspace.card(path.resolve())
+    if target is None:
         typer.echo(f"hmd: not a page inside the namespace root: {path}", err=True)
         raise typer.Exit(EXIT_USAGE)
 

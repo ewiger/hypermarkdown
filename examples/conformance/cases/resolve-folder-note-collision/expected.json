@@ -1,0 +1,77 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "foo.md and foo/index.hmd both claim the name 'foo'; the file wins",
+      "path": "foo.md",
+      "rule": "HMD012",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "x/bar.hmd and x/bar/index.hmd both claim the name 'x/bar'; the file wins",
+      "path": "x/bar.hmd",
+      "rule": "HMD012",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[../bar/.]]",
+      "source": "x/bar/inner.hmd",
+      "target": "x/bar/index.hmd"
+    },
+    {
+      "raw": "[[../bar]]",
+      "source": "x/bar/inner.hmd",
+      "target": "x/bar.hmd"
+    },
+    {
+      "raw": "[[./]]",
+      "source": "x/bar/inner.hmd",
+      "target": "x/bar/index.hmd"
+    },
+    {
+      "raw": "[[/x/bar/index]]",
+      "source": "y/src.hmd",
+      "target": "x/bar/index.hmd"
+    },
+    {
+      "raw": "[[/x/bar]]",
+      "source": "y/src.hmd",
+      "target": "x/bar.hmd"
+    },
+    {
+      "raw": "[[bar.hmd]]",
+      "source": "y/src.hmd",
+      "target": "x/bar.hmd"
+    },
+    {
+      "raw": "[[bar/index]]",
+      "source": "y/src.hmd",
+      "target": "x/bar/index.hmd"
+    },
+    {
+      "raw": "[[bar]]",
+      "source": "y/src.hmd",
+      "target": "x/bar.hmd"
+    },
+    {
+      "raw": "[[foo/index]]",
+      "source": "y/src.hmd",
+      "target": "foo/index.hmd"
+    },
+    {
+      "raw": "[[foo]]",
+      "source": "y/src.hmd",
+      "target": "foo.md"
+    },
+    {
+      "raw": "[[x/bar]]",
+      "source": "y/src.hmd",
+      "target": "x/bar.hmd"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+---
+use: [no_autodiscovery]
+import:
+  - from /lib import *
+---
+
+# Off
+
+[[target]]
+[[sib]]
+[[libcard]]
+[[far/target]]

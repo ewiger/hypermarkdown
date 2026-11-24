@@ -1,0 +1,44 @@
+{
+  "diagnostics": [
+    {
+      "column": 10,
+      "line": 6,
+      "message": "[[ nowhere ]] does not resolve to a page",
+      "path": "index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[\tsetup\t]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[ ./setup ]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[ nowhere ]]",
+      "source": "index.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[ setup #Linux]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[ setup ]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[ setup | the setup]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    }
+  ]
+}

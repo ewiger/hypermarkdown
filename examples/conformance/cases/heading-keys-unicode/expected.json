@@ -1,0 +1,39 @@
+{
+  "diagnostics": [
+    {
+      "column": 29,
+      "line": 6,
+      "message": "errors.hmd has no heading '#Cafe Menu'",
+      "path": "links.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[errors#CAFÉ, menu]]",
+      "source": "links.hmd",
+      "target": "errors.hmd"
+    },
+    {
+      "raw": "[[errors#Cafe Menu]]",
+      "source": "links.hmd",
+      "target": "errors.hmd"
+    },
+    {
+      "raw": "[[errors#STRASSE]]",
+      "source": "links.hmd",
+      "target": "errors.hmd"
+    },
+    {
+      "raw": "[[errors#ошибка 404]]",
+      "source": "links.hmd",
+      "target": "errors.hmd"
+    },
+    {
+      "raw": "[[errors#数据 (分析)]]",
+      "source": "links.hmd",
+      "target": "errors.hmd"
+    }
+  ]
+}

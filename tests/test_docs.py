@@ -33,6 +33,12 @@ ESCAPED_PIPE = re.compile(r"\\\|")
 FENCE = re.compile(r"^\s*(```|~~~)")
 
 
+#: Files that are deliberately not UTF-8, so no guard that reads text can read
+#: them. The corpus case is the language's encoding rule under test: a file with
+#: a card extension that does not decode is HMD019 and is then not a card.
+NOT_UTF8 = frozenset({"examples/conformance/cases/invalid-utf8/tree/bad.hmd"})
+
+
 def _prose_sources() -> list[Path]:
     """Tracked *and* new-but-not-ignored files.
 
@@ -54,7 +60,7 @@ def _prose_sources() -> list[Path]:
         check=True,
     ).stdout.split()
     # .grem/ is dormant control data the project does not maintain.
-    paths = {ROOT / p for p in out if not p.startswith(".grem/")}
+    paths = {ROOT / p for p in out if not p.startswith(".grem/") and p not in NOT_UTF8}
     return sorted(p for p in paths if p.is_file())
 
 
@@ -111,7 +117,7 @@ def test_the_guard_catches_the_original_defect_and_nothing_else():
 #: The sentence the language specification opens with, which is the only place the
 #: language's version is declared. A second literal in a config file or a `VERSION`
 #: would be a number free to disagree with the document that defines the format.
-SPEC_VERSION = re.compile(r"specifies HyperMarkDown (\d+(?:\.\d+)*)")
+SPEC_VERSION = re.compile(r"This document specifies HyperMarkDown \*\*(\d+\.\d+\.\d+)\*\*")
 
 
 def test_the_language_version_has_a_changelog_section():
@@ -128,7 +134,8 @@ def test_the_language_version_has_a_changelog_section():
     match = SPEC_VERSION.search(card)
     assert match is not None, (
         "hmd-lang-spec.hmd no longer says which version of the language it"
-        " specifies; that sentence is the version's only declaration"
+        " specifies; the Version callout is the version's only declaration, and"
+        " it must give all three SemVer parts"
     )
     version = match.group(1)
 
@@ -145,7 +152,7 @@ def test_the_language_version_has_a_changelog_section():
     assert f"/badge/spec-{version}-" in readme, (
         f"the spec card specifies HyperMarkDown {version}, and README.md's `spec`"
         " badge says something else. Either bump the badge or drop it — the card's"
-        " opening sentence is the declaration, the badge only repeats it."
+        " Version callout is the declaration, the badge only repeats it."
     )
 
 
@@ -735,6 +742,7 @@ def _named_sources() -> list[Path]:
         # .grem/ is dormant control data the project does not maintain, and the
         # npm lockfile is generated.
         if not p.startswith(".grem/") and p != "package-lock.json"
+        and p not in NOT_UTF8
         and Path(p).suffix in NAMED_SUFFIXES
     }
     return sorted(p for p in paths if p.is_file())
@@ -781,3 +789,31 @@ def test_the_top_bar_reaches_the_sibling_project(built_home):
     tab = re.search(r'<a href="https://hql-lang\.org/"[^>]*>', _tabs(built_home))
     assert tab is not None, "the top bar no longer reaches hql-lang.org"
     assert 'src="wiki/assets/hql.js"' in built_home, "the HQL tab's script is not on the page"
+
+
+SPEC = ROOT / "doc" / "wiki" / "hmd-lang-spec.hmd"
+HANDBOOK = ROOT / "examples" / "handbook"
+
+
+def test_the_specification_quotes_its_example_vault():
+    """The specification walks one vault through its sections. The card it
+    prints is that vault's card, word for word, so the resolutions it explains
+    are the ones the card really has."""
+    spec = SPEC.read_text(encoding="utf-8")
+    card = (HANDBOOK / "wiki" / "guides" / "install.hmd").read_text(encoding="utf-8")
+    assert card.strip() in spec, "the specification's install.hmd is not the vault's"
+
+
+def test_the_specification_shows_what_the_linter_prints():
+    """The lint output in the specification is what `hmd lint` prints for the
+    example vault today, line for line."""
+    if shutil.which("hmd") is None:
+        pytest.skip("hmd is not installed")
+    result = subprocess.run(
+        ["hmd", "lint", "--root", str(HANDBOOK / "wiki")], capture_output=True, text=True
+    )
+    spec = SPEC.read_text(encoding="utf-8")
+    printed = [line for line in result.stdout.splitlines() if line.strip()]
+    assert printed, "hmd lint printed nothing"
+    for line in printed:
+        assert line in spec, f"the specification does not show this line of output: {line}"

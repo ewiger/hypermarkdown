@@ -99,6 +99,26 @@ describe("data-line", () => {
     expect(lines).toContain(5);
   });
 
+  it("never renders a block anchor, and leaves one in code alone", async () => {
+    const ir = await render(
+      { "a.hmd": "# A ^top\n\nprose ^p\n\n```markdown\ncode ^kept\n```\n" },
+      "a.hmd",
+    );
+    expect(html(ir)).not.toContain("^top");
+    expect(html(ir)).not.toContain("^p<");
+    expect(html(ir)).toContain("prose");
+    expect(html(ir)).toContain("code ^kept");
+  });
+
+  it("places a link after an astral character on its own line", async () => {
+    const ir = await render(
+      { "tokens.hmd": "# Tokens\n", "a.hmd": "\u{1F600} see [[tokens]] now\n" },
+      "a.hmd",
+    );
+    expect(html(ir)).toContain("\u{1F600} see <a");
+    expect(html(ir)).toContain("</a> now");
+  });
+
   it("keeps line numbers correct below frontmatter", async () => {
     const ir = await render({ "a.hmd": "---\ntags: [x]\n---\n\n# Heading\n" }, "a.hmd");
     expect(html(ir)).toContain('data-line="5"');
@@ -146,6 +166,28 @@ describe("embeds", () => {
     expect(text).not.toContain("^definition");
   });
 
+  it("embeds a heading's whole section through an anchor on its line", async () => {
+    const files = {
+      "a.hmd": "# A\n\n![[b#^linux]]\n\n![[b#Linux]]\n",
+      "b.hmd": "# B\n\n## Linux ^linux\n\nkeep\n\n### Deeper\n\nalso keep\n\n## macOS\n\ndrop\n",
+    };
+    const [byAnchor, byHeading] = embeds(await render(files, "a.hmd")).map((e) => html(e.document!));
+    expect(byAnchor).toBe(byHeading);
+    expect(byAnchor).toContain("also keep");
+    expect(byAnchor).not.toContain("drop");
+    expect(byAnchor).not.toContain("^linux");
+  });
+
+  it("ends a section at a setext heading of the same level", async () => {
+    const files = {
+      "a.hmd": "![[b#Install]]\n",
+      "b.hmd": "Guide\n=====\n\nInstall\n-------\n\nRun it.\n\nUse\n---\n\nLater.\n",
+    };
+    const child = html(embeds(await render(files, "a.hmd"))[0]!.document!);
+    expect(child).toContain("Run it.");
+    expect(child).not.toContain("Later.");
+  });
+
   it("renders an unresolved embed as a failure card, never as nothing", async () => {
     const ir = await render({ "a.hmd": "![[nope]]\n" }, "a.hmd");
     const [embed] = embeds(ir);
@@ -176,9 +218,11 @@ describe("embeds", () => {
       if (embed === undefined) break;
       failure = embed.failure;
       node = embed.document;
-      depth += 1;
+      if (embed.document !== null) depth += 1;
     }
-    expect(depth).toBeLessThanOrEqual(16);
+    // The entry card is depth zero: sixteen nested embeds expand, and the
+    // seventeenth, which would exceed the limit, fails in place.
+    expect(depth).toBe(16);
     expect(failure).toMatch(/depth/);
   });
 

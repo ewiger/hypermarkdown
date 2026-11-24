@@ -70,7 +70,8 @@ fn open(card: &Path) -> Option<Vault> {
 | | |
 | --- | --- |
 | Absolute references | `[[/shared/tokens]]`, from the namespace root |
-| Relative references | `[[./tokens]]`, `[[../shared/tokens]]`, from the card's directory; one that climbs above the root is `Resolution::Escapes` |
+| Relative references | `[[./tokens]]`, `[[../shared/tokens]]`, from the card's directory |
+| Leaving the namespace | any reference that leaves the namespace root, by `..`, through a symbolic link out of the root, or into a nested vault, is `Resolution::Escapes`, in every phase |
 | Named imports | `import: from ../shared import tokens`, and `tokens as shared-tokens` for an alias |
 | Wildcard imports | `import: from /shared import *`, searched after the spine, in the order written |
 | The spine | the card's own directory, then each directory above it; the nearest wins |
@@ -82,6 +83,7 @@ fn open(card: &Path) -> Option<Vault> {
 | Nested vaults | a directory below the root that holds its own `.hmd/` is another vault, and none of its cards load |
 | Fragments | a heading (`#Heading`), a block (`#^block`) and the display text after a bar are split off a reference and reported with it |
 | Configuration | `wiki`, `[discovery] autodiscovery` and `[discovery] mode` of `.hmd/config.toml` |
+| Encoding | a card is UTF-8, and a file with a card extension that is not is no card (`Vault::undecodable`); one leading byte-order mark is ignored; a line ends at `\n`, `\r\n` or a lone `\r`; names compare in NFC |
 
 A fragment is parsed and not checked: the crate does not read headings or block
 anchors, so it cannot say whether `[[tokens#Rotation]]` names a heading that

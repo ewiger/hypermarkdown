@@ -1,0 +1,13 @@
+---
+import:
+  - from /reference import api
+---
+
+# Install
+
+Follow [[setup#linux]], or embed it:
+
+![[setup#^setup-linux]]
+
+Every request carries one of the [[tokens]]; the endpoints are in [[api]].
+Deploying is described in [[deploy]].

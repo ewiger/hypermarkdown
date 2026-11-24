@@ -38,9 +38,15 @@ pub enum ReferenceError {
     InvalidBlockId(String),
     /// Nothing names a page, as in `[[#heading]]`.
     NoPage,
-    /// The page reference holds `^`, `[`, `]` or a newline, which are
+    /// The page reference holds `^`, `[`, `]`, `:` or a newline, which are
     /// reserved.
     ReservedCharacter,
+    /// An absolute or unqualified page reference has a `.` or `..` segment,
+    /// which only a relative reference, opening with `./` or `../`, may hold.
+    DotSegment,
+    /// A `\` stands somewhere in the reference: in the page, the fragment, or
+    /// the display. A backslash is never a path separator and escapes nothing.
+    Backslash,
 }
 
 impl fmt::Display for ReferenceError {
@@ -52,6 +58,10 @@ impl fmt::Display for ReferenceError {
             ReferenceError::InvalidBlockId(id) => write!(f, "invalid block id '{id}'"),
             ReferenceError::NoPage => f.write_str("link target has no page reference"),
             ReferenceError::ReservedCharacter => f.write_str("reserved character in target"),
+            ReferenceError::DotSegment => {
+                f.write_str("'.' or '..' outside an explicit relative reference")
+            }
+            ReferenceError::Backslash => f.write_str("backslash in wikilink"),
         }
     }
 }
@@ -74,6 +84,9 @@ impl Reference {
     /// Splits the text between `[[` and `]]` into page reference, fragment
     /// and display text.
     pub fn parse(inner: &str) -> Result<Reference, ReferenceError> {
+        if inner.contains('\\') {
+            return Err(ReferenceError::Backslash);
+        }
         if text::strip(inner).is_empty() {
             return Err(ReferenceError::Empty);
         }
@@ -104,8 +117,11 @@ impl Reference {
         if page.is_empty() {
             return Err(ReferenceError::NoPage);
         }
-        if page.contains(['^', '[', ']', '\n']) {
+        if page.contains(['^', '[', ']', ':', '\n']) {
             return Err(ReferenceError::ReservedCharacter);
+        }
+        if dot_segment_outside_relative(page) {
+            return Err(ReferenceError::DotSegment);
         }
 
         Ok(Reference {
@@ -141,7 +157,9 @@ pub struct Link {
     pub embed: bool,
     /// The line the reference starts on, counted from 1.
     pub line: usize,
-    /// The column the reference starts at, counted from 1 in characters.
+    /// The column the reference starts at, counted from 1 in Unicode code
+    /// points, so it is the same number in every implementation whatever its
+    /// string type.
     pub column: usize,
 }
 
@@ -178,8 +196,10 @@ pub struct Page {
 impl Page {
     /// Parses the text of the card at `path`.
     ///
-    /// `\r\n` and a lone `\r` are read as `\n` first, so lines and columns
-    /// count in text whose only line terminator is `\n`. A path ending in `.md`
+    /// One leading byte-order mark is dropped first, so frontmatter after it
+    /// is frontmatter and line 1, column 1 is the character after it. A line
+    /// ends at `\n`, `\r\n` or a lone `\r`, and at nothing else. A path
+    /// ending in `.md`
     /// or `.markdown` is a Markdown card: it has no links, no imports and no
     /// `use` key, whatever its text holds.
     pub fn parse(path: impl Into<String>, text: &str) -> Page {
@@ -193,7 +213,7 @@ impl Page {
                 imports: Vec::new(),
             };
         }
-        let text = text::universal_newlines(text);
+        let text = text::universal_newlines(text::strip_bom(text));
         let (raw_yaml, body_start) = frontmatter::split(&text);
         let card = raw_yaml.map(frontmatter::card).unwrap_or_default();
 
@@ -258,6 +278,13 @@ impl Positions {
     }
 }
 
+/// Whether an absolute or unqualified page reference has a `.` or `..`
+/// segment. Only an explicit relative reference may hold them.
+pub(crate) fn dot_segment_outside_relative(page: &str) -> bool {
+    !(page.starts_with("./") || page.starts_with("../"))
+        && page.split('/').any(|part| part == "." || part == "..")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -315,6 +342,10 @@ mod tests {
             ("#tag", ReferenceError::NoPage),
             ("|x", ReferenceError::NoPage),
             ("a^b", ReferenceError::ReservedCharacter),
+            ("/a/../b", ReferenceError::DotSegment),
+            ("/./a", ReferenceError::DotSegment),
+            ("a/../b", ReferenceError::DotSegment),
+            ("..", ReferenceError::DotSegment),
         ] {
             assert_eq!(Reference::parse(inner), Err(why), "{inner:?}");
         }
@@ -386,6 +417,26 @@ mod tests {
     fn carriage_returns_end_lines() {
         let page = Page::parse("a.hmd", "one\r\ntwo\r[[b]]\r\n");
         assert_eq!((page.links[0].line, page.links[0].column), (3, 1));
+    }
+
+    #[test]
+    fn no_other_boundary_ends_a_line() {
+        let page = Page::parse("a.hmd", "a\u{0c}b\u{2028}c\u{85} [[d]]\n");
+        assert_eq!((page.links[0].line, page.links[0].column), (1, 8));
+    }
+
+    #[test]
+    fn a_leading_byte_order_mark_is_not_part_of_the_card() {
+        let page = Page::parse("a.hmd", "\u{feff}---\nuse: no_autodiscovery\n---\n[[b]]\n");
+        assert_eq!(page.autodiscovery, Some(false));
+        assert_eq!((page.links[0].line, page.links[0].column), (4, 1));
+
+        let page = Page::parse("a.hmd", "\u{feff}[[b]]");
+        assert_eq!((page.links[0].line, page.links[0].column), (1, 1));
+
+        // Only one: a second mark is text, so the fence is not the first line.
+        let page = Page::parse("a.hmd", "\u{feff}\u{feff}---\nuse: no_autodiscovery\n---\n");
+        assert_eq!(page.autodiscovery, None);
     }
 
     #[test]

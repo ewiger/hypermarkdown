@@ -1,12 +1,19 @@
 {
-  "$comment": "Known divergences from the canonical implementation (HMD-0020 \u00a710). Each entry names something this implementation is expected to get wrong, and why: `cases` are conformance cases, `rules` are lint rules it does not emit at all, `rendering` is HTML that differs. An entry that stops diverging fails the build \u2014 a ledgered case that PASSES, or a ledgered rule this implementation actually emits \u2014 because an expected failure that starts succeeding and is not removed is how a ledger rots into a lie.",
-  "cases": [],
+  "$comment": "Known divergences from the reference implementation (HMD-0020, Conformance, canonicity, and the drift ledger). Each entry names something this implementation is expected to get wrong, and why: `cases` are conformance cases, `rules` are lint rules it does not emit at all, `rendering` is HTML that differs. An entry that stops diverging fails the build \u2014 a ledgered case that PASSES, or a ledgered rule this implementation actually emits \u2014 because an expected failure that starts succeeding and is not removed is how a ledger rots into a lie.",
+  "cases": [
+    {
+      "id": "publication-private-link",
+      "reason": "The publication model is unported, so a published card linking to or embedding an unpublished one raises no HMD017; see HMD017 under `rules`. The case's resolutions agree.",
+      "deliberate": false,
+      "spec": "hmd-lang-spec, nav: placement and publication"
+    }
+  ],
   "rules": [
     {
       "id": "HMD017",
-      "reason": "The publication model behind it is unported. `nav` is a mapping of `order` and `visibility` in the canonical implementation, visibility inherits from the nearest ancestor folder note and defaults to private, and HMD017 warns when a published card links to a card that is not. This implementation still reads the HMD-0001 closed key set of `tags`, `use`, `import`, ignores `nav` entirely, and has no notion of a card being published \u2014 so it emits no HMD017 anywhere. Parity therefore drops HMD017 from the canonical side before comparing; every other rule is still compared byte for byte.",
+      "reason": "The publication model behind it is unported. This implementation validates `nav` (a malformed one is HMD013), but does not act on `visibility`: it does not inherit it from folder notes, has no notion of a card being published, and so emits no HMD017 anywhere. Parity therefore drops HMD017 from the canonical side before comparing; every other rule is still compared.",
       "deliberate": false,
-      "spec": "HMD-0002 \u00a72"
+      "spec": "HMD-0002, Nav"
     }
   ],
   "rendering": [
@@ -14,31 +21,19 @@
       "id": "raw-html-escaped",
       "reason": "Raw HTML in a card is escaped rather than passed through. Deliberate: a webview rendering workspace HTML is a script-injection surface reachable from any cloned repository.",
       "deliberate": true,
-      "spec": "HMD-0020 \u00a73"
+      "spec": "HMD-0020, Parser front end"
     },
     {
       "id": "pymdownx-tilde-subscript",
       "reason": "`~x~` subscript is unsupported; markdown-it's builtin only covers `~~strikethrough~~`.",
       "deliberate": false,
-      "spec": "HMD-0020 \u00a73.3"
-    },
-    {
-      "id": "setext-headings",
-      "reason": "markdown-it recognises setext headings (`Title` over `=====`); the canonical scanner finds ATX headings only, so a setext heading has no slug on the Python side and is not addressable by `[[Page#Section]]`.",
-      "deliberate": false,
-      "spec": "HMD-0001 \u00a71"
-    },
-    {
-      "id": "astral-plane-columns",
-      "reason": "Column numbers count UTF-16 code units here and code points in Python, so a diagnostic after an emoji on the same line can differ by one per astral character.",
-      "deliberate": false,
-      "spec": "HMD-0020 \u00a77"
+      "spec": "HMD-0020, Free syntax"
     },
     {
       "id": "katex-vs-mathjax",
       "reason": "Math is typeset by KaTeX here and by whatever MathJax the MkDocs site loads there. Both render the same LaTeX; the HTML around it differs.",
       "deliberate": true,
-      "spec": "HMD-0020 \u00a73.3"
+      "spec": "HMD-0020, Free syntax"
     }
   ]
 }

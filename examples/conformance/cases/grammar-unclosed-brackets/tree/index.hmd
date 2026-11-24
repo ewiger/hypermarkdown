@@ -1,0 +1,10 @@
+Unclosed: [[unclosed and on.
+Alone: [[
+Maths: $[[1,2],[3,4]]$
+Three brackets: [[[target]]]
+One bracket too many: [[target]]] here.
+A bracket inside: [[a [b] c]]
+Across lines: [[across
+lines]] and after.
+An unclosed embed: ![[x
+Scanning goes on: [[missing]]

@@ -1,4 +1,4 @@
-"""The rule set (HMD-0001 §8).
+"""The rule set: the specification's Diagnostics table.
 
 Rule IDs are stable and are never renumbered once released; CI configuration and
 suppression will reference them.
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..embed import MAX_EMBED_DEPTH
+from ..embed import MAX_EMBED_DEPTH, target_region
 from ..model import ERROR, WARNING, Diagnostic, Document, Link
 from ..resolve import CARD_SUFFIXES, INDEX_STEM, Outcome, Workspace
 
@@ -24,20 +24,21 @@ SEVERITY = {
     "HMD009": ERROR,
     "HMD010": ERROR,
     "HMD011": WARNING,
-    "HMD012": ERROR,
+    "HMD012": WARNING,
     "HMD013": ERROR,
     "HMD014": ERROR,
     "HMD015": ERROR,
     "HMD016": WARNING,
     "HMD017": WARNING,
     "HMD018": WARNING,
+    "HMD019": ERROR,
 }
 
 
 def check(workspace: Workspace, paths: list[Path] | None = None) -> list[Diagnostic]:
     """Lint `paths`, or the whole namespace tree."""
     targets = paths if paths is not None else workspace.pages()
-    diagnostics: list[Diagnostic] = []
+    diagnostics: list[Diagnostic] = list(_undecodable(workspace, paths))
 
     for path in targets:
         document = workspace.documents.get(path)
@@ -49,7 +50,7 @@ def check(workspace: Workspace, paths: list[Path] | None = None) -> list[Diagnos
             continue
         diagnostics.extend(document.diagnostics)  # HMD009, HMD010, HMD013, HMD014
         diagnostics.extend(_duplicate_anchors(workspace, document))
-        diagnostics.extend(_duplicate_slugs(workspace, document))
+        diagnostics.extend(_duplicate_headings(workspace, document))
         diagnostics.extend(_import_problems(workspace, document))
         diagnostics.extend(_links(workspace, document))
 
@@ -66,6 +67,16 @@ def _at(document: Document, rel: str, rule: str, line: int, column: int, message
 
 
 # -- per-document rules --------------------------------------------------
+
+
+def _undecodable(workspace: Workspace, paths: list[Path] | None):
+    """HMD019 — a file with a card extension that is not UTF-8 is not a card."""
+    selected = workspace.undecodable if paths is None else set(paths)
+    for path in sorted(workspace.undecodable):
+        if path in selected:
+            yield Diagnostic(
+                "HMD019", SEVERITY["HMD019"], workspace.rel(path), 1, 1, workspace.undecodable[path]
+            )
 
 
 def _duplicate_anchors(workspace: Workspace, document: Document):
@@ -86,27 +97,43 @@ def _duplicate_anchors(workspace: Workspace, document: Document):
             seen[anchor.block_id] = anchor.span.line
 
 
-def _duplicate_slugs(workspace: Workspace, document: Document):
-    """HMD011 — two headings sharing a base slug are addressed by `_1` suffixes."""
+def _duplicate_headings(workspace: Workspace, document: Document):
+    """HMD011 — a heading has the same key as an earlier one in the card.
+
+    A fragment reaches the first of them, so every later one is unreachable by
+    its text. A later heading that carries a block anchor is reachable by it:
+    the author has applied the remedy, and nothing is reported. A heading whose
+    key is empty is unreachable by text anyway, and two of them collide over
+    nothing.
+    """
     rel = workspace.rel(document.path)
+    anchored = {anchor.span.line for anchor in document.anchors}
+    first: dict[str, int] = {}
     for heading in document.headings:
-        base, _, suffix = heading.slug.rpartition("_")
-        if base and suffix.isdigit():
-            yield _at(
-                document,
-                rel,
-                "HMD011",
-                heading.span.line,
-                heading.span.column,
-                f"heading slug collides with an earlier heading; addressable as '#{heading.slug}'",
-            )
+        if not heading.key:
+            continue
+        if heading.key not in first:
+            first[heading.key] = heading.span.line
+            continue
+        if heading.span.line in anchored:
+            continue
+        yield _at(
+            document,
+            rel,
+            "HMD011",
+            heading.span.line,
+            heading.span.column,
+            f"heading '{heading.text}' has the same key as the heading on line "
+            f"{first[heading.key]}, which a fragment reaches instead; anchor this "
+            f"one with a block id to link to it",
+        )
 
 
 def _import_problems(workspace: Workspace, document: Document):
     """HMD003 and HMD015 raised while building the import table."""
     rel = workspace.rel(document.path)
-    for rule, message in workspace.import_table(document.path).problems:
-        yield _at(document, rel, rule, 1, 1, message)
+    for rule, message, stmt in workspace.import_table(document.path).problems:
+        yield _at(document, rel, rule, stmt.line, stmt.column, message)
 
 
 def _links(workspace: Workspace, document: Document):
@@ -154,6 +181,13 @@ def _links(workspace: Workspace, document: Document):
                 f"published; it renders as a red link",
             )
 
+        for directory in result.escaped:
+            yield _at(
+                document, rel, "HMD003", span.line, span.column,
+                f"{link.raw} through the imported path '/{workspace.rel(directory)}' "
+                f"resolves outside the namespace root",
+            )
+
         if result.shadowed:
             shadowed = tuple(workspace.rel(p) for p in result.shadowed if p)
             yield _at(
@@ -180,13 +214,10 @@ def _fragment(workspace: Workspace, document: Document, link: Link, target: Path
             )
         return
 
-    from ..parse import slug_for  # local import: parse imports the model, not lint
-
-    wanted = slug_for(link.fragment, set())
-    if wanted not in resolved.heading_slugs():
+    if resolved.find_heading(link.fragment) is None:
         yield _at(
             document, rel, "HMD004", span.line, span.column,
-            f"{workspace.rel(target)} has no heading '#{wanted}'",
+            f"{workspace.rel(target)} has no heading '#{link.fragment}'",
         )
 
 
@@ -194,17 +225,22 @@ def _fragment(workspace: Workspace, document: Document, link: Link, target: Path
 
 
 def _folder_note_collisions(workspace: Workspace, targets: list[Path]):
-    """HMD012 — `foo.hmd` beside `foo/index.hmd`, of any card extensions."""
+    """HMD012 — `foo.hmd` beside `foo/index.hmd`, of any card extensions.
+
+    A warning, not an error: the card shadows the module's folder note, which
+    stays reachable by its `index` path, as HMD018 does for extensions.
+    """
     wanted = set(targets)
     for page in workspace.pages():
         if page in workspace.shadowed:
             continue
         directory = page.parent / workspace.parts(page)[-1]
+        # Looked up the way binding looks, so names compare in NFC.
         note = next(
             (
-                directory / f"{INDEX_STEM}{suffix}"
+                found
                 for suffix in CARD_SUFFIXES
-                if directory / f"{INDEX_STEM}{suffix}" in workspace.documents
+                if (found := workspace.card(directory / f"{INDEX_STEM}{suffix}")) is not None
             ),
             None,
         )
@@ -248,7 +284,7 @@ def _shadowed(workspace: Workspace, targets: list[Path]):
 def _embed_cycles(workspace: Workspace, targets: list[Path]):
     """HMD007 and HMD008 — cycle detection and the depth bound."""
     wanted = set(targets)
-    reported: set[tuple[Path, str | None]] = set()
+    reported: set[tuple[Path, int | None]] = set()
 
     for start in targets:
         if start not in workspace.documents:
@@ -256,8 +292,35 @@ def _embed_cycles(workspace: Workspace, targets: list[Path]):
         yield from _walk(workspace, start, None, [], reported, wanted)
 
 
-def _walk(workspace: Workspace, path: Path, fragment: str | None, stack, reported, wanted):
-    key = (path, fragment)
+def _walk(workspace: Workspace, path: Path, via: Link | None, stack, reported, wanted):
+    """Follow the embeds inside what `via` embeds of `path`.
+
+    `via` is the embed that reached this card, or None for a card linted on its
+    own, which is walked whole. An embed of a section or a block expands to that
+    region only, so only the embeds inside it can continue the chain; one
+    section embedding another section of its own card is not a cycle.
+    """
+    document = workspace.documents.get(path)
+    if document is None:
+        return
+
+    # What is being expanded, identified by what it resolved to rather than
+    # by how the embed was spelled: the whole card, or the section or block,
+    # named by where its region starts. `#Linux`, `#linux`, and an anchor on
+    # the `## Linux` line all name one section, so they are one stack entry.
+    if via is None or via.fragment is None:
+        region = (0, len(document.text))
+        identity = None
+    else:
+        region = target_region(document, via)
+        if region is None:
+            # The fragment matches nothing, so nothing expands; HMD004 or
+            # HMD005 reports the fragment itself.
+            return
+        identity = region[0]
+    start, end = region
+    key = (path, identity)
+
     if key in stack:
         if key not in reported:
             reported.add(key)
@@ -269,26 +332,28 @@ def _walk(workspace: Workspace, path: Path, fragment: str | None, stack, reporte
             )
         return
 
-    if len(stack) >= MAX_EMBED_DEPTH:
-        rel = workspace.rel(path)
-        if key not in reported:
-            reported.add(key)
+    # The starting card has depth zero and each nested embed adds one, so this
+    # card's depth is the number of cards above it. An embed that would exceed
+    # the limit is reported where it is written, in the card that embeds this
+    # one, once however many chains reach it.
+    if len(stack) > MAX_EMBED_DEPTH:
+        parent = stack[-1][0]
+        where = ("HMD008", parent, via.span.line, via.span.column)
+        if where not in reported:
+            reported.add(where)
             yield Diagnostic(
-                "HMD008", SEVERITY["HMD008"], rel, 1, 1,
+                "HMD008", SEVERITY["HMD008"], workspace.rel(parent),
+                via.span.line, via.span.column,
                 f"embed depth exceeds the limit of {MAX_EMBED_DEPTH}",
             )
         return
 
-    document = workspace.documents.get(path)
-    if document is None:
-        return
-
     stack.append(key)
     for link in document.links:
-        if not link.is_embed:
+        if not link.is_embed or not start <= link.span.index < end:
             continue
         result = workspace.resolve(path, link.page_ref)
         if result.outcome is not Outcome.RESOLVED or result.path is None:
             continue
-        yield from _walk(workspace, result.path, link.fragment, stack, reported, wanted)
+        yield from _walk(workspace, result.path, link, stack, reported, wanted)
     stack.pop()

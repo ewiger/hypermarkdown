@@ -8,13 +8,35 @@
 
 import { load as yamlLoad, JSON_SCHEMA, YAMLException } from "js-yaml";
 
+import {
+  Locator,
+  entry,
+  key,
+  nested,
+  type Position,
+  type Where,
+} from "./frontmatterPosition.js";
 import { ImportSyntaxError, parseStatement } from "./imports.js";
-import type { CardConfig, ImportStmt } from "./model.js";
+import { pyRepr } from "./pyrepr.js";
+import {
+  VISIBILITIES,
+  type CardConfig,
+  type ImportStmt,
+  type NavConfig,
+} from "./model.js";
+import { splitLines, stripEol } from "./scan.js";
 
-export const RESERVED_KEYS: ReadonlySet<string> = new Set(["tags", "use", "import"]);
+export const RESERVED_KEYS: ReadonlySet<string> = new Set([
+  "tags",
+  "use",
+  "import",
+]);
 
 /** Features nameable in `use`. Prefixing `no_` disables, as in vim's `set no…`. */
 export const KNOWN_FEATURES: ReadonlySet<string> = new Set(["autodiscovery"]);
+
+/** Keys recognised inside the `nav` mapping. */
+const NAV_KEYS: ReadonlySet<string> = new Set(["order", "visibility"]);
 
 const FENCE = "---";
 
@@ -34,25 +56,16 @@ export interface FrontmatterSplit {
 export function splitFrontmatter(text: string): FrontmatterSplit {
   if (!text.startsWith(FENCE)) return { raw: null, body: text, bodyOffset: 0 };
 
-  const lines: string[] = [];
-  let start = 0;
-  for (let i = 0; i < text.length; i += 1) {
-    if (text[i] === "\n") {
-      lines.push(text.slice(start, i + 1));
-      start = i + 1;
-    }
-  }
-  if (start < text.length) lines.push(text.slice(start));
-
+  const lines = splitLines(text);
   const first = lines[0];
-  if (first === undefined || first.replace(/\r?\n$/, "") !== FENCE) {
+  if (first === undefined || stripEol(first) !== FENCE) {
     return { raw: null, body: text, bodyOffset: 0 };
   }
 
   let offset = first.length;
   for (let i = 1; i < lines.length; i += 1) {
     const line = lines[i]!;
-    if (line.replace(/\r?\n$/, "") === FENCE) {
+    if (stripEol(line) === FENCE) {
       const raw = text.slice(first.length, offset);
       const end = offset + line.length;
       return { raw, body: text.slice(end), bodyOffset: end };
@@ -76,42 +89,161 @@ export function parseYaml(raw: string): Record<string, unknown> {
   }
   if (data === null || data === undefined) return {};
   if (typeof data !== "object" || Array.isArray(data)) {
-    throw new Error(`frontmatter must be a mapping, got ${Array.isArray(data) ? "list" : typeof data}`);
+    throw new Error(`frontmatter must be a mapping, got ${typeName(data)}`);
   }
   return data as Record<string, unknown>;
 }
 
-export type Problem = readonly [rule: string, message: string];
+export type Problem = readonly [
+  rule: string,
+  message: string,
+  position: Position,
+];
+
+type Found = [rule: string, message: string, where: Where];
 
 /**
- * Read the reserved keys out of `data`, returning the config plus problems the
- * caller attaches to a span.
+ * Read the reserved keys out of `data`, parsed from the block `raw`, returning
+ * the config plus problems, each placed by the frontmatter position rules
+ * (`frontmatterPosition.ts`).
  *
  * Unrecognised input is reported rather than ignored: silently dropping a
  * misspelled `no_autodiscovry` hands the author the default while they believe
  * they configured something else.
  */
-export function parseCardConfig(data: Record<string, unknown>): {
+export function parseCardConfig(
+  data: Record<string, unknown>,
+  raw = "",
+): {
   card: CardConfig;
   problems: Problem[];
 } {
-  const problems: Problem[] = [];
-  const tags = parseTags(data["tags"], problems);
-  const use = parseUse(data["use"], problems);
-  const imports = parseImports(data["import"], problems);
-  return { card: { tags, use, imports }, problems };
+  const found: Found[] = [];
+  const locator = new Locator(raw);
+  const tags = parseTags(data["tags"], found);
+  const use = parseUse(data["use"], found);
+  const nav = parseNav(data["nav"], found, locator);
+  const imports = parseImports(data["import"], found).map(([stmt, where]) => {
+    const [line, column] = locator.locate(where);
+    return { ...stmt, line, column };
+  });
+  const problems: Problem[] = found.map(([rule, message, where]) => [
+    rule,
+    message,
+    locator.locate(where),
+  ]);
+  return { card: { tags, use, imports, nav }, problems };
 }
 
-function parseTags(value: unknown, problems: Problem[]): string[] {
+/**
+ * `nav` places a card in a published site. A mapping, so the key has room to
+ * grow; `nav: 10` was an earlier spelling, and a card carrying it means to be
+ * ordered, so it is named as a defect rather than accepted quietly.
+ *
+ * Only the validation is here. What `visibility` does — publication, and
+ * HMD017 — is not ported yet.
+ */
+function parseNav(
+  value: unknown,
+  problems: Found[],
+  locator: Locator,
+): NavConfig {
+  const none: NavConfig = { order: null, visibility: null };
+  if (value === undefined || value === null) return none;
+  if (typeof value !== "object" || Array.isArray(value)) {
+    const integer =
+      typeof value === "boolean" ||
+      (typeof value === "number" && Number.isInteger(value));
+    const hint = integer ? " — write `nav:` with an `order:` under it" : "";
+    problems.push([
+      "HMD013",
+      `\`nav\` must be a mapping, got ${typeName(value)}${hint}`,
+      key("nav"),
+    ]);
+    return none;
+  }
+
+  const mapping = value as Record<string, unknown>;
+  const known = [...NAV_KEYS].sort().join(", ");
+  for (const name of Object.keys(mapping)
+    .filter((k) => !NAV_KEYS.has(k))
+    .sort(byCodePoint)) {
+    problems.push([
+      "HMD013",
+      `unknown key ${repr(name)} in \`nav\` (known: ${known})`,
+      nested("nav", name),
+    ]);
+  }
+
+  let order: number | null = null;
+  const rawOrder = mapping["order"];
+  if (rawOrder !== undefined && rawOrder !== null) {
+    // js-yaml reads `1.0` and `1e3` as the number 1 and 1000, where YAML (and
+    // the canonical implementation) has a float or a string: the token as
+    // written decides, so a decimal point or an exponent is never an integer.
+    const written = locator.nestedValue("nav", "order");
+    const floatLike = written !== null && /[.eE]/u.test(written);
+    if (
+      typeof rawOrder === "number" &&
+      Number.isInteger(rawOrder) &&
+      !floatLike
+    )
+      order = rawOrder;
+    else {
+      problems.push([
+        "HMD013",
+        `\`nav.order\` must be an integer, got ${repr(rawOrder)}`,
+        nested("nav", "order"),
+      ]);
+    }
+  }
+
+  let visibility: string | null = null;
+  const rawVisibility = mapping["visibility"];
+  if (rawVisibility !== undefined && rawVisibility !== null) {
+    if (typeof rawVisibility === "string" && VISIBILITIES.has(rawVisibility)) {
+      visibility = rawVisibility;
+    } else {
+      const choices = [...VISIBILITIES].sort().join(", ");
+      problems.push([
+        "HMD013",
+        `\`nav.visibility\` must be one of ${choices}; got ${repr(rawVisibility)}`,
+        nested("nav", "visibility"),
+      ]);
+    }
+  }
+
+  return { order, visibility };
+}
+
+/** Code-point order, as the canonical implementation sorts. */
+function byCodePoint(a: string, b: string): number {
+  const x = [...a].map((ch) => ch.codePointAt(0)!);
+  const y = [...b].map((ch) => ch.codePointAt(0)!);
+  for (let i = 0; i < Math.min(x.length, y.length); i += 1) {
+    if (x[i] !== y[i]) return x[i]! - y[i]!;
+  }
+  return x.length - y.length;
+}
+
+function parseTags(value: unknown, problems: Found[]): string[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) {
-    problems.push(["HMD013", `\`tags\` must be a list, got ${typeName(value)}`]);
+    problems.push([
+      "HMD013",
+      `\`tags\` must be a list, got ${typeName(value)}`,
+      key("tags"),
+    ]);
     return [];
   }
   const tags: string[] = [];
-  for (const item of value) {
+  for (const [index, item] of value.entries()) {
     if (typeof item !== "string" || item.trim() === "") {
-      problems.push(["HMD013", `\`tags\` entries must be non-empty strings, got ${repr(item)}`]);
+      problems.push([
+        "HMD013",
+        `\`tags\` entries must be non-empty strings, got ${repr(item)}`,
+        entry("tags", index),
+      ]);
       continue;
     }
     tags.push(item.trim());
@@ -119,18 +251,29 @@ function parseTags(value: unknown, problems: Problem[]): string[] {
   return tags;
 }
 
-function parseUse(value: unknown, problems: Problem[]): Record<string, boolean> {
+function parseUse(value: unknown, problems: Found[]): Record<string, boolean> {
   if (value === undefined || value === null) return {};
-  const items = typeof value === "string" ? [value] : value;
+  // A single string is the key's own value; an entry of a list is its own.
+  const scalar = typeof value === "string";
+  const items = scalar ? [value] : value;
   if (!Array.isArray(items)) {
-    problems.push(["HMD013", `\`use\` must be a string or list, got ${typeName(value)}`]);
+    problems.push([
+      "HMD013",
+      `\`use\` must be a string or list, got ${typeName(value)}`,
+      key("use"),
+    ]);
     return {};
   }
 
   const use: Record<string, boolean> = {};
-  for (const item of items) {
+  for (const [index, item] of items.entries()) {
+    const where = scalar ? key("use") : entry("use", index);
     if (typeof item !== "string") {
-      problems.push(["HMD013", `\`use\` entries must be strings, got ${repr(item)}`]);
+      problems.push([
+        "HMD013",
+        `\`use\` entries must be strings, got ${repr(item)}`,
+        where,
+      ]);
       continue;
     }
     let name = item.trim();
@@ -144,6 +287,7 @@ function parseUse(value: unknown, problems: Problem[]): Record<string, boolean> 
       problems.push([
         "HMD013",
         `unknown feature ${repr(item.trim())} in \`use\` (known: ${known})`,
+        where,
       ]);
       continue;
     }
@@ -152,20 +296,32 @@ function parseUse(value: unknown, problems: Problem[]): Record<string, boolean> 
   return use;
 }
 
-function parseImports(value: unknown, problems: Problem[]): ImportStmt[] {
+/** Each statement with where it is written, so a later HMD015 or HMD003 about
+ * it is reported at the statement too. */
+function parseImports(
+  value: unknown,
+  problems: Found[],
+): Array<[ImportStmt, Where]> {
   if (value === undefined || value === null) return [];
-  const items = typeof value === "string" ? [value] : value;
+  const scalar = typeof value === "string";
+  const items = scalar ? [value] : value;
   if (!Array.isArray(items)) {
-    problems.push(["HMD014", `\`import\` must be a string or list, got ${typeName(value)}`]);
+    problems.push([
+      "HMD014",
+      `\`import\` must be a string or list, got ${typeName(value)}`,
+      key("import"),
+    ]);
     return [];
   }
 
-  const stmts: ImportStmt[] = [];
-  for (const item of items) {
+  const stmts: Array<[ImportStmt, Where]> = [];
+  for (const [index, item] of items.entries()) {
+    const where = scalar ? key("import") : entry("import", index);
     try {
-      stmts.push(parseStatement(item));
+      stmts.push([parseStatement(item), where]);
     } catch (exc) {
-      if (exc instanceof ImportSyntaxError) problems.push(["HMD014", exc.message]);
+      if (exc instanceof ImportSyntaxError)
+        problems.push(["HMD014", exc.message, where]);
       else throw exc;
     }
   }
@@ -178,10 +334,9 @@ function typeName(value: unknown): string {
   if (typeof value === "object") return "dict";
   if (typeof value === "string") return "str";
   if (typeof value === "boolean") return "bool";
-  if (typeof value === "number") return Number.isInteger(value) ? "int" : "float";
+  if (typeof value === "number")
+    return Number.isInteger(value) ? "int" : "float";
   return typeof value;
 }
 
-function repr(value: unknown): string {
-  return typeof value === "string" ? `'${value}'` : String(value);
-}
+const repr = pyRepr;

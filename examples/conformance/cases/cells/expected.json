@@ -1,0 +1,10 @@
+{
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "[[target]]",
+      "source": "notebook.hmd",
+      "target": "target.hmd"
+    }
+  ]
+}

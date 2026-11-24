@@ -57,6 +57,40 @@ def test_hmd004_accepts_either_heading_text_or_slug(build_workspace):
     assert "HMD004" not in rules_for(ws)
 
 
+def test_a_fragment_matches_by_key_not_by_slug(build_workspace):
+    ws = build_workspace(
+        {
+            "a.hmd": "# A\n\n[[b#ошибка 404]] [[b#CAFÉ, menu]] [[b#数据]] [[b#the fast path]]\n",
+            "b.hmd": "# B\n\n## Ошибка 404!\n\n## Café — Menu\n\n## 数据\n\n## The *fast* path\n",
+        }
+    )
+    assert check(ws) == []
+
+
+def test_accents_in_a_fragment_are_significant(build_workspace):
+    ws = build_workspace({"a.hmd": "# A\n\n[[b#Cafe]]\n", "b.hmd": "# B\n\n## Café\n"})
+    (diag,) = check(ws)
+    assert (diag.rule, diag.message) == ("HMD004", "b.hmd has no heading '#Cafe'")
+
+
+def test_the_renderer_suffix_is_not_a_heading_name(build_workspace):
+    """`_1` was Python-Markdown's numbering of a repeat, never the language's."""
+    ws = build_workspace({"a.hmd": "# A\n\n[[b#dup_1]]\n", "b.hmd": "# B\n\n## Dup\n\n## Dup\n"})
+    assert "HMD004" in rules_for(ws)
+
+
+def test_a_fragment_with_an_empty_key_matches_nothing(build_workspace):
+    ws = build_workspace({"a.hmd": "# A\n\n[[b#***]]\n", "b.hmd": "# B\n\n## ***\n"})
+    assert "HMD004" in rules_for(ws)
+
+
+def test_a_setext_heading_is_a_fragment_target(build_workspace):
+    ws = build_workspace(
+        {"a.hmd": "# A\n\n[[b#Setup]] [[b#usage]]\n", "b.hmd": "Setup\n=====\n\nUsage\n-----\n"}
+    )
+    assert check(ws) == []
+
+
 def test_hmd005_missing_block_id(build_workspace):
     ws = build_workspace({**BASE, "a.hmd": "# A\n\n[[target#^nope]]\n"})
     assert "HMD005" in rules_for(ws)
@@ -101,15 +135,49 @@ def test_hmd010_malformed_link(build_workspace):
     assert "HMD010" in rules_for(ws)
 
 
-def test_hmd011_duplicate_heading_slug(build_workspace):
+def test_hmd011_duplicate_heading_key(build_workspace):
     ws = build_workspace({**BASE, "a.hmd": "# Dup\n\n# Dup\n"})
     (diag,) = [d for d in check(ws) if d.rule == "HMD011"]
     assert diag.severity == "warning"
+    assert (diag.line, diag.column) == (3, 1)
+
+
+def test_hmd011_compares_keys_not_spellings(build_workspace):
+    ws = build_workspace({**BASE, "a.hmd": "# Set-up!\n\nset up\n------\n\n# Other\n"})
+    (diag,) = [d for d in check(ws) if d.rule == "HMD011"]
+    assert diag.line == 3
+    assert "line 1" in diag.message
+
+
+def test_hmd011_skips_headings_with_an_empty_key(build_workspace):
+    ws = build_workspace({**BASE, "a.hmd": "# A\n\n## ***\n\n## ---\n"})
+    assert "HMD011" not in rules_for(ws)
+
+
+def test_a_fragment_reaches_the_first_of_two_equal_headings(build_workspace):
+    from hypermarkdown.embed import expand
+
+    ws = build_workspace(
+        {
+            "a.hmd": "# A\n\n![[b#Setup]]\n\n![[b#^setup-linux]]\n",
+            "b.hmd": "# B\n\n## Setup\n\nmac\n\n## Setup ^setup-linux\n\nlinux\n",
+        }
+    )
+    assert [d.rule for d in check(ws)] == []  # the repeat is anchored
+    out = expand(ws, ws.root / "a.hmd").text
+    assert "mac" in out and "linux" in out
+
+
+def test_hmd011_is_silenced_by_an_anchor_on_the_repeat(build_workspace):
+    ws = build_workspace({**BASE, "a.hmd": "# Dup\n\n# Dup ^second\n\n# Dup\n"})
+    (diag,) = [d for d in check(ws) if d.rule == "HMD011"]
+    assert diag.line == 5
 
 
 def test_hmd012_page_beside_folder_note(build_workspace):
     ws = build_workspace({**BASE, "dup.hmd": "# File\n", "dup/index.hmd": "# Note\n"})
-    assert "HMD012" in rules_for(ws)
+    (diag,) = [d for d in check(ws) if d.rule == "HMD012"]
+    assert diag.severity == "warning"  # a shadow, like HMD018, not a content bug
 
 
 def test_hmd013_unknown_use_feature(build_workspace):
@@ -260,3 +328,23 @@ def test_hmd017_is_silent_when_both_are_published(build_workspace):
         }
     )
     assert "HMD017" not in rules_for(ws)
+
+
+def _chain(embeds: int) -> dict[str, str]:
+    """`p0` embeds `p1`, and so on: `embeds` nested embeds below `p0`."""
+    tree = {f"p{i}.hmd": f"# P{i}\n\n![[p{i + 1}]]\n" for i in range(embeds)}
+    tree[f"p{embeds}.hmd"] = "# End\n"
+    return tree
+
+
+def test_hmd008_allows_a_depth_of_exactly_sixteen(build_workspace):
+    # The starting card is depth zero, so sixteen nested embeds reach depth 16.
+    ws = build_workspace(_chain(16))
+    assert "HMD008" not in rules_for(ws)
+
+
+def test_hmd008_is_reported_once_at_the_embed_that_exceeds_the_limit(build_workspace):
+    ws = build_workspace(_chain(17))
+    found = [d for d in check(ws) if d.rule == "HMD008"]
+    # p16's `![[p17]]` would put p17 at depth 17; `p1` starts a chain of only 16.
+    assert [(d.path, d.line, d.column) for d in found] == [("p16.hmd", 3, 1)]

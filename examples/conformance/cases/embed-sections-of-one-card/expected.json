@@ -1,0 +1,20 @@
+{
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "![[lib#One]]",
+      "source": "host.hmd",
+      "target": "lib.hmd"
+    },
+    {
+      "raw": "![[lib#Two]]",
+      "source": "host.hmd",
+      "target": "lib.hmd"
+    },
+    {
+      "raw": "![[lib#One]]",
+      "source": "lib.hmd",
+      "target": "lib.hmd"
+    }
+  ]
+}

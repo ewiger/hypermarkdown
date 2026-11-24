@@ -1,0 +1,59 @@
+{
+  "diagnostics": [
+    {
+      "column": 10,
+      "line": 10,
+      "message": "[[guides/nowhere]] does not resolve to a page",
+      "path": "guides/install.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "![[setup#Linux]]",
+      "source": "guides/install.hmd",
+      "target": "guides/setup.hmd"
+    },
+    {
+      "raw": "![[setup]]",
+      "source": "guides/install.hmd",
+      "target": "guides/setup.hmd"
+    },
+    {
+      "raw": "[[../index]]",
+      "source": "guides/install.hmd",
+      "target": "index.hmd"
+    },
+    {
+      "raw": "[[./setup]]",
+      "source": "guides/install.hmd",
+      "target": "guides/setup.hmd"
+    },
+    {
+      "raw": "[[/guides/setup]]",
+      "source": "guides/install.hmd",
+      "target": "guides/setup.hmd"
+    },
+    {
+      "raw": "[[guides/nowhere]]",
+      "source": "guides/install.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[guides/setup]]",
+      "source": "guides/install.hmd",
+      "target": "guides/setup.hmd"
+    },
+    {
+      "raw": "[[setup#a^b]]",
+      "source": "guides/install.hmd",
+      "target": "guides/setup.hmd"
+    },
+    {
+      "raw": "[[setup]]",
+      "source": "guides/install.hmd",
+      "target": "guides/setup.hmd"
+    }
+  ]
+}

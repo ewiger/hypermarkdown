@@ -21,6 +21,180 @@ point in
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-25
+
+The HyperMarkDown 0.1 rules for encoding, the lexical model, and heading
+anchors, matching the canonical implementation case for case.
+
+### Added
+
+- **`nav` is validated.** A scalar `nav`, an unknown key in it, a non-integer
+  `order`, or a `visibility` other than `public` or `private` is HMD013, at the
+  offending key, as in the canonical implementation. `CardConfig` gains `nav`,
+  with `order` and `visibility`. Publication itself, which acts on
+  `visibility` and raises HMD017, is still not ported.
+- **`checkLocationPath`**, exported: refuses, with a `ConfigError` naming
+  `location_path` and the nested vault, a `location_path` that resolves into
+  a nested vault. The core has no filesystem, so the caller says which
+  directories carry `.hmd/`; the VS Code extension calls it when it reads a
+  vault's config, and does not open a vault it refuses.
+- **`DirEntry.leavesRoot`**, optional: a host sets it on a symbolic link whose
+  target lies outside the namespace root. Nothing through such an entry is a
+  card, and a reference whose path meets it is `escapes`, HMD003. `ESCAPES` is
+  what `Workspace.bind` returns for such a path, and `compareCodePoints`
+  orders strings by code point.
+- **HMD012 is a warning.** A card beside a module's folder note of the same name
+  shadows the note, which stays reachable by its `index` path; like HMD018,
+  that is a shadow decided by a fixed order, not a content bug.
+- **An anchored repeat heading is not HMD011.** A heading whose key equals an
+  earlier one's is reported only when it carries no block anchor, as in the
+  canonical implementation.
+- **Setext headings are headings.** `Setup` over a line of `===` or `---` is
+  indexed and addressable like `# Setup`, at level 1 or 2, and ends an embedded
+  section the way an ATX heading does. A `---` after a blank line is still a
+  thematic break, and no line inside a fence, a comment, a block quote, a list
+  item, an HTML block, or indented code is ever part of one.
+- **HMD019**, an error: a file with a card extension that is not valid UTF-8,
+  reported at line 1, column 1 with the first byte that cannot be decoded. The
+  file is then not a card: not parsed, not a page, not a link target.
+  `Workspace.undecodable()` lists them, and `Workspace.addUndecodable` records
+  one for a host that feeds files incrementally.
+- `WorkspaceHost.readBytes`, optional and preferred when present: the core
+  decodes the bytes itself, fatally, which is the only way it can tell a file
+  that is not UTF-8. `MemoryHost` takes bytes as well as text. `decodeCard`,
+  `cardText`, and `firstInvalidByte` are exported.
+- `headingKey`, `caseFold`, `nfc`, `visibleText`, `headingContent`,
+  `columnOffset`, and `splitLines` are exported, and `findHeading` replaces
+  `headingSlugs`. Full case folding comes from a table generated from the
+  canonical implementation's `str.casefold` by `scripts/casefold.py`, because
+  `toLowerCase` is a different mapping: it leaves `ß` alone and keeps final
+  sigma apart.
+
+### Changed
+
+- **A reference that ends in `/` names a directory**, and resolves only to
+  its folder note, in every phase: `[[m/]]` reaches `m/index.hmd` even
+  where `m.hmd` claims the name, it never matches a named import, and the
+  recursive search considers only folder notes. `[[/]]` is the root's folder
+  note. A trailing `/` used to be dropped, so `[[m/]]` reached `m.hmd`.
+- **Frontmatter diagnostics are reported where the problem is written**, no
+  longer all at line 1, column 1. A malformed value of a top-level key is at
+  the key; a malformed list entry,
+  such as a tag, a `use` entry, or an `import` statement, at the entry's first
+  character (after `- ` in a block list, its own first character in a flow
+  list); anything else at its nearest enclosing key. HMD015 and HMD003 about an
+  import are at its statement. Invalid YAML stays at the block's start.
+- **A block anchor's position starts at its `^`**, not at the spaces or
+  tabs before it, so HMD006 points at the `^`. The blanks before the anchor
+  still go with it when a block is embedded or rendered.
+- **`wiki` is renamed `location_path`, and defaults to `.`.** The config field
+  is `locationPath` and the constant `DEFAULT_LOCATION_PATH`. A config that
+  still sets `wiki` is refused with a `ConfigError` that names both keys, so a
+  vault never loads from a namespace root nobody chose.
+- **A backslash anywhere in a wikilink is HMD010**: in its path, its
+  fragment, or its display. A backslash is never a path separator and
+  escapes nothing; one before `[[` is outside the link and changes nothing.
+- **An `import` statement takes only spaces and tabs as whitespace**, between
+  its words and on either side of a comma, as the grammar's `WS` says; another
+  whitespace character there is HMD014. An imported name or alias is a
+  segment with no whitespace, so `:` and the reserved characters make it
+  HMD014 too.
+- **A local name bound twice by imports is HMD015 even when both bindings
+  reach one card**, as in `from /shared import tokens` beside
+  `from ./shared import tokens`. It used to be reported only when the two
+  cards differed. The first binding stands.
+- **Resolution follows the HyperMarkDown 0.1 algorithm**, checked by the
+  corpus's `resolve-*` cases, which are written from the specification rather
+  than generated. `.` and `..` belong to relative references alone, and are
+  normalised there: in an absolute or unqualified reference, such as
+  `[[/a/../b]]` or `[[a/../b]]`, either one is HMD010 and the reference is not
+  a link. A relative reference whose last component is `.` or `..` names that
+  directory, and reaches only its folder note. A path that leaves the namespace is HMD003 in every phase: one
+  that climbs above the root, enters a nested vault, or meets a symbolic link
+  out of the root; a path into a nested vault used to be HMD001. `[[./]]` and
+  `[[../]]` bind only the directory's folder note, the root's included. A
+  reference that writes an extension reaches a shadowed card in the
+  recursive search too, and a named import whose card has another extension
+  does not apply to it. In the recursive search a folder note matched by its
+  directory's name gives way to a card beside the directory. Every imported
+  search path is probed, and HMD016 names each other card once; one card
+  reached through two imports is not reported.
+- **Candidates sort by code point**, as UTF-8 bytes do, in HMD002's list and
+  in the diagnostic order. `<` compared UTF-16 code units and put a character
+  outside the Basic Multilingual Plane before U+E000–U+FFFF.
+- **An unclosed `[[` is text, not HMD010.** A `[[` with no `]]` after it on
+  its line, or with a `[` or `]` first, begins no link and is ordinary
+  Markdown, so a matrix in maths such as `$[[1,2],[3,4]]$` no longer reports an
+  error. A link that is closed but malformed is still HMD010.
+  `findUnterminated` is gone from the scanner.
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. A target containing one is HMD010.
+- **A heading fragment matches by key, not by slug.** The key is the text in
+  NFC, case-folded, with every character that is not a letter, mark, or number
+  turned into a space and the spaces collapsed: `[[card#ошибка 404]]` reaches
+  `# Ошибка 404!`, `[[card#STRASSE]]` reaches `Straße`, and `[[card#Cafe]]` no
+  longer reaches `Café`. A fragment matches the first heading with its key;
+  the `_1` suffix that reached a repeat is gone, and a repeat is reached by a
+  block anchor on its line.
+- **HMD011 reports headings with the same key**, at each repeat, naming the
+  line of the heading a fragment reaches instead, in the canonical wording.
+- **HMD004 names the fragment as written**, `has no heading '#Cafe Menu'`.
+- A heading's text is what a reader sees, inline markup removed: `## The *fast*
+  path` is `The fast path`. `Heading.slug` is replaced by `Heading.key`, and the
+  IR moves to version 4: `HeadingRef` and `FragmentRef` carry a `key` in place
+  of a `slug`.
+- **Columns count code points; span offsets count UTF-8 bytes** from byte 0
+  of the card. `Span.index` and `Span.indexEnd` keep the UTF-16 range for
+  slicing the text.
+- **A line ends at `\n`, `\r\n`, or a lone `\r`**, in the scanner, the
+  frontmatter fence, expansion, and the renderer. A form feed or U+2028 does
+  not end one, and a code span cannot cross a blank line in any of the three
+  spellings.
+- **A leading byte-order mark is ignored**, so frontmatter after one is
+  frontmatter.
+- **Names compare in NFC**: a reference and a name on disk match whether
+  either is stored composed or decomposed, for cards, import origins, and the
+  folder-note collision check. Of two files whose names are one name in NFC,
+  the first in sorted order is the card.
+- An anchor on a heading's line names that heading: `![[b#^linux]]` on
+  `## Linux ^linux` embeds the whole section, as `![[b#Linux]]` does. A block
+  anchor's span ends at its id, and no anchor is ever rendered, in the card
+  itself or embedded; one inside a code fence is code.
+
+### Removed
+
+- `slugify`, `slugFor`, and `unique`, the Python-Markdown `toc` slugger. The
+  language no longer matches by slug, and the renderer gives headings no id.
+
+### Fixed
+
+- **A key inside a one-line flow mapping is located.** A problem in
+  `nav: {order: x}` is reported at `order`, as the frontmatter position rules
+  say, no longer at `nav`.
+- **`nav.order: 1.0` is HMD013.** js-yaml reads `1.0` and `1e3` as the
+  whole numbers 1 and 1000, where YAML has a float and the canonical
+  implementation reports it. The token as written decides: a decimal point or
+  an exponent is never an integer.
+- **The embed depth limit counts from zero, and HMD008 is reported at the
+  embed.** The starting card is depth zero and the limit is 16, so a chain of
+  exactly sixteen nested embeds is fine; it used to be reported. HMD008 is now
+  reported once, at the embed that would exceed the limit, where it used to
+  sit at line 1, column 1 of the card past it, once per chain.
+- **Diagnostic messages quote values as the canonical implementation does.** A
+  malformed `tags` entry read `got [object Object]`, and a malformed import
+  statement was quoted with double quotes. Both now use Python's `repr`
+  spelling, so the corpus can compare the messages byte for byte.
+- Columns after a character outside the Basic Multilingual Plane, and setext
+  headings, now agree with the canonical implementation; the
+  `astral-plane-columns` and `setext-headings` entries leave the divergence
+  ledger.
+- `frontmatter must be a mapping, got str` names a scalar's type the way the
+  canonical implementation does, where it said `string`.
+- An embed of a section no longer reports a false cycle. The HMD007 check
+  followed every embed in the embedded card, where an embed of a heading or a
+  block expands that region only, so one section of a card embedding another
+  section of the same card was reported as HMD007.
+
 ## [0.3.0] — 2026-11-15
 
 ### Added
@@ -147,7 +321,9 @@ character; and math is typeset by KaTeX rather than by the site's MathJax.
 - This package carries its own README, changelog, and license, rather than
   borrowing the repository's.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.2.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.4.0...HEAD
+[0.4.0]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.3.0...ts-core-v0.4.0
+[0.3.0]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.2.0...ts-core-v0.3.0
 [0.2.0]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.1.1...ts-core-v0.2.0
 [0.1.1]: https://github.com/ewiger/hypermarkdown/compare/ts-core-v0.1.0...ts-core-v0.1.1
 [0.1.0]: https://github.com/ewiger/hypermarkdown/releases/tag/ts-core-v0.1.0

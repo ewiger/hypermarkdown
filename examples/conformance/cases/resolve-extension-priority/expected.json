@@ -1,0 +1,94 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "far/z.md shadows far/z.markdown; [[far/z]] means far/z.md",
+      "path": "far/z.markdown",
+      "rule": "HMD018",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "m/index.hmd shadows m/index.md; [[m]] means m/index.hmd",
+      "path": "m/index.md",
+      "rule": "HMD018",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "n/index.md shadows n/index.markdown; [[n]] means n/index.md",
+      "path": "n/index.markdown",
+      "rule": "HMD018",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "x.md shadows x.markdown; [[x]] means x.md",
+      "path": "x.markdown",
+      "rule": "HMD018",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "y.hmd shadows y.markdown; [[y]] means y.hmd",
+      "path": "y.markdown",
+      "rule": "HMD018",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "y.hmd shadows y.md; [[y]] means y.hmd",
+      "path": "y.md",
+      "rule": "HMD018",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[m/index.md]]",
+      "source": "src.hmd",
+      "target": "m/index.md"
+    },
+    {
+      "raw": "[[m]]",
+      "source": "src.hmd",
+      "target": "m/index.hmd"
+    },
+    {
+      "raw": "[[n]]",
+      "source": "src.hmd",
+      "target": "n/index.md"
+    },
+    {
+      "raw": "[[x]]",
+      "source": "src.hmd",
+      "target": "x.md"
+    },
+    {
+      "raw": "[[y.markdown]]",
+      "source": "src.hmd",
+      "target": "y.markdown"
+    },
+    {
+      "raw": "[[y]]",
+      "source": "src.hmd",
+      "target": "y.hmd"
+    },
+    {
+      "raw": "[[z.markdown]]",
+      "source": "src.hmd",
+      "target": "far/z.markdown"
+    },
+    {
+      "raw": "[[z]]",
+      "source": "src.hmd",
+      "target": "far/z.md"
+    }
+  ]
+}

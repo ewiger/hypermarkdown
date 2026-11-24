@@ -23,9 +23,11 @@ HyperMarkDown wiki, published by the MkDocs plugin the Python tool ships, so a
 specification that made the site unbuildable would be caught by its own
 publication.
 
-**The language's version is declared by the specification itself** — the opening
-sentence of [`doc/wiki/hmd-lang-spec.hmd`](doc/wiki/hmd-lang-spec.hmd), which
-currently specifies HyperMarkDown **0.1** against CommonMark 0.31.2. A version
+**The language's version is declared by the specification itself** — the
+*Version* callout at the top of
+[`doc/wiki/hmd-lang-spec.hmd`](doc/wiki/hmd-lang-spec.hmd), which currently
+specifies HyperMarkDown **0.1.0** against CommonMark 0.31.2. The version follows
+Semantic Versioning, so it always has three parts. A version
 section here is that number; the dated entries inside it record when each decision
 landed, because a language is worked on continuously and released rarely.
 `tests/test_docs.py` fails if the card names a version this file has no section
@@ -36,11 +38,151 @@ for one. Progress is not tracked here either — the trackers under
 `doc/status/` are the only place work is recorded, one per tool plus one for the
 language itself.
 
-## [0.1] — drafted
+## [0.1.0] — 2026-11-25
 
-The first version of the language: the six constructs, resolution, the severities,
-and the publication model. Still `drafted`, which is what the `0.x` means — a
-construct may still change before `1.0`.
+The first released version of the language: the six constructs, resolution,
+the severities, and the publication model, frozen as one text and checked by a
+conformance corpus that all three implementations pass. The `0.x` says what
+this release does not promise: a later minor version may still change a
+construct. `1.0` is the later promise of stability.
+
+### 2026-11-24
+
+#### Added
+
+- **The grammars are written in ABNF** (RFC 5234, with RFC 7405 for
+  case-sensitive strings). `ALPHA` and `DIGIT` are ASCII; a character is a
+  Unicode scalar value.
+- **A link candidate, and what HMD010 is.** A candidate starts at `[[` outside
+  an excluded region and ends at the first `]]`, unless a `[`, `]`, or line
+  ending comes first. A candidate that does not match the grammar is HMD010,
+  reported at its first character; an unclosed `[[` is text. Candidates are
+  found inside CommonMark link text, link destinations, and emphasis too.
+- **`:` is reserved** for references across namespaces, so a
+  `namespace:path` target is HMD010 until that form is specified.
+- **A backslash anywhere in a wikilink is HMD010**: in the path, the fragment,
+  or the display. A backslash is never a path separator, on any platform. A
+  backslash before `[[` is text, outside the wikilink.
+- **A directory reference.** A page reference ending in `/` names a directory
+  and resolves only to its folder note, and never matches a named import.
+  `[[/]]` is the folder note of the namespace root.
+- **Exact positions for every diagnostic that has one.** HMD009 at line 1,
+  column 1; a bad frontmatter value at its key, or at the key inside `nav`; a
+  bad list entry at its first character; HMD006 at the later anchor's `^`;
+  HMD008 at the embed that would go too deep, counting the starting card as
+  depth 0. Identifiers, severities, conditions, and positions are normative;
+  message text is not.
+- **Frontmatter edges.** An opening `---` with no closing one starts no
+  frontmatter, YAML's `...` does not close it, and an empty block is an empty
+  mapping. An empty tag is HMD013.
+
+#### Changed
+
+- **Name resolution is stated as rules first, then an algorithm that obeys
+  them.** Resolving a reference within a directory is one step used by every
+  phase: it carries a written card extension into each phase, has a
+  directory-only form for `[[./]]` and `[[../]]`, and checks the namespace
+  boundary, so a reference that escapes the root is reported as such wherever
+  it is found. The rules now state containment, explicit extensions, folder
+  notes, and when two candidates are the same card. A named import whose card
+  has another extension falls through to the next phase, and two search paths
+  that reach one card are not a collision. The order of the phases is
+  unchanged. The corpus gained a case for each rule, run by all three
+  implementations.
+- **HMD012 is a warning.** A card beside a module's folder note of the same
+  name shadows the note in every phase, the recursive search included, and the
+  note stays reachable by its `index` path. That is the convention HMD016 and
+  HMD018 already follow: shadowing is a warning, and ambiguity is an error.
+- **`wiki` is renamed `location_path`, and its default is `.`**, the vault
+  itself, instead of `doc/wiki`. A configuration that still sets `wiki` is
+  rejected and the vault is not read, with an error naming the replacement:
+  an old configuration fails loudly instead of silently moving the root. An
+  enclosing vault's `location_path` must not point into a nested vault.
+- **Keywords follow BCP 14** (RFC 2119 with RFC 8174): they are normative only
+  in capitals, and SHALL, RECOMMENDED, and OPTIONAL join them.
+- **Case is significant everywhere.** Names and card extensions compare code
+  point by code point on every platform, so `shout.HMD` is not a card, and a
+  block-id fragment matches exactly. Candidate lists, the order of diagnostic
+  paths, and `nav` ties sort by code point, whatever the locale.
+- **`.` and `..` only in explicit relative references**, with Unix
+  semantics, normalised before the containment check.
+- **`#` and `^` may appear in heading text**, `^` not first, so
+  `[[setup#C# tips]]` reaches `## C# tips`. Whitespace around a page reference
+  is trimmed. In an import, spaces or tabs may surround a comma, a name has no
+  whitespace, and `from`, `import`, and `as` are case-sensitive.
+- **A block anchor may follow tabs as well as spaces**, and trailing spaces or
+  tabs after it are allowed and not rendered.
+- **Resolution, caught up with the corpus.** A folder note shadowed by a
+  sibling card is no longer a candidate by its directory's name and stays
+  reachable by its `index` path. HMD003 covers a target inside a nested
+  vault, and a later wildcard import that escapes reports HMD003 without
+  cancelling a match already found. HMD015 covers an existing directory with
+  no card of the imported name.
+- **A cycle is a repeated resolved target**, not a repeated spelling, so
+  `#One` and `#one` reaching one heading are one cycle (HMD007), and the same
+  embed in two separate chains is not a cycle. A heading with an empty
+  identifier never yields HMD011.
+- **A card may turn autodiscovery on**, not only off.
+- **Strict mode is a tool's option**, not a rule: it changes no severity.
+- **The conformance corpus is not exhaustive**, and a disagreement between it
+  and the specification is settled by the specification.
+
+### 2026-11-22
+
+The decisions that held 0.1 back, taken together.
+
+#### Added
+
+- **CommonMark 0.31.2 is the baseline, named by version.** "Markdown" names a
+  family, not a standard. The extras a tool may add on top — tables, task
+  lists, strikethrough, footnotes, callouts, maths, and diagram cells — are
+  listed one by one and marked non-normative, so a reader sees exactly what
+  they are.
+- **Encoding, line endings, and positions.** A card is UTF-8; a file that is
+  not is reported as **HMD019**, an error, and skipped instead of crashing the
+  tool. A leading byte-order mark is ignored, because it is invisible and used
+  to hide frontmatter. A line ends at `\n`, `\r\n`, or a lone `\r`, as in
+  CommonMark. Lines and columns count Unicode code points from 1, and an offset
+  counts UTF-8 bytes: the implementations counted differently, and nothing had
+  noticed.
+- **Card names are compared after NFC normalisation**, so a link resolves the
+  same on macOS and Linux.
+- **Determinism is a rule.** The same tree gives the same output whatever
+  order the files are read in. The format relied on it without saying so.
+- **Setext headings are headings.** `Setup` over `===` or `---` is addressable
+  like `# Setup`. The site already anchored them; the tools now agree with it.
+- **Diagram cells.** `d2#show` and `mermaid#show` are cells, drawn the way an
+  HQL cell is run, and a plain `d2` or `mermaid` fence is a listing. The
+  specification names the cell kinds and says their bodies are opaque to the
+  resolver; how a tool runs or draws them is guidance, not a rule.
+  [HMD-0030](doc/proposals/HMD-0030/README.md)
+
+#### Changed
+
+- **A heading fragment matches by a stated key.** The fragment and each
+  heading's visible text are normalised the same way — NFC, full case folding,
+  everything but letters, marks, and numbers dropped, whitespace collapsed —
+  and compared. Letters and digits of every script are kept, so `Ошибка 404`
+  and `数据` are linkable. The specification states the rule itself: naming a
+  Python library had made the other implementations copy its behaviour,
+  bugs included.
+- **Duplicate headings: the first wins, and the linter warns** (HMD011). The
+  remedy is a block anchor on the later heading, which also ends the warning.
+- **An embedded card's own `use` toggles govern its links**, as they would if
+  it were read on its own. Textual expansion already behaved this way.
+- **Imported search paths stay after the spine**, so importing can never break
+  a name that already resolved.
+
+#### Removed
+
+- **`.git` no longer marks a project root.** Only `.hmd/` does: one marker,
+  one meaning, which the editor already followed.
+- **The `_1` suffix for duplicate headings** leaves the language. An anchor is
+  the author's controlled name; a generated suffix is not.
+- **Suppression comments.** 0.1 has no way to silence a diagnostic. A syntax
+  designed before real use is designed wrong.
+- **UTF-16 was considered and turned down.** git treats it as binary, and the
+  tool chain reads UTF-8.
 
 ### 2026-11-15
 
@@ -182,7 +324,7 @@ construct may still change before `1.0`.
 
 #### Added
 
-- **The language.** Six constructs on top of GitHub-flavored markdown —
+- **The language.** Six constructs on top of CommonMark —
   wikilinks, aliased links, heading links, block anchors, block references, and
   the three embed forms — and nothing else owned. Every `.md` file is already a
   valid `.hmd` file.

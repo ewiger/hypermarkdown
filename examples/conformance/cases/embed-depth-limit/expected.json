@@ -1,0 +1,99 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 3,
+      "message": "embed depth exceeds the limit of 16",
+      "path": "c16.hmd",
+      "rule": "HMD008",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "![[c01]]",
+      "source": "c00.hmd",
+      "target": "c01.hmd"
+    },
+    {
+      "raw": "![[c02]]",
+      "source": "c01.hmd",
+      "target": "c02.hmd"
+    },
+    {
+      "raw": "![[c03]]",
+      "source": "c02.hmd",
+      "target": "c03.hmd"
+    },
+    {
+      "raw": "![[c04]]",
+      "source": "c03.hmd",
+      "target": "c04.hmd"
+    },
+    {
+      "raw": "![[c05]]",
+      "source": "c04.hmd",
+      "target": "c05.hmd"
+    },
+    {
+      "raw": "![[c06]]",
+      "source": "c05.hmd",
+      "target": "c06.hmd"
+    },
+    {
+      "raw": "![[c07]]",
+      "source": "c06.hmd",
+      "target": "c07.hmd"
+    },
+    {
+      "raw": "![[c08]]",
+      "source": "c07.hmd",
+      "target": "c08.hmd"
+    },
+    {
+      "raw": "![[c09]]",
+      "source": "c08.hmd",
+      "target": "c09.hmd"
+    },
+    {
+      "raw": "![[c10]]",
+      "source": "c09.hmd",
+      "target": "c10.hmd"
+    },
+    {
+      "raw": "![[c11]]",
+      "source": "c10.hmd",
+      "target": "c11.hmd"
+    },
+    {
+      "raw": "![[c12]]",
+      "source": "c11.hmd",
+      "target": "c12.hmd"
+    },
+    {
+      "raw": "![[c13]]",
+      "source": "c12.hmd",
+      "target": "c13.hmd"
+    },
+    {
+      "raw": "![[c14]]",
+      "source": "c13.hmd",
+      "target": "c14.hmd"
+    },
+    {
+      "raw": "![[c15]]",
+      "source": "c14.hmd",
+      "target": "c15.hmd"
+    },
+    {
+      "raw": "![[c16]]",
+      "source": "c15.hmd",
+      "target": "c16.hmd"
+    },
+    {
+      "raw": "![[c17]]",
+      "source": "c16.hmd",
+      "target": "c17.hmd"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "diagnostics": [
+    {
+      "column": 3,
+      "line": 3,
+      "message": "`nav.order` must be an integer, got '1e3'",
+      "path": "exponent.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 3,
+      "message": "`nav.order` must be an integer, got 1.0",
+      "path": "float.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 7,
+      "line": 2,
+      "message": "`nav.order` must be an integer, got 2.5",
+      "path": "flow.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 3,
+      "message": "`nav.order` must be an integer, got 'first'",
+      "path": "order.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 2,
+      "message": "`nav` must be a mapping, got int — write `nav:` with an `order:` under it",
+      "path": "scalar.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 4,
+      "message": "unknown key 'colour' in `nav` (known: order, visibility)",
+      "path": "unknown.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 3,
+      "message": "`nav.visibility` must be one of private, public; got 'hidden'",
+      "path": "visibility.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}

@@ -1,0 +1,88 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 9,
+      "message": "[[target]] does not resolve to a page",
+      "path": "near/off.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 3,
+      "message": "[[target]] does not resolve to a page",
+      "path": "quiet/child.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 7,
+      "message": "[[target]] does not resolve to a page",
+      "path": "quiet/index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 3,
+      "message": "[[target]] does not resolve to a page",
+      "path": "quiet/sub/grand.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[target]]",
+      "source": "md/kid.hmd",
+      "target": "far/target.hmd"
+    },
+    {
+      "raw": "[[far/target]]",
+      "source": "near/off.hmd",
+      "target": "far/target.hmd"
+    },
+    {
+      "raw": "[[libcard]]",
+      "source": "near/off.hmd",
+      "target": "lib/libcard.hmd"
+    },
+    {
+      "raw": "[[sib]]",
+      "source": "near/off.hmd",
+      "target": "near/sib.hmd"
+    },
+    {
+      "raw": "[[target]]",
+      "source": "near/off.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[target]]",
+      "source": "quiet/child.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[target]]",
+      "source": "quiet/index.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[target]]",
+      "source": "quiet/loud.hmd",
+      "target": "far/target.hmd"
+    },
+    {
+      "raw": "[[target]]",
+      "source": "quiet/sub/grand.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[target]]",
+      "source": "quiet/sub2/kid.hmd",
+      "target": "far/target.hmd"
+    }
+  ]
+}

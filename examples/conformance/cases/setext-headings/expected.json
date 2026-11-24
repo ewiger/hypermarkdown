@@ -1,0 +1,47 @@
+{
+  "diagnostics": [
+    {
+      "column": 53,
+      "line": 3,
+      "message": "guide.hmd has no heading '#Hidden'",
+      "path": "links.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    },
+    {
+      "column": 12,
+      "line": 4,
+      "message": "guide.hmd has no heading '#A thematic break, because a blank line comes before it'",
+      "path": "links.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "![[guide#Install]]",
+      "source": "links.hmd",
+      "target": "guide.hmd"
+    },
+    {
+      "raw": "[[guide#A thematic break, because a blank line comes before it]]",
+      "source": "links.hmd",
+      "target": "guide.hmd"
+    },
+    {
+      "raw": "[[guide#Hidden]]",
+      "source": "links.hmd",
+      "target": "guide.hmd"
+    },
+    {
+      "raw": "[[guide#Install]]",
+      "source": "links.hmd",
+      "target": "guide.hmd"
+    },
+    {
+      "raw": "[[guide#guide]]",
+      "source": "links.hmd",
+      "target": "guide.hmd"
+    }
+  ]
+}

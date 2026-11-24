@@ -1,0 +1,13 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "invalid YAML: while parsing a flow sequence in \"<unicode string>\", line 1, column 7: tags: [unclosed ^ expected ',' or ']', but got '<stream end>' in \"<unicode string>\", line 2, column 1: ^",
+      "path": "broken.hmd",
+      "rule": "HMD009",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}

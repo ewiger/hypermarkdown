@@ -1,0 +1,63 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 3,
+      "message": "[[notes]] does not resolve to a page",
+      "path": "index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 4,
+      "message": "[[notes.txt]] does not resolve to a page",
+      "path": "index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 5,
+      "message": "[[page]] does not resolve to a page",
+      "path": "index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 6,
+      "message": "[[shout]] does not resolve to a page",
+      "path": "index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[notes.txt]]",
+      "source": "index.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[notes]]",
+      "source": "index.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[page]]",
+      "source": "index.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[real]]",
+      "source": "index.hmd",
+      "target": "real.hmd"
+    },
+    {
+      "raw": "[[shout]]",
+      "source": "index.hmd",
+      "target": null
+    }
+  ]
+}

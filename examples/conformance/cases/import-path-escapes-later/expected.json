@@ -1,0 +1,43 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 9,
+      "message": "[[x]] resolves outside the namespace root",
+      "path": "src/first.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 10,
+      "message": "[[x]] through the imported path '/b' resolves outside the namespace root",
+      "path": "src/later.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    },
+    {
+      "candidates": [
+        "c/x.hmd"
+      ],
+      "column": 1,
+      "line": 10,
+      "message": "[[x]] also matched c/x.hmd; the earlier import won",
+      "path": "src/later.hmd",
+      "rule": "HMD016",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[x]]",
+      "source": "src/first.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[x]]",
+      "source": "src/later.hmd",
+      "target": "a/x.hmd"
+    }
+  ]
+}

@@ -6,9 +6,18 @@
  * one carries the bug (HMD-0020 §10).
  */
 
-export { parse, parseMarkdown, parseTarget, RESERVED_CHARS, SUFFIX } from "./parse.js";
-export { mask, lineCol, lineStarts, PositionIndex } from "./scan.js";
-export { slugify, slugFor, unique } from "./slug.js";
+export {
+  headingContent,
+  parse,
+  parseMarkdown,
+  parseTarget,
+  visibleText,
+  RESERVED_CHARS,
+  SUFFIX,
+} from "./parse.js";
+export { mask, lineCol, lineStarts, splitLines, PositionIndex } from "./scan.js";
+export { caseFold, columnOffset, headingKey, nfc } from "./unicode.js";
+export { cardText, decodeCard, firstInvalidByte, type DecodedCard } from "./encoding.js";
 export {
   splitFrontmatter,
   parseYaml,
@@ -18,10 +27,11 @@ export {
 } from "./frontmatter.js";
 export { parseStatement, isQualified, ImportSyntaxError } from "./imports.js";
 export {
+  checkLocationPath,
   parseConfigToml,
   ConfigError,
   DEFAULT_PROJECT_CONFIG,
-  DEFAULT_WIKI,
+  DEFAULT_LOCATION_PATH,
   MARKER_DIR,
   CONFIG_NAME,
   type ProjectConfig,
@@ -29,7 +39,9 @@ export {
 export {
   Workspace,
   DEFAULT_CONFIG,
+  ESCAPES,
   INDEX_STEM,
+  type Escapes,
   type ImportTable,
   type Outcome,
   type Resolution,
@@ -84,6 +96,7 @@ export * from "./ir.js";
 export * from "./model.js";
 export {
   basenameRel,
+  compareCodePoints,
   dirnameRel,
   isUnder,
   joinRel,

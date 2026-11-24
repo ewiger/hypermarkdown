@@ -13,13 +13,18 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-/// Whether a directory entry is a file or a directory.
+/// Whether a directory entry is a file, a directory, or a link out of the
+/// namespace.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EntryKind {
     /// A regular file.
     File,
     /// A directory.
     Directory,
+    /// A symbolic link whose target lies outside the namespace root. Neither
+    /// the entry nor anything reached through it is part of the namespace,
+    /// and a reference whose path meets it escapes the namespace.
+    LeavesRoot,
 }
 
 /// One name in a directory listing.
@@ -47,6 +52,15 @@ impl Entry {
             kind: EntryKind::Directory,
         }
     }
+
+    /// An entry for a symbolic link called `name` that leads out of the
+    /// namespace root.
+    pub fn leaves_root(name: impl Into<String>) -> Self {
+        Entry {
+            name: name.into(),
+            kind: EntryKind::LeavesRoot,
+        }
+    }
 }
 
 /// The source of a vault's directories and cards.
@@ -59,6 +73,14 @@ pub trait Host {
     fn list(&self, dir: &str) -> io::Result<Vec<Entry>>;
 
     /// Reads the file at `path` as UTF-8 text.
+    ///
+    /// A file that is not valid UTF-8 must fail with
+    /// [`io::ErrorKind::InvalidData`], as [`std::fs::read_to_string`] does:
+    /// such a file is not a card, and [`Vault::load`](crate::Vault::load)
+    /// skips it and lists it in
+    /// [`Vault::undecodable`](crate::Vault::undecodable) rather than failing.
+    /// A leading byte-order mark may be kept or dropped; the card is read
+    /// without it either way.
     fn read(&self, path: &str) -> io::Result<String>;
 }
 
@@ -74,9 +96,11 @@ impl<H: Host + ?Sized> Host for &H {
 
 /// A [`Host`] over a directory on disk, read with `std::fs`.
 ///
-/// A symbolic link to a file is listed as a file. A symbolic link to a
-/// directory is not listed, so a link cannot make the walk loop or carry it
-/// out of the tree. An entry whose name is not UTF-8 is not listed.
+/// A symbolic link whose target lies outside the root is listed as
+/// [`EntryKind::LeavesRoot`] and never followed. Inside the root, a link to a
+/// file is listed as a file, and a link to a directory is not listed, so a link
+/// cannot make the walk loop; nor is a link whose target does not exist. An
+/// entry whose name is not UTF-8 is not listed.
 #[derive(Debug, Clone)]
 pub struct FsHost {
     root: PathBuf,
@@ -115,9 +139,17 @@ impl Host for FsHost {
             } else if file_type.is_file() {
                 EntryKind::File
             } else if file_type.is_symlink() {
-                match fs::metadata(entry.path()) {
-                    Ok(target) if target.is_file() => EntryKind::File,
-                    _ => continue,
+                let Ok(target) = fs::canonicalize(entry.path()) else {
+                    continue;
+                };
+                let inside =
+                    fs::canonicalize(&self.root).is_ok_and(|root| target.starts_with(root));
+                if !inside {
+                    EntryKind::LeavesRoot
+                } else if target.is_file() {
+                    EntryKind::File
+                } else {
+                    continue;
                 }
             } else {
                 continue;

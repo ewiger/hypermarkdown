@@ -63,15 +63,6 @@ def test_code_span_may_not_span_a_blank_line():
     assert links("` \n\n [[x]] \n\n `\n") == ["x"]
 
 
-def test_find_unterminated_reports_open_brackets():
-    masked = scan.mask("[[ok]] and [[broken\n")
-    assert list(scan.find_unterminated(masked)) == [11]
-
-
-def test_find_unterminated_ignores_complete_links():
-    assert list(scan.find_unterminated(scan.mask("[[a]] ![[b]]\n"))) == []
-
-
 def test_anchors_require_leading_whitespace():
     assert [a for a, _, _ in scan.find_anchors(scan.mask("text ^ok\n"))] == ["ok"]
     assert [a for a, _, _ in scan.find_anchors(scan.mask("^notanchor\n"))] == []

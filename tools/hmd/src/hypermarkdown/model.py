@@ -6,8 +6,22 @@ and a future language server can reuse the same positions (HMD-0001 §1).
 
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
+
+def heading_key(text: str) -> str:
+    """The key a heading fragment and a heading are compared by.
+
+    NFC, then Unicode full case folding, then every character that is not a
+    letter, a mark, or a number (general categories L, M, N) becomes a space,
+    then runs of spaces collapse and both ends are trimmed. Letters and digits
+    of every script survive, and so do accents: `Café` and `Cafe` differ.
+    """
+    folded = unicodedata.normalize("NFC", text).casefold()
+    kept = "".join(c if unicodedata.category(c)[0] in "LMN" else " " for c in folded)
+    return " ".join(kept.split())
+
 
 # Severities.
 ERROR = "error"
@@ -16,19 +30,38 @@ WARNING = "warning"
 
 @dataclass(frozen=True)
 class Span:
-    """A byte range in a source file, with a 1-indexed line and column."""
+    """Where a construct sits in its card.
+
+    `start` and `end` count UTF-8 bytes from byte 0 of the card, which is the
+    first byte after a byte-order mark if the file has one. `line` and `column`
+    start at 1, and `column` counts Unicode code points, so it is the same
+    number in every implementation whatever its string type.
+
+    `index` and `index_end` are the same range as indices into the decoded
+    text, which is what slicing `Document.text` needs. They are this
+    implementation's, not the language's, and take no part in equality.
+    """
 
     start: int
     end: int
     line: int
     column: int
+    index: int = field(default=0, compare=False)
+    index_end: int = field(default=0, compare=False)
 
 
 @dataclass(frozen=True)
 class Heading:
+    """An ATX or setext heading.
+
+    `text` is what a reader sees, inline markup removed; `key` is what a
+    heading fragment is matched against. Neither is an HTML `id` — that is a
+    renderer's to choose.
+    """
+
     level: int
     text: str
-    slug: str
+    key: str
     span: Span
 
 
@@ -69,6 +102,9 @@ class ImportStmt:
     wildcard: bool
     bindings: tuple[tuple[str, str], ...]  # (name, local_name)
     raw: str
+    #: Where the statement is written in the card, for the diagnostics about it.
+    line: int = field(default=1, compare=False)
+    column: int = field(default=1, compare=False)
 
 
 # `nav.visibility` values. Publication is opt-in: a card reaches a built site
@@ -160,8 +196,16 @@ class Document:
     def is_markdown(self) -> bool:
         return self.kind == MARKDOWN
 
-    def heading_slugs(self) -> set[str]:
-        return {h.slug for h in self.headings}
+    def find_heading(self, fragment: str) -> Heading | None:
+        """The first heading, in document order, whose key is the fragment's.
+
+        A heading whose key is empty is never matched: it has no text to be
+        reached by, only an anchor.
+        """
+        wanted = heading_key(fragment)
+        if not wanted:
+            return None
+        return next((h for h in self.headings if h.key == wanted), None)
 
     def block_ids(self) -> set[str]:
         return {a.block_id for a in self.anchors}

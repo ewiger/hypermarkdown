@@ -40,7 +40,7 @@ def test_inspect_prints_what_the_index_says_about_itself(capsys):
 def test_a_configuration_the_tool_refuses_is_a_message_and_exit_1(tmp_path, capsys):
     (tmp_path / ".hmd").mkdir()
     (tmp_path / ".hmd" / "config.toml").write_text(
-        'wiki = "."\n\n[semantics.embedder]\napi_key = "sk-secret"\n', encoding="utf-8"
+        'location_path = "."\n\n[semantics.embedder]\napi_key = "sk-secret"\n', encoding="utf-8"
     )
     (tmp_path / "a.hmd").write_text("# A\n", encoding="utf-8")
     assert cli.main(["build", "--vault", str(tmp_path)]) == 1

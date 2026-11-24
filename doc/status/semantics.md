@@ -6,7 +6,7 @@ model, and writes an SQLite file into the vault's `.hmd/`. A reader ranks cards
 against a query from that file and runs no model. The tool also verifies an
 index against its vault and prints what an index says about itself.
 
-Beside this file: the format itself in [`lang.md`](lang.md), the canonical
+Beside this file: the format itself in [`lang.md`](lang.md), the reference
 implementation in [`hmd.md`](hmd.md), the TypeScript implementation in
 [`ts-core.md`](ts-core.md), its editor in [`vsc-ext.md`](vsc-ext.md), the Rust
 resolver crate in [`rs-core.md`](rs-core.md), and the website in
@@ -14,12 +14,18 @@ resolver crate in [`rs-core.md`](rs-core.md), and the website in
 
 ## Status
 
-**Moved here from HQL and published to PyPI as `hypermarkdown-semantics`.** The
+**Published to PyPI as `hypermarkdown-semantics` 0.1.0.** The
 tool builds an index at one depth, the card itself, in schema version 1. It
 embeds with a checkpoint in its own process or with a model behind an HTTP
 endpoint, as the vault's `.hmd/config.toml` declares, and it embeds the queries
-it is given, because a reader cannot. 79 tests, which need no model and no
+it is given, because a reader cannot. 81 tests, which need no model and no
 network.
+
+**It does not implement the language; it reads cards.** Which files are cards
+and where they start follow HyperMarkDown 0.1.0. How a card's bytes become
+text follows HQL's loader, because the text it embeds must be byte-identical to
+the text HQL hashes, and that loader falls short of 0.1.0 in the ways listed
+under Broken. They are fixed with HQL's loader, not here alone.
 
 The two coarser depths, a one-paragraph and a one-sentence summary of each
 card written by a language model, are specified and not built. Neither is the
@@ -43,7 +49,9 @@ Its first reader is HQL's `hmd` package.
 
 | What | Effect | References |
 | --- | --- | --- |
-| **Cards are read from the vault itself, not from its cards location.** The format puts a vault's cards at the `wiki` setting of `.hmd/config.toml`, where inside the vault the cards start, and counts `.hmd` files only. The builder walks the directory holding `.hmd/` and takes `.md` and `.markdown` files too, because it copies HQL's loader | In a vault whose `wiki` is not `.`, the index holds files that are not cards and names the cards by other paths than `hmd` does. It is fixed in one step with HQL's loader, which HQL tracks as its issue 0079, and both committed fixture indexes are rebuilt then | [[hmd-0028#the-cards-of-an-index]], [the issue card](../issues/0011-vault-and-namespace-drift-between-hmd-and-hql.md) |
+| **A card that is not valid UTF-8 stops the build.** The specification reports such a file as HMD019 and leaves it out; the loader decodes every card and fails on the first that will not decode | One stray file ends `build` with a decode error instead of an index without it [`vault.py`, `load`] | [[hmd-lang-spec#encoding]], [[hmd-0028#the-embedded-text]] |
+| **A leading byte-order mark hides the frontmatter.** The specification ignores the mark; the loader needs the opening fence at byte 0, so a card saved with one loses its title and header | The card is indexed under the wrong text, and its content hash differs from the one `hmd` would agree with [`vault.py`, `split_header`] | [[hmd-lang-spec#encoding]], [[hmd-0028#the-embedded-text]] |
+| **Names are not compared after NFC, lines split at more than the three CommonMark endings, and a shadowed card is indexed beside the card that shadows it.** `owl.hmd` and `owl.md` are both indexed as `owl`, where the specification binds the first and shadows the second | The index can hold two entries under one name, and a name written in another Unicode form is a different card [`vault.py`] | [[hmd-lang-spec#lexical-model]], [[hmd-lang-spec#resolving-a-reference-within-a-directory]] |
 
 ## Limitations (known gaps)
 
@@ -58,10 +66,13 @@ Its first reader is HQL's `hmd` package.
 
 ## Done
 
+- **`location_path` names the namespace root** — the builder reads the
+  setting formerly called `wiki`, with the default `.`, the vault itself;
+  unreleased.
 - **Published to PyPI** — `release-semantics.yml` on a `semantics-vX.Y.Z` tag,
   trusted publishing, 0.1.0 [[hmd-0028#deployment--activation]].
-- **The cards of the namespace root** — read from the directory `wiki` names,
-  paths relative to it, `.md` cards included and nested vaults left out, as HQL
+- **The cards of the namespace root** — read from the directory `location_path` names,
+  paths relative to it, `.md` and `.markdown` cards included and nested vaults left out, as HQL
   reads them [HMD-0029].
 
 - **`build`** — every card of a vault and every `--query` embedded and written
@@ -91,11 +102,18 @@ uv run python -m pytest
 
 ## Open questions
 
-| Question | References |
-| --- | --- |
-| Is the tool published to PyPI, and as `hypermarkdown-semantics`? The name cannot be changed afterwards | [[hmd-0028#deployment--activation]] |
+None.
 
 ## Changelog
+
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
+- 2026-11-24: before the 0.1.0 release. Status names the released version and
+  says how the tool stands to HyperMarkDown 0.1.0: it reads cards and does not
+  implement the language. The Broken row about the cards location was fixed in
+  0.1.0 and contradicted the Done row, so it is gone; in its place, three
+  Broken rows for the 0.1 reading rules HQL's loader does not follow yet,
+  found by running the loader on small trees. The question about publishing
+  to PyPI is answered: 0.1.0 is there.
 
 - 2026-11-15: reading cards from the vault itself moved from a limitation to
   broken: `wiki` is decided to stay as the cards location, so the walk is

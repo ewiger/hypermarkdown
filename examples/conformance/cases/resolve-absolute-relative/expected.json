@@ -1,0 +1,150 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 9,
+      "message": "[[/sib]] does not resolve to a page",
+      "path": "a/b/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 10,
+      "message": "[[./up]] does not resolve to a page",
+      "path": "a/b/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 11,
+      "message": "[[../../../out]] resolves outside the namespace root",
+      "path": "a/b/src.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 14,
+      "message": "'.' or '..' outside an explicit relative reference in [[/a/../top]]",
+      "path": "a/b/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 15,
+      "message": "'.' or '..' outside an explicit relative reference in [[/a/../../x]]",
+      "path": "a/b/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 17,
+      "message": "[[./../../../x]] resolves outside the namespace root",
+      "path": "a/b/src.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 3,
+      "message": "[[./sib]] does not resolve to a page",
+      "path": "top.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 5,
+      "message": "[[../outside]] resolves outside the namespace root",
+      "path": "top.hmd",
+      "rule": "HMD003",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[../../../out]]",
+      "source": "a/b/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[../../top]]",
+      "source": "a/b/src.hmd",
+      "target": "top.hmd"
+    },
+    {
+      "raw": "[[../b/sib]]",
+      "source": "a/b/src.hmd",
+      "target": "a/b/sib.hmd"
+    },
+    {
+      "raw": "[[../up]]",
+      "source": "a/b/src.hmd",
+      "target": "a/up.hmd"
+    },
+    {
+      "raw": "[[./../../../x]]",
+      "source": "a/b/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[./../up]]",
+      "source": "a/b/src.hmd",
+      "target": "a/up.hmd"
+    },
+    {
+      "raw": "[[./c/../sib]]",
+      "source": "a/b/src.hmd",
+      "target": "a/b/sib.hmd"
+    },
+    {
+      "raw": "[[./sib]]",
+      "source": "a/b/src.hmd",
+      "target": "a/b/sib.hmd"
+    },
+    {
+      "raw": "[[./up]]",
+      "source": "a/b/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[/a/b/sib]]",
+      "source": "a/b/src.hmd",
+      "target": "a/b/sib.hmd"
+    },
+    {
+      "raw": "[[/sib]]",
+      "source": "a/b/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[/top]]",
+      "source": "a/b/src.hmd",
+      "target": "top.hmd"
+    },
+    {
+      "raw": "[[sib]]",
+      "source": "a/b/src.hmd",
+      "target": "a/b/sib.hmd"
+    },
+    {
+      "raw": "[[../outside]]",
+      "source": "top.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[./sib]]",
+      "source": "top.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[/a/up]]",
+      "source": "top.hmd",
+      "target": "a/up.hmd"
+    }
+  ]
+}

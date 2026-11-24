@@ -1,0 +1,8 @@
+# Src
+
+[[esc]]
+[[/out/leak]]
+[[leak]]
+[[../outside/secret]]
+[[./real/../real/inside]]
+[[./real/../../outside/secret]]

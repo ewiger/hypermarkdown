@@ -6,28 +6,51 @@
  * read from the same positions.
  */
 
+import { compareCodePoints } from "./paths.js";
+import { headingKey } from "./unicode.js";
+
 export const ERROR = "error";
 export const WARNING = "warning";
 
 export type Severity = typeof ERROR | typeof WARNING;
 
-/** A range in a source file, with a 1-indexed line and column. */
+/**
+ * Where a construct sits in its card.
+ *
+ * `start` and `end` count UTF-8 bytes from byte 0 of the card, which is the
+ * first byte after a byte-order mark if the file has one. `line` and `column`
+ * start at 1, and `column` counts Unicode code points, so it is the same
+ * number in every implementation whatever its string type.
+ *
+ * `index` and `indexEnd` are the same range as UTF-16 indices into the decoded
+ * text, which is what slicing `ParsedDocument.text` needs. They are this
+ * implementation's, not the language's. Spans that do not come from the
+ * scanner (an IR block's) leave both at 0.
+ */
 export interface Span {
-  /** 0-indexed offset in UTF-16 code units. */
   start: number;
   end: number;
   line: number;
   column: number;
+  index?: number;
+  indexEnd?: number;
 }
 
+/**
+ * An ATX or setext heading.
+ *
+ * `text` is what a reader sees, inline markup removed; `key` is what a heading
+ * fragment is matched against. Neither is an HTML `id` — that is a renderer's
+ * to choose.
+ */
 export interface Heading {
   level: number;
   text: string;
-  slug: string;
+  key: string;
   span: Span;
 }
 
-/** A trailing `^block-id` marker (HMD-0001 §2). */
+/** A trailing `^block-id` marker. */
 export interface Anchor {
   blockId: string;
   span: Span;
@@ -59,18 +82,31 @@ export interface ImportStmt {
   wildcard: boolean;
   bindings: ReadonlyArray<readonly [string, string]>;
   raw: string;
+  /** Where the statement is written in the card, for the diagnostics about it. */
+  line?: number;
+  column?: number;
 }
 
 /** The reserved frontmatter keys: `tags`, `use`, `import`. */
+/** `nav`: where a card sits in a published site. Null means "inherit". */
+export interface NavConfig {
+  order: number | null;
+  visibility: string | null;
+}
+
+/** The values `nav.visibility` may take. */
+export const VISIBILITIES: ReadonlySet<string> = new Set(["private", "public"]);
+
 export interface CardConfig {
   tags: readonly string[];
   /** Feature name -> enabled. Absent means "inherit". */
   use: Readonly<Record<string, boolean>>;
   imports: readonly ImportStmt[];
+  nav: NavConfig;
 }
 
 export function emptyCardConfig(): CardConfig {
-  return { tags: [], use: {}, imports: [] };
+  return { tags: [], use: {}, imports: [], nav: { order: null, visibility: null } };
 }
 
 export interface Diagnostic {
@@ -91,7 +127,7 @@ export function diagnosticSortKey(d: Diagnostic): [string, number, number, strin
 export function compareDiagnostics(a: Diagnostic, b: Diagnostic): number {
   const [ap, al, ac, ar] = diagnosticSortKey(a);
   const [bp, bl, bc, br] = diagnosticSortKey(b);
-  if (ap !== bp) return ap < bp ? -1 : 1;
+  if (ap !== bp) return compareCodePoints(ap, bp);
   if (al !== bl) return al - bl;
   if (ac !== bc) return ac - bc;
   if (ar !== br) return ar < br ? -1 : 1;
@@ -125,8 +161,17 @@ export function isMarkdownCard(doc: ParsedDocument): boolean {
   return doc.kind === "markdown";
 }
 
-export function headingSlugs(doc: ParsedDocument): Set<string> {
-  return new Set(doc.headings.map((h) => h.slug));
+/**
+ * The first heading, in document order, whose key is the fragment's.
+ *
+ * A heading whose key is empty is never matched: it has no text to be reached
+ * by, only an anchor. A later heading with the same key is reachable only by a
+ * block anchor on its line (HMD011).
+ */
+export function findHeading(doc: ParsedDocument, fragment: string): Heading | null {
+  const wanted = headingKey(fragment);
+  if (wanted === "") return null;
+  return doc.headings.find((h) => h.key === wanted) ?? null;
 }
 
 export function blockIds(doc: ParsedDocument): Set<string> {

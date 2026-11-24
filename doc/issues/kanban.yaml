@@ -23,10 +23,22 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0017, the editor line's is 0116.
-  last_id: 115 # highest assigned overall; per stream — Python 16, editor 115
+  # the Python line's next issue is 0027, the editor line's is 0116.
+  last_id: 115 # highest assigned overall; per stream — Python 26, editor 115
   items:
     backlog:
+      - id: "0026"
+        title: "Check frontmatter with an HQL-like data type system"
+        file: "0026-frontmatter-types-from-an-hql-like-type-system.md"
+      - id: "0024"
+        title: "Define symbolic link semantics"
+        file: "0024-define-symbolic-link-semantics.md"
+      - id: "0025"
+        title: "Extend the shared test coverage"
+        file: "0025-extend-shared-test-coverage.md"
+      - id: "0021"
+        title: "Specify the vault directory and the standard's boundary"
+        file: "0021-specify-the-vault-directory-and-its-boundary.md"
       - id: "0008"
         title: "A public card linking to a private one needs a policy"
         file: "0008-private-card-link-policy.md"
@@ -46,9 +58,9 @@ board:
       - id: "0016"
         title: "Prepare the 0.1 specification release"
         file: "0016-prepare-the-0-1-specification-release.md"
-      - id: "0014"
-        title: "A heading in a non-Latin script cannot be linked"
-        file: "0014-non-latin-headings-cannot-be-linked.md"
+      - id: "0019"
+        title: "Review lexical compatibility with CommonMark"
+        file: "0019-lexical-compatibility-with-commonmark.md"
       - id: "0015"
         title: "CommonMark's own examples as a test dataset"
         file: "0015-commonmark-examples-as-a-test-dataset.md"
@@ -78,6 +90,24 @@ board:
         file: 0115-mermaid-diagrams-on-par-with-d2.md
     doing: []
     done:
+      - id: "0018"
+        title: "Validate the grammar"
+        file: "archive/0018-validate-the-grammar.md"
+      - id: "0022"
+        title: "Align the implementations with the finalized 0.1 decisions"
+        file: "archive/0022-align-implementations-with-the-0-1-decisions.md"
+      - id: "0023"
+        title: "Rename wiki to location_path"
+        file: "archive/0023-rename-wiki-to-location-path.md"
+      - id: "0020"
+        title: "Validate name resolution across Python, Rust, and TypeScript"
+        file: "archive/0020-validate-name-resolution-across-implementations.md"
+      - id: "0014"
+        title: "A heading in a non-Latin script cannot be linked"
+        file: "archive/0014-non-latin-headings-cannot-be-linked.md"
+      - id: "0017"
+        title: "Verify path-suffix resolution"
+        file: "archive/0017-verify-path-suffix-resolution.md"
       - id: "0010"
         title: "A folder note's Markdown links resolve one directory up"
         file: "archive/0010-folder-note-links-resolve-one-level-up.md"

@@ -69,7 +69,7 @@ def test_the_changelog_has_an_entry_for_the_current_version():
 def test_lint_takes_a_markdown_card_by_path(tmp_path, monkeypatch):
     """HMD-0029: a `.md` file inside the namespace is a card the CLI accepts."""
     (tmp_path / ".hmd").mkdir()
-    (tmp_path / ".hmd" / "config.toml").write_text('wiki = "."\n', encoding="utf-8")
+    (tmp_path / ".hmd" / "config.toml").write_text('location_path = "."\n', encoding="utf-8")
     (tmp_path / "owl.hmd").write_text("# Owl\n", encoding="utf-8")
     (tmp_path / "owl.md").write_text("# Owl\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)

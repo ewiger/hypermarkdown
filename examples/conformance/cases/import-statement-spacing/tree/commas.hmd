@@ -1,0 +1,8 @@
+---
+use: [no_autodiscovery]
+import:
+  - "  from /shared import a,b , c\t,\td  "
+  - "from\t/shared\timport\te\tas\tee"
+---
+
+[[a]] [[b]] [[c]] [[d]] [[ee]]

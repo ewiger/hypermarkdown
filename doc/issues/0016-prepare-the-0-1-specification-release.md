@@ -5,13 +5,14 @@
 **Related**: [the format's tracker](../status/lang.md),
 [the specification](../wiki/hmd-lang-spec.hmd),
 [HMD-0030](../proposals/HMD-0030/README.md),
-[issue 0014](0014-non-latin-headings-cannot-be-linked.md),
-[issue 0015](0015-commonmark-examples-as-a-test-dataset.md)
+[issue 0014](archive/0014-non-latin-headings-cannot-be-linked.md),
+[issue 0015](0015-commonmark-examples-as-a-test-dataset.md),
+[issue 0018](archive/0018-validate-the-grammar.md)
 
 ## What
 
 HyperMarkDown works in practice, and the language is small: six constructs,
-four frontmatter keys, eighteen diagnostics. 0.1 is to be a real, frozen
+four frontmatter keys, nineteen diagnostics. 0.1 is to be a real, frozen
 release of the specification, not a permanent draft. 1.0 stays the later
 promise of stability.
 
@@ -36,12 +37,13 @@ the format's tracker.
 | Heading matching | The fragment and each heading's visible text are normalised the same way and compared, as Obsidian does: NFC, case folding, punctuation dropped, letters and digits kept in every script, whitespace collapsed. The specification states the rule itself | Naming a Python library made the other implementations copy its behaviour, including its bugs [issue 0014] |
 | Duplicate headings | The first wins and the linter warns; the recommended remedy is an anchor on the heading. The `_1` suffix leaves the language | Anchors are the author's controlled name |
 | Heading paths | `#Chapter#Section` waits for in-card addressing | It is the first step of that grammar |
+| In-card addressing | After 0.1. Its branch rebases onto the 0.1 specification and renumbers its unreleased rules from HMD020 | 0.1 stays small; addresses need both implementations and their own cases |
 | Project root | Only `.hmd/` marks a root; `.git` does not | One marker, one meaning; the editor already works this way |
 | Encoding | UTF-8 only; UTF-16 turned down | git treats it as binary and the tool chain reads UTF-8; newer formats went the same way |
 | Byte-order mark | A leading one is ignored | It is invisible, and today it hides frontmatter |
 | Line endings | `\n`, `\r\n`, or a lone `\r`, as in CommonMark | Inherited from the baseline |
 | Positions | Line and column count Unicode code points from 1; an offset counts UTF-8 bytes | The three tools count differently today, and nothing noticed |
-| Invalid UTF-8 | Reported by a rule of its own, and the file is skipped | A clear error instead of a crash |
+| Invalid UTF-8 | Reported as HMD019, and the file is skipped | A clear error instead of a crash |
 | Card names | Compared after NFC normalisation | A link must resolve the same on macOS and Linux |
 | Determinism | Stated normatively: the same tree gives the same output, whatever the file order | The format relies on it without saying so |
 | Silencing diagnostics | Not in 0.1; the sentence about suppression comments goes | A syntax designed before real use is designed wrong |
@@ -87,11 +89,14 @@ not yet confirmed one by one:
 3. **Cover the rules with tests:** a corpus case for every diagnostic and
    every resolution phase, non-Latin and duplicate headings, a non-ASCII
    column, and a vault whose `wiki` is not `.`.
-4. **Correct the stale claims.** Each tracker states which specification
-   version its tool conforms to. Today they disagree: "sixteen diagnostics"
-   against eighteen, "seven corpus cases" against thirteen, npm 0.2.0 against
-   0.3.0.
-5. **Release:**
+4. **Validate the grammar,** a separate requirement: every production
+   checked against the prose, given positive and negative cases, and run
+   against all three implementations. Recognised syntax, reference
+   components, positions, and diagnostics are compared, independently of
+   rendering [issue 0018].
+5. **Correct the stale claims.** Each tracker states which specification
+   version its tool conforms to.
+6. **Release:**
    - date 0.1 in the language's changelog;
    - tag it;
    - give the specification a stable address;
@@ -126,5 +131,7 @@ that tool, listed in the release notes, not a blocker for the specification.
 - The specification carries every decision above, and reads in the plainer
   voice.
 - All three implementations pass the corpus, including the new cases.
+- Every grammar production is validated against the prose and covered by
+  cases that all three implementations pass [issue 0018].
 - The trackers agree with the registries and name the version they conform to.
 - 0.1 is dated, tagged, and linked from the roadmap.

@@ -1,15 +1,22 @@
-"""The conformance corpus, run against the canonical implementation.
+"""The conformance corpus, run against the reference implementation.
 
-Every case under `examples/conformance/cases/` was generated from this
-implementation, so this runner checks that it still produces what it once
-wrote: a change in canonical behaviour shows up here as a diff to review and
-regenerate, rather than first as a TypeScript failure. The TypeScript runner
-is `tools/hmd-ts-core/test/corpus.test.ts`, and both build the same
+The specification is the authority, not this code. Each case's
+`expected.json` states what the specification requires of its tree: the
+`resolve-*` cases and every later case were written from the text, and the
+older ones, first generated from this implementation, are held to the text
+too. A failure here is therefore a disagreement with the specification, to be
+fixed in this code, or raised as a question about the text, never settled by
+regenerating the expected output. This implementation carries no
+expected-failure ledger. The TypeScript runner is
+`tools/hmd-ts-core/test/corpus.test.ts` and the Rust one
+`tools/hmd-rs-core/tests/corpus.rs`; the first two build the same
 `{diagnostics, resolutions}` shape.
 
-A case's `config.toml` sits beside its `tree/`, not inside it, so the tree is
-copied under a fresh project root with that file as its `.hmd/config.toml`.
-A tree may carry markers of its own further down; those are part of the case.
+A case's `tree/` is a vault. Its `config.toml` sits beside the tree, not
+inside it, so the tree is copied with a `.hmd/` marker of its own, holding
+that file when there is one, and loaded the way `hmd` loads any vault: its
+`location_path` names the namespace root, the tree itself by default. A tree
+may carry markers of its own further down; those are part of the case.
 """
 
 from __future__ import annotations
@@ -31,14 +38,17 @@ NAMES = sorted(p.name for p in CASES.iterdir() if p.is_dir())
 
 
 def run_case(case: Path, scratch: Path) -> dict:
-    root = scratch / "project"
-    shutil.copytree(case / "tree", root)
+    # The whole case is copied with its symbolic links kept as links, so a
+    # link from `tree/` to a sibling such as `outside/` still points out of
+    # the namespace root rather than becoming an ordinary file inside it.
+    shutil.copytree(case, scratch / "case", symlinks=True)
+    vault = scratch / "case" / "tree"
+    (vault / MARKER_DIR).mkdir()
     case_config = case / CONFIG_NAME
     if case_config.is_file():
-        (root / MARKER_DIR).mkdir()
-        shutil.copy(case_config, root / MARKER_DIR / CONFIG_NAME)
+        shutil.copy(case_config, vault / MARKER_DIR / CONFIG_NAME)
 
-    workspace = Workspace(config.load(root_override=root))
+    workspace = Workspace(config.load(start=vault))
     diagnostics = [d.to_dict() for d in check(workspace)]
 
     resolutions = []
@@ -56,6 +66,21 @@ def run_case(case: Path, scratch: Path) -> dict:
     return {"diagnostics": diagnostics, "resolutions": resolutions}
 
 
+def comparable(result: dict) -> dict:
+    """A case's result without message text, which the language does not define.
+
+    The shared tests compare a diagnostic's rule, severity, path, line, and
+    column; a message is for people, and each implementation words its own.
+    """
+    return {
+        "diagnostics": [
+            {key: value for key, value in d.items() if key != "message"}
+            for d in result["diagnostics"]
+        ],
+        "resolutions": result["resolutions"],
+    }
+
+
 def test_the_corpus_has_cases():
     assert NAMES
 
@@ -63,4 +88,4 @@ def test_the_corpus_has_cases():
 @pytest.mark.parametrize("name", NAMES)
 def test_case(name, tmp_path):
     expected = json.loads((CASES / name / "expected.json").read_text(encoding="utf-8"))
-    assert run_case(CASES / name, tmp_path) == expected
+    assert comparable(run_case(CASES / name, tmp_path)) == comparable(expected)

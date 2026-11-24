@@ -1,15 +1,16 @@
-# STATUS — `hmd`, the canonical implementation
+# STATUS — `hmd`, the reference implementation
 
 HyperMarkDown is ordinary markdown plus links into a knowledge graph: a card
 names another card and the name is resolved, a card can be built out of other
 cards, and a linter checks the whole graph rather than one file at a time.
-`tools/hmd` is the **canonical implementation** of that — where a disagreement
-between implementations is settled, and where a diagnostic's exact wording is
-decided.
+`tools/hmd` is the **reference implementation** of that: the most complete
+one, held to every conformance case with no expected-failure ledger, and where
+a diagnostic's exact wording is decided. A disagreement between
+implementations is settled by the specification, not by this code.
 
 It is Python because the format is read and written alongside a documentation
 build, and that is where the ecosystem it has to live in already is: MkDocs and
-Python-Markdown render the site, the slug algorithm the format adopts comes from
+Python-Markdown render the site, the site's heading ids come from
 Python-Markdown's table-of-contents extension, and a language server has a
 mature library waiting for it. A knowledge base is also edited by people who are
 not programmers, and `pip install HyperMarkDown` is a lower step than a
@@ -17,8 +18,8 @@ toolchain.
 
 What the package holds:
 
-- **The core** — scanner, parser, heading slugs, frontmatter, resolver, the
-  sixteen diagnostics, embed expansion, and the markdown and HTML renderers.
+- **The core** — scanner, parser, heading keys, frontmatter, resolver, the
+  nineteen diagnostics, embed expansion, and the markdown and HTML renderers.
 - **The `hmd` command** — `lint`, `render`, `graph`, and `init` over that core.
 - **The MkDocs plugin** — the same core wired into a site build, so a tree of
   cards becomes a book.
@@ -29,16 +30,22 @@ What the package holds:
 
 Beside this file: the format itself in [`lang.md`](lang.md), the second
 implementation in [`ts-core.md`](ts-core.md), its editor in
-[`vsc-ext.md`](vsc-ext.md), and the website in [`pages.md`](pages.md).
+[`vsc-ext.md`](vsc-ext.md), the Rust resolver in [`rs-core.md`](rs-core.md),
+the semantic-index builder in [`semantics.md`](semantics.md), and the website
+in [`pages.md`](pages.md).
 
 ## Status
 
-**Complete and released.** Everything the format specifies is implemented —
-grammar, resolution, the sixteen diagnostics, embed expansion, both renderers,
-the site plugin, publication. 331 tests, the shared corpus, three lint runs
-over real trees, and a site build stand behind that. `hypermarkdown`
-is on PyPI through a trusted publisher, each tool owns its own README, changelog,
-licence, and guide, and the repository root is a workspace rather than a package.
+**Conforms to HyperMarkDown 0.1.0.** Everything the specification states is
+implemented — grammar, resolution, the nineteen diagnostics, embed expansion,
+both renderers, the site plugin, publication — and every case in the
+conformance corpus passes with no expected-failure ledger. The tool's own
+version is separate: 0.4.0 is released, and the 0.1 rules and the corrected
+resolution algorithm are implemented and unreleased. The test suite, the
+shared corpus, three lint runs over real trees, and a site build stand behind
+that. `hypermarkdown` is on PyPI through a trusted publisher, each tool owns
+its own README, changelog, licence, and guide, and the repository root is a
+workspace rather than a package.
 
 **The next piece of work is the language server**, and it is unblocked: the one
 thing it needs is the ability to lint text an editor holds in memory rather than
@@ -54,13 +61,10 @@ commit: the retired domain does not redirect.
 | --- | --- | --- | --- |
 | todo | **Lint text, not just files.** Let a caller hand the workspace index the current contents of a card, consulted ahead of any read. Every layer below already takes text — the gap is exactly the one class that walks the tree and reads each card | First half of what the language server needs | [[hmd-0024#text-not-paths]] |
 | todo | **Invalidate one card at a time**, instead of loading the whole tree once when the index is built | Second half. Follows the change above | [[hmd-0024#text-not-paths]] |
-| todo | **A determinism test** — the same tree linted twice, and with its files created in a different order, producing identical output. The format leans on this without anything checking it | Nothing blocks it | [[hmd-0020#11-determinism-and-resource-bounds]] |
-| todo | **Property-based tests of the resolver's claims, over generated vaults.** The specification asserts properties that no test states for every tree: a wildcard import never changes a name the spine already resolved, a resolved path never lies outside the namespace root, embed expansion always terminates, and the sweep returns one match, an ambiguity, or nothing, never a silent pick. Generate random trees, cards, imports and embeds, and check each claim; a shrunk counterexample is either a resolver bug or a sentence the specification has to withdraw. The determinism test above is the same technique and can share the generator | The cheap form of the parked Lean model in the format's tracker, and the condition for unparking it. Needs `hypothesis` as a test dependency | [[hmd-lang-spec#rules-the-algorithm-must-satisfy]], [[hmd-lang-spec#embed-expansion]], [the format's tracker](lang.md) |
+| todo | **Property-based tests of the resolver's claims, over generated vaults.** The specification asserts properties that no test states for every tree: a wildcard import never changes a name the spine already resolved, a resolved path never lies outside the namespace root, embed expansion always terminates, and the sweep returns one match, an ambiguity, or nothing, never a silent pick. Generate random trees, cards, imports and embeds, and check each claim; a shrunk counterexample is either a resolver bug or a sentence the specification has to withdraw. The existing determinism test could take its trees from the same generator [`test_determinism.py`] | The cheap form of the parked Lean model in the format's tracker, and the condition for unparking it. Needs `hypothesis` as a test dependency | [[hmd-lang-spec#resolution-rules]], [[hmd-lang-spec#embed-expansion]], [the format's tracker](lang.md) |
 | blocked | **The language server itself.** A `pygls` server, so completion, rename, and hover exist for any editor rather than only the one embedding the TypeScript implementation | Waits on the two index changes above, and on whether it is a subcommand or its own script | [[hmd-0024#the-language-server-is-python-on-pygls]] |
 | blocked | **Redirect the retired domain** to the current one, preserving paths | Registrar configuration, not a commit. See Broken | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
 | parked | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name | Waits on that branch being picked up | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]] |
-| todo | **Index underlined headings.** The format decided for 0.1 that `Setup` over a line of `===` or `---` is a heading like `# Setup`, so the scanner indexes it, a link reaches it, and an embed of its section works. Lands in the same commit as the TypeScript implementation's change, with a case in the shared corpus | Nothing blocks it | [[hmd-0001#3-heading-anchors]] |
-| todo | **Stop treating `.git` as a project root.** Root discovery walks up for `.hmd/` and nothing else, as the editor already does; with no marker, the error says to run `hmd init` or pass `--root`. A repository that relied on the fallback needs one `.hmd/` directory | The format decided it for 0.1 [`config.py`, `find_project_root`] | [the format's tracker](lang.md) |
 | todo | **Draw only diagram cells in the site build.** A `d2#show` fence is drawn as a `d2` fence is today, and a plain `d2` fence becomes a code block | Lands in the same release as the TypeScript implementation's change and the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`] | [[hmd-0030#the-site-build]] |
 | todo | **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells, through the same module and the same bounds as D2, with the same labelled placeholder when no renderer is installed | Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains `mermaid#show` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.md) |
 
@@ -68,7 +72,6 @@ commit: the retired domain does not redirect.
 
 | Status | Defect | Symptom | References |
 | --- | --- | --- | --- |
-| todo | **A heading in a non-Latin script cannot be linked.** The slug function reduces text to ASCII, so `Ошибка 404` becomes `404` and a heading with no Latin letters at all becomes empty, which deduplication turns into `_1`, `_2`, … in card order. A link to any such heading therefore reaches the first non-Latin heading of the card, whatever its text, and accents are stripped so `#cafe` reaches `café`. Fixed by the specification's own matching rule, which keeps every script | Cards are UTF-8 by the specification, so this is a defect, not a limitation [`parse.py`, `slug_for`; `lint/rules.py`] | [the format's tracker](lang.md), [the issue card](../issues/0014-non-latin-headings-cannot-be-linked.md) |
 | todo | **An embedded card's Markdown links resolve from the host page.** Expansion is textual and carries a wikilink back to the card it was written in, but an ordinary relative link is plain text to it and is resolved from the page that embeds it | A link, an image, or a path to a card written in an embedded card is wrong on every host in another directory, on the site and in `hmd render`. MkDocs reports it at `info` only, so a strict build stays green | [the issue card](../issues/0012-embedded-markdown-links-resolve-from-the-host-page.md), [[hmd-0001#6-embed-expansion]] |
 | blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme | Every link published under the old host is dead. The fix is a web form, not a commit | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
 
@@ -86,19 +89,48 @@ commit: the retired domain does not redirect.
 
 ## Done
 
+- **`location_path` names the namespace root** — the setting formerly called
+  `wiki`, read relative to the vault with the default `.`, the vault itself,
+  instead of `doc/wiki`; no alias. `hmd init --location-path` replaces
+  `--wiki`, and with no flag creates no directory; unreleased.
+- **The HMD007 check follows only the embedded region** — it walks the
+  section a fragment expands to, not every embed in the target card, so two
+  embeds of different sections of one card, or a section embedding a sibling
+  section, are no longer a false cycle. A card or a section that embeds itself
+  still is. Held by the `embed-sections-of-one-card` and `embed-self` corpus
+  cases; unreleased.
+- **The corrected resolution algorithm** — `..` is normalised in every form,
+  leaving the namespace is HMD003 in every phase (a nested vault and a symbolic
+  link out of the root included), a written card extension is honoured in
+  every phase, a named import of another extension falls through, `[[./]]` and
+  `[[../]]` reach only folder notes, every imported search path is probed so
+  HMD016 names each shadowed card once, and HMD012 is a warning. The eighteen
+  `resolve-*` corpus cases, written from the specification, stand behind it;
+  unreleased [issue 0020].
+- **The HyperMarkDown 0.1 rules** — heading fragments match by key, so
+  headings in every script are linkable [issue 0014], setext
+  headings are headings, HMD019 reports undecodable files, a byte-order mark is
+  ignored, all three line endings are lines, names compare after NFC (import
+  aliases included), offsets count UTF-8 bytes and columns code points, only
+  `.hmd/` marks a vault, an anchor on a heading embeds its section, an anchored
+  repeat heading is not HMD011, and block anchors are no longer rendered — the
+  tutorial's "you cannot see it" paragraph showed its own. A determinism test
+  and six corpus cases stand behind it; unreleased.
 - **A syntax highlighter for cards** — a code sample marked `hmd` is coloured
   as a card wherever Pygments is used: links, embeds, block anchors, and
   frontmatter stand out, and a fenced block inside the sample is coloured as
   its own language.
-- **The format, entire** — masking and the link grammar, heading slugs taken
-  from Python-Markdown so links and rendered anchors cannot disagree, the
-  two-phase resolution search with its whole-tree fallback, folder notes, both
-  import forms, and embed expansion with a depth cap and cycle detection.
+- **The format, entire** — masking and the link grammar, heading links
+  rewritten to the id Python-Markdown's table of contents gives the heading
+  they matched, so links and rendered anchors cannot disagree, the four-phase
+  resolution search — named imports, the spine, imported search paths, then
+  the whole-tree sweep — folder notes, both import forms, and embed expansion
+  with a depth cap and cycle detection.
 - **Markdown cards** — `.md` and `.markdown` files load as cards that are not
   scanned, bind after `.hmd`, and are reported as HMD018 when shadowed; the MkDocs
   plugin links to the page MkDocs builds from one and never registers it; a
   heading right below the frontmatter fence is a heading again [HMD-0029].
-- **`hmd lint`** — eighteen diagnostics with stable identifiers, JSON output, and
+- **`hmd lint`** — nineteen diagnostics with stable identifiers, JSON output, and
   exit codes a CI job can read.
 - **`hmd render`** — flat markdown and HTML.
 - **`hmd init`** — writes the project marker with every setting at its default,
@@ -116,7 +148,7 @@ commit: the retired domain does not redirect.
 - **Released and renamed** — on PyPI through a trusted publisher, under a name
   that now matches the domain, the npm scope, and the extension publisher, with
   the old entry point kept working as an alias.
-- **The repository layout** — three tools under `tools/`, each owning its own
+- **The repository layout** — five tools under `tools/`, each owning its own
   front matter with no packaging symlinks, the shared corpus at the root where
   it belongs to every implementation, and a workspace root that is not itself a
   package.
@@ -130,8 +162,10 @@ commit: the retired domain does not redirect.
   it for the registered page: links to cards, to plain pages, and to images,
   inline and as reference definitions. Ships in 0.3.1 [issue 0010]
 - **The shared corpus runs here too** — every conformance case is checked
-  against this implementation as well as the TypeScript one, so drift is caught
-  whichever side moves.
+  against this implementation, the TypeScript one, and the Rust crate, so drift
+  is caught whichever side moves. This one carries no expected-failure ledger,
+  and its expected results are written from the specification, not generated
+  from this code.
 
 ## Gates
 
@@ -156,7 +190,6 @@ improvement.
 | Is the language server a subcommand of the existing command, or its own script? | [[hmd-0024#the-language-server-is-python-on-pygls]] |
 | Is its library a base dependency or an optional extra? An extra keeps the plain install small; a base dependency means the server exists wherever the command does | [[hmd-0024#the-language-server-is-python-on-pygls]] |
 | Which language features move to the server first, and how does an editor report an absent server without implying the preview failed? That the extension becomes a client of it was settled; the sequencing was not | [[hmd-0024#the-language-server-is-python-on-pygls]] |
-| Does canonicity move if a third implementation appears, and what is the procedure? | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
 | Should `hmd graph` record each card's resolved search path, so a consumer can see what a card reaches without replaying the algorithm? | [[hmd-0001#5-link-resolution]] |
 | When is the retired plugin alias withdrawn, and what announces it — a major version, a warning at build time, or nothing? | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
 | Does pruning the abandoned PyPI project mean yanking its releases or deleting it? Deletion frees the name for anyone to register and serve to a stale pin | [[hmd-0005#the-python-distribution-its-module-and-the-project-left-behind]] |
@@ -168,6 +201,10 @@ improvement.
 
 ## Changelog
 
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
+- 2026-11-22: the 0.1 rules are implemented, unreleased.
+- 2026-11-22: the diagnostic count, eighteen, matches the code. Corrected on
+  2026-11-24: it is nineteen, with HMD019.
 - 2026-09-14: rewritten in the shape the trackers now use — status first in
   prose, then open work, broken, gaps, and done last. Work-point numbers are
   gone: a row is named by what it is. The header now says what HyperMarkDown is,
@@ -184,3 +221,12 @@ improvement.
   parks.
 - 2026-11-22: Open rows for dropping the `.git` root fallback and for drawing
   only diagram cells in the site build.
+- 2026-11-24: before the 0.1.0 release. The tool conforms to HyperMarkDown
+  0.1.0, and is the reference implementation rather than the arbiter: the
+  specification settles disagreements. The Open rows for the determinism
+  test, HMD019 and the encoding rules, setext headings, and the `.git`
+  fallback, and the Broken row for non-Latin headings, were already done and
+  folded into the Done row for the 0.1 rules. Done rows for the corrected
+  resolution algorithm and for the HMD007 check; the question about
+  canonicity under a third implementation is answered by the specification's
+  authority rule.

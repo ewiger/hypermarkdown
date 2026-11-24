@@ -1,0 +1,83 @@
+# HMD-0031 — The corpus
+
+What a conformance case compares, what the thirteen cases cover today, and
+what the specification makes normative without any case behind it.
+
+## What a case compares today
+
+A case is a `tree/`, an optional `config.toml`, and an `expected.json` holding
+`diagnostics` and `resolutions`. Resolutions are keyed by source card and raw
+link text, so a case is a whole tree, not one entry card: the right shape for
+semantics that span several files. The layout is not in question. What it
+compares is.
+
+**Findings.**
+
+- **The message is compared.** See [`authority.md`](authority.md).
+- **Construct spans are not compared.** The specification requires every
+  construct to carry `(start_offset, end_offset, line, column)`, and 0.1 just
+  changed their units to UTF-8 bytes and code points. Every expected
+  diagnostic sits at line 1, column 1, which is how three implementations came
+  to count three different ways without a case failing.
+- **Expanded text is not compared.** `embed-cycle` pins the diagnostic. No case
+  pins what an embed expands to: frontmatter removal, section bounds, anchor
+  stripping, or a link inside an embed resolving from its own card.
+
+**Candidate projection.**
+
+```text
+expected.json := { diagnostics, resolutions, [constructs], [expansions] }
+diagnostic    := { path, line, column, rule, severity, [candidates] }
+resolution    := { source, raw, target | null }
+construct     := { source, kind, raw, start_offset, end_offset, line, column }
+expansion     := { source, raw, text }
+```
+
+A runner compares only what a case states and what its implementation's
+conformance class covers.
+
+## What no case covers
+
+- **Publication.** No case sets `visibility` or expects HMD017. See
+  [`publication.md`](publication.md).
+- **A written extension** in the absolute, relative, and swept forms. See
+  [`errata.md`](errata.md).
+- **Most diagnostics.** The release card already requires a case for every
+  diagnostic and every resolution phase; today several of HMD001 to HMD019
+  have none.
+- **Headings under the new rule.** Non-Latin, accented, empty-key, duplicate,
+  and setext headings.
+- **Encoding.** A byte-order mark before frontmatter, invalid UTF-8, a
+  construct after non-ASCII text, and names stored in NFD.
+- **A vault whose `wiki` is not `.`.**
+- **The permitted divergence.** The specification permits the masking scanner
+  to differ from CommonMark on pathological input and names two examples, a
+  wikilink inside an HTML block and a fence opened inside a blockquote. No case
+  pins them, so "pathological" has no boundary, and two implementations could
+  disagree on ordinary input and both call it permitted.
+- **The reserved namespace form.**
+
+## Running the corpus from outside
+
+The README says how the three runners in this repository run. It does not say
+how an implementation written elsewhere reads a case, which outputs its class
+must produce, or how the ledger of expected failures works for it. A
+specification becomes useful when someone can implement it independently and
+check the result.
+
+## Organisation
+
+The cases are flat, named by what they pin. At thirteen that reads well; at a
+hundred it may not. Grouping by area — syntax, masking, Markdown cards,
+frontmatter, resolution, fragments, embeds, diagnostics, publication — is one
+option, recording an area in each case is another.
+
+## Open questions
+
+- Is the message dropped from the comparison?
+- Do `constructs` and `expansions` join the projection for 0.1?
+- Are the permitted divergences pinned as cases marked implementation-defined,
+  which a runner reports and does not fail on?
+- Is a guide for outside implementations part of 0.1 or after it?
+- Do the cases stay flat, move into area folders, or carry an area field?
+- Does each case record the specification version it was written against?

@@ -1,0 +1,20 @@
+---
+import:
+  - from /lib import *
+---
+
+# Src
+
+[[owl.md]]
+[[owl.hmd]]
+[[owl]]
+[[only.hmd]]
+[[only.markdown]]
+[[mod.md]]
+[[mod.hmd]]
+[[./owl.md]]
+[[/notes/owl.md]]
+[[gloss.md]]
+[[gloss]]
+[[far.markdown]]
+[[far]]

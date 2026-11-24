@@ -74,21 +74,37 @@ impl Import {
     }
 }
 
-/// `text` without its leading whitespace, or `None` when it has none.
+/// Whether `c` is `WS` in the import grammar: a space or a tab.
+fn is_ws(c: char) -> bool {
+    c == ' ' || c == '\t'
+}
+
+/// `text` without its leading spaces and tabs, or `None` when it has none.
 fn skip_space(text: &str) -> Option<&str> {
-    let rest = text.trim_start_matches(text::is_space);
+    let rest = text.trim_start_matches(is_ws);
     (rest.len() < text.len()).then_some(rest)
 }
 
-/// Reads `<name>` or `<name> as <alias>`, neither holding a `/`.
+/// Whether `name` is an import-name: a segment with no whitespace in it, so
+/// no `/`, no reserved character, and no `:`.
+fn is_import_name(name: &str) -> bool {
+    !name.is_empty()
+        && !name
+            .chars()
+            .any(|c| text::is_space(c) || matches!(c, '/' | '[' | ']' | '|' | '#' | '^' | ':'))
+}
+
+/// Reads `<name>` or `<name> as <alias>`, with spaces or tabs between the
+/// words and on either side.
 fn binding(part: &str) -> Option<Binding> {
-    let (name, local) = match text::words(part)[..] {
+    let words: Vec<&str> = part.split(is_ws).filter(|w| !w.is_empty()).collect();
+    let (name, local) = match words[..] {
         // A `*` among names is refused; it stands only as the whole list.
         [name] if name != "*" => (name, name),
         [name, "as", alias] => (name, alias),
         _ => return None,
     };
-    if name.contains('/') || local.contains('/') {
+    if !is_import_name(name) || !is_import_name(local) {
         return None;
     }
     Some(Binding {
@@ -156,6 +172,28 @@ mod tests {
             "from ./a import a\nb",
             "from./a import a",
             "from ./a importa",
+        ] {
+            assert_eq!(Import::parse(statement), None, "{statement:?} was accepted");
+        }
+    }
+
+    #[test]
+    fn ws_is_spaces_and_tabs_only() {
+        let import = Import::parse("from\t./a\timport\ta,b , c\t,\td\tas\te").unwrap();
+        assert_eq!(
+            pairs(&import),
+            [("a", "a"), ("b", "b"), ("c", "c"), ("d", "e")]
+        );
+        for statement in [
+            "from\u{a0}./a import a",
+            "from ./a import\u{a0}a",
+            "from ./a import a,\u{a0}b",
+            "from ./a import a\u{a0}as b",
+            "from ./a import x:y",
+            "from ./a import a as x#y",
+            "From ./a import a",
+            "from ./a Import a",
+            "from ./a import a AS b",
         ] {
             assert_eq!(Import::parse(statement), None, "{statement:?} was accepted");
         }

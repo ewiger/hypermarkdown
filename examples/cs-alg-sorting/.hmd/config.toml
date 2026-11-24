@@ -4,8 +4,6 @@
 # tree is self-contained:
 #   hmd lint --root examples/cs-alg-sorting
 
-wiki = "."
-
 [discovery]
 autodiscovery = true
 mode = "both"

@@ -7,7 +7,7 @@
 **Build your own local wiki knowledge base**
 
 [![Documentation](https://img.shields.io/badge/docs-hypermarkdown.org-ffb300)](https://hypermarkdown.org/)
-[![Spec](https://img.shields.io/badge/spec-0.1-blue)](https://hypermarkdown.org/wiki/hmd-lang-spec/)
+[![Spec](https://img.shields.io/badge/spec-0.1.0-blue)](https://hypermarkdown.org/wiki/hmd-lang-spec/)
 [![CI](https://github.com/ewiger/hypermarkdown/actions/workflows/ci.yml/badge.svg)](https://github.com/ewiger/hypermarkdown/actions/workflows/ci.yml)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-yellow.svg)](LICENSE)
 [![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-ef9421.svg)](LICENSE-DOCS)
@@ -78,9 +78,9 @@ linked or embedded on its own.
 ### Namespaces
 
 A *vault* is a directory marked by a `.hmd/` directory, which holds its
-configuration. Its cards start at the *cards location*, the `wiki` setting of
-`.hmd/config.toml`: a path inside the vault, `doc/wiki` unless the file says
-otherwise, and `.` to keep the cards directly under the vault. A folder below
+configuration. Its cards start at the *namespace root*, the `location_path`
+setting of `.hmd/config.toml`: a path inside the vault, the vault itself unless
+the file says otherwise. A folder below
 it is a *module*, and the tree of modules is the vault's *namespace*: every
 address in the table above resolves inside it, and a file of the vault outside
 it is not a card. A nested `.hmd/` starts a new vault, and a link that escapes
@@ -99,7 +99,7 @@ introduce one by mentioning it, so the set of vaults a build may read is one
 file:
 
 ```toml
-wiki = "doc/wiki"                # the cards location: where this vault's own cards start
+location_path = "doc/wiki"       # the namespace root: where this vault's own cards start
 
 [namespaces.design]              # a second vault on this filesystem
 folder = "../design-wiki"

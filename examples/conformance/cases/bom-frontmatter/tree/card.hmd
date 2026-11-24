@@ -1,0 +1,7 @@
+﻿---
+use: [no_autodiscovery]
+---
+# Card
+
+[[card#Card]] resolves on the spine. [[deep]] is in a sibling module, so only
+the sweep this frontmatter turns off would find it.

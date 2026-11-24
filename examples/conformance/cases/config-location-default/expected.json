@@ -1,0 +1,15 @@
+{
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "[[/index]]",
+      "source": "doc/wiki/guide.hmd",
+      "target": "index.hmd"
+    },
+    {
+      "raw": "[[guide]]",
+      "source": "index.hmd",
+      "target": "doc/wiki/guide.hmd"
+    }
+  ]
+}

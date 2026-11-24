@@ -1,5 +1,5 @@
 /**
- * The workspace and the four-phase resolver (HMD-0001 §5) — a port of
+ * The workspace and the four-phase resolver — a port of
  * `tools/hmd/src/hypermarkdown/resolve.py`.
  *
  * Resolution order is named import, then spine, then imported search paths,
@@ -10,14 +10,16 @@
  */
 
 import { MARKER_DIR } from "./config.js";
+import { cardText, decodeCard } from "./encoding.js";
 import type { WorkspaceHost } from "./host.js";
 import type { ImportStmt, ParsedDocument } from "./model.js";
-import { parse } from "./parse.js";
+import { dotSegmentOutsideRelative, parse } from "./parse.js";
 import {
   CARD_SUFFIXES,
   INDEX_STEM,
   SUFFIX,
   cardSuffix,
+  compareCodePoints,
   dirnameRel,
   isUnder,
   joinRel,
@@ -25,10 +27,19 @@ import {
   pageParts,
   split,
 } from "./paths.js";
+import { nfc } from "./unicode.js";
 
 export { INDEX_STEM, SUFFIX };
 
 export type Outcome = "resolved" | "unresolved" | "ambiguous" | "escapes";
+
+/**
+ * What `Workspace.bind` returns for a path that leaves the namespace: outside
+ * the root, inside a nested vault, or through a symbolic link that leads out of
+ * the root. It is HMD003, never an ordinary missing card.
+ */
+export const ESCAPES: unique symbol = Symbol("escapes");
+export type Escapes = typeof ESCAPES;
 
 export interface Resolution {
   outcome: Outcome;
@@ -38,6 +49,12 @@ export interface Resolution {
   phase: number | null;
   /** Origins that also held the name but lost on declaration order (HMD016). */
   shadowed: readonly string[];
+  /**
+   * Imported search paths, after the one that resolved, through which the
+   * reference leaves the namespace. Each is HMD003 on its own; none changes
+   * the result.
+   */
+  escaped: readonly string[];
 }
 
 function resolution(partial: Partial<Resolution> & { outcome: Outcome }): Resolution {
@@ -46,6 +63,7 @@ function resolution(partial: Partial<Resolution> & { outcome: Outcome }): Resolu
     candidates: [],
     phase: null,
     shadowed: [],
+    escaped: [],
     ...partial,
   };
 }
@@ -53,8 +71,9 @@ function resolution(partial: Partial<Resolution> & { outcome: Outcome }): Resolu
 export interface ImportTable {
   bindings: Map<string, string>;
   searchPaths: string[];
-  /** (rule, message) problems found while building the table. */
-  problems: Array<readonly [string, string]>;
+  /** (rule, message, statement) problems found while building the table; the
+   * statement says where each is reported. */
+  problems: Array<readonly [string, string, ImportStmt]>;
 }
 
 export interface WorkspaceConfig {
@@ -80,8 +99,23 @@ export class Workspace {
   private readonly shadowed = new Map<string, string>();
   private indexed = false;
   private readonly directories = new Set<string>([""]);
+  /**
+   * A card's path in NFC -> its path as stored. A reference and a name on disk
+   * are compared in NFC, because the same name can be stored in either form
+   * and must resolve the same way everywhere.
+   */
+  private readonly byNfc = new Map<string, string>();
+  /** The same, for every directory below the root (import origins). */
+  private readonly directoriesByNfc = new Map<string, string>([["", ""]]);
+  /** Files with a card extension that are not UTF-8 -> why (HMD019). */
+  private readonly undecodableFiles = new Map<string, string>();
   /** Roots of the vaults nested below this one; their cards are not ours. */
   private readonly nestedRoots = new Set<string>();
+  /**
+   * Symbolic links below the root that lead out of it, in NFC, as the host
+   * reported them. Nothing through one is part of the namespace.
+   */
+  private readonly escapingLinks = new Set<string>();
   private readonly importTables = new Map<string, ImportTable>();
   private readonly resolveCache = new Map<string, Resolution>();
 
@@ -106,13 +140,17 @@ export class Workspace {
         workspace.nestedRoots.add(dir);
         return;
       }
-      workspace.directories.add(dir);
+      workspace.noteDirectory(dir);
       // Sorted before use: depending on host iteration order would make
       // resolution vary by platform, which is determinism's first casualty.
       entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
       for (const entry of entries) {
         if (entry.name.startsWith(".")) continue;
         const rel = joinRel(dir, entry.name);
+        if (entry.leavesRoot === true) {
+          workspace.escapingLinks.add(nfc(rel));
+          continue;
+        }
         if (entry.isDirectory) await walk(rel);
         else if (cardSuffix(entry.name) !== null) paths.push(rel);
       }
@@ -122,10 +160,24 @@ export class Workspace {
     paths.sort();
 
     for (const rel of paths) {
-      workspace.addDocument(rel, parse(rel, await host.readFile(rel)));
+      const read = await readCard(host, rel);
+      if (!read.ok) {
+        // Not a card: not parsed, not a target, not a page.
+        workspace.undecodableFiles.set(rel, read.message);
+        continue;
+      }
+      // Two names on disk that are one name in NFC: only the first, in sorted
+      // order, is the card at that name.
+      if (workspace.byNfc.has(nfc(rel))) continue;
+      workspace.addDocument(rel, parse(rel, read.text));
     }
 
     return workspace;
+  }
+
+  private noteDirectory(dir: string): void {
+    this.directories.add(dir);
+    if (!this.directoriesByNfc.has(nfc(dir))) this.directoriesByNfc.set(nfc(dir), dir);
   }
 
   /**
@@ -148,14 +200,19 @@ export class Workspace {
    */
   addDocument(rel: string, document: ParsedDocument): void {
     if (this.inNestedVault(rel)) return;
+    // Another file already holds this name in NFC; it stays the card.
+    const holder = this.byNfc.get(nfc(rel));
+    if (holder !== undefined && holder !== rel) return;
+    this.undecodableFiles.delete(rel);
     const isNew = !this.documents.has(rel);
     this.documents.set(rel, document);
     if (isNew) {
+      this.byNfc.set(nfc(rel), rel);
       this.pageList.push(rel);
       this.pageList.sort();
       let dir = dirnameRel(rel);
       for (;;) {
-        this.directories.add(dir);
+        this.noteDirectory(dir);
         if (dir === "") break;
         dir = dirnameRel(dir);
       }
@@ -163,11 +220,38 @@ export class Workspace {
     this.invalidate();
   }
 
+  /**
+   * Record that `rel` has a card extension and is not UTF-8 (HMD019), for
+   * hosts that feed files incrementally. It stops being a card if it was one.
+   */
+  addUndecodable(rel: string, message: string): void {
+    if (this.inNestedVault(rel)) return;
+    this.removeDocument(rel);
+    this.undecodableFiles.set(rel, message);
+  }
+
   removeDocument(rel: string): void {
+    this.undecodableFiles.delete(rel);
     if (!this.documents.delete(rel)) return;
+    if (this.byNfc.get(nfc(rel)) === rel) this.byNfc.delete(nfc(rel));
     const at = this.pageList.indexOf(rel);
     if (at !== -1) this.pageList.splice(at, 1);
     this.invalidate();
+  }
+
+  /** Files with a card extension that are not UTF-8, and why, sorted by path. */
+  undecodable(): Array<readonly [string, string]> {
+    return [...this.undecodableFiles.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  }
+
+  /** The card at `rel` as stored, comparing names in NFC; null when none is. */
+  card(rel: string): string | null {
+    return this.byNfc.get(nfc(rel)) ?? null;
+  }
+
+  /** The directory at `rel` as stored, comparing names in NFC; null when none is. */
+  directory(rel: string): string | null {
+    return this.directoriesByNfc.get(nfc(rel)) ?? null;
   }
 
   /** Drop every memoised answer. Cheap, and the alternative is stale links. */
@@ -182,21 +266,20 @@ export class Workspace {
    *
    * Files of one directory whose names differ only in their card extension
    * claim one name; the earliest extension is the card at it, and every other
-   * is shadowed and never a sweep candidate (HMD-0029).
+   * is shadowed. A shadowed card is indexed too: a reference that writes its
+   * extension reaches it in the sweep, and one that writes none skips it.
    */
   private ensureIndex(): void {
     if (this.indexed) return;
     this.byParts.clear();
     this.shadowed.clear();
     const claims = new Map<string, string[]>();
-    for (const page of this.pageList) push(claims, pageParts(page).join("/"), page);
+    for (const page of this.pageList) push(claims, nfc(pageParts(page).join("/")), page);
     for (const claimants of claims.values()) {
       const ranked = [...claimants].sort((a, b) => rank(a) - rank(b));
       for (const loser of ranked.slice(1)) this.shadowed.set(loser, ranked[0]!);
     }
-    for (const page of this.pageList) {
-      if (!this.shadowed.has(page)) this.indexParts(page);
-    }
+    for (const page of this.pageList) this.indexParts(page);
     this.indexed = true;
   }
 
@@ -207,7 +290,7 @@ export class Workspace {
   }
 
   private indexParts(rel: string): void {
-    const parts = pageParts(rel);
+    const parts = pageParts(rel).map(nfc);
     push(this.byParts, parts.join("/"), rel);
     // A folder note is also addressable by its directory's name, so a bare
     // name means the same thing in phase 1 and phase 3.
@@ -221,36 +304,62 @@ export class Workspace {
   }
 
   hasDirectory(rel: string): boolean {
-    return this.directories.has(rel);
+    return this.directory(rel) !== null;
   }
 
-  // -- §5.1 binding ----------------------------------------------------
+  // -- binding ---------------------------------------------------------
 
   /**
-   * Bind `parts` in one directory, honouring folder notes.
+   * Look `parts` up in one directory, honouring folder notes: the
+   * specification's *Resolving a reference within a directory*.
    *
-   * The card extensions are tried in priority order, then the folder note with
-   * the same extensions in the same order (HMD-0029). A target naming a
-   * directory resolves to that directory's folder note, which is what makes it
-   * the namespace's landing page. When both `foo.hmd` and `foo/index.hmd`
-   * exist the file wins; the collision is reported separately as HMD012. A
-   * `suffix` the reference wrote binds only that extension.
+   * The path is normalised first, and one that leaves the namespace is
+   * `ESCAPES`. The card extensions are tried in priority order, then the folder
+   * note with the same extensions in the same order. A target naming a
+   * directory resolves to that directory's folder note. When both `foo.hmd` and
+   * `foo/index.hmd` exist the file wins; the collision is reported separately
+   * as HMD012. A `suffix` the reference wrote binds only that extension, and
+   * `directoryOnly` — `[[./]]` and `[[../]]` — binds only the folder note.
+   * Names compare in NFC, and the card returned is the path as stored.
    */
-  bind(directory: string, parts: readonly string[], suffix: string | null = null): string | null {
-    if (parts.length === 0) return null;
-    const head = parts.slice(0, -1);
-    const last = parts[parts.length - 1]!;
+  bind(
+    directory: string,
+    parts: readonly string[],
+    suffix: string | null = null,
+    directoryOnly = false,
+  ): string | null | Escapes {
+    if (parts.length === 0 && !directoryOnly) return null;
+    const normalized = normalizeParts([...split(directory), ...parts]);
+    if (normalized.escapes || this.violates(normalized.parts)) return ESCAPES;
+    const base = normalized.parts;
     const suffixes = suffix === null ? CARD_SUFFIXES : [suffix];
 
-    for (const each of suffixes) {
-      const candidate = joinRel(directory, ...head, `${last}${each}`);
-      if (this.documents.has(candidate)) return candidate;
+    const candidates: string[] = [];
+    if (!directoryOnly && base.length > 0) {
+      const last = base[base.length - 1]!;
+      for (const each of suffixes) candidates.push(joinRel("", ...base.slice(0, -1), `${last}${each}`));
     }
-    for (const each of suffixes) {
-      const folderNote = joinRel(directory, ...parts, `${INDEX_STEM}${each}`);
-      if (this.documents.has(folderNote)) return folderNote;
+    for (const each of suffixes) candidates.push(joinRel("", ...base, `${INDEX_STEM}${each}`));
+
+    for (const candidate of candidates) {
+      if (this.escapingLinks.has(nfc(candidate))) return ESCAPES;
+      const card = this.card(candidate);
+      if (card !== null) return card;
     }
     return null;
+  }
+
+  /**
+   * Whether normalised root-relative `parts` break the namespace's boundaries:
+   * inside a nested vault, or reached through a symbolic link out of the root.
+   */
+  private violates(parts: readonly string[]): boolean {
+    if (this.inNestedVault(parts.join("/"))) return true;
+    if (this.escapingLinks.size === 0) return false;
+    for (let i = 1; i <= parts.length; i++) {
+      if (this.escapingLinks.has(nfc(parts.slice(0, i).join("/")))) return true;
+    }
+    return false;
   }
 
   // -- imports ---------------------------------------------------------
@@ -270,16 +379,19 @@ export class Workspace {
     if (document === undefined) return table;
 
     for (const stmt of document.card.imports) {
-      const directory = this.importDir(source, stmt);
-      if (directory === null) {
+      const named = this.importDir(source, stmt);
+      if (named === null) {
         table.problems.push([
           "HMD003",
           `import ref '${stmt.ref}' resolves outside the namespace root`,
+          stmt,
         ]);
         continue;
       }
-      if (!this.directories.has(directory)) {
-        table.problems.push(["HMD015", `import ref '${stmt.ref}' does not exist`]);
+      // Looked up in NFC, then used as stored.
+      const directory = this.directory(named);
+      if (directory === null) {
+        table.problems.push(["HMD015", `import ref '${stmt.ref}' does not exist`, stmt]);
         continue;
       }
 
@@ -290,18 +402,22 @@ export class Workspace {
 
       for (const [name, local] of stmt.bindings) {
         const target = this.bind(directory, [name]);
-        if (target === null) {
+        if (typeof target !== "string") {
           table.problems.push([
             "HMD015",
             `cannot import '${name}' from '${stmt.ref}': no such page`,
+            stmt,
           ]);
           continue;
         }
         const existing = table.bindings.get(local);
-        if (existing !== undefined && existing !== target) {
+        // Two bindings of one name are an error even when they reach one card:
+        // the name is declared twice. The first binding stands.
+        if (existing !== undefined) {
           table.problems.push([
             "HMD015",
             `'${local}' is bound twice by imports (${existing} and ${target})`,
+            stmt,
           ]);
           continue;
         }
@@ -320,7 +436,7 @@ export class Workspace {
     return escapes ? null : parts.join("/");
   }
 
-  // -- §5.3 effective feature toggles ----------------------------------
+  // -- effective feature toggles ---------------------------------------
 
   /**
    * Card `use`, then the nearest ancestor `index.hmd`, then config.
@@ -350,7 +466,7 @@ export class Workspace {
     return this.config.autodiscovery;
   }
 
-  // -- §5.2 the algorithm ----------------------------------------------
+  // -- the algorithm ---------------------------------------------------
 
   resolve(source: string, pageRef: string): Resolution {
     const key = `${source} ${pageRef}`;
@@ -361,29 +477,33 @@ export class Workspace {
     return result;
   }
 
-  private resolveUncached(source: string, pageRef: string): Resolution {
+  private resolveUncached(source: string, written: string): Resolution {
+    const pageRef = nfc(written);
     const suffix = cardSuffix(pageRef);
     const stem = suffix === null ? pageRef : pageRef.slice(0, -suffix.length);
 
-    if (stem.startsWith("/")) {
-      const target = this.bind("", split(stem), suffix);
-      return target
-        ? resolution({ outcome: "resolved", path: target })
-        : resolution({ outcome: "unresolved" });
-    }
+    // Malformed (HMD010): never a link, so never resolved.
+    if (dotSegmentOutsideRelative(stem)) return resolution({ outcome: "unresolved" });
+
+    // A reference that ends in `/` names a directory, and resolves only to its
+    // folder note, in every phase; `[[/]]` is the root's.
+    const dirRef = stem.endsWith("/");
+
+    if (stem.startsWith("/")) return bound(this.bind("", split(stem), suffix, dirRef));
 
     if (stem.startsWith("./") || stem.startsWith("../")) {
       const { parts, escapes } = normalizeParts([
         ...split(dirnameRel(source)),
         ...stem.split("/"),
       ]);
-      if (escapes) return resolution({ outcome: "escapes" });
-      if (parts.length === 0) return resolution({ outcome: "unresolved" });
-      const dir = parts.slice(0, -1).join("/");
-      const target = this.bind(dir, [parts[parts.length - 1]!], suffix);
-      return target
-        ? resolution({ outcome: "resolved", path: target })
-        : resolution({ outcome: "unresolved" });
+      if (escapes || this.violates(parts)) return resolution({ outcome: "escapes" });
+      const last = stem.split("/").pop();
+      if (dirRef || parts.length === 0 || last === "." || last === "..") {
+        // `[[./]]`, `[[../]]`, a trailing `/`, or a last component of `.` or
+        // `..`: the directory itself, so its folder note.
+        return bound(this.bind(parts.join("/"), [], suffix, true));
+      }
+      return bound(this.bind(parts.slice(0, -1).join("/"), [parts[parts.length - 1]!], suffix));
     }
 
     const parts = split(stem);
@@ -392,34 +512,55 @@ export class Workspace {
     const table = this.importTable(source);
 
     // Phase 0 — named imports. A binding names a page, not a namespace, so it
-    // applies to single-segment targets only.
-    if (parts.length === 1) {
-      const bound = table.bindings.get(parts[0]!);
-      if (bound !== undefined) {
-        return resolution({ outcome: "resolved", path: bound, phase: 0 });
+    // applies to single-segment targets only, never to a reference that names
+    // a directory, and not to a reference that writes an extension the bound
+    // card does not have.
+    if (!dirRef && parts.length === 1) {
+      const named = table.bindings.get(parts[0]!);
+      if (named !== undefined && (suffix === null || cardSuffix(named) === suffix)) {
+        return resolution({ outcome: "resolved", path: named, phase: 0 });
       }
     }
 
     // Phase 1 — spine walk, non-recursive, nearest first.
     for (const directory of this.spine(source)) {
-      const target = this.bind(directory, parts, suffix);
+      const target = this.bind(directory, parts, suffix, dirRef);
+      if (target === ESCAPES) return resolution({ outcome: "escapes" });
       if (target !== null) {
         return resolution({ outcome: "resolved", path: target, phase: 1 });
       }
     }
 
-    // Phase 2 — imported search paths, in declaration order.
-    const hits = table.searchPaths.filter((d) => this.bind(d, parts, suffix) !== null);
-    if (hits.length > 0) {
-      const winner = this.bind(hits[0]!, parts, suffix)!;
-      const shadowed = hits.slice(1).map((d) => this.bind(d, parts, suffix)!);
-      return resolution({ outcome: "resolved", path: winner, phase: 2, shadowed });
+    // Phase 2 — imported search paths, in declaration order. Every one is
+    // probed: the first card wins, and each other distinct card is shadowed
+    // (HMD016). One card reached twice is not a collision.
+    // A path that leaves the namespace before anything matched is the
+    // outcome; after a match it is reported on its own and changes nothing.
+    const found: string[] = [];
+    const escaped: string[] = [];
+    for (const directory of table.searchPaths) {
+      const target = this.bind(directory, parts, suffix, dirRef);
+      if (target === ESCAPES) {
+        if (found.length === 0) return resolution({ outcome: "escapes" });
+        escaped.push(directory);
+        continue;
+      }
+      if (target !== null && !found.includes(target)) found.push(target);
+    }
+    if (found.length > 0) {
+      return resolution({
+        outcome: "resolved",
+        path: found[0]!,
+        phase: 2,
+        shadowed: found.slice(1),
+        escaped,
+      });
     }
 
     if (!this.autodiscoveryEnabled(source)) return resolution({ outcome: "unresolved" });
 
     // Phase 3 — autodiscovery, at most once.
-    const matches = this.sweep(source, parts, suffix);
+    const matches = this.sweep(source, parts, suffix, dirRef);
     if (matches.length === 1) {
       return resolution({ outcome: "resolved", path: matches[0]!, phase: 3 });
     }
@@ -441,7 +582,36 @@ export class Workspace {
     return out;
   }
 
-  private sweep(source: string, parts: readonly string[], ext: string | null): string[] {
+  /**
+   * Whether a folder note, matched by its directory's name, gives way: a card
+   * beside the directory claims the same name and is selected in every phase
+   * (HMD012), while the note stays reachable by its `index` path. Only a card
+   * the reference could bind counts: one with the written extension, or any
+   * card that is not shadowed.
+   */
+  private noteYieldsToCard(page: string, keyParts: readonly string[], ext: string | null): boolean {
+    const parts = pageParts(page).map(nfc);
+    if (parts.length < 2 || parts[parts.length - 1] !== INDEX_STEM) return false;
+    if (keyParts.join("/") !== parts.slice(0, -1).join("/")) return false;
+    const directory = dirnameRel(page);
+    for (const each of ext === null ? CARD_SUFFIXES : [ext]) {
+      const card = this.card(`${directory}${each}`);
+      if (card !== null && (ext !== null || !this.shadowed.has(card))) return true;
+    }
+    return false;
+  }
+
+  /**
+   * The recursive search. A reference that names a directory considers only
+   * folder notes, and a folder note it asks for never yields to a card beside
+   * its directory.
+   */
+  private sweep(
+    source: string,
+    parts: readonly string[],
+    ext: string | null,
+    directoryOnly = false,
+  ): string[] {
     this.ensureIndex();
     const scope = this.config.mode === "recursive" ? dirnameRel(source) : "";
     const suffix = parts.join("/");
@@ -452,15 +622,27 @@ export class Workspace {
       if (keyParts.length < parts.length) continue;
       if (keyParts.slice(keyParts.length - parts.length).join("/") !== suffix) continue;
       for (const page of pages) {
-        if (ext !== null && cardSuffix(page) !== ext) continue;
+        if (ext !== null ? cardSuffix(page) !== ext : this.shadowed.has(page)) continue;
+        if (directoryOnly) {
+          if (pageParts(page).at(-1) !== INDEX_STEM) continue;
+        } else if (this.noteYieldsToCard(page, keyParts, ext)) {
+          continue;
+        }
         if (scope === "" || isUnder(scope, page)) matches.add(page);
       }
     }
 
-    // Sorted by root-relative POSIX path, so diagnostics are byte-identical
-    // across platforms and runs (P1).
-    return [...matches].sort();
+    // Sorted by root-relative POSIX path in code-point order, so diagnostics
+    // are byte-identical across platforms, runs, and implementations.
+    return [...matches].sort(compareCodePoints);
   }
+}
+
+/** The resolution of a path reference from what `bind` returned. */
+function bound(target: string | null | Escapes): Resolution {
+  if (target === ESCAPES) return resolution({ outcome: "escapes" });
+  if (target === null) return resolution({ outcome: "unresolved" });
+  return resolution({ outcome: "resolved", path: target });
 }
 
 /** The priority of a card's extension: lower wins a shared name. */
@@ -473,4 +655,13 @@ function push(map: Map<string, string[]>, key: string, value: string): void {
   const list = map.get(key);
   if (list === undefined) map.set(key, [value]);
   else if (!list.includes(value)) list.push(value);
+}
+
+/** A card's text from the host, or why the file is not a card (HMD019). */
+async function readCard(
+  host: WorkspaceHost,
+  rel: string,
+): Promise<{ ok: true; text: string } | { ok: false; message: string }> {
+  if (host.readBytes !== undefined) return decodeCard(await host.readBytes(rel));
+  return { ok: true, text: cardText(await host.readFile(rel)) };
 }

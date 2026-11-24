@@ -1,0 +1,42 @@
+{
+  "diagnostics": [
+    {
+      "column": 5,
+      "line": 3,
+      "message": "[[missing-cr]] does not resolve to a page",
+      "path": "cr.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 5,
+      "line": 3,
+      "message": "[[missing-crlf]] does not resolve to a page",
+      "path": "crlf.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[crlf#Setup]]",
+      "source": "cr.hmd",
+      "target": "crlf.hmd"
+    },
+    {
+      "raw": "[[missing-cr]]",
+      "source": "cr.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[cr#Steps]]",
+      "source": "crlf.hmd",
+      "target": "cr.hmd"
+    },
+    {
+      "raw": "[[missing-crlf]]",
+      "source": "crlf.hmd",
+      "target": null
+    }
+  ]
+}

@@ -187,9 +187,10 @@ describe("lint rules", () => {
     expect(check(ws).map((d) => d.rule)).toContain("HMD006");
   });
 
-  it("reports a folder-note collision as HMD012", async () => {
+  it("reports a folder-note collision as HMD012, a warning", async () => {
     const ws = await build({ "foo.hmd": card(), "foo/index.hmd": card() });
-    expect(check(ws).map((d) => d.rule)).toContain("HMD012");
+    const found = check(ws).filter((d) => d.rule === "HMD012");
+    expect(found.map((d) => d.severity)).toEqual(["warning"]);
   });
 
   it("reports an embed cycle as HMD007", async () => {
@@ -253,6 +254,44 @@ describe("Markdown cards (HMD-0029)", () => {
     expect(doc.frontmatter).toEqual({ title: "A" });
     expect(doc.links).toEqual([]);
     expect(doc.anchors).toEqual([]);
-    expect(doc.headings.map((h) => h.slug)).toEqual(["a"]);
+    expect(doc.headings.map((h) => h.key)).toEqual(["a"]);
+  });
+});
+
+describe("heading fragments match by key", () => {
+  it("reaches a heading whatever its case and punctuation", async () => {
+    const ws = await build({
+      "errors.hmd": "# Errors\n\n## Ошибка 404!\n\n## Straße\n",
+      "a.hmd": "[[errors#ошибка 404]] [[errors#STRASSE]]\n",
+    });
+    expect(check(ws)).toEqual([]);
+  });
+
+  it("names the fragment as written when nothing matches (HMD004)", async () => {
+    const ws = await build({ "e.hmd": "# Café\n", "a.hmd": "[[e#Cafe Menu]]\n" });
+    expect(check(ws).map((d) => d.message)).toEqual(["e.hmd has no heading '#Cafe Menu'"]);
+  });
+
+  it("reports every later heading with the same key and no anchor (HMD011)", async () => {
+    const ws = await build({
+      "s.hmd": "# Guide\n\n## Setup\n\n## setup!\n\n## Setup ^linux\n\n## SETUP\n",
+    });
+    expect(check(ws).map((d) => [d.rule, d.line, d.message])).toEqual([
+      [
+        "HMD011",
+        5,
+        "heading 'setup!' has the same key as the heading on line 3, which a fragment reaches instead; anchor this one with a block id to link to it",
+      ],
+      [
+        "HMD011",
+        9,
+        "heading 'SETUP' has the same key as the heading on line 3, which a fragment reaches instead; anchor this one with a block id to link to it",
+      ],
+    ]);
+  });
+
+  it("no longer reaches a repeat by a numbered suffix", async () => {
+    const ws = await build({ "s.hmd": "## Setup\n\n## Setup\n", "a.hmd": "[[s#setup_1]]\n" });
+    expect(check(ws, ["a.hmd"]).map((d) => d.rule)).toEqual(["HMD004"]);
   });
 });

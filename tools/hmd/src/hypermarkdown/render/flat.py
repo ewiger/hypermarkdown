@@ -21,8 +21,8 @@ import markdown
 
 from ..embed import Expansion, expand
 from ..model import Link
-from ..parse import slug_for
 from ..resolve import Workspace
+from .ids import heading_ids
 
 #: The "free" half of the syntax — everything the format does not own itself
 #: (HMD-0001 §9). Consumed as a dependency, never reimplemented.
@@ -46,7 +46,7 @@ def render(workspace: Workspace, path: Path, suffix: str = ".md") -> Expansion:
     def rewrite(link: Link, target: Path | None) -> str:
         if target is None:
             return link.raw
-        return f"[{_text(link)}]({_href(home, target, link, suffix)})"
+        return f"[{_text(link)}]({_href(workspace, home, target, link, suffix)})"
 
     return expand(workspace, path, rewrite=rewrite)
 
@@ -66,12 +66,18 @@ def _text(link: Link) -> str:
     return link.page_ref if link.fragment_kind == "block" else link.target
 
 
-def _href(home: Path, target: Path, link: Link, suffix: str) -> str:
+def _href(workspace: Workspace, home: Path, target: Path, link: Link, suffix: str) -> str:
     relative = os.path.relpath(target.with_suffix(suffix), home)
     href = posixpath.join(*Path(relative).parts) if relative != "." else ""
 
     # A block id has no anchor in plain markdown, so the fragment is dropped
-    # rather than emitted as a link that goes nowhere.
+    # rather than emitted as a link that goes nowhere. A heading fragment
+    # becomes the id `toc` gives the heading it matched on the target's own
+    # rendering, and is dropped too when it matched none (HMD004).
     if link.fragment is not None and link.fragment_kind == "heading":
-        href = f"{href}#{slug_for(link.fragment, set())}"
+        document = workspace.documents[target]
+        heading = document.find_heading(link.fragment)
+        if heading is not None:
+            anchor = heading_ids(workspace, target)[document.headings.index(heading)]
+            href = f"{href}#{anchor}"
     return href

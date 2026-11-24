@@ -1,5 +1,5 @@
 /**
- * Embed expansion (HMD-0001 §6, HMD-0020 §8).
+ * Embed expansion (HMD-0020).
  *
  * Expansion returns a *slice* of the target — its text plus the 1-indexed line
  * that slice starts on — rather than a rewritten string. Keeping the target's
@@ -8,9 +8,11 @@
  */
 
 import { splitFrontmatter } from "./frontmatter.js";
-import type { ParsedDocument } from "./model.js";
+import { findHeading, type Heading, type ParsedDocument } from "./model.js";
 import { lineStarts } from "./scan.js";
-import { slugify } from "./slug.js";
+
+/** Lines end at `\n`, `\r\n`, or a lone `\r`. */
+const EOL_RE = /\r\n|\r|\n/;
 
 export interface Slice {
   text: string;
@@ -46,7 +48,11 @@ export function bodySlice(document: ParsedDocument): Slice {
  * - no fragment: the whole body, frontmatter removed
  * - `#Section`: the heading and everything up to the next heading of the same
  *   or higher level
- * - `#^id`: the anchored block, with its trailing marker stripped
+ * - `#^id`: the anchored block, with its trailing marker stripped; an anchor
+ *   on a heading's line names that heading, and expands its whole section
+ *
+ * The slice keeps every other block anchor as written: they are never
+ * rendered, and the renderer drops them where it drops its own.
  */
 export function expand(
   document: ParsedDocument,
@@ -59,16 +65,23 @@ export function expand(
 }
 
 function expandSection(document: ParsedDocument, fragment: string): Expansion {
-  const wanted = slugify(fragment);
-  const heading = document.headings.find((h) => h.slug === wanted);
-  if (heading === undefined) return { reason: `no heading '#${wanted}'` };
+  // The first heading whose key is the fragment's.
+  const heading = findHeading(document, fragment);
+  if (heading === null) return { reason: `no heading '#${fragment}'` };
+  return section(document, heading);
+}
 
-  const lines = document.text.split("\n");
+/**
+ * A heading and everything up to the next heading of the same or higher
+ * level. ATX and setext headings end each other's sections alike: a setext
+ * heading's level is 1 under `===` and 2 under `---`.
+ */
+function section(document: ParsedDocument, heading: Heading): Slice {
+  const lines = document.text.split(EOL_RE);
   const startLine = heading.span.line;
 
   let endLine = lines.length;
-  for (const other of document.headings) {
-    if (other.span.line <= startLine) continue;
+  for (const other of document.headings.slice(document.headings.indexOf(heading) + 1)) {
     if (other.level <= heading.level) {
       endLine = other.span.line - 1;
       break;
@@ -84,13 +97,19 @@ function expandBlock(document: ParsedDocument, blockId: string): Expansion {
   const anchor = document.anchors.find((a) => a.blockId === blockId);
   if (anchor === undefined) return { reason: `no block '^${blockId}'` };
 
-  const lines = document.text.split("\n");
   const anchorLine = anchor.span.line;
+  // An anchor on a heading's line names the heading, not its line.
+  const heading = document.headings.find((h) => h.span.line === anchorLine);
+  if (heading !== undefined) return section(document, heading);
+
+  const lines = document.text.split(EOL_RE);
+  // The walk never climbs into the frontmatter.
+  const floor = bodySlice(document).startLine;
 
   // A block is the run of non-blank lines around the anchor. The anchor marks
   // the block's last line, so the walk is upward.
   let start = anchorLine;
-  while (start > 1 && (lines[start - 2] ?? "").trim() !== "") start -= 1;
+  while (start > floor && (lines[start - 2] ?? "").trim() !== "") start -= 1;
 
   const body = lines
     .slice(start - 1, anchorLine)

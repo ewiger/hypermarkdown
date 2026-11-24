@@ -1,0 +1,13 @@
+# Ids
+
+One character. ^a
+
+Sixty-four characters. ^a0123456789abcdef-_ABCDEF0123456789abcdef-_ABCDEF0123456789abcde
+
+Underscore and hyphen. ^step_1-b
+
+Upper case. ^Case
+
+Starts with a digit. ^9lives
+
+Followed by text, so not an anchor ^mid and more.

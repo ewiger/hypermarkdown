@@ -1,0 +1,24 @@
+{
+  "diagnostics": [
+    {
+      "column": 5,
+      "line": 4,
+      "message": "'tokens' is bound twice by imports (shared/tokens.hmd and shared/tokens.hmd)",
+      "path": "twice.hmd",
+      "rule": "HMD015",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[tokens]]",
+      "source": "once.hmd",
+      "target": "shared/tokens.hmd"
+    },
+    {
+      "raw": "[[tokens]]",
+      "source": "twice.hmd",
+      "target": "shared/tokens.hmd"
+    }
+  ]
+}

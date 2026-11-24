@@ -110,7 +110,7 @@ Every other key is yours, and nothing will inspect it.
 | Command | What it does |
 | --- | --- |
 | `hmd init` | Write `.hmd/config.toml` and create the namespace root it names |
-| `hmd lint` | Parse, resolve, and report — `HMD001`–`HMD017`, text or JSON |
+| `hmd lint` | Parse, resolve, and report — `HMD001`–`HMD019`, text or JSON |
 | `hmd render` | Expand embeds and rewrite links, to flat markdown or HTML |
 | `hmd graph` | Dump the resolved link graph as JSON |
 | `hmd info` | Show the resolved root and discovery policy |
@@ -121,7 +121,8 @@ the vault, the directory holding `.hmd/`, the cards start (`doc/wiki` by
 default, `.` for directly under the vault). The directory it names is the
 namespace root, and every command but `init` takes `--root` to override it. A
 `.hmd/` directory doubles as the project root marker, so any subtree can be
-self-contained.
+self-contained, and it is the only marker: a `.git` directory is not one, so a
+tree with no `.hmd/` above it needs `--root`.
 
 ```bash
 hmd init                    # here; the namespace is named after the directory

@@ -1,0 +1,100 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 4,
+      "message": "docs/guide.hmd has no heading '#Install'",
+      "path": "docs/src.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 7,
+      "message": "docs/guide.hmd has no block '^steps'",
+      "path": "docs/src.hmd",
+      "rule": "HMD005",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 9,
+      "message": "notes.md has no block '^nope'",
+      "path": "docs/src.hmd",
+      "rule": "HMD005",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 11,
+      "message": "[[missing#Install]] does not resolve to a page",
+      "path": "docs/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "candidates": [
+        "a/dup.hmd",
+        "b/dup.hmd"
+      ],
+      "column": 1,
+      "line": 12,
+      "message": "[[dup#X]] matches 2 pages; qualify it (candidates: a/dup.hmd, b/dup.hmd)",
+      "path": "docs/src.hmd",
+      "rule": "HMD002",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[/guide#Install]]",
+      "source": "docs/src.hmd",
+      "target": "guide.hmd"
+    },
+    {
+      "raw": "[[/guide#^steps]]",
+      "source": "docs/src.hmd",
+      "target": "guide.hmd"
+    },
+    {
+      "raw": "[[dup#X]]",
+      "source": "docs/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[guide#Install]]",
+      "source": "docs/src.hmd",
+      "target": "docs/guide.hmd"
+    },
+    {
+      "raw": "[[guide#Usage]]",
+      "source": "docs/src.hmd",
+      "target": "docs/guide.hmd"
+    },
+    {
+      "raw": "[[guide#^steps]]",
+      "source": "docs/src.hmd",
+      "target": "docs/guide.hmd"
+    },
+    {
+      "raw": "[[missing#Install]]",
+      "source": "docs/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[notes#Old]]",
+      "source": "docs/src.hmd",
+      "target": "notes.md"
+    },
+    {
+      "raw": "[[notes#^nope]]",
+      "source": "docs/src.hmd",
+      "target": "notes.md"
+    },
+    {
+      "raw": "[[notes.md#old]]",
+      "source": "docs/src.hmd",
+      "target": "notes.md"
+    }
+  ]
+}

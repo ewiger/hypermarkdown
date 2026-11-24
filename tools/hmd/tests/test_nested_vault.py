@@ -21,7 +21,7 @@ PUBLIC = "---\nnav:\n  visibility: public\n---\n\n"
 TREE = {
     "here.hmd": PUBLIC + "# Here\n\nSee [[time]].\n",
     "wiki/time.hmd": PUBLIC + "# Time\n",
-    "inner/.hmd/config.toml": 'wiki = "."\n',
+    "inner/.hmd/config.toml": 'location_path = "."\n',
     "inner/time.hmd": PUBLIC + "# Inner time\n",
     "inner/abs.hmd": PUBLIC + "# Abs\n\nSee [[/time]].\n",
 }
@@ -69,13 +69,13 @@ def test_import_cannot_reach_into_a_nested_vault(tmp_path):
         tmp_path,
         {
             "a.hmd": "---\nimport:\n  - from /inner import time\n---\n\n# A\n",
-            "inner/.hmd/config.toml": 'wiki = "."\n',
+            "inner/.hmd/config.toml": 'location_path = "."\n',
             "inner/time.hmd": "# Inner time\n",
         },
     )
     table = _workspace(root).import_table(root / "a.hmd")
     assert table.bindings == {}
-    assert [rule for rule, _ in table.problems] == ["HMD015"]
+    assert [rule for rule, _, _ in table.problems] == ["HMD015"]
 
 
 def test_a_file_named_like_the_marker_is_not_a_vault(tmp_path):

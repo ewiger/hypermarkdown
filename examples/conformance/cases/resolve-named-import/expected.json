@@ -1,0 +1,64 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "specs/tokens.hmd shadows specs/tokens.md; [[specs/tokens]] means specs/tokens.hmd",
+      "path": "specs/tokens.md",
+      "rule": "HMD018",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[tokens]]",
+      "source": "specs/index.hmd",
+      "target": "lib/tokens.hmd"
+    },
+    {
+      "raw": "[[k.md]]",
+      "source": "specs/login.hmd",
+      "target": "shared/keys.md"
+    },
+    {
+      "raw": "[[k]]",
+      "source": "specs/login.hmd",
+      "target": "shared/keys.md"
+    },
+    {
+      "raw": "[[keys]]",
+      "source": "specs/login.hmd",
+      "target": "specs/keys.hmd"
+    },
+    {
+      "raw": "[[specs/tokens]]",
+      "source": "specs/login.hmd",
+      "target": "specs/tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#Shared tokens]]",
+      "source": "specs/login.hmd",
+      "target": "shared/tokens.hmd"
+    },
+    {
+      "raw": "[[tokens.hmd]]",
+      "source": "specs/login.hmd",
+      "target": "shared/tokens.hmd"
+    },
+    {
+      "raw": "[[tokens.md]]",
+      "source": "specs/login.hmd",
+      "target": "specs/tokens.md"
+    },
+    {
+      "raw": "[[tokens]]",
+      "source": "specs/login.hmd",
+      "target": "shared/tokens.hmd"
+    },
+    {
+      "raw": "[[tokens]]",
+      "source": "specs/other.hmd",
+      "target": "specs/tokens.hmd"
+    }
+  ]
+}

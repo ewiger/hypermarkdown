@@ -1,11 +1,10 @@
-"""Source bytes -> `Document` (HMD-0001 §1, §2, §3)."""
+"""Source text -> `Document`: the lexical model, the grammar, heading anchors."""
 
 from __future__ import annotations
 
+import html
 import re
 from pathlib import Path
-
-from markdown.extensions.toc import slugify, unique
 
 from . import scan
 from .frontmatter import parse_card_config, parse_yaml, split_frontmatter
@@ -19,21 +18,104 @@ from .model import (
     Heading,
     Link,
     Span,
+    heading_key,
 )
 
 #: Characters that may not appear literally in a link target (HMD-0001 §2).
-RESERVED_CHARS = frozenset("[]|#^\n")
+RESERVED_CHARS = frozenset("[]|#^:\n")
 
 _BLOCK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
 
-def slug_for(text: str, used: set[str]) -> str:
-    """Assign a heading slug the way Python-Markdown's `toc` extension does.
+_ANCHOR_SUFFIX_RE = re.compile(r"[ \t]+\^[A-Za-z0-9][A-Za-z0-9_-]{0,63}[ \t]*$")
+_CLOSING_HASHES_RE = re.compile(r"(?:^|[ \t]+)#+[ \t]*$")
+_ATX_CONTENT_RE = re.compile(r"^[ \t]{0,3}#{1,6}(?:[ \t]+(?P<content>.*?))?[ \t]*$", re.DOTALL)
 
-    Delegated rather than invented: a link and its rendered destination cannot
-    disagree if both sides use the same rule (HMD-0001 §3).
+#: Inline markup, in the order a reader's eye removes it. A code span is first
+#: so that nothing inside it is read as markup, and a wikilink comes before an
+#: ordinary link because it is spelled with more brackets.
+_INLINE_RE = re.compile(
+    r"(?P<ticks>`+)(?P<code>.+?)(?P=ticks)"
+    r"|\\(?P<escaped>[!-/:-@\[-`{-~])"
+    r"|!?\[\[(?P<wikilink>[^\[\]\n]*)\]\]"
+    r"|(?P<comment><!--.*?-->)"
+    r"|<(?P<autolink>[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\s]*)>"
+    r"|<(?P<email>[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+)>"
+    r"|(?P<tag></?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?/?>)"
+    r"|!\[(?P<alt>[^\]]*)\]\([^)]*\)"
+    r"|\[(?P<label>[^\]]*)\](?:\([^)]*\)|\[[^\]]*\])"
+    r"|(?P<entity>&(?:#[0-9]{1,7}|#[xX][0-9A-Fa-f]{1,6}|[A-Za-z][A-Za-z0-9]{1,31});)"
+    r"|(?P<delimiter>\*+|_+|~~)",
+    re.DOTALL,
+)
+
+
+def visible_text(source: str) -> str:
+    """Heading content as a reader sees it: inline markup removed.
+
+    `The *fast* path` reads `The fast path`, a code span reads as its code, a
+    link as its text, a wikilink as its display or its page reference, and raw
+    HTML tags and comments vanish. Whitespace, line breaks included, collapses
+    to single spaces. This is a reading of CommonMark's inlines and not a full
+    parser: an emphasis delimiter is dropped wherever it touches a word, except
+    an `_` inside one, which CommonMark does not treat as emphasis.
     """
-    return unique(slugify(text, "-"), used)
+
+    def replace(m: re.Match) -> str:
+        if m.group("ticks"):
+            code = re.sub(r"\r\n|\r|\n", " ", m.group("code"))
+            if code.startswith(" ") and code.endswith(" ") and code.strip():
+                code = code[1:-1]
+            return code
+        if m.group("escaped") is not None:
+            return m.group("escaped")
+        if m.group("wikilink") is not None:
+            inner = m.group("wikilink")
+            if "|" in inner:
+                return inner.split("|", 1)[1]
+            return inner.split("#", 1)[0].strip()
+        if m.group("comment") is not None or m.group("tag") is not None:
+            return ""
+        if m.group("autolink") is not None:
+            return m.group("autolink")
+        if m.group("email") is not None:
+            return m.group("email")
+        if m.group("alt") is not None:
+            return visible_text(m.group("alt"))
+        if m.group("label") is not None:
+            return visible_text(m.group("label"))
+        if m.group("entity") is not None:
+            return html.unescape(m.group("entity"))
+        return _delimiter(source, m)
+
+    return " ".join(_INLINE_RE.sub(replace, source).split())
+
+
+def _delimiter(source: str, m: re.Match) -> str:
+    """An emphasis delimiter run is dropped; a run that is plain text is kept."""
+    run = m.group("delimiter")
+    before = source[m.start() - 1] if m.start() > 0 else " "
+    after = source[m.end()] if m.end() < len(source) else " "
+    if before.isspace() and after.isspace():
+        return run  # `2 * 3` — flanks nothing, so it is text
+    if run[0] == "_" and before.isalnum() and after.isalnum():
+        return run  # `snake_case` — an intraword `_` is not emphasis
+    return ""
+
+
+def heading_content(raw: str) -> str:
+    """The text of one heading as written: its markers, closing run, and anchor gone.
+
+    `raw` is the heading's whole source. One that spans more than one line is
+    a setext heading, and its underline is its last line.
+    """
+    breaks = [i for i in (raw.rfind("\n"), raw.rfind("\r")) if i != -1]
+    if breaks:
+        return _ANCHOR_SUFFIX_RE.sub("", raw[: max(breaks)].rstrip()).strip()
+    m = _ATX_CONTENT_RE.match(raw)
+    content = (m.group("content") or "") if m else raw
+    content = _ANCHOR_SUFFIX_RE.sub("", content.rstrip())
+    return _CLOSING_HASHES_RE.sub("", content).strip()
 
 
 def parse(path: Path, text: str, rel: str) -> Document:
@@ -50,16 +132,17 @@ def parse(path: Path, text: str, rel: str) -> Document:
         except ValueError as exc:
             diagnostics.append(Diagnostic("HMD009", ERROR, rel, 1, 1, str(exc)))
         else:
-            card, problems = parse_card_config(frontmatter)
-            for rule, message in problems:
-                diagnostics.append(Diagnostic(rule, ERROR, rel, 1, 1, message))
+            card, problems = parse_card_config(frontmatter, raw_yaml)
+            for rule, message, (line, column) in problems:
+                diagnostics.append(Diagnostic(rule, ERROR, rel, line, column, message))
 
     # Mask the body only; frontmatter is YAML, not markdown.
-    masked = _blank(text[:body_offset]) + scan.mask(text[body_offset:])
+    masked = _masked(text, body_offset)
+    positions = scan.Positions(text)
 
-    headings = _headings(text, masked)
-    anchors = _anchors(text, masked)
-    links, link_diagnostics = _links(text, masked, rel)
+    headings = _headings(text, masked, positions)
+    anchors = _anchors(masked, positions)
+    links, link_diagnostics = _links(text, masked, rel, positions)
     diagnostics.extend(link_diagnostics)
 
     return Document(
@@ -90,15 +173,19 @@ def parse_markdown(path: Path, text: str, rel: str) -> Document:
         except ValueError:
             body_offset = 0
 
-    masked = _blank(text[:body_offset]) + scan.mask(text[body_offset:])
     return Document(
         path=path,
         text=text,
         frontmatter=frontmatter,
         card=CardConfig(),
-        headings=_headings(text, masked),
+        headings=_headings(text, _masked(text, body_offset), scan.Positions(text)),
         kind=MARKDOWN,
     )
+
+
+def _masked(text: str, body_offset: int) -> str:
+    """The text as the extractors read it: frontmatter blanked, body masked."""
+    return scan.one_line_ending(_blank(text[:body_offset]) + scan.mask(text[body_offset:]))
 
 
 def _blank(frontmatter: str) -> str:
@@ -110,41 +197,45 @@ def _blank(frontmatter: str) -> str:
     return re.sub(r"[^\r\n]", " ", frontmatter)
 
 
-def _span(text: str, start: int, end: int) -> Span:
-    line, column = scan.line_col(text, start)
-    return Span(start=start, end=end, line=line, column=column)
+def _span(positions: scan.Positions, start: int, end: int) -> Span:
+    line, column = positions.line_col(start)
+    return Span(
+        start=positions.byte(start),
+        end=positions.byte(end),
+        line=line,
+        column=column,
+        index=start,
+        index_end=end,
+    )
 
 
-def _headings(text: str, masked: str) -> tuple[Heading, ...]:
-    used: set[str] = set()
+def _headings(text: str, masked: str, positions: scan.Positions) -> tuple[Heading, ...]:
     out = []
-    for level, heading_text, start, end in scan.find_headings(masked):
-        # Slug from the ORIGINAL text: masking blanks inline code, and a heading
-        # such as `## The \`hmd\` CLI` must slug from what the renderer sees.
-        original = text[start:end]
-        m = re.match(r"^[ \t]{0,3}#{1,6}[ \t]+(.*?)[ \t]*$", original)
-        display = m.group(1) if m else heading_text
-        display = re.sub(r"[ \t]+#+[ \t]*$", "", display)
-        display = re.sub(r"[ \t]+\^[A-Za-z0-9][A-Za-z0-9_-]{0,63}[ \t]*$", "", display).strip()
+    for level, _masked_text, start, end in scan.find_headings(masked):
+        # Read the ORIGINAL text: masking blanks inline code, and a heading
+        # such as `## The \`hmd\` CLI` reads `The hmd CLI`, not `The  CLI`.
+        shown = visible_text(heading_content(text[start:end]))
         out.append(
-            Heading(level=level, text=display, slug=slug_for(display, used), span=_span(text, start, end))
+            Heading(level=level, text=shown, key=heading_key(shown), span=_span(positions, start, end))
         )
     return tuple(out)
 
 
-def _anchors(text: str, masked: str) -> tuple[Anchor, ...]:
+def _anchors(masked: str, positions: scan.Positions) -> tuple[Anchor, ...]:
     return tuple(
-        Anchor(block_id=block_id, span=_span(text, start, end))
+        Anchor(block_id=block_id, span=_span(positions, start, end))
         for block_id, start, end in scan.find_anchors(masked)
     )
 
 
-def _links(text: str, masked: str, rel: str) -> tuple[tuple[Link, ...], list[Diagnostic]]:
+def _links(
+    text: str, masked: str, rel: str, positions: scan.Positions
+) -> tuple[tuple[Link, ...], list[Diagnostic]]:
     links: list[Link] = []
     diagnostics: list[Diagnostic] = []
 
     for is_embed, inner, start, end in scan.find_links(masked):
-        span = _span(text, start, end)
+        span = _span(positions, start, end)
         raw = text[start:end]
         try:
             page_ref, fragment, fragment_kind, display = _parse_target(inner)
@@ -163,10 +254,7 @@ def _links(text: str, masked: str, rel: str) -> tuple[tuple[Link, ...], list[Dia
             )
         )
 
-    for start in scan.find_unterminated(masked):
-        line, column = scan.line_col(text, start)
-        diagnostics.append(Diagnostic("HMD010", ERROR, rel, line, column, "unterminated '[[' — expected ']]'"))
-
+    # A `[[` that begins no link candidate is ordinary text, not HMD010.
     return tuple(links), diagnostics
 
 
@@ -175,6 +263,10 @@ def _parse_target(inner: str) -> tuple[str, str | None, str | None, str | None]:
 
     Raises `ValueError` for anything malformed (HMD010).
     """
+    # A backslash is never a path separator and escapes nothing, so it may
+    # stand nowhere in a wikilink: not in the path, the fragment, or the display.
+    if "\\" in inner:
+        raise ValueError("backslash in wikilink")
     if not inner.strip():
         raise ValueError("empty link target")
 
@@ -208,4 +300,18 @@ def _parse_target(inner: str) -> tuple[str, str | None, str | None, str | None]:
     if bad:
         raise ValueError(f"reserved character {''.join(sorted(bad))!r} in target")
 
+    if dot_segment_outside_relative(page_ref):
+        raise ValueError("'.' or '..' outside an explicit relative reference")
+
     return page_ref, fragment, fragment_kind, display
+
+
+def dot_segment_outside_relative(page_ref: str) -> bool:
+    """Whether an absolute or unqualified `page_ref` has a `.` or `..` segment.
+
+    Only an explicit relative reference, one opening with `./` or `../`, may
+    hold them; anywhere else the reference is malformed (HMD010).
+    """
+    if page_ref.startswith(("./", "../")):
+        return False
+    return any(part in (".", "..") for part in page_ref.split("/"))

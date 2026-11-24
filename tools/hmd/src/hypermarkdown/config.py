@@ -9,7 +9,14 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 
 MARKER_DIR = ".hmd"
 CONFIG_NAME = "config.toml"
-DEFAULT_WIKI = "doc/wiki"
+#: The namespace root, relative to the vault, when `location_path` is not set:
+#: the vault itself.
+DEFAULT_LOCATION_PATH = "."
+
+#: The key `location_path` replaced, with the default `doc/wiki`. A config that
+#: still sets it is refused rather than read with a different root: the vault
+#: would load, silently, as a different namespace than its author wrote.
+RETIRED_KEY = "wiki"
 DEFAULT_MODE = "both"
 VALID_MODES = frozenset({"both", "recursive"})
 
@@ -32,14 +39,15 @@ CONFIG_TEMPLATE = """\
 # HyperMarkdown project configuration.
 #
 # This directory doubles as the project root marker — `hmd` finds a project by
-# walking up from the working directory looking for `.hmd/`, falling back to
-# `.git/`. Only the settings below are read; every other key is ignored, so the
-# file is safe to extend.
+# walking up from the working directory looking for `.hmd/`, and nothing else
+# marks one. Only the settings below are read; every other key is ignored, so
+# the file is safe to extend.
 
 # The cards location: where inside this project the cards start, relative to
-# this project root. It names the namespace root. Every `.hmd` card beneath
-# it is a page, and links resolve within it. Nothing outside it is checked.
-wiki = "{wiki}"
+# this project root, with `/` between directories. It names the namespace
+# root; "." is this project root itself. Every `.hmd` card beneath it is a
+# page, and links resolve within it. Nothing outside it is checked.
+location_path = "{location_path}"
 
 [namespace]
 # This tree's own name. A project's own namespace is otherwise unnamed — there
@@ -80,7 +88,7 @@ class InitResult:
 
     project: Path  # the project root, absolute
     config: Path  # the config file, written either way
-    wiki: Path  # the namespace root the config names, absolute
+    location: Path  # the namespace root the config names, absolute
     created: frozenset[Path]  # of the three above, the ones that did not exist
     name: str = ""  # the namespace name written, derived or given
     provider: str = DEFAULT_PROVIDER  # what backs that name
@@ -94,14 +102,16 @@ class ConfigError(Exception):
 
 
 def find_project_root(start: Path) -> Path | None:
-    """Nearest ancestor holding `.hmd/`, else nearest holding `.git`."""
+    """Nearest ancestor holding `.hmd/`, or None.
+
+    Only `.hmd/` marks a project root. A `.git` directory does not: every
+    repository has one, and a repository is not a vault until it says so. A
+    tree with no marker above it has its namespace root named directly.
+    """
     start = start.resolve()
     candidates = [start, *start.parents] if start.is_dir() else list(start.parents)
     for parent in candidates:
         if (parent / MARKER_DIR).is_dir():
-            return parent
-    for parent in candidates:
-        if (parent / ".git").exists():
             return parent
     return None
 
@@ -109,9 +119,9 @@ def find_project_root(start: Path) -> Path | None:
 def load(root_override: Path | None = None, start: Path | None = None) -> Config:
     """Resolve the namespace root and discovery policy.
 
-    Absent `.hmd/config.toml` entirely, the root is `doc/wiki`, autodiscovery is
-    on, and the mode is `both` — a tree with no configuration behaves the way a
-    new author expects.
+    Absent `.hmd/config.toml` entirely, the root is the project root itself,
+    autodiscovery is on, and the mode is `both` — a tree with no configuration
+    behaves the way a new author expects.
     """
     if root_override is not None:
         root = root_override.resolve()
@@ -130,16 +140,17 @@ def load(root_override: Path | None = None, start: Path | None = None) -> Config
     project = find_project_root(start)
     if project is None:
         raise ConfigError(
-            f"no project root above {start}: expected a .hmd/ or .git directory. "
-            f"Pass --root to name the namespace root directly."
+            f"no project root above {start}: expected a .hmd/ directory. "
+            f"Run `hmd init`, or pass --root to name the namespace root directly."
         )
 
     data, source = _read(project)
-    wiki = data.get("wiki", DEFAULT_WIKI)
-    if not isinstance(wiki, str):
-        raise ConfigError(f"`wiki` must be a string in {source}")
+    location = data.get("location_path", DEFAULT_LOCATION_PATH)
+    if not isinstance(location, str):
+        raise ConfigError(f"`location_path` must be a string in {source}")
 
-    root = (project / wiki).resolve()
+    root = (project / location).resolve()
+    _check_not_in_nested_vault(project, location, source)
     if not root.is_dir():
         raise ConfigError(f"namespace root does not exist: {root}")
 
@@ -148,7 +159,7 @@ def load(root_override: Path | None = None, start: Path | None = None) -> Config
 
 def init(
     project: Path | None = None,
-    wiki: str = DEFAULT_WIKI,
+    location_path: str = DEFAULT_LOCATION_PATH,
     name: str | None = None,
     provider: str = DEFAULT_PROVIDER,
     force: bool = False,
@@ -161,7 +172,7 @@ def init(
     folder is already called.
 
     The namespace root is created alongside the config on purpose. `load`
-    refuses a `wiki` setting that points at nothing, so writing the file and
+    refuses a `location_path` setting that points at nothing, so writing the file and
     stopping there would leave a project whose very next command fails with a
     message about a directory the author never asked for.
 
@@ -173,7 +184,7 @@ def init(
     if project.exists() and not project.is_dir():
         raise ConfigError(f"project root is not a directory: {project}")
 
-    setting = _wiki_setting(wiki)
+    setting = _location_setting(location_path)
     namespace = _namespace_name(project) if name is None else _checked_name(name)
     if provider not in VALID_PROVIDERS:
         raise ConfigError(f"provider must be one of {sorted(VALID_PROVIDERS)}, got {provider!r}")
@@ -181,11 +192,11 @@ def init(
 
     marker = project / MARKER_DIR
     config_path = marker / CONFIG_NAME
-    wiki_path = project / setting
+    location = project / setting
 
     # Everything that can fail is checked before anything is written. The
     # command touches three paths, and a run that creates the marker and then
-    # trips over the wiki root leaves a project half-made — with a config file
+    # trips over the namespace root leaves a project half-made — with a config file
     # claiming a root that is not there, which is the one state `load` cannot
     # explain to whoever finds it.
     overwritten = config_path.is_file()
@@ -193,16 +204,16 @@ def init(
         raise ConfigError(f"already initialised: {config_path} exists. Pass --force to replace it.")
     if marker.exists() and not marker.is_dir():
         raise ConfigError(f"{marker} exists and is not a directory")
-    if wiki_path.exists() and not wiki_path.is_dir():
-        raise ConfigError(f"wiki root exists and is not a directory: {wiki_path}")
+    if location.exists() and not location.is_dir():
+        raise ConfigError(f"namespace root exists and is not a directory: {location}")
 
-    created = frozenset(path for path in (project, config_path, wiki_path) if not path.exists())
+    created = frozenset(path for path in (project, config_path, location) if not path.exists())
 
     try:
         marker.mkdir(parents=True, exist_ok=True)
         config_path.write_text(
             CONFIG_TEMPLATE.format(
-                wiki=setting,
+                location_path=setting,
                 name=namespace,
                 provider=provider,
                 autodiscovery="true",
@@ -210,14 +221,14 @@ def init(
             ),
             encoding="utf-8",
         )
-        wiki_path.mkdir(parents=True, exist_ok=True)
+        location.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise ConfigError(f"cannot initialise {project}: {exc}") from exc
 
     return InitResult(
         project=project.resolve(),
         config=config_path.resolve(),
-        wiki=wiki_path.resolve(),
+        location=location.resolve(),
         created=frozenset(path.resolve() for path in created),
         name=namespace,
         provider=provider,
@@ -227,23 +238,46 @@ def init(
     )
 
 
-def _wiki_setting(value: str) -> str:
-    """Normalise a `--wiki` argument into a TOML-safe relative path.
+def _check_not_in_nested_vault(project: Path, location: str, source: Path | None) -> None:
+    """Refuse a `location_path` that resolves into a nested vault.
+
+    The namespace root has to lie in the vault whose config names it. A
+    directory between the vault and the root that carries its own `.hmd/` is
+    another vault, and its cards are never this vault's. The vault's own marker
+    is not counted.
+    """
+    directory = project
+    for part in PurePosixPath(location).parts:
+        if part in (".", "/"):
+            continue
+        directory = directory / part
+        if (directory / MARKER_DIR).is_dir():
+            raise ConfigError(
+                f"`location_path` {location!r} in {source} resolves into the nested vault at "
+                f"{directory.relative_to(project).as_posix()}; the namespace root must lie in "
+                f"the vault that names it"
+            )
+
+
+def _location_setting(value: str) -> str:
+    """Normalise a `--location-path` argument into a TOML-safe relative path.
 
     Rejected rather than escaped: absolute paths, `..` escapes, and the two
-    characters a TOML basic string would need escaping. A wiki root outside the
-    project it is configured from is not a narrower project, it is a config file
-    filed somewhere it does not describe.
+    characters a TOML basic string would need escaping. A namespace root outside
+    the project it is configured from is not a narrower project, it is a config
+    file filed somewhere it does not describe.
     """
     text = value.strip().replace("\\", "/")
     if not text:
-        raise ConfigError("wiki must name a directory relative to the project root")
+        raise ConfigError("location_path must name a directory relative to the project root")
     if PurePosixPath(text).is_absolute() or PureWindowsPath(text).is_absolute():
-        raise ConfigError(f"wiki must be relative to the project root, got {value!r}")
+        raise ConfigError(f"location_path must be relative to the project root, got {value!r}")
     if ".." in PurePosixPath(text).parts:
-        raise ConfigError(f"wiki must stay inside the project root, got {value!r}")
+        raise ConfigError(f"location_path must stay inside the project root, got {value!r}")
     if '"' in text or any(ord(char) < 0x20 for char in text):
-        raise ConfigError(f"wiki contains characters a TOML string cannot hold: {value!r}")
+        raise ConfigError(
+            f"location_path contains characters a TOML string cannot hold: {value!r}"
+        )
     return PurePosixPath(text).as_posix()
 
 
@@ -279,8 +313,7 @@ def _checked_name(value: str) -> str:
 def _enclosing_project(project: Path) -> Path | None:
     """The nearest ancestor already carrying a `.hmd/`, if any.
 
-    Only the marker counts, not the `.git` fallback — every repository would
-    answer to that one, and nesting inside a repository is the normal case.
+    Only the marker counts, the same rule `find_project_root` follows.
     """
     start = project.resolve()
     for parent in start.parents:
@@ -295,9 +328,15 @@ def _read(project: Path) -> tuple[dict, Path | None]:
         return {}, None
     try:
         with path.open("rb") as handle:
-            return tomllib.load(handle), path
+            data = tomllib.load(handle)
     except (OSError, tomllib.TOMLDecodeError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
+    if RETIRED_KEY in data:
+        raise ConfigError(
+            f"{path} sets `{RETIRED_KEY}`, which HyperMarkDown 0.1 renamed to "
+            f"`location_path`. Rename the key; the vault is not loaded until it is."
+        )
+    return data, path
 
 
 def _discovery(data: dict) -> dict:

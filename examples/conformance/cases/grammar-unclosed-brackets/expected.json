@@ -1,0 +1,29 @@
+{
+  "diagnostics": [
+    {
+      "column": 19,
+      "line": 10,
+      "message": "[[missing]] does not resolve to a page",
+      "path": "index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[missing]]",
+      "source": "index.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[target]]",
+      "source": "index.hmd",
+      "target": "target.hmd"
+    },
+    {
+      "raw": "[[target]]",
+      "source": "index.hmd",
+      "target": "target.hmd"
+    }
+  ]
+}

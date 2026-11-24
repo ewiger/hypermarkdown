@@ -21,6 +21,31 @@ against
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-11-25
+
+### Changed
+
+- **The namespace root comes from `location_path`, and defaults to the folder
+  itself.** A vault's `.hmd/config.toml` names it with `location_path`, which
+  was called `wiki`. A config that still sets `wiki` is refused: the error
+  names both keys, and none of that vault's cards opens, in it or in the
+  folder's vault. A folder with no `.hmd/` is now its own namespace root,
+  where it used to fall back to `doc/wiki`. The `hyperMarkdown.root` setting
+  keeps its name and overrides it as before.
+- **Follows the HyperMarkDown 0.1 heading rules** from `@hypermarkdown/core`:
+  opening a heading link from the preview finds the first heading whose key
+  is the fragment's, so case, punctuation, and composed or decomposed accents
+  no longer matter, and setext headings are found.
+- A diagnostic on a line with a character outside the Basic Multilingual
+  Plane is underlined at the right column: the core counts columns in code
+  points, and the extension converts them to the editor's code units.
+
+### Added
+
+- **HMD019 in the Problems panel**: a card file that is not valid UTF-8 is
+  reported on itself, line 1, instead of being indexed with its undecodable
+  bytes replaced. The vault reads cards as bytes for this.
+
 ## [0.5.2] — 2026-11-22
 
 ### Added
@@ -349,7 +374,8 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.2...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.6.0...HEAD
+[0.6.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.2...vsc-ext-v0.6.0
 [0.5.2]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.1...vsc-ext-v0.5.2
 [0.5.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.0...vsc-ext-v0.5.1
 [0.5.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.4...vsc-ext-v0.5.0

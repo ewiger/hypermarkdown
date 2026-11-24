@@ -38,18 +38,20 @@ to [HMD-0027](../../doc/proposals/HMD-0027/README.md) first.
   documents it holds in memory. `FsHost`, `Config::read`, `find_vault_root` and
   `Vault::open` are the only code that touches `std::fs`.
 - **No `unsafe`, and no dependency that needs a C toolchain.** The crate root
-  carries `#![forbid(unsafe_code)]`. The two dependencies are `toml` for the
-  configuration file and `serde_yaml_ng` for frontmatter; everything else is
+  carries `#![forbid(unsafe_code)]`. The dependencies are `toml` for the
+  configuration file, `serde_yaml_ng` for frontmatter, and
+  `unicode-normalization` for comparing names in NFC; everything else is
   `std`. A new dependency needs a reason a reviewer can check.
 - **No `unwrap` or `expect` outside tests.** Loading returns `Result<_, Error>`;
   parsing a card never fails, because a card caught half-written is ordinary
   input.
-- **Python's string semantics, not Rust's.** The canonical implementation
-  counts offsets in characters, ends a line at every boundary
-  `str.splitlines` knows, treats U+001C to U+001F as whitespace, and replaces a
-  file name's suffix the way `pathlib` does. `src/text.rs` and `src/paths.rs`
-  restate those; reaching for `str::lines` or `str::trim` in the scanner
-  changes an answer on some card.
+- **The language's string semantics, and Python's where it is silent.** A
+  column counts code points, a line ends at `\n`, `\r\n` or a lone `\r` and at
+  no other boundary, one leading byte-order mark is not part of a card, and
+  names compare in NFC. The canonical implementation also treats U+001C to
+  U+001F as whitespace and replaces a file name's suffix the way `pathlib`
+  does. `src/text.rs` and `src/paths.rs` restate those; reaching for
+  `str::lines` or `str::trim` in the scanner changes an answer on some card.
 - **Every module opens with a `//!` comment and every public item carries a
   `///` comment.** The crate warns on a missing one, and CI turns warnings into
   errors.

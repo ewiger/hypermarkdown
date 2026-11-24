@@ -384,7 +384,10 @@ Expansion follows HMD-0001 §6 and shares its constants.
 ### 9. Diagnostics
 
 - Diagnostics MUST use the rule IDs, severities, positions, and message
-  intent of HMD-0001 §8 — `HMD001` through `HMD016`.
+  intent that the language specification's diagnostics table gives
+  ([[hmd-lang-spec#diagnostics]]) — every rule allocated there, not a fixed
+  range. Implementing a rule the canonical implementation has already
+  allocated is conformance, not allocation.
 - Each diagnostic carries `rule`, `severity`, `path` (root-relative, POSIX
   separators), `line`, `column`, `message`, and for `HMD002` the sorted
   candidate list.
@@ -609,3 +612,7 @@ npm run -w @hypermarkdown/core lint
   under the layout HMD-0024 records. Only the path changes: the cases are the
   same data, still outside both implementations' test trees, and every rule of
   §10 stands
+- 2026-11-22: the diagnostics rule follows the language specification's table
+  instead of naming `HMD001` through `HMD016`, so implementing a rule allocated
+  since — publication's HMD017, Markdown cards' HMD018, encoding's HMD019 — is
+  no longer forbidden by the text. Allocating a new one still is

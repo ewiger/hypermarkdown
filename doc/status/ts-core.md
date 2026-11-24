@@ -1,33 +1,37 @@
 # STATUS — `@hypermarkdown/core`
 
-`tools/hmd-ts-core` — the format in TypeScript: scanner, parser, heading slugs,
+`tools/hmd-ts-core` — the format in TypeScript: scanner, parser, heading keys,
 frontmatter, resolver, embed expansion, renderer, and the diagnostics. It is a
 **second implementation**, not helper code for the editor: it exists so the
 format can be read where Python cannot go — inside an editor, at a keystroke's
-notice — and it is held to the canonical implementation by a shared corpus of
-cases, with every difference written down.
+notice — and it is held to the specification by a shared corpus of cases, with
+every difference written down.
 
-Beside this file: the format itself in [`lang.md`](lang.md), the canonical
+Beside this file: the format itself in [`lang.md`](lang.md), the reference
 implementation in [`hmd.md`](hmd.md), the editor that embeds this one in
-[`vsc-ext.md`](vsc-ext.md), and the website in [`pages.md`](pages.md).
+[`vsc-ext.md`](vsc-ext.md), the Rust resolver in [`rs-core.md`](rs-core.md),
+the semantic-index builder in [`semantics.md`](semantics.md), and the website
+in [`pages.md`](pages.md).
 
 ## Status
 
-**Released on npm at `0.2.0`, complete for everything except the card
-publication model, and agreeing with the canonical implementation byte for byte
-on everything it implements.** Cards parse,
-resolve, expand, and render; all sixteen diagnostics are there; callouts, math,
-and D2 diagrams work. 144 tests, and the agreement is checked by linting three
-real trees — the wiki and two example vaults — against the canonical linter and
-comparing the output exactly.
+**Conforms to HyperMarkDown 0.1.0, except the card publication model.** Cards
+parse, resolve, expand, and render; eighteen of the nineteen diagnostics are
+there, all but the publication rule (HMD017); callouts, math, and D2 diagrams
+work. Every corpus case passes, and lint output matches the reference
+implementation byte for byte on three real trees — the wiki and two example
+vaults. The missing publication rule is a listed limitation of this tool's
+conformance, ledgered, and not a blocker for the specification's release. The
+package's own version is separate: `0.3.0` is on npm, and the 0.1 rules, HMD019
+and the corrected resolution are unreleased.
 
 **The one real gap is the card publication model** — the registry sense of the
 word is settled, and this is the other one: the frontmatter key that says
 whether a card is published, the rule that it inherits from folder notes, and
-the warning when a published card links to a private one. It is blocked, not
-forgotten — the proposal that specifies this implementation stops at sixteen
-rules and the seventeenth belongs to a different proposal, so the port needs
-that settled first.
+the warning when a published card links to a private one. It was blocked
+on the proposal that specifies this implementation, which stopped at sixteen
+rules; that proposal now follows the language specification's table, so the
+port is open work.
 
 Two smaller differences from the website are now work rather than footnotes:
 subscript, and LaTeX environments written without dollar signs.
@@ -36,23 +40,21 @@ subscript, and LaTeX environments written without dollar signs.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| blocked | **The publication model, and the rule that depends on it.** Parse `nav` as a mapping of order and visibility, inherit visibility from the nearest ancestor folder note defaulting to private, and warn when a published card links to or embeds an unpublished one. Four files; reproduce the canonical behaviour exactly and keep the embed veto a decision the caller passes in, so a later policy change has somewhere to land | Blocked on which proposal owns publication here: this implementation's spec stops at sixteen rules and this is the seventeenth [HMD017] | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
+| todo | **The publication model, and the rule that depends on it.** Parse `nav` as a mapping of order and visibility, inherit visibility from the nearest ancestor folder note defaulting to private, and warn when a published card links to or embeds an unpublished one. Four files; reproduce the canonical behaviour exactly and keep the embed veto a decision the caller passes in, so a later policy change has somewhere to land | Unblocked on 2026-11-22: this implementation's spec now follows the language specification's diagnostics table rather than stopping at sixteen rules [HMD017] | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | todo | **Subscript.** `~x~` is subscript on the website and nothing here — not a math gap at all: it comes from a markdown extension, and markdown-it's builtin covers only `~~strikethrough~~`. One line to wire in `markdown-it-sub`, a new dependency | Then the ledgered difference is deleted, because a ledger entry that stops diverging fails the build | [[hmd-0020#33-free-syntax]] |
 | todo | **LaTeX environments at block level.** `\begin{align}` on its own is math on the website and prose here, because this implementation only recognises a block that opens with `$$`. The likeliest real-world hit of the KaTeX-versus-MathJax difference, and the only one not written down | Not currently ledgered | [[hmd-0020#33-free-syntax]] |
 | backlog | **Parse the in-card address.** A fragment becomes a path of steps rather than one slug, and block kinds, sentences, and words become countable. This implementation and the canonical one must agree on every boundary or an ordinal means two things, so the cases land in the shared corpus first | Waits on the format settling the grammar | [[hmd-0006#the-address-after-the-hash]], [[hmd-0006#every-block-kind-is-addressable-by-its-type]] |
-| todo | **Underlined headings.** The format decided for 0.1 that they are headings, so index them: a link and an embed reach `Setup` over `===` as they reach `# Setup`. The change lands here and in the canonical scanner in the same commit, with the corpus case, or the comparison suite sees one side alone | Nothing blocks it now | [[hmd-0020#4-heading-slugs]], [[hmd-0001#3-heading-anchors]] |
-| todo | **Recognise diagram cells.** `d2#show` and `mermaid#show` become a `DiagramBlock`, matched exactly; a plain `d2` fence becomes an ordinary code block. `DiagramBlock` gains the state of the drawing on screen and a key by position among the card's diagram cells, so an edit keeps the reader's Code toggle, and `IR_VERSION` moves to 4 | First recognise `d2#show` beside `d2`, then drop plain `d2` in the release that the repository's fences are rewritten for [`src/diagram/fence.ts`] | [[hmd-0030]] |
+| todo | **Recognise diagram cells.** `d2#show` and `mermaid#show` become a `DiagramBlock`, matched exactly; a plain `d2` fence becomes an ordinary code block. `DiagramBlock` gains the state of the drawing on screen and a key by position among the card's diagram cells, so an edit keeps the reader's Code toggle, and `IR_VERSION` moves to 5 | First recognise `d2#show` beside `d2`, then drop plain `d2` in the release that the repository's fences are rewritten for [`src/diagram/fence.ts`] | [[hmd-0030]] |
 | todo | **Recognise a `mermaid#show` fence as a diagram.** One entry in `DIAGRAM_LANGUAGES`; `DiagramBlock` already carries its language | The core does not render, so this does not wait on the renderer; it lands with diagram cells | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.md) |
 
 ## Broken
 
 | Status | Defect | Symptom | References |
 | --- | --- | --- | --- |
-| todo | **A heading in a non-Latin script cannot be linked**, exactly as in the canonical implementation, because this one ports its slug function step for step | Every code point above U+007F is dropped, so a heading with no Latin letters slugs to empty and becomes `_1`, and a link to it reaches the first such heading of the card. Fixed with the canonical side, in the same commit, by the specification's own matching rule [`src/slug.ts`] | [the format's tracker](lang.md), [the issue card](../issues/0014-non-latin-headings-cannot-be-linked.md) |
 
 ## Limitations (known gaps)
 
-Every difference from the canonical implementation is written down in
+Every difference from the reference implementation is written down in
 `conformance-xfail.json` with its reason, and an entry that stops diverging
 fails the build — so this list cannot quietly go stale.
 
@@ -60,7 +62,7 @@ fails the build — so this list cannot quietly go stale.
 | --- | --- | --- |
 | Raw HTML in a card is escaped rather than passed through | The consumer is a webview, and rendering HTML out of a workspace is a script-injection surface reachable from any cloned repository. Changing it needs a sanitiser and a decision, not a flag | [[hmd-0021#11-webview-hardening]] |
 | Math is typeset by KaTeX rather than MathJax | KaTeX bundles small and needs no network at render time. It covers a subset of LaTeX, renders what it cannot in red rather than failing, and blocks links inside formulas | [[hmd-0020#33-free-syntax]] |
-| The publication rule is never emitted | The model behind it is unported, above. It is ledgered, so the comparison suite drops it from the canonical side and still fails if this implementation ever emits it | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
+| The publication rule is never emitted, and a malformed `nav` value is not HMD013 | The model behind it is unported, above, and `nav` is not among the reserved keys the frontmatter reader checks. The rule is ledgered, so the comparison suite drops it from the canonical side and still fails if this implementation ever emits it | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
 | Rendering differences are recorded but not tested | The ledger has three parts, and the two that the suites read are cases and rules. A rendering difference is written down and unguarded | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
 
 The publication difference is latent rather than active: the wiki cleared its
@@ -71,6 +73,29 @@ canonical side warns and this one stays silent.
 
 ## Done
 
+- **`location_path` names the namespace root** — the setting formerly called
+  `wiki`, read relative to the vault with the default `.`, the vault itself,
+  instead of `doc/wiki`; no alias; unreleased.
+- **The HMD007 check follows only the embedded region** — it walks the
+  region a fragment expands to, using the core's own expansion, instead of
+  every embed in the target card, so embeds of different sections of one card
+  are no longer a false cycle, matching the reference implementation. Held by
+  the `embed-sections-of-one-card` and `embed-self` corpus cases; unreleased.
+- **Name resolution, validated** — the corrected algorithm: `..` normalised in
+  every form, an escape from the namespace is HMD003 in every phase, `[[./]]`
+  and `[[../]]` bind only a folder note, every imported search path is probed
+  so HMD016 names each shadowed card once, and candidates sort by code point,
+  not by UTF-16 unit. A host reports a symbolic link out of the root with
+  `DirEntry.leavesRoot`. Held by the eighteen `resolve-*` cases written from
+  the specification, which Python, TypeScript, and Rust all pass; unreleased
+  [issue 0020].
+- **The HyperMarkDown 0.1 rules** — case for case with the reference
+  implementation: heading keys with a case-folding table generated from Python,
+  so headings in every script are linkable [issue 0014], setext
+  headings, HMD019 through an optional `readBytes` on the host, the byte-order
+  mark, line endings, NFC names, code-point columns and UTF-8 offsets, the
+  anchor-on-heading embed, unrendered anchors, and HMD011 silenced by an
+  anchor. The slugger is gone and the IR is version 4; unreleased.
 - **Markdown cards** — `.md` and `.markdown` cards, binding by card extension,
   HMD018 and `Workspace.shadowedBy`, held to the corpus; released as 0.3.0
   [HMD-0029].
@@ -86,23 +111,26 @@ canonical side warns and this one stays silent.
   a card beneath one is ignored, and an import into one is HMD015, matching the
   canonical implementation. `inNestedVault` lets a host skip such a card before
   parsing it. Ships in `0.2.0`, with a shared corpus case [issue 0009]
-- **Released** — `0.1.0`, `0.1.1`, and `0.2.0` on npm as `@hypermarkdown/core`,
+- **Released** — `0.1.0`, `0.1.1`, `0.2.0`, and `0.3.0` on npm as `@hypermarkdown/core`,
   tagged `ts-core-vX.Y.Z`. The first version was published by hand, because npm
   configures trusted publishing per package and a package must exist before it
   can be configured; every version since goes out from `release-ts-core.yml`
   with provenance and no stored credential.
 - **Scanner and parser** — masking that preserves offsets, the link grammar, and
   a parser that never throws on half-written input.
-- **Heading slugs**, a hand port of the algorithm the format adopts from
-  Python-Markdown, down to how collisions are numbered.
+- **Heading keys** — NFC, full case folding from a table generated from
+  Python's `str.casefold`, and letters, marks, and numbers kept in every
+  script; the first heading with a key wins.
 - **Frontmatter** — the fence, YAML under a restricted schema, the reserved keys.
 - **The resolver** — the four-phase search, spine walk, whole-tree sweep, folder
   notes, imports, and a workspace index behind a host port that touches no Node
   builtins, so it runs in a browser.
-- **All sixteen diagnostics**, sorted and worded identically to the canonical
-  linter.
-- **The corpus and its ledger** — cases generated from the canonical
-  implementation, with every accepted difference written down.
+- **Eighteen diagnostics**, every one but HMD017, sorted and worded
+  identically to the reference linter; HMD019 is unreleased.
+- **The corpus and its ledger** — the older cases generated from the reference
+  implementation and checked against the text, the `resolve-*` cases and every
+  later one written from the specification; the ledger holds no case, only the
+  HMD017 rule and three rendering differences.
 - **Expansion and rendering** — page, section, and block embeds with a depth cap
   and cycle detection; a renderer that carries source lines into the output so
   the editor can sync scrolling.
@@ -124,12 +152,24 @@ environment variable is set, which CI does.
 
 | Question | References |
 | --- | --- |
-| Which proposal owns publication in this implementation? Its own spec enumerates sixteen rules and says nothing about publication, which belongs to the rendering proposal. The port needs that amendment before it is written | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | Should the port wait for the policy question? What a published-to-private link *should* do is itself unsettled on the canonical side — a blocked link, a page that exists but is unlisted, or nothing, chosen per site — so porting today's warning could mean porting it twice. Against that: matching the canonical implementation exactly is the contract, whatever it later becomes (issue 0008) | [[hmd-0002#4-red-links-and-md]] |
 | Does the graph data have to match the canonical `hmd graph` output exactly? It carries a heading count where the canonical side emits heading objects, and omits frontmatter, anchors, and imports. The editor proposal says the graph tab consumes "the same data", which these shapes do not quite satisfy | [[hmd-0021#10-deferred-tabs]], [[hmd-0020#7-the-document-ir]] |
 
 ## Changelog
 
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
+- 2026-11-24: before the 0.1.0 release. The tool conforms to HyperMarkDown
+  0.1.0 except the publication model, a listed limitation and not a blocker,
+  and is held to the specification rather than to the reference
+  implementation. The Open rows for the encoding rules and for setext
+  headings, and the Broken row for non-Latin headings, were already done and
+  folded into Done. Eighteen of nineteen diagnostics; Done rows for validated
+  name resolution and the HMD007 check; a malformed `nav` not being HMD013
+  joins the publication limitation.
+- 2026-11-22: the 0.1 rules are implemented, unreleased.
+- 2026-11-22: the released version, `0.3.0`, and the diagnostic count, seventeen
+  of eighteen, match the package; the publication port is unblocked, since this
+  implementation's spec now follows the language's diagnostics table.
 - 2026-09-15: the npm release is stated here rather than only in the package's
   own changelog, and "publication" is qualified everywhere it appears — the
   tracker meant the card visibility model throughout, while the root changelog

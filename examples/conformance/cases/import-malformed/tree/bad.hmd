@@ -1,0 +1,6 @@
+---
+import:
+  - import tokens from /shared
+---
+
+# Bad

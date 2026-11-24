@@ -1,0 +1,65 @@
+{
+  "diagnostics": [
+    {
+      "column": 5,
+      "line": 4,
+      "message": "expected '<name>' or '<name> as <alias>', got 'x:y'",
+      "path": "colon-in-name.hmd",
+      "rule": "HMD014",
+      "severity": "error"
+    },
+    {
+      "column": 5,
+      "line": 4,
+      "message": "expected '<name>' or '<name> as <alias>', got 'my card'",
+      "path": "space-in-name.hmd",
+      "rule": "HMD014",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 7,
+      "message": "[[my card]] does not resolve to a page",
+      "path": "space-in-name.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[a]]",
+      "source": "commas.hmd",
+      "target": "shared/a.hmd"
+    },
+    {
+      "raw": "[[b]]",
+      "source": "commas.hmd",
+      "target": "shared/b.hmd"
+    },
+    {
+      "raw": "[[c]]",
+      "source": "commas.hmd",
+      "target": "shared/c.hmd"
+    },
+    {
+      "raw": "[[d]]",
+      "source": "commas.hmd",
+      "target": "shared/d.hmd"
+    },
+    {
+      "raw": "[[ee]]",
+      "source": "commas.hmd",
+      "target": "shared/e.hmd"
+    },
+    {
+      "raw": "[[my card]]",
+      "source": "space-in-name.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[my card]]",
+      "source": "wildcard.hmd",
+      "target": "shared/my card.hmd"
+    }
+  ]
+}

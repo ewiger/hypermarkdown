@@ -1,0 +1,7 @@
+# Links
+
+[[guide#guide]] and [[guide#Install]] are headings. [[guide#Hidden]] is in a
+fence, and [[guide#A thematic break, because a blank line comes before it]] is
+a paragraph.
+
+![[guide#Install]]

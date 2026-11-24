@@ -1,9 +1,10 @@
 /**
- * The rule set (HMD-0001 §8) — a port of `tools/hmd/src/hypermarkdown/lint/rules.py`.
+ * The rule set: the specification's Diagnostics table — a port of
+ * `tools/hmd/src/hypermarkdown/lint/rules.py`.
  *
  * Rule IDs are stable and are never renumbered. This implementation MUST NOT
  * allocate new ones: rule ID allocation belongs to the canonical
- * implementation (HMD-0020 §9).
+ * implementation (HMD-0020).
  */
 
 import {
@@ -11,14 +12,14 @@ import {
   WARNING,
   blockIds,
   compareDiagnostics,
-  headingSlugs,
+  findHeading,
   type Diagnostic,
   type Link,
   type ParsedDocument,
   type Severity,
 } from "./model.js";
+import { expand, isFailure } from "./expand.js";
 import { CARD_SUFFIXES, INDEX_STEM, pageParts } from "./paths.js";
-import { slugify } from "./slug.js";
 import type { Workspace } from "./workspace.js";
 
 /**
@@ -42,12 +43,13 @@ export const SEVERITY: Readonly<Record<string, Severity>> = {
   HMD009: ERROR,
   HMD010: ERROR,
   HMD011: WARNING,
-  HMD012: ERROR,
+  HMD012: WARNING,
   HMD013: ERROR,
   HMD014: ERROR,
   HMD015: ERROR,
   HMD016: WARNING,
   HMD018: WARNING,
+  HMD019: ERROR,
 };
 
 function at(
@@ -72,7 +74,7 @@ function at(
 /** Lint `paths`, or the whole namespace tree. */
 export function check(workspace: Workspace, paths?: readonly string[]): Diagnostic[] {
   const targets = paths ?? workspace.pages();
-  const diagnostics: Diagnostic[] = [];
+  const diagnostics: Diagnostic[] = undecodable(workspace, paths);
 
   for (const path of targets) {
     const document = workspace.documents.get(path);
@@ -81,7 +83,7 @@ export function check(workspace: Workspace, paths?: readonly string[]): Diagnost
     if (document.kind === "markdown") continue;
     diagnostics.push(...document.diagnostics); // HMD009, HMD010, HMD013, HMD014
     diagnostics.push(...duplicateAnchors(document));
-    diagnostics.push(...duplicateSlugs(document));
+    diagnostics.push(...duplicateHeadings(document));
     diagnostics.push(...importProblems(workspace, document));
     diagnostics.push(...linkRules(workspace, document));
   }
@@ -95,6 +97,21 @@ export function check(workspace: Workspace, paths?: readonly string[]): Diagnost
 }
 
 // -- per-document rules --------------------------------------------------
+
+/**
+ * HMD019 — a file with a card extension that is not UTF-8 is not a card.
+ *
+ * Reported for every such file when the whole tree is linted, and for the ones
+ * named when `paths` is given: naming the file is how its HMD019 is asked for.
+ */
+function undecodable(workspace: Workspace, paths?: readonly string[]): Diagnostic[] {
+  const selected = paths === undefined ? null : new Set(paths);
+  const out: Diagnostic[] = [];
+  for (const [path, message] of workspace.undecodable()) {
+    if (selected === null || selected.has(path)) out.push(at("HMD019", path, 1, 1, message));
+  }
+  return out;
+}
 
 /** HMD006 — a block id must be unique within its page. */
 function duplicateAnchors(document: ParsedDocument): Diagnostic[] {
@@ -119,21 +136,35 @@ function duplicateAnchors(document: ParsedDocument): Diagnostic[] {
   return out;
 }
 
-/** HMD011 — two headings sharing a base slug are addressed by `_1` suffixes. */
-function duplicateSlugs(document: ParsedDocument): Diagnostic[] {
+/**
+ * HMD011 — a heading has the same key as an earlier one in the card.
+ *
+ * A fragment reaches the first of them, so every later one is unreachable by
+ * its text. A later heading that carries a block anchor is reachable by it:
+ * the author has applied the remedy, and nothing is reported. A heading whose
+ * key is empty is unreachable by text anyway, and two of them collide over
+ * nothing.
+ */
+function duplicateHeadings(document: ParsedDocument): Diagnostic[] {
   const out: Diagnostic[] = [];
+  const anchored = new Set(document.anchors.map((anchor) => anchor.span.line));
+  const first = new Map<string, number>();
   for (const heading of document.headings) {
-    const cut = heading.slug.lastIndexOf("_");
-    if (cut <= 0) continue;
-    const suffix = heading.slug.slice(cut + 1);
-    if (suffix === "" || !/^[0-9]+$/.test(suffix)) continue;
+    if (heading.key === "") continue;
+    const line = first.get(heading.key);
+    if (line === undefined) {
+      first.set(heading.key, heading.span.line);
+      continue;
+    }
+    if (anchored.has(heading.span.line)) continue;
     out.push(
       at(
         "HMD011",
         document.path,
         heading.span.line,
         heading.span.column,
-        `heading slug collides with an earlier heading; addressable as '#${heading.slug}'`,
+        `heading '${heading.text}' has the same key as the heading on line ${line}, ` +
+          "which a fragment reaches instead; anchor this one with a block id to link to it",
       ),
     );
   }
@@ -144,7 +175,9 @@ function duplicateSlugs(document: ParsedDocument): Diagnostic[] {
 function importProblems(workspace: Workspace, document: ParsedDocument): Diagnostic[] {
   return workspace
     .importTable(document.path)
-    .problems.map(([rule, message]) => at(rule, document.path, 1, 1, message));
+    .problems.map(([rule, message, stmt]) =>
+      at(rule, document.path, stmt.line ?? 1, stmt.column ?? 1, message),
+    );
 }
 
 /** HMD001..HMD005 — resolution and fragment checks. */
@@ -191,6 +224,18 @@ function linkRules(workspace: Workspace, document: ParsedDocument): Diagnostic[]
 
     out.push(...fragmentRules(workspace, document, link, result.path!));
 
+    for (const directory of result.escaped) {
+      out.push(
+        at(
+          "HMD003",
+          document.path,
+          span.line,
+          span.column,
+          `${link.raw} through the imported path '/${directory}' resolves outside the namespace root`,
+        ),
+      );
+    }
+
     if (result.shadowed.length > 0) {
       out.push(
         at(
@@ -234,10 +279,15 @@ function fragmentRules(
     return [];
   }
 
-  const wanted = slugify(link.fragment);
-  if (!headingSlugs(resolved).has(wanted)) {
+  if (findHeading(resolved, link.fragment) === null) {
     return [
-      at("HMD004", document.path, span.line, span.column, `${target} has no heading '#${wanted}'`),
+      at(
+        "HMD004",
+        document.path,
+        span.line,
+        span.column,
+        `${target} has no heading '#${link.fragment}'`,
+      ),
     ];
   }
   return [];
@@ -252,10 +302,11 @@ function folderNoteCollisions(workspace: Workspace, targets: readonly string[]):
   for (const page of workspace.pages()) {
     if (workspace.shadowedBy(page) !== null) continue;
     const stem = pageParts(page).join("/");
-    const note = CARD_SUFFIXES.map((suffix) => `${stem}/${INDEX_STEM}${suffix}`).find((each) =>
-      workspace.documents.has(each),
+    // Looked up the way binding looks, so names compare in NFC.
+    const note = CARD_SUFFIXES.map((suffix) => workspace.card(`${stem}/${INDEX_STEM}${suffix}`)).find(
+      (each) => each !== null,
     );
-    if (note === undefined) continue;
+    if (note === undefined || note === null) continue;
     if (!wanted.has(page) && !wanted.has(note)) continue;
     out.push(
       at("HMD012", page, 1, 1, `${page} and ${note} both claim the name '${stem}'; the file wins`),
@@ -300,16 +351,43 @@ function embedCycles(workspace: Workspace, targets: readonly string[]): Diagnost
   return out;
 }
 
+/**
+ * Follow the embeds inside what `via` embeds of `path`.
+ *
+ * `via` is the embed that reached this card, or null for a card linted on its
+ * own, which is walked whole. An embed of a section or a block expands to that
+ * region only, so only the embeds inside it can continue the chain; one
+ * section embedding another section of its own card is not a cycle.
+ */
 function walk(
   workspace: Workspace,
   path: string,
-  fragment: string | null,
-  stack: Array<[string, string | null]>,
+  via: Link | null,
+  stack: Array<[string, number | null]>,
   reported: Set<string>,
   out: Diagnostic[],
 ): void {
-  const key = `${path} ${fragment ?? ""}`;
-  const onStack = stack.findIndex(([p, f]) => p === path && f === fragment);
+  const document = workspace.documents.get(path);
+  if (document === undefined) return;
+
+  // What is being expanded, identified by what it resolved to rather than by
+  // how the embed was spelled: the whole card, or the section or block, named
+  // by the line its region starts on. `#Linux`, `#linux`, and an anchor on the
+  // `## Linux` line all name one section, so they are one stack entry.
+  let identity: number | null = null;
+  let firstLine = 1;
+  let lastLine = Number.POSITIVE_INFINITY;
+  if (via !== null && via.fragment !== null) {
+    const slice = expand(document, via.fragment, via.fragmentKind);
+    // The fragment matches nothing, so nothing expands; HMD004 or HMD005
+    // reports the fragment itself.
+    if (isFailure(slice)) return;
+    firstLine = slice.startLine;
+    lastLine = slice.startLine + slice.text.split(/\r\n|\r|\n/).length - 1;
+    identity = firstLine;
+  }
+  const key = `${path} ${identity ?? ""}`;
+  const onStack = stack.findIndex(([p, i]) => p === path && i === identity);
 
   if (onStack !== -1) {
     if (!reported.has(key)) {
@@ -323,23 +401,34 @@ function walk(
     return;
   }
 
-  if (stack.length >= MAX_EMBED_DEPTH) {
-    if (!reported.has(key)) {
-      reported.add(key);
-      out.push(at("HMD008", path, 1, 1, `embed depth exceeds the limit of ${MAX_EMBED_DEPTH}`));
+  // The starting card has depth zero and each nested embed adds one, so this
+  // card's depth is the number of cards above it. An embed that would exceed
+  // the limit is reported where it is written, in the card that embeds this
+  // one, once however many chains reach it.
+  if (stack.length > MAX_EMBED_DEPTH && via !== null) {
+    const parent = stack[stack.length - 1]![0];
+    const where = `HMD008 ${parent} ${via.span.line} ${via.span.column}`;
+    if (!reported.has(where)) {
+      reported.add(where);
+      out.push(
+        at(
+          "HMD008",
+          parent,
+          via.span.line,
+          via.span.column,
+          `embed depth exceeds the limit of ${MAX_EMBED_DEPTH}`,
+        ),
+      );
     }
     return;
   }
 
-  const document = workspace.documents.get(path);
-  if (document === undefined) return;
-
-  stack.push([path, fragment]);
+  stack.push([path, identity]);
   for (const link of document.links) {
-    if (!link.isEmbed) continue;
+    if (!link.isEmbed || link.span.line < firstLine || link.span.line > lastLine) continue;
     const result = workspace.resolve(path, link.pageRef);
     if (result.outcome !== "resolved" || result.path === null) continue;
-    walk(workspace, result.path, link.fragment, stack, reported, out);
+    walk(workspace, result.path, link, stack, reported, out);
   }
   stack.pop();
 }

@@ -1,0 +1,2 @@
+# The line-endings case is its bytes: \r\n and a lone \r must survive checkout.
+examples/conformance/cases/grammar-line-endings/tree/** -text

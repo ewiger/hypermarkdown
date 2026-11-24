@@ -1,0 +1,35 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 4,
+      "message": "backslash in wikilink in [[sub\\card]]",
+      "path": "src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 5,
+      "message": "backslash in wikilink in [[./sub\\card]]",
+      "path": "src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 6,
+      "message": "backslash in wikilink in [[/sub\\card]]",
+      "path": "src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[sub/card]]",
+      "source": "src.hmd",
+      "target": "sub/card.hmd"
+    }
+  ]
+}

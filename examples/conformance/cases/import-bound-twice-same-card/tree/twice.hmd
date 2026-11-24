@@ -1,0 +1,9 @@
+---
+import:
+  - from /shared import tokens
+  - from ./shared import tokens
+---
+
+# Twice
+
+[[tokens]]

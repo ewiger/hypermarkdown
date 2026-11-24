@@ -1,0 +1,7 @@
+A span with a backtick inside: `` `[[in-span]]` `` then [[target]].
+
+<!--
+[[in-comment]]
+-->
+
+An unmatched backtick ` is literal, so [[after-tick]] is a link.

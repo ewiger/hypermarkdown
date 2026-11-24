@@ -1,0 +1,54 @@
+{
+  "diagnostics": [
+    {
+      "candidates": [
+        "b/term.hmd"
+      ],
+      "column": 1,
+      "line": 10,
+      "message": "[[term]] also matched b/term.hmd; the earlier import won",
+      "path": "src/card.hmd",
+      "rule": "HMD016",
+      "severity": "warning"
+    },
+    {
+      "candidates": [
+        "b/deep/hidden.hmd",
+        "z/hidden.hmd"
+      ],
+      "column": 1,
+      "line": 13,
+      "message": "[[hidden]] matches 2 pages; qualify it (candidates: b/deep/hidden.hmd, z/hidden.hmd)",
+      "path": "src/card.hmd",
+      "rule": "HMD002",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[deep/hidden]]",
+      "source": "src/card.hmd",
+      "target": "b/deep/hidden.hmd"
+    },
+    {
+      "raw": "[[hidden]]",
+      "source": "src/card.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[near]]",
+      "source": "src/card.hmd",
+      "target": "src/near.hmd"
+    },
+    {
+      "raw": "[[only]]",
+      "source": "src/card.hmd",
+      "target": "b/only.hmd"
+    },
+    {
+      "raw": "[[term]]",
+      "source": "src/card.hmd",
+      "target": "a/term.hmd"
+    }
+  ]
+}

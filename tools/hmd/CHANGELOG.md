@@ -13,6 +13,8 @@ only for the Python API.
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-11-25
+
 ### Added
 - **A Pygments lexer for HyperMarkDown**, registered as `hmd` (alias
   `hypermarkdown`, files `*.hmd`). A code sample fenced as ```` ```hmd ```` is
@@ -21,6 +23,140 @@ only for the Python API.
   distinct tokens, and a fenced block inside the sample is coloured as its own
   language. Nothing has to be configured; Pygments finds the lexer through an
   entry point.
+- **An anchored repeat heading is not HMD011.** A heading whose key equals an
+  earlier one's is reported only when it carries no block anchor: the anchor
+  is the remedy, and makes the heading reachable.
+- **An anchor on a heading embeds its section.** `![[card#^setup-linux]]`,
+  where `^setup-linux` ends a heading's line, expands that heading's whole
+  section, exactly as `![[card#Linux]]` does, instead of the heading line alone.
+- **Setext headings are headings.** `Setup` over a line of `===` or `---` is
+  indexed and addressable like `# Setup`, at level 1 or 2, and ends an embedded
+  section the way an ATX heading does. A `---` after a blank line is still a
+  thematic break, a `---` frontmatter fence is still frontmatter, and no line
+  inside a fence or a comment is ever a heading.
+- **HMD019**, an error: a file with a card extension that is not valid UTF-8,
+  reported at line 1, column 1. The file is then not a card — not scanned, not
+  a link target, not in the graph — where it used to stop the run with a
+  `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
+
+### Changed
+- **A reference that ends in `/` names a directory**, and resolves only to
+  its folder note, in every phase: `[[m/]]` reaches `m/index.hmd` even
+  where `m.hmd` claims the name, it never matches a named import, and the
+  recursive search considers only folder notes. `[[/]]` is the root's folder
+  note. A trailing `/` used to be dropped, so `[[m/]]` reached `m.hmd`.
+- **A `location_path` that resolves into a nested vault is refused.** If a
+  directory between the vault and the namespace root carries its own `.hmd/`,
+  the vault is not loaded, and the error names `location_path` and the nested
+  vault.
+- **Frontmatter diagnostics are reported where the problem is written**, no
+  longer all at line 1, column 1. A malformed value of a top-level key is at
+  the key; a problem inside `nav` at the key inside it; a malformed list entry,
+  such as a tag, a `use` entry, or an `import` statement, at the entry's first
+  character (after `- ` in a block list, its own first character in a flow
+  list); anything else at its nearest enclosing key. HMD015 and HMD003 about an
+  import are at its statement. Invalid YAML stays at the block's start.
+- **A block anchor's position starts at its `^`**, not at the spaces or
+  tabs before it, so HMD006 points at the `^`. The blanks before the anchor
+  still go with it when a block is embedded or rendered.
+- **Breaking: `wiki` is renamed `location_path`, and its default is `.`**, the
+  vault itself, where it was `doc/wiki`. A `.hmd/config.toml` that still sets
+  `wiki` is refused: the vault is not loaded, every command exits 2, and the
+  error names `wiki` and `location_path`. The MkDocs plugin stops the build
+  with the same message. `hmd init` takes `--location-path` in place of
+  `--wiki`, writes `location_path`, and with no flag makes no directory of its
+  own, since `.` is the project root; it prints the root on a `location:`
+  line. In the Python API, `config.init` takes `location_path=`,
+  `InitResult.wiki` is `InitResult.location`, and `DEFAULT_WIKI` is
+  `DEFAULT_LOCATION_PATH`.
+- **A backslash anywhere in a wikilink is HMD010**: in its path, its
+  fragment, or its display. A backslash is never a path separator and
+  escapes nothing; one before `[[` is outside the link and changes nothing.
+- **An `import` statement takes only spaces and tabs as whitespace**, between
+  its words and on either side of a comma, as the grammar's `WS` says; another
+  whitespace character there is HMD014. An imported name or alias is a
+  segment with no whitespace, so `:` and the reserved characters make it
+  HMD014 too.
+- **A local name bound twice by imports is HMD015 even when both bindings
+  reach one card**, as in `from /shared import tokens` beside
+  `from ./shared import tokens`. It used to be reported only when the two
+  cards differed. The first binding stands.
+- **Resolution follows the HyperMarkDown 0.1 algorithm**, checked by the
+  corpus's `resolve-*` cases, which are written from the specification rather
+  than generated. `.` and `..` belong to relative references alone, and are
+  normalised there: in an absolute or unqualified reference, such as
+  `[[/a/../b]]` or `[[a/../b]]`, either one is HMD010 and the reference is not
+  a link. A relative reference whose last component is `.` or `..` names that
+  directory, and reaches only its folder note. A path that leaves the namespace is HMD003 in every phase: one
+  that climbs above the root, enters a nested vault, or meets a symbolic link
+  out of the root; a path into a nested vault used to be HMD001. `[[./]]` and
+  `[[../]]` bind only the directory's folder note, the root's included. A
+  reference that writes an extension reaches a shadowed card in the
+  recursive search too, and a named import whose card has another extension
+  does not apply to it. In the recursive search a folder note matched by its
+  directory's name gives way to a card beside the directory. Every imported
+  search path is probed, and HMD016 names each other card once; one card
+  reached through two imports is not reported.
+- **A symbolic link out of the namespace root is not a card.** Nothing
+  through one is loaded, where a linked file used to be read as a card
+  wherever it pointed.
+- **An unclosed `[[` is text, not HMD010.** A `[[` with no `]]` after it on
+  its line, or with a `[` or `]` first, begins no link and is ordinary
+  Markdown, so a matrix in maths such as `$[[1,2],[3,4]]$` no longer reports an
+  error. A link that is closed but malformed is still HMD010.
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. A target containing one is HMD010.
+- **HMD012 is a warning.** A card beside a module's folder note of the same name
+  shadows the note, which stays reachable by its `index` path; like HMD018,
+  that is a shadow decided by a fixed order, not a content bug.
+- **A heading fragment matches by key, not by slug** — the HyperMarkDown 0.1
+  rule. The key is the text in NFC, case-folded, with every character that is
+  not a letter, mark, or number turned into a space and the spaces collapsed.
+  `[[card#ошибка 404]]` reaches `# Ошибка 404!`, `[[card#STRASSE]]` reaches
+  `Straße`, and `[[card#Cafe]]` no longer reaches `Café`: accents are
+  significant, and letters of every script are kept, where the old slug
+  dropped them. A fragment matches the first heading with its key; the `_1`
+  suffix that reached a repeat is gone, so `[[card#setup_1]]` is now HMD004 and
+  a repeat is reached by a block anchor on its line.
+- **HMD011 reports headings with the same key**, at each repeat, naming the
+  line of the heading a fragment reaches instead. It used to report a slug
+  collision and suggest the `_1` address.
+- A heading's text is what a reader sees: `## The *fast* path` is
+  `The fast path` in the graph and in the derived nav, without its markup. The
+  graph's `slug` field is replaced by `key`.
+- **HMD004 names the fragment as written**, `has no heading '#Cafe Menu'`,
+  rather than its slug.
+- The MkDocs plugin and `hmd render` rewrite each heading link to the id
+  Python-Markdown's `toc` gives the heading the link matched — numbered `_1`
+  when an embedded heading of the same slug comes first on the page, `_1` for
+  a heading `toc` cannot slug at all, and the id set by `attr_list`'s `{#id}`.
+  A link whose fragment matched nothing links to the page.
+- **Spans count UTF-8 bytes; columns count code points.** A span's offsets are
+  byte offsets from byte 0 of the card, and a line ends at `\n`, `\r\n`, or a
+  lone `\r`. Cards are read as bytes, so a `\r\n` file keeps its offsets, and a
+  block anchor on a `\r\n` line is found. A form feed or U+2028 no longer
+  starts a line.
+- **A leading byte-order mark is ignored**, so frontmatter after one is
+  frontmatter.
+- **Names compare in NFC.** A reference and a name on disk match whether
+  either is stored composed or decomposed, for cards and for import origins.
+- **Only `.hmd/` marks a project root.** The `.git` fallback is gone: a tree
+  with no `.hmd/` above it is refused with a pointer to `hmd init` and
+  `--root`, where it used to load the repository root as a project.
+
+### Fixed
+- **A key inside a one-line flow mapping is located.** A problem in
+  `nav: {order: x}` is reported at `order`, as the frontmatter position rules
+  say, no longer at `nav`.
+- **The embed depth limit counts from zero, and HMD008 is reported at the
+  embed.** The starting card is depth zero and the limit is 16, so a chain of
+  exactly sixteen nested embeds is fine; it used to be reported. HMD008 is now
+  reported once, at the embed that would exceed the limit, where it used to
+  sit at line 1, column 1 of the card past it, once per chain.
+- **An embed of a section no longer reports a false cycle.** The HMD007 check
+  followed every embed in the embedded card, where an embed of a heading or a
+  block expands that region only. One section of a card embedding another
+  section of the same card is not a cycle, and is no longer reported as one.
 
 ## [0.4.0] — 2026-11-15
 
@@ -45,6 +181,15 @@ only for the Python API.
   sweep is HMD002.
 
 ### Fixed
+- **Block anchors are no longer rendered.** `hmd render` and the site printed
+  the trailing `^id` of every anchored block, including the tutorial paragraph
+  that says its anchor cannot be seen. Expansion now drops each anchor and its
+  leading whitespace, in a card's own text and in embedded text alike; an
+  anchor shown inside a fenced block stays.
+- **An import alias is compared after NFC**, like every other name, so a
+  decomposed alias is reachable by a composed reference.
+- **A code span does not cross a blank line in a `\r\n` or `\r` card.** The
+  test looked for two `\n` in a row and missed a blank line written with `\r`.
 - **A heading right below the frontmatter fence is a heading.** The fence was
   blanked together with its line breaks, so the first body line read as
   indented: `# Title` directly under `---` produced no heading, and a fragment
@@ -312,7 +457,9 @@ Deliberate, and tracked per proposal under `doc/proposals/HMD-NNNN/STATUS.md`:
 Both specifications — the format and the site — are still `drafted`. Expect the
 format to move before `1.0`.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/ewiger/hypermarkdown/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/ewiger/hypermarkdown/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/ewiger/hypermarkdown/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ewiger/hypermarkdown/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ewiger/hypermarkdown/compare/v0.1.1...v0.2.0
