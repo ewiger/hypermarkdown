@@ -56,7 +56,6 @@ async function runCase(name: string): Promise<Expected> {
     const out: Record<string, unknown> = {
       column: d.column,
       line: d.line,
-      message: d.message,
       path: d.path,
       rule: d.rule,
       severity: d.severity,
@@ -85,6 +84,18 @@ async function runCase(name: string): Promise<Expected> {
   return { diagnostics, resolutions };
 }
 
+/**
+ * A case's expected result without message text. The language does not define
+ * messages; the shared tests compare a diagnostic's rule, severity, path, line,
+ * and column, and each implementation words its own message.
+ */
+function withoutMessages(expected: Expected): Expected {
+  return {
+    diagnostics: expected.diagnostics.map(({ message: _message, ...rest }) => rest),
+    resolutions: expected.resolutions,
+  };
+}
+
 function compare(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
@@ -98,9 +109,9 @@ describe("conformance corpus", () => {
     const expectedFailure = expectedToFail.has(name);
 
     it(`${name}${expectedFailure ? " (ledgered as expected to fail)" : ""}`, async () => {
-      const expectedJson = JSON.parse(
-        await readFile(resolve(casesDir, name, "expected.json"), "utf8"),
-      ) as Expected;
+      const expectedJson = withoutMessages(
+        JSON.parse(await readFile(resolve(casesDir, name, "expected.json"), "utf8")) as Expected,
+      );
       const actual = await runCase(name);
 
       if (!expectedFailure) {

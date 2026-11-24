@@ -66,6 +66,21 @@ def run_case(case: Path, scratch: Path) -> dict:
     return {"diagnostics": diagnostics, "resolutions": resolutions}
 
 
+def comparable(result: dict) -> dict:
+    """A case's result without message text, which the language does not define.
+
+    The shared tests compare a diagnostic's rule, severity, path, line, and
+    column; a message is for people, and each implementation words its own.
+    """
+    return {
+        "diagnostics": [
+            {key: value for key, value in d.items() if key != "message"}
+            for d in result["diagnostics"]
+        ],
+        "resolutions": result["resolutions"],
+    }
+
+
 def test_the_corpus_has_cases():
     assert NAMES
 
@@ -73,4 +88,4 @@ def test_the_corpus_has_cases():
 @pytest.mark.parametrize("name", NAMES)
 def test_case(name, tmp_path):
     expected = json.loads((CASES / name / "expected.json").read_text(encoding="utf-8"))
-    assert run_case(CASES / name, tmp_path) == expected
+    assert comparable(run_case(CASES / name, tmp_path)) == comparable(expected)
