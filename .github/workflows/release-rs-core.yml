@@ -72,8 +72,11 @@ jobs:
 
       # Packages the crate and builds it from its own `.crate` file, so a
       # package missing a file it needs fails here, not after the upload.
+      # `cargo package`, not `cargo publish --dry-run`: the dry run leaves its
+      # `.crate` under `target/package/tmp-crate/`, where the upload below
+      # finds nothing.
       - name: Package
-        run: cargo publish --dry-run --locked
+        run: cargo package --locked
 
       - uses: actions/upload-artifact@v7
         with:
