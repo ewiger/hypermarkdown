@@ -1,0 +1,39 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 6,
+      "message": "[[far]] does not resolve to a page",
+      "path": "a/dots-then-close.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[far]]",
+      "source": "a/blank.hmd",
+      "target": "b/far.hmd"
+    },
+    {
+      "raw": "[[far]]",
+      "source": "a/dots-only.hmd",
+      "target": "b/far.hmd"
+    },
+    {
+      "raw": "[[far]]",
+      "source": "a/dots-then-close.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[far]]",
+      "source": "a/empty.hmd",
+      "target": "b/far.hmd"
+    },
+    {
+      "raw": "[[far]]",
+      "source": "a/unclosed.hmd",
+      "target": "b/far.hmd"
+    }
+  ]
+}
