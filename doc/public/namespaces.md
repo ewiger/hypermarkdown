@@ -30,8 +30,9 @@ resolves in. Its **namespace root** is the directory the `location_path`
 setting in `.hmd/config.toml` names, relative to the vault: where inside the
 vault the cards start. It defaults to `.`, the vault itself;
 `location_path = "doc/wiki"` puts the cards in a subdirectory, and a command or
-integration can override it. The key used to be called `wiki`. A
-configuration that still sets only `wiki` gets the default. A page reference that escapes this root
+integration can override it. The key used to be called `wiki`; a
+configuration that still sets `wiki` is rejected, and the vault is not read,
+until the line is renamed. A page reference that escapes this root
 is `HMD003`; path normalization happens before that check, and symlinks are not
 followed out of the tree.
 

@@ -52,8 +52,8 @@ the board, in the order this view lists them.
 | state   | rows |
 | ------- | ---- |
 | doing   | 1    |
-| todo    | 27   |
-| blocked | 4    |
+| todo    | 28   |
+| blocked | 5    |
 | backlog | 11   |
 | parked  | 3    |
 <!-- /hql:output -->
@@ -82,6 +82,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Settle the address grammar before it is built.                                                     | [lang](lang.md)           |
 | todo    | Clear numeric section references from the documentation.                                           | [lang](lang.md)           |
 | todo    | Finish unifying what a vault and a namespace are across the specification, the HMD tools, and HQL. | [lang](lang.md)           |
+| todo    | Ask HQL to read `location_path`.                                                                   | [lang](lang.md)           |
 | todo    | Test the scanner against CommonMark's own examples.                                                | [lang](lang.md)           |
 | todo    | Specify the Extended Markdown syntax.                                                              | [lang](lang.md)           |
 | todo    | Validate the grammar, a release requirement for 0.1.                                               | [lang](lang.md)           |
@@ -103,6 +104,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Draw Mermaid diagrams in the preview                                                               | [vsc-ext](vsc-ext.md)     |
 | blocked | The language server itself.                                                                        | [hmd](hmd.md)             |
 | blocked | Redirect the retired domain                                                                        | [hmd](hmd.md)             |
+| blocked | Re-render the generated status views.                                                              | [lang](lang.md)           |
 | blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.md)     |
 | blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.md)     |
 | backlog | Address and quote inside a card.                                                                   | [lang](lang.md)           |
