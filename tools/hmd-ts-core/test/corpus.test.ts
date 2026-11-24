@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
 
 import { check } from "../src/lint.js";
 import { parseConfigToml } from "../src/config.js";
+import { compareCodePoints } from "../src/paths.js";
 import { Workspace, DEFAULT_CONFIG } from "../src/workspace.js";
 import { NodeHost } from "./nodeHost.js";
 import { packageRoot, repoRoot } from "./repoRoot.js";
@@ -96,8 +97,9 @@ function withoutMessages(expected: Expected): Expected {
   };
 }
 
+/** Rows are ordered by code point, as `expected.json` is; `<` is UTF-16 order. */
 function compare(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
+  return compareCodePoints(a, b);
 }
 
 describe("conformance corpus", () => {

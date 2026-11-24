@@ -433,17 +433,18 @@ impl Vault {
             }
         }
 
-        // Imported directories, in the order the card wrote them. Every one is
-        // probed: the first card wins, and a path out of the namespace in any
-        // of them escapes.
+        // Imported directories, in the order the card wrote them. The first
+        // card wins. A path out of the namespace before any card is found
+        // escapes; after one, it leaves the result as it is, and reporting it
+        // is the caller's.
         let mut first = None;
         for directory in table.iter().flat_map(|table| &table.search_paths) {
             match self.bind(&paths::split(directory), &parts, ext) {
                 Bound::Card(path) => {
                     first.get_or_insert(path);
                 }
-                Bound::Escapes => return Resolution::Escapes,
-                Bound::NotFound => {}
+                Bound::Escapes if first.is_none() => return Resolution::Escapes,
+                Bound::Escapes | Bound::NotFound => {}
             }
         }
         if let Some(path) = first {
