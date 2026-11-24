@@ -2,6 +2,20 @@
 
 ## News and updates
 
+**2026-11-24 — HyperMarkDown 0.1.0, and every tool with it.** The first
+release of the [specification](../wiki/hmd-lang-spec.hmd).
+
+One change to make first: in `.hmd/config.toml`, rename `wiki` to
+`location_path`. A configuration that still sets `wiki` is refused, and
+nothing is read. The default is now the vault itself, not `doc/wiki`, so if
+your cards live in `doc/wiki`, write `location_path = "doc/wiki"`.
+
+The tools follow the specification: `hmd` 0.5.0, `@hypermarkdown/core` 0.4.0,
+the VS Code extension 0.6.0, the Rust crate `hypermarkdown` 0.3.0, and
+`hmd-semantics` 0.2.0. Headings in any script can be linked, names and
+extensions are case-sensitive everywhere, and a backslash in a link is an
+error.
+
 **2026-11-22 — VS Code extension 0.5.2, HQL 0.7.2.** HQL ships a Windows
 binary, and the extension's Windows builds bring their own `hql`: cells run
 with nothing on `PATH`. A card's path reads `books/owl.hmd` on every system.
@@ -36,10 +50,12 @@ type; the preview needs no Python.
 
 | | Version | Install from |
 | --- | --- | --- |
-| **HyperMarkDown**, the language | 0.1 draft | [specification](../wiki/hmd-lang-spec.hmd) |
-| **`hmd`** — CLI, library, MkDocs plugin | 0.4.0 | [PyPI](https://pypi.org/project/hypermarkdown/) |
-| **`@hypermarkdown/core`** — TypeScript | 0.3.0 | [npm](https://www.npmjs.com/package/@hypermarkdown/core) |
-| **`hmd-vsc-ext`** — VS Code | 0.5.2 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
+| **HyperMarkDown**, the language | 0.1.0 | [specification](../wiki/hmd-lang-spec.hmd) |
+| **`hmd`** — CLI, library, MkDocs plugin | 0.5.0 | [PyPI](https://pypi.org/project/hypermarkdown/) |
+| **`@hypermarkdown/core`** — TypeScript | 0.4.0 | [npm](https://www.npmjs.com/package/@hypermarkdown/core) |
+| **`hypermarkdown`** — Rust resolver | 0.3.0 | [crates.io](https://crates.io/crates/hypermarkdown) |
+| **`hmd-semantics`** — semantic index | 0.2.0 | [PyPI](https://pypi.org/project/hypermarkdown-semantics/) |
+| **`hmd-vsc-ext`** — VS Code | 0.6.0 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
 | **`hql`** — the Hyper Query Language | 0.7.2 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
 
 The **HMD language specification** versions independently of the tools, and
@@ -65,8 +81,8 @@ Released and out of preview. Installing is the [Quick start](../tools/index.md).
 - **Query** a vault with [HQL](https://hql-lang.org/): filter, sort, lexical and semantic
   search, graph traversal. A separate project.
 
-The specification is a 0.1 draft and will change before 1.0. The documentation
-is being written alongside it.
+The specification is at 0.1.0. A later 0.x version may still change a
+construct; 1.0 will promise that none changes.
 
 ## What is coming
 
@@ -74,9 +90,8 @@ is being written alongside it.
 
 HyperMarkDown's own work has two priorities.
 
-- **The language specification.** Its first version, 1.0, is the main goal.
-  The text is a 0.1 draft today, and what is written here and in the tools
-  moves until it is fixed.
+- **The language specification.** Its first version, 0.1.0, is released.
+  Next is 1.0, the version that promises stability.
 - **The VS Code extension.** Bug fixes, and improvements to how a card is
   presented in the preview.
 
