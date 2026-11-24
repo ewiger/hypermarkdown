@@ -1,0 +1,8 @@
+---
+import:
+  - from /shared import tokens
+---
+
+# Fine
+
+[[tokens]]

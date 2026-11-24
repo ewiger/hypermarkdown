@@ -1,0 +1,13 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "unknown feature 'no_discovery' in `use` (known: autodiscovery)",
+      "path": "typo.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}

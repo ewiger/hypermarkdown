@@ -1,0 +1,29 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "cannot import 'ghost' from '/shared': no such page",
+      "path": "missing-card.hmd",
+      "rule": "HMD015",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "import ref '/nowhere' does not exist",
+      "path": "missing-dir.hmd",
+      "rule": "HMD015",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "'tokens' is bound twice by imports (shared/tokens.hmd and other/tokens.hmd)",
+      "path": "twice.hmd",
+      "rule": "HMD015",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}

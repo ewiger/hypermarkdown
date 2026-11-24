@@ -1,0 +1,5 @@
+---
+- not: [a mapping
+---
+
+# Plain

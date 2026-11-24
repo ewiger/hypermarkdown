@@ -1,0 +1,21 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "`tags` entries must be non-empty strings, got {'key': 'value'}",
+      "path": "nested.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "`tags` must be a list, got int",
+      "path": "scalar.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}

@@ -1,0 +1,37 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "`nav.order` must be an integer, got 'first'",
+      "path": "order.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "`nav` must be a mapping, got int — write `nav:` with an `order:` under it",
+      "path": "scalar.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "unknown key 'colour' in `nav` (known: order, visibility)",
+      "path": "unknown.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "`nav.visibility` must be one of private, public; got 'hidden'",
+      "path": "visibility.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}
