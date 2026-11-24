@@ -1,0 +1,44 @@
+{
+  "diagnostics": [
+    {
+      "column": 39,
+      "line": 6,
+      "message": "[[nowhere|text]] does not resolve to a page",
+      "path": "index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "![[tokens|shown]]",
+      "source": "index.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[nowhere|text]]",
+      "source": "index.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[tokens#Rotation|rotation]]",
+      "source": "index.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens#^policy|policy]]",
+      "source": "index.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens|a|b]]",
+      "source": "index.hmd",
+      "target": "tokens.hmd"
+    },
+    {
+      "raw": "[[tokens|the tokens]]",
+      "source": "index.hmd",
+      "target": "tokens.hmd"
+    }
+  ]
+}
