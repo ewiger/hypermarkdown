@@ -71,8 +71,9 @@ function resolution(partial: Partial<Resolution> & { outcome: Outcome }): Resolu
 export interface ImportTable {
   bindings: Map<string, string>;
   searchPaths: string[];
-  /** (rule, message) problems found while building the table. */
-  problems: Array<readonly [string, string]>;
+  /** (rule, message, statement) problems found while building the table; the
+   * statement says where each is reported. */
+  problems: Array<readonly [string, string, ImportStmt]>;
 }
 
 export interface WorkspaceConfig {
@@ -383,13 +384,14 @@ export class Workspace {
         table.problems.push([
           "HMD003",
           `import ref '${stmt.ref}' resolves outside the namespace root`,
+          stmt,
         ]);
         continue;
       }
       // Looked up in NFC, then used as stored.
       const directory = this.directory(named);
       if (directory === null) {
-        table.problems.push(["HMD015", `import ref '${stmt.ref}' does not exist`]);
+        table.problems.push(["HMD015", `import ref '${stmt.ref}' does not exist`, stmt]);
         continue;
       }
 
@@ -404,6 +406,7 @@ export class Workspace {
           table.problems.push([
             "HMD015",
             `cannot import '${name}' from '${stmt.ref}': no such page`,
+            stmt,
           ]);
           continue;
         }
@@ -414,6 +417,7 @@ export class Workspace {
           table.problems.push([
             "HMD015",
             `'${local}' is bound twice by imports (${existing} and ${target})`,
+            stmt,
           ]);
           continue;
         }

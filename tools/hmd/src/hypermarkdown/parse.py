@@ -132,9 +132,9 @@ def parse(path: Path, text: str, rel: str) -> Document:
         except ValueError as exc:
             diagnostics.append(Diagnostic("HMD009", ERROR, rel, 1, 1, str(exc)))
         else:
-            card, problems = parse_card_config(frontmatter)
-            for rule, message in problems:
-                diagnostics.append(Diagnostic(rule, ERROR, rel, 1, 1, message))
+            card, problems = parse_card_config(frontmatter, raw_yaml)
+            for rule, message, (line, column) in problems:
+                diagnostics.append(Diagnostic(rule, ERROR, rel, line, column, message))
 
     # Mask the body only; frontmatter is YAML, not markdown.
     masked = _masked(text, body_offset)

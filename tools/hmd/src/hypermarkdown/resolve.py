@@ -99,8 +99,9 @@ ESCAPES = _Escapes()
 class ImportTable:
     bindings: dict[str, Path] = field(default_factory=dict)
     search_paths: tuple[Path, ...] = ()
-    #: (rule, message) problems found while building the table.
-    problems: list[tuple[str, str]] = field(default_factory=list)
+    #: (rule, message, statement) problems found while building the table; the
+    #: statement says where each is reported.
+    problems: list[tuple[str, str, ImportStmt]] = field(default_factory=list)
 
 
 class Workspace:
@@ -307,14 +308,14 @@ class Workspace:
             directory = self._import_dir(source, stmt)
             if directory is None:
                 table.problems.append(
-                    ("HMD003", f"import ref {stmt.ref!r} resolves outside the namespace root")
+                    ("HMD003", f"import ref {stmt.ref!r} resolves outside the namespace root", stmt)
                 )
                 continue
             # A nested vault is another namespace, so a directory inside one
             # does not exist as far as this vault is concerned.
             directory = self._directory(directory)
             if directory is None or self._in_nested_vault(directory):
-                table.problems.append(("HMD015", f"import ref {stmt.ref!r} does not exist"))
+                table.problems.append(("HMD015", f"import ref {stmt.ref!r} does not exist", stmt))
                 continue
 
             if stmt.wildcard:
@@ -325,7 +326,7 @@ class Workspace:
                 target = self.bind(directory, (name,))
                 if not isinstance(target, Path):
                     table.problems.append(
-                        ("HMD015", f"cannot import {name!r} from {stmt.ref!r}: no such page")
+                        ("HMD015", f"cannot import {name!r} from {stmt.ref!r}: no such page", stmt)
                     )
                     continue
                 # Two bindings of one name are an error even when they reach one
@@ -336,6 +337,7 @@ class Workspace:
                             "HMD015",
                             f"{local!r} is bound twice by imports "
                             f"({self.rel(table.bindings[local])} and {self.rel(target)})",
+                            stmt,
                         )
                     )
                     continue

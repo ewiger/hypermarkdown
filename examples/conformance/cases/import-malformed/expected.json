@@ -1,8 +1,8 @@
 {
   "diagnostics": [
     {
-      "column": 1,
-      "line": 1,
+      "column": 5,
+      "line": 3,
       "message": "expected 'from <ref> import <names>', got 'import tokens from /shared'",
       "path": "bad.hmd",
       "rule": "HMD014",

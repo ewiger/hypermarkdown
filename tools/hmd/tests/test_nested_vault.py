@@ -75,7 +75,7 @@ def test_import_cannot_reach_into_a_nested_vault(tmp_path):
     )
     table = _workspace(root).import_table(root / "a.hmd")
     assert table.bindings == {}
-    assert [rule for rule, _ in table.problems] == ["HMD015"]
+    assert [rule for rule, _, _ in table.problems] == ["HMD015"]
 
 
 def test_a_file_named_like_the_marker_is_not_a_vault(tmp_path):

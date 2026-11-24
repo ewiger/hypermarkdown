@@ -194,10 +194,10 @@ export function parse(rel: string, text: string): ParsedDocument {
   if (raw !== null) {
     try {
       frontmatter = parseYaml(raw);
-      const parsed = parseCardConfig(frontmatter);
+      const parsed = parseCardConfig(frontmatter, raw);
       card = parsed.card;
-      for (const [rule, message] of parsed.problems) {
-        diagnostics.push({ rule, severity: ERROR, path: rel, line: 1, column: 1, message });
+      for (const [rule, message, [line, column]] of parsed.problems) {
+        diagnostics.push({ rule, severity: ERROR, path: rel, line, column, message });
       }
     } catch (exc) {
       diagnostics.push({

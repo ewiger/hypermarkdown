@@ -175,7 +175,9 @@ function duplicateHeadings(document: ParsedDocument): Diagnostic[] {
 function importProblems(workspace: Workspace, document: ParsedDocument): Diagnostic[] {
   return workspace
     .importTable(document.path)
-    .problems.map(([rule, message]) => at(rule, document.path, 1, 1, message));
+    .problems.map(([rule, message, stmt]) =>
+      at(rule, document.path, stmt.line ?? 1, stmt.column ?? 1, message),
+    );
 }
 
 /** HMD001..HMD005 — resolution and fragment checks. */
