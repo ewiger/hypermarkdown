@@ -88,15 +88,25 @@ export interface ImportStmt {
 }
 
 /** The reserved frontmatter keys: `tags`, `use`, `import`. */
+/** `nav`: where a card sits in a published site. Null means "inherit". */
+export interface NavConfig {
+  order: number | null;
+  visibility: string | null;
+}
+
+/** The values `nav.visibility` may take. */
+export const VISIBILITIES: ReadonlySet<string> = new Set(["private", "public"]);
+
 export interface CardConfig {
   tags: readonly string[];
   /** Feature name -> enabled. Absent means "inherit". */
   use: Readonly<Record<string, boolean>>;
   imports: readonly ImportStmt[];
+  nav: NavConfig;
 }
 
 export function emptyCardConfig(): CardConfig {
-  return { tags: [], use: {}, imports: [] };
+  return { tags: [], use: {}, imports: [], nav: { order: null, visibility: null } };
 }
 
 export interface Diagnostic {

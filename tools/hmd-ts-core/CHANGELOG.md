@@ -26,6 +26,11 @@ anchors, matching the canonical implementation case for case.
 
 ### Added
 
+- **`nav` is validated.** A scalar `nav`, an unknown key in it, a non-integer
+  `order`, or a `visibility` other than `public` or `private` is HMD013, at the
+  offending key, as in the canonical implementation. `CardConfig` gains `nav`,
+  with `order` and `visibility`. Publication itself, which acts on
+  `visibility` and raises HMD017, is still not ported.
 - **`checkLocationPath`**, exported: refuses, with a `ConfigError` naming
   `location_path` and the nested vault, a `location_path` that resolves into
   a nested vault. The core has no filesystem, so the caller says which

@@ -8,16 +8,19 @@
 
 import { load as yamlLoad, JSON_SCHEMA, YAMLException } from "js-yaml";
 
-import { Locator, entry, key, type Position, type Where } from "./frontmatterPosition.js";
+import { Locator, entry, key, nested, type Position, type Where } from "./frontmatterPosition.js";
 import { ImportSyntaxError, parseStatement } from "./imports.js";
 import { pyRepr } from "./pyrepr.js";
-import type { CardConfig, ImportStmt } from "./model.js";
+import { VISIBILITIES, type CardConfig, type ImportStmt, type NavConfig } from "./model.js";
 import { splitLines, stripEol } from "./scan.js";
 
 export const RESERVED_KEYS: ReadonlySet<string> = new Set(["tags", "use", "import"]);
 
 /** Features nameable in `use`. Prefixing `no_` disables, as in vim's `set no…`. */
 export const KNOWN_FEATURES: ReadonlySet<string> = new Set(["autodiscovery"]);
+
+/** Keys recognised inside the `nav` mapping. */
+const NAV_KEYS: ReadonlySet<string> = new Set(["order", "visibility"]);
 
 const FENCE = "---";
 
@@ -99,6 +102,7 @@ export function parseCardConfig(
   const locator = new Locator(raw);
   const tags = parseTags(data["tags"], found);
   const use = parseUse(data["use"], found);
+  const nav = parseNav(data["nav"], found);
   const imports = parseImports(data["import"], found).map(([stmt, where]) => {
     const [line, column] = locator.locate(where);
     return { ...stmt, line, column };
@@ -108,7 +112,81 @@ export function parseCardConfig(
     message,
     locator.locate(where),
   ]);
-  return { card: { tags, use, imports }, problems };
+  return { card: { tags, use, imports, nav }, problems };
+}
+
+/**
+ * `nav` places a card in a published site. A mapping, so the key has room to
+ * grow; `nav: 10` was an earlier spelling, and a card carrying it means to be
+ * ordered, so it is named as a defect rather than accepted quietly.
+ *
+ * Only the validation is here. What `visibility` does — publication, and
+ * HMD017 — is not ported yet.
+ */
+function parseNav(value: unknown, problems: Found[]): NavConfig {
+  const none: NavConfig = { order: null, visibility: null };
+  if (value === undefined || value === null) return none;
+  if (typeof value !== "object" || Array.isArray(value)) {
+    const integer =
+      typeof value === "boolean" || (typeof value === "number" && Number.isInteger(value));
+    const hint = integer ? " — write `nav:` with an `order:` under it" : "";
+    problems.push([
+      "HMD013",
+      `\`nav\` must be a mapping, got ${typeName(value)}${hint}`,
+      key("nav"),
+    ]);
+    return none;
+  }
+
+  const mapping = value as Record<string, unknown>;
+  const known = [...NAV_KEYS].sort().join(", ");
+  for (const name of Object.keys(mapping).filter((k) => !NAV_KEYS.has(k)).sort(byCodePoint)) {
+    problems.push([
+      "HMD013",
+      `unknown key ${repr(name)} in \`nav\` (known: ${known})`,
+      nested("nav", name),
+    ]);
+  }
+
+  let order: number | null = null;
+  const rawOrder = mapping["order"];
+  if (rawOrder !== undefined && rawOrder !== null) {
+    if (typeof rawOrder === "number" && Number.isInteger(rawOrder)) order = rawOrder;
+    else {
+      problems.push([
+        "HMD013",
+        `\`nav.order\` must be an integer, got ${repr(rawOrder)}`,
+        nested("nav", "order"),
+      ]);
+    }
+  }
+
+  let visibility: string | null = null;
+  const rawVisibility = mapping["visibility"];
+  if (rawVisibility !== undefined && rawVisibility !== null) {
+    if (typeof rawVisibility === "string" && VISIBILITIES.has(rawVisibility)) {
+      visibility = rawVisibility;
+    } else {
+      const choices = [...VISIBILITIES].sort().join(", ");
+      problems.push([
+        "HMD013",
+        `\`nav.visibility\` must be one of ${choices}; got ${repr(rawVisibility)}`,
+        nested("nav", "visibility"),
+      ]);
+    }
+  }
+
+  return { order, visibility };
+}
+
+/** Code-point order, as the canonical implementation sorts. */
+function byCodePoint(a: string, b: string): number {
+  const x = [...a].map((ch) => ch.codePointAt(0)!);
+  const y = [...b].map((ch) => ch.codePointAt(0)!);
+  for (let i = 0; i < Math.min(x.length, y.length); i += 1) {
+    if (x[i] !== y[i]) return x[i]! - y[i]!;
+  }
+  return x.length - y.length;
 }
 
 function parseTags(value: unknown, problems: Found[]): string[] {
