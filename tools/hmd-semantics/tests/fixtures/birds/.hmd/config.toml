@@ -1,4 +1,4 @@
-wiki = "."
+location_path = "."
 
 [semantics]
 index = ".hmd/index.sqlite"

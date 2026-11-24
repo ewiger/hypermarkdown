@@ -185,18 +185,42 @@ def test_a_flag_can_switch_a_declared_remote_vault_to_local(tmp_path):
     assert not resolved.remote
 
 
-def test_the_cards_start_where_wiki_says(tmp_path):
+def test_the_cards_start_where_location_path_says(tmp_path):
     (tmp_path / ".hmd").mkdir()
-    assert config.namespace_root(tmp_path) == tmp_path / "doc" / "wiki"
-    (tmp_path / ".hmd" / "config.toml").write_text('wiki = "."\n', encoding="utf-8")
     assert config.namespace_root(tmp_path) == tmp_path / "."
+    (tmp_path / ".hmd" / "config.toml").write_text('location_path = "doc/wiki"\n', encoding="utf-8")
+    assert config.namespace_root(tmp_path) == tmp_path / "doc" / "wiki"
+
+
+@pytest.mark.parametrize("text", ['wiki = "doc/wiki"\n', 'location_path = "."\nwiki = "."\n'])
+def test_a_vault_that_sets_wiki_is_refused(tmp_path, text):
+    (tmp_path / ".hmd").mkdir()
+    (tmp_path / ".hmd" / "config.toml").write_text(text, encoding="utf-8")
+    for setting in (config.namespace_root, config.index, config.read):
+        with pytest.raises(config.ConfigError) as refused:
+            setting(tmp_path)
+        assert "`wiki`" in str(refused.value) and "`location_path`" in str(refused.value)
+
+
+def test_a_vault_that_sets_wiki_is_not_built(tmp_path, capsys):
+    from hypermarkdown_semantics import cli
+
+    (tmp_path / ".hmd").mkdir()
+    (tmp_path / ".hmd" / "config.toml").write_text('wiki = "."\n', encoding="utf-8")
+    (tmp_path / "a.hmd").write_text("# A\n", encoding="utf-8")
+    assert cli.main(["build", "--vault", str(tmp_path)]) == 1
+    said = capsys.readouterr().err
+    assert "`wiki`" in said and "`location_path`" in said
+    assert not (tmp_path / ".hmd" / "index.sqlite").exists()
 
 
 def test_a_nested_vault_and_files_outside_the_namespace_are_not_cards(tmp_path):
     from hypermarkdown_semantics import vault
 
     (tmp_path / ".hmd").mkdir()
-    (tmp_path / ".hmd" / "config.toml").write_text('wiki = "doc/wiki"\n', encoding="utf-8")
+    (tmp_path / ".hmd" / "config.toml").write_text(
+        'location_path = "doc/wiki"\n', encoding="utf-8"
+    )
     (tmp_path / "README.md").write_text("# Readme\n", encoding="utf-8")
     wiki = tmp_path / "doc" / "wiki"
     (wiki / "inner" / ".hmd").mkdir(parents=True)

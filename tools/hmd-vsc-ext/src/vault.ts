@@ -38,7 +38,7 @@ export class Vault implements vscode.Disposable {
      * was found. Reported in diagnostics and used to name the vault.
      */
     readonly projectRoot: vscode.Uri,
-    /** The namespace root: `wiki` resolved against the project root. */
+    /** The namespace root: `location_path` resolved against the project root. */
     readonly root: vscode.Uri,
     readonly config: ProjectConfig,
     /** Fires with the card that changed, or null when the whole index moved. */

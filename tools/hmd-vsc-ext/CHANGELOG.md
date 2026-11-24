@@ -23,6 +23,13 @@ against
 
 ### Changed
 
+- **The namespace root comes from `location_path`, and defaults to the folder
+  itself.** A vault's `.hmd/config.toml` names it with `location_path`, which
+  was called `wiki`. A config that still sets `wiki` is refused: the error
+  names both keys, and none of that vault's cards opens, in it or in the
+  folder's vault. A folder with no `.hmd/` is now its own namespace root,
+  where it used to fall back to `doc/wiki`. The `hyperMarkdown.root` setting
+  keeps its name and overrides it as before.
 - **Follows the HyperMarkDown 0.1 heading rules** from `@hypermarkdown/core`:
   opening a heading link from the preview finds the first heading whose key
   is the fragment's, so case, punctuation, and composed or decomposed accents
