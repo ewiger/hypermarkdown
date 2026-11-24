@@ -26,6 +26,11 @@ anchors, matching the canonical implementation case for case.
 
 ### Added
 
+- **`DirEntry.leavesRoot`**, optional: a host sets it on a symbolic link whose
+  target lies outside the namespace root. Nothing through such an entry is a
+  card, and a reference whose path meets it is `escapes`, HMD003. `ESCAPES` is
+  what `Workspace.bind` returns for such a path, and `compareCodePoints`
+  orders strings by code point.
 - **HMD012 is a warning.** A card beside a module's folder note of the same name
   shadows the note, which stays reachable by its `index` path; like HMD018,
   that is a shadow decided by a fixed order, not a content bug.
@@ -55,6 +60,22 @@ anchors, matching the canonical implementation case for case.
 
 ### Changed
 
+- **Resolution follows the HyperMarkDown 0.1 algorithm**, checked by the
+  corpus's `resolve-*` cases, which are written from the specification rather
+  than generated. `..` is normalised in every path form, so `[[/a/../b]]`
+  reaches `b`. A path that leaves the namespace is HMD003 in every phase: one
+  that climbs above the root, enters a nested vault, or meets a symbolic link
+  out of the root; a path into a nested vault used to be HMD001. `[[./]]` and
+  `[[../]]` bind only the directory's folder note, the root's included. A
+  reference that writes an extension reaches a shadowed card in the
+  recursive search too, and a named import whose card has another extension
+  does not apply to it. In the recursive search a folder note matched by its
+  directory's name gives way to a card beside the directory. Every imported
+  search path is probed, and HMD016 names each other card once; one card
+  reached through two imports is not reported.
+- **Candidates sort by code point**, as UTF-8 bytes do, in HMD002's list and
+  in the diagnostic order. `<` compared UTF-16 code units and put a character
+  outside the Basic Multilingual Plane before U+E000–U+FFFF.
 - **A heading fragment matches by key, not by slug.** The key is the text in
   NFC, case-folded, with every character that is not a letter, mark, or number
   turned into a space and the spaces collapsed: `[[card#ошибка 404]]` reaches
