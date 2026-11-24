@@ -199,7 +199,8 @@ followed by Markdown content, including the extensions defined by this
 standard. Documents are stored as UTF-8 encoded text files.
 
 HyperMarkDown recognizes three card extensions: `.hmd`, `.md`, and
-`.markdown`. When multiple cards in the same directory have the same name but
+`.markdown`. Extensions are compared exactly, case included, as names are:
+`shout.HMD` and `notes.MD` have no card extension and are ignored. When multiple cards in the same directory have the same name but
 different extensions, references without an explicit extension resolve
 according to this priority order:
 
@@ -322,10 +323,11 @@ wikilink         = "[[" target [ "|" display ] "]]"
 target           = page-ref [ fragment ]
 
 page-ref         = absolute / relative / unqualified
-absolute         = "/" segment *( "/" segment )
-relative         = ( "./" / "../" ) [ rel-component *( "/" rel-component ) ]
+absolute         = "/" [ segment *( "/" segment ) [ "/" ] ]
+relative         = ( "./" / "../" )
+                   [ rel-component *( "/" rel-component ) [ "/" ] ]
 rel-component    = segment / "." / ".."
-unqualified      = bare-name / unqualified-path
+unqualified      = ( bare-name / unqualified-path ) [ "/" ]
 bare-name        = segment
 unqualified-path = segment 1*( "/" segment )
 segment          = 1*seg-char
@@ -366,9 +368,12 @@ display-char     = %x00-09 / %x0B-0C / %x0E-5A / %x5E-D7FF
   contain them, and they follow Unix path semantics: the reference is
   normalized before it is resolved, and the namespace containment rule applies
   to the result.
-- `./` and `../` with no following component are valid references to the
-  current and the parent directory. So is a relative reference whose last
-  component is `.` or `..`. They resolve only to that directory's folder note.
+- A page reference that ends in `/` names a directory, and resolves only to
+  that directory's folder note. So do `./` and `../` with no following
+  component, which name the current and the parent directory, and a relative
+  reference whose last component is `.` or `..`. `[[/]]` names the namespace
+  root, and resolves to the root's folder note. A reference that names a
+  directory is not a bare name, so it never matches a named import.
 - In a `heading-text`, `#` MAY appear anywhere and `^` anywhere but first; both
   are ordinary characters of the heading text. A `^` directly after the
   fragment's `#` makes the fragment a `block-id` instead. Neither character
@@ -419,18 +424,19 @@ and the text stays as written.
 ### Block anchors
 
 A **block anchor** is a trailing `^block-id` at the end of a block's last line,
-followed only by the line ending:
+followed only by spaces or tabs and the line ending:
 
 ```abnf
-block-anchor     = 1*( %x20 / %x09 ) "^" block-id
-                 ; one or more spaces or tabs, then the anchor
+block-anchor     = 1*( %x20 / %x09 ) "^" block-id *( %x20 / %x09 )
+                 ; one or more spaces or tabs, the anchor, then
+                 ; optional spaces or tabs before the line ending
 ```
 
 - Spaces and tabs may precede a block anchor, and at least one of them is
   REQUIRED. The source position of a block anchor begins at the `^`
   character, excluding any preceding whitespace.
-- The anchor and its leading whitespace are not part of the block's content,
-  and MUST NOT be rendered.
+- The anchor and the whitespace around it are not part of the block's
+  content, and MUST NOT be rendered.
 - An identifier's scope is its card. Two cards can use the same identifier;
   two anchors in one card MUST NOT, and a duplicate is an error
   ([HMD006](#diagnostics)), reported at the later anchor's `^`.
@@ -647,6 +653,7 @@ of those find nothing does it run one recursive search of the namespace.
 resolve(target, source, root):
     ext     := explicit card extension, if present
     stem    := target.page-ref without ext
+    dir_ref := stem ends with "/"
     origin  := dirname(source)
     imports := named_imports(source)
     paths   := wildcard_imports(source)
@@ -656,8 +663,9 @@ resolve(target, source, root):
     # Absolute reference
 
     if stem starts with "/":
-        parts := path components after the leading "/"
-        return bind(root, parts, ext) or Unresolved
+        parts := non-empty path components after the leading "/"
+        return bind(root, parts, ext, directory_only = dir_ref)
+               or Unresolved
 
     # Explicit relative reference
 
@@ -667,7 +675,7 @@ resolve(target, source, root):
         if base violates namespace boundaries:
             return Escapes
 
-        if stem identifies "." or ".." directly:
+        if dir_ref or the last component of stem is "." or "..":
             return bind(base, [], ext, directory_only = true)
                    or Unresolved
 
@@ -676,11 +684,11 @@ resolve(target, source, root):
 
     # Unqualified reference
 
-    parts := split(stem, "/")
+    parts := non-empty components of split(stem, "/")
 
     # Phase 0: Named imports
 
-    if size(parts) == 1 and parts[0] in imports:
+    if not dir_ref and size(parts) == 1 and parts[0] in imports:
         card := imports[parts[0]]
 
         if ext is absent or extension(card) == ext:
@@ -689,7 +697,7 @@ resolve(target, source, root):
     # Phase 1: Current directory and parents
 
     for dir in ancestors_inclusive(origin, root):
-        result := bind(dir, parts, ext)
+        result := bind(dir, parts, ext, directory_only = dir_ref)
 
         if result != NotFound:
             return result
@@ -699,7 +707,7 @@ resolve(target, source, root):
     matches := []
 
     for dir in paths:
-        result := bind(dir, parts, ext)
+        result := bind(dir, parts, ext, directory_only = dir_ref)
 
         if result is Escapes:
             if size(matches) == 0:
@@ -722,6 +730,9 @@ resolve(target, source, root):
     scope := origin if mode == "recursive" else root
 
     candidates := valid_cards_below(scope)
+
+    if dir_ref:
+        candidates := folder notes among candidates
 
     if ext is specified:
         candidates := candidates with extension ext
@@ -865,8 +876,9 @@ Once a card is resolved, its fragment is matched against that card.
 
 - A `heading-text` fragment MUST match by the rule under
   [Heading anchors](#heading-anchors); no match is an error ([HMD004](#diagnostics)).
-- A `block-id` fragment MUST match a block anchor in the resolved card; no match
-  is an error ([HMD005](#diagnostics)).
+- A `block-id` fragment MUST match, character for character and case
+  included, the identifier of a block anchor in the resolved card; no match is
+  an error ([HMD005](#diagnostics)).
 - A fragment MUST NOT influence which card is resolved.
 
 ## Frontmatter
