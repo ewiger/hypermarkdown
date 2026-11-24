@@ -92,6 +92,9 @@ leaks into the contract.
 | `grammar-code-spans-and-comments` | A double-backtick code span holding a backtick, a multi-line HTML comment, and an unmatched backtick that stays literal |
 | `grammar-line-endings` | `\r\n` and a lone `\r` count as line endings in diagnostics and headings; `.gitattributes` keeps the bytes as written |
 | `grammar-frontmatter-position` | `---` at byte 0 opens frontmatter; after a blank line or a space it does not |
+| `heading-text-markup` | A heading's text has inline markup removed, not replaced; a code span's content stays, a closing `#` run does not, and a heading whose identifier is empty is reached by its anchor |
+| `embed-self` | A card that embeds itself whole, and a section that embeds itself, are each HMD007 |
+| `embed-sections-of-one-card` | Two embeds of different sections of one card are not a cycle, and neither is one section embedding another section of the same card |
 | `frontmatter-not-mapping` | A list as frontmatter is HMD009; a `.md` card's broken frontmatter is body text, not HMD009 |
 | `frontmatter-invalid-yaml` | Frontmatter that is not valid YAML is HMD009 |
 | `tags-malformed` | A scalar `tags`, and a non-string entry, are HMD013 |
