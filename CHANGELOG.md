@@ -38,7 +38,7 @@ for one. Progress is not tracked here either — the trackers under
 `doc/status/` are the only place work is recorded, one per tool plus one for the
 language itself.
 
-## [0.1.0] — 2026-11-24
+## [0.1.0] — 2026-11-25
 
 The first released version of the language: the six constructs, resolution,
 the severities, and the publication model, frozen as one text and checked by a

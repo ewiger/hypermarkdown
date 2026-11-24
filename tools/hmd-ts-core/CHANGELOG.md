@@ -21,7 +21,7 @@ point in
 
 ## [Unreleased]
 
-## [0.4.0] — 2026-11-24
+## [0.4.0] — 2026-11-25
 
 The HyperMarkDown 0.1 rules for encoding, the lexical model, and heading
 anchors, matching the canonical implementation case for case.

@@ -16,7 +16,7 @@ on PyPI, tagged `semantics-vX.Y.Z`. Implementation state is tracked in
 
 ## [Unreleased]
 
-## [0.2.0] — 2026-11-24
+## [0.2.0] — 2026-11-25
 
 ### Changed
 

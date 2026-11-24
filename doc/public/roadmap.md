@@ -2,7 +2,7 @@
 
 ## News and updates
 
-**2026-11-24 — HyperMarkDown 0.1.0, and every tool with it.** The first
+**2026-11-25 — HyperMarkDown 0.1.0, and every tool with it.** The first
 release of the [specification](../wiki/hmd-lang-spec.hmd).
 
 One change to make first: in `.hmd/config.toml`, rename `wiki` to

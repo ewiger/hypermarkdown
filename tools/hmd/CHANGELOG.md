@@ -13,7 +13,7 @@ only for the Python API.
 
 ## [Unreleased]
 
-## [0.5.0] — 2026-11-24
+## [0.5.0] — 2026-11-25
 
 ### Added
 - **A Pygments lexer for HyperMarkDown**, registered as `hmd` (alias
