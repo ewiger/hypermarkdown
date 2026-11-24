@@ -17,9 +17,7 @@ embeds in [`ts-core.md`](ts-core.md), the Rust resolver in
 **`0.5.2` is released to both galleries, and cards are notebooks.** The
 extension reads cards through the core it embeds, so it conforms to
 HyperMarkDown 0.1.0 as far as that core does — every rule but the publication
-model — with one gap of its own: its host does not report a symbolic link out
-of the vault, so the core cannot refuse to follow one. The 0.1 rules are in the
-unreleased tree.
+model. The 0.1 rules are in the unreleased tree.
 Everything the extension claims to do works and is gated by tests: the rendered
 tab, wiki links and plain Markdown links that open what they name, embeds as collapsible cards, scroll sync both ways, red links with a
 create-the-card action, the graph, diagnostics identical to the linter's except
@@ -58,7 +56,6 @@ on discovery, since `0.4.4` [issue 0009].
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
 | todo | **Automate the by-hand checks.** The list in the extension's `DEVELOP.md` — the graph's legibility on a real vault, live editing, scroll sync — is read by hand before a release, and nothing stands in for it. The parked integration suite is where this would live [issue 0101] | Not a gate on shipping; it is the reason a release still costs an afternoon | [[hmd-0025]] |
-| todo | **Report a symbolic link out of the vault.** The core treats such a link as leaving the namespace, HMD003, but only when the host marks it with `DirEntry.leavesRoot`, and this host maps each directory entry to a name and a directory flag alone, so a link to a card outside the vault is indexed as a card, and a linked directory is read as not a directory | The core's half is done; this is the host's. One mapping, from the editor's file type, which already flags a symbolic link [`src/workspaceHost.ts`] | [[hmd-lang-spec#rules-the-algorithm-must-satisfy]], [the issue card](../issues/0020-validate-name-resolution-across-implementations.md) |
 | backlog | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | Waits on the open question below: what a filter does to the node cap | [[hmd-0025]] |
 | todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
 | blocked | **Drop the mask.** Before handing a card to HQL the extension renames a bare `hql` fence to `txt` and marks an `hql#query` fence `hidden`, because `hql render` runs bare `hql` fences as cells and writes outputs for queries, and this format says they are a listing and a hidden cell. Unblocks when HQL adopts both rules | One function and its call [`src/hql/engine.ts`, `maskForHql`] | [[hmd-0026#the-divergence-with-hql-render]] |
@@ -103,7 +100,12 @@ about 300 MB on first run, which is why it is not in the default test command.
   convert code-point columns to the editor's UTF-16 ones, an undecodable card
   is reported as HMD019, and resolution follows the corrected algorithm (`..`
   normalised, `[[./]]` binding only a folder note, candidates in code-point
-  order) except for symbolic links, above; unreleased.
+  order); unreleased.
+- **A symbolic link out of the vault is no longer followed as a card** — the
+  host marks it with `DirEntry.leavesRoot` on a `file:` root, so the core
+  reports a reference through it as leaving the namespace, HMD003, as the
+  specification and the `resolve-containment-symlinks` case require;
+  unreleased [`src/workspaceHost.ts`, issue 0020].
 - **A cell runs in its card's directory** — HQL is started in the directory
   holding the card, not the vault root, so a relative path in a cell resolves
   beside the card and HQL's upward search for the card's HQL project starts
@@ -198,12 +200,12 @@ npm run -w tools/hmd-vsc-ext package
 
 - 2026-11-24: before the 0.1.0 release. Status names `0.5.2`, the version on
   both galleries, and says the extension conforms to HyperMarkDown 0.1.0
-  through its core, but for publication and symbolic links. The Open row for
-  unpublished links duplicated the limitation and is dropped; the limitation
-  about underlined headings is gone, since the core indexes them. An Open row
-  for reporting a symbolic link out of the vault, found by reading the host
-  against the corrected resolution. The graph filter is backlog until its
-  open question is answered.
+  through its core, but for publication. The Open row for unpublished links
+  duplicated the limitation and is dropped; the limitation about underlined
+  headings is gone, since the core indexes them. The host now reports a
+  symbolic link out of the vault, a gap found by reading it against the
+  corrected resolution and closed the same day. The graph filter is backlog
+  until its open question is answered.
 - 2026-11-22: follows the core's 0.1 rules, unreleased.
 - 2026-11-15: a cell runs in its card's directory, which is what HQL's record
   of projects and vaults asks of a host: the source directory of a cell is

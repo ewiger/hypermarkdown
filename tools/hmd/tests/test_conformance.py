@@ -1,10 +1,15 @@
-"""The conformance corpus, run against the canonical implementation.
+"""The conformance corpus, run against the reference implementation.
 
-Every case under `examples/conformance/cases/` was generated from this
-implementation, so this runner checks that it still produces what it once
-wrote: a change in canonical behaviour shows up here as a diff to review and
-regenerate, rather than first as a TypeScript failure. The TypeScript runner
-is `tools/hmd-ts-core/test/corpus.test.ts`, and both build the same
+The specification is the authority, not this code. Each case's
+`expected.json` states what the specification requires of its tree: the
+`resolve-*` cases and every later case were written from the text, and the
+older ones, first generated from this implementation, are held to the text
+too. A failure here is therefore a disagreement with the specification, to be
+fixed in this code, or raised as a question about the text, never settled by
+regenerating the expected output. This implementation carries no
+expected-failure ledger. The TypeScript runner is
+`tools/hmd-ts-core/test/corpus.test.ts` and the Rust one
+`tools/hmd-rs-core/tests/corpus.rs`; the first two build the same
 `{diagnostics, resolutions}` shape.
 
 A case's `config.toml` sits beside its `tree/`, not inside it, so the tree is
