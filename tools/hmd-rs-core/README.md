@@ -70,7 +70,8 @@ fn open(card: &Path) -> Option<Vault> {
 | | |
 | --- | --- |
 | Absolute references | `[[/shared/tokens]]`, from the namespace root |
-| Relative references | `[[./tokens]]`, `[[../shared/tokens]]`, from the card's directory; one that climbs above the root is `Resolution::Escapes` |
+| Relative references | `[[./tokens]]`, `[[../shared/tokens]]`, from the card's directory |
+| Leaving the namespace | any reference that leaves the namespace root, by `..`, through a symbolic link out of the root, or into a nested vault, is `Resolution::Escapes`, in every phase |
 | Named imports | `import: from ../shared import tokens`, and `tokens as shared-tokens` for an alias |
 | Wildcard imports | `import: from /shared import *`, searched after the spine, in the order written |
 | The spine | the card's own directory, then each directory above it; the nearest wins |

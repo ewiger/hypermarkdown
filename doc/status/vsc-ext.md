@@ -6,16 +6,22 @@ its own copy of the format, so nothing has to be installed to preview a card —
 no interpreter, no virtualenv, no subprocess between a keystroke and the
 preview. Published as `hypermarkdown.hmd` on the VS Marketplace and Open VSX.
 
-Beside this file: the format itself in [`lang.md`](lang.md), the canonical
+Beside this file: the format itself in [`lang.md`](lang.md), the reference
 implementation in [`hmd.md`](hmd.md), the format implementation this extension
-embeds in [`ts-core.md`](ts-core.md), and the website in [`pages.md`](pages.md).
+embeds in [`ts-core.md`](ts-core.md), the Rust resolver in
+[`rs-core.md`](rs-core.md), the semantic-index builder in
+[`semantics.md`](semantics.md), and the website in [`pages.md`](pages.md).
 
 ## Status
 
-**`0.4.4` is released to both galleries, and cards are notebooks.**
+**`0.5.2` is released to both galleries, and cards are notebooks.** The
+extension reads cards through the core it embeds, so it conforms to
+HyperMarkDown 0.1.0 as far as that core does — every rule but the publication
+model. The 0.1 rules are in the unreleased tree.
 Everything the extension claims to do works and is gated by tests: the rendered
 tab, wiki links and plain Markdown links that open what they name, embeds as collapsible cards, scroll sync both ways, red links with a
-create-the-card action, the graph, diagnostics identical to the linter's, and
+create-the-card action, the graph, diagnostics identical to the linter's except
+the publication rule, and
 math, callouts, and D2 diagrams — the `d2` binary travels inside the extension,
 so a diagram draws on a fresh install with nothing configured. Releases publish
 from CI with no stored credential.
@@ -50,8 +56,7 @@ on discovery, since `0.4.4` [issue 0009].
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
 | todo | **Automate the by-hand checks.** The list in the extension's `DEVELOP.md` — the graph's legibility on a real vault, live editing, scroll sync — is read by hand before a release, and nothing stands in for it. The parked integration suite is where this would live [issue 0101] | Not a gate on shipping; it is the reason a release still costs an afternoon | [[hmd-0025]] |
-| blocked | **Report unpublished links.** A published card that links to a private one should warn, and here it never does, because the embedded format implementation has no notion of a card being published. Unblocks when that port lands (rule HMD017) | Nothing to build here until the core reports it | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
-| todo | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | A network view of a large vault is where this stops being a nicety [VSX-024] | [[hmd-0025]] |
+| backlog | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | Waits on the open question below: what a filter does to the node cap | [[hmd-0025]] |
 | todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
 | blocked | **Drop the mask.** Before handing a card to HQL the extension renames a bare `hql` fence to `txt` and marks an `hql#query` fence `hidden`, because `hql render` runs bare `hql` fences as cells and writes outputs for queries, and this format says they are a listing and a hidden cell. Unblocks when HQL adopts both rules | One function and its call [`src/hql/engine.ts`, `maskForHql`] | [[hmd-0026#the-divergence-with-hql-render]] |
 | blocked | **Name the HQL project and import `hmd` on the command line.** HQL's record of projects and vaults has a host pass the project it resolved, `--project <dir>`, and inject `--import hmd`. The extension passes neither: `hql render` imports `hmd` and selects the project itself, and the HQL the toolchain pins predates both flags and refuses an option it does not know. Unblocks when the toolchain pins an HQL release that has them | One argument list [`src/hql/engine.ts`, `run`] | [[hmd-0026#running-a-cell]] |
@@ -79,10 +84,9 @@ about 300 MB on first run, which is why it is not in the default test command.
 | --- | --- | --- |
 | Run needs `hql` on `PATH` on Linux ARM64 | HQL 0.7.2 publishes no binary for it, so the toolchain archive for it carries `d2` only. A toolchain release picks it up when HQL publishes it | [[hmd-0026#running-a-cell]] |
 | Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it | [[hmd-0021#11-webview-hardening]] |
-| A published card linking to a private one is never flagged | The publication model is unported, so nothing here knows whether a card is published at all (rule HMD017) | [[hmd-0002#3-expansion]] |
+| A published card linking to a private one is never flagged | The publication model is unported in the core, so nothing here knows whether a card is published at all (rule HMD017). A listed limitation of the core's conformance to 0.1.0; it arrives here with the core's port | [[hmd-0002#3-expansion]] |
 | Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core | [[hmd-0020#33-free-syntax]] |
-| A link to a heading written with an underline lands at the top of the card | The embedded core does not index underlined headings yet. The format has decided they are headings, and the fix lands in the core; until then, write `##` headings | [[hmd-0001#3-heading-anchors]] |
-| Completion, rename, and hover are absent | They arrive with the language server, which lives with the canonical implementation. The preview keeps rendering without it either way | [[hmd-0024#the-language-server-is-python-on-pygls]] |
+| Completion, rename, and hover are absent | They arrive with the language server, which lives with the reference implementation. The preview keeps rendering without it either way | [[hmd-0024#the-language-server-is-python-on-pygls]] |
 | The integration suite is not in the default test command | Its harness downloads about 300 MB on first run | [[hmd-0021#12-packaging-and-ci]] |
 | The graph draws only what resolved, and stops at 400 cards | A red link has no card at the other end to draw it to, and is reported in the rendered tab and the Problems panel instead. Past the cap the view keeps the cards nearest the one being read and says how many it dropped: a hairball is not a more honest picture than a bounded one that names what is missing | [[hmd-0025]] |
 | Full screen can fall one press out of step | Zen mode and the rest are toggles the editor does not let an extension read back, so the tab tracks what it performed. Leave zen mode by hand and the button's next press puts it back in step | [[hmd-0025]] |
@@ -92,8 +96,16 @@ about 300 MB on first run, which is why it is not in the default test command.
 ## Done
 
 - **The 0.1 rules from the core** — following a heading link matches by key,
-  diagnostics convert code-point columns to the editor's UTF-16 ones, and an
-  undecodable card is reported as HMD019; unreleased.
+  so underlined headings and headings in every script are reached, diagnostics
+  convert code-point columns to the editor's UTF-16 ones, an undecodable card
+  is reported as HMD019, and resolution follows the corrected algorithm (`..`
+  normalised, `[[./]]` binding only a folder note, candidates in code-point
+  order); unreleased.
+- **A symbolic link out of the vault is no longer followed as a card** — the
+  host marks it with `DirEntry.leavesRoot` on a `file:` root, so the core
+  reports a reference through it as leaving the namespace, HMD003, as the
+  specification and the `resolve-containment-symlinks` case require;
+  unreleased [`src/workspaceHost.ts`, issue 0020].
 - **A cell runs in its card's directory** — HQL is started in the directory
   holding the card, not the vault root, so a relative path in a cell resolves
   beside the card and HQL's upward search for the card's HQL project starts
@@ -163,7 +175,9 @@ about 300 MB on first run, which is why it is not in the default test command.
 - **Released** — `0.1.0` on both galleries in August, then `0.2.0` and `0.3.0`
   on 2026-09-14, each for six platform targets, published from CI by federated
   credential with no stored token, with a landing page on the website. `0.3.0`
-  is the first release not marked `preview`.
+  is the first release not marked `preview`. Then `0.4.0` to `0.4.4` from
+  2026-10-19 to 2026-11-13, and `0.5.0` to `0.5.2` from 2026-11-15 to
+  2026-11-22, the same way.
 
 ## Gates
 
@@ -184,6 +198,14 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-24: before the 0.1.0 release. Status names `0.5.2`, the version on
+  both galleries, and says the extension conforms to HyperMarkDown 0.1.0
+  through its core, but for publication. The Open row for unpublished links
+  duplicated the limitation and is dropped; the limitation about underlined
+  headings is gone, since the core indexes them. The host now reports a
+  symbolic link out of the vault, a gap found by reading it against the
+  corrected resolution and closed the same day. The graph filter is backlog
+  until its open question is answered.
 - 2026-11-22: follows the core's 0.1 rules, unreleased.
 - 2026-11-15: a cell runs in its card's directory, which is what HQL's record
   of projects and vaults asks of a host: the source directory of a cell is
