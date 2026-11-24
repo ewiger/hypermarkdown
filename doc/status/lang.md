@@ -114,7 +114,7 @@ nothing is wrong yet, only unstated.
   escaping, and candidates sorted by UTF-16 unit in TypeScript. The Rust runner
   now also checks each reference's outcome against HMD001 to HMD003
   [issues 0017 and 0020,
-  [the card](../issues/0020-validate-name-resolution-across-implementations.md)].
+  [the card](../issues/archive/0020-validate-name-resolution-across-implementations.md)].
 - **The grammar** — the link forms, what is masked from scanning, and the
   heading anchors, matched by a key the specification states itself, with a
   renderer bound to rewrite each heading link to the `id` it gave that heading.

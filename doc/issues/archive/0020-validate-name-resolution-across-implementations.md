@@ -1,14 +1,14 @@
 # 0020 — Validate name resolution across Python, Rust, and TypeScript
 
-**Column**: todo
+**Column**: done — closed 2026-11-24
 **Opened**: 2026-11-24
-**Related**: [the format's tracker](../status/lang.md),
-[the release card](0016-prepare-the-0-1-specification-release.md),
-[issue 0017](archive/0017-verify-path-suffix-resolution.md),
+**Related**: [the format's tracker](../../status/lang.md),
+[the release card](../0016-prepare-the-0-1-specification-release.md),
+[issue 0017](0017-verify-path-suffix-resolution.md),
 [[hmd-lang-spec#resolution-algorithm]],
 [[hmd-lang-spec#resolving-a-reference-within-a-directory]],
 [[hmd-lang-spec#rules-the-algorithm-must-satisfy]],
-[the conformance corpus](../../examples/conformance/README.md)
+[the conformance corpus](../../../examples/conformance/README.md)
 
 ## What
 
@@ -126,3 +126,10 @@ Issue 0017 is closed into this card: `resolve-path-suffix` holds its cases.
 ## Out of scope
 
 Changing the resolution precedence.
+
+## Closed
+
+Closed on 2026-11-24. Every acceptance criterion has a passing case in all
+three implementations, and issue 0017 is closed into this one. The later
+decisions of the same day, such as `.` and `..` only in explicit relative
+references, are pinned by the grammar cases of issue 0018.

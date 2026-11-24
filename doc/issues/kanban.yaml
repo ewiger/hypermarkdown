@@ -52,12 +52,6 @@ board:
       - id: "0019"
         title: "Review lexical compatibility with CommonMark"
         file: "0019-lexical-compatibility-with-commonmark.md"
-      - id: "0020"
-        title: "Validate name resolution across Python, Rust, and TypeScript"
-        file: "0020-validate-name-resolution-across-implementations.md"
-      - id: "0014"
-        title: "A heading in a non-Latin script cannot be linked"
-        file: "0014-non-latin-headings-cannot-be-linked.md"
       - id: "0015"
         title: "CommonMark's own examples as a test dataset"
         file: "0015-commonmark-examples-as-a-test-dataset.md"
@@ -87,6 +81,12 @@ board:
         file: 0115-mermaid-diagrams-on-par-with-d2.md
     doing: []
     done:
+      - id: "0020"
+        title: "Validate name resolution across Python, Rust, and TypeScript"
+        file: "archive/0020-validate-name-resolution-across-implementations.md"
+      - id: "0014"
+        title: "A heading in a non-Latin script cannot be linked"
+        file: "archive/0014-non-latin-headings-cannot-be-linked.md"
       - id: "0017"
         title: "Verify path-suffix resolution"
         file: "archive/0017-verify-path-suffix-resolution.md"

@@ -1,6 +1,6 @@
 # 0017 — Verify path-suffix resolution
 
-**Column**: done — closed into [issue 0020](../0020-validate-name-resolution-across-implementations.md)
+**Column**: done — closed into [issue 0020](0020-validate-name-resolution-across-implementations.md)
 **Opened**: 2026-11-24
 **Related**: [the format's tracker](../../status/lang.md),
 [the canonical implementation's tracker](../../status/hmd.md),

@@ -1,12 +1,12 @@
 # 0014 — A heading in a non-Latin script cannot be linked
 
-**Column**: todo
+**Column**: done — closed 2026-11-24
 **Opened**: 2026-11-22
 **Found by**: checking the heading rule against Obsidian's while preparing the
 specification's 0.1 release
-**Related**: [the format's tracker](../status/lang.md),
-[the canonical implementation's tracker](../status/hmd.md),
-[the TypeScript implementation's tracker](../status/ts-core.md)
+**Related**: [the format's tracker](../../status/lang.md),
+[the canonical implementation's tracker](../../status/hmd.md),
+[the TypeScript implementation's tracker](../../status/ts-core.md)
 
 ## Decided
 
@@ -66,3 +66,9 @@ heading of the card**, whatever its text, and no link reaches the second.
 
 Heading paths such as `#Chapter#Section`, which Obsidian also has. They wait
 for the address grammar of in-card addressing.
+
+## Closed
+
+Closed on 2026-11-24, with every line of *Done when* met. The last one was met
+as HMD011 on the repeated heading, since a link cannot name the second of two
+headings that normalise alike.
