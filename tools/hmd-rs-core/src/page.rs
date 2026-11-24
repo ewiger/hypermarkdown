@@ -38,7 +38,7 @@ pub enum ReferenceError {
     InvalidBlockId(String),
     /// Nothing names a page, as in `[[#heading]]`.
     NoPage,
-    /// The page reference holds `^`, `[`, `]` or a newline, which are
+    /// The page reference holds `^`, `[`, `]`, `:` or a newline, which are
     /// reserved.
     ReservedCharacter,
     /// An absolute or unqualified page reference has a `.` or `..` segment,
@@ -110,7 +110,7 @@ impl Reference {
         if page.is_empty() {
             return Err(ReferenceError::NoPage);
         }
-        if page.contains(['^', '[', ']', '\n']) {
+        if page.contains(['^', '[', ']', ':', '\n']) {
             return Err(ReferenceError::ReservedCharacter);
         }
         if dot_segment_outside_relative(page) {

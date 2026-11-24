@@ -61,6 +61,12 @@ only for the Python API.
 - **A symbolic link out of the namespace root is not a card.** Nothing
   through one is loaded, where a linked file used to be read as a card
   wherever it pointed.
+- **An unclosed `[[` is text, not HMD010.** A `[[` with no `]]` after it on
+  its line, or with a `[` or `]` first, begins no link and is ordinary
+  Markdown, so a matrix in maths such as `$[[1,2],[3,4]]$` no longer reports an
+  error. A link that is closed but malformed is still HMD010.
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. A target containing one is HMD010.
 - **HMD012 is a warning.** A card beside a module's folder note of the same name
   shadows the note, which stays reachable by its `index` path; like HMD018,
   that is a shadow decided by a fixed order, not a content bug.
@@ -98,6 +104,12 @@ only for the Python API.
 - **Only `.hmd/` marks a project root.** The `.git` fallback is gone: a tree
   with no `.hmd/` above it is refused with a pointer to `hmd init` and
   `--root`, where it used to load the repository root as a project.
+
+### Fixed
+- **An embed of a section no longer reports a false cycle.** The HMD007 check
+  followed every embed in the embedded card, where an embed of a heading or a
+  block expands that region only. One section of a card embedding another
+  section of the same card is not a cycle, and is no longer reported as one.
 
 ## [0.4.0] — 2026-11-15
 

@@ -3,8 +3,9 @@
  * anchors — a port of `tools/hmd/src/hypermarkdown/parse.py`.
  *
  * Parsing never throws on partial input (HMD-0020). A buffer caught
- * mid-keystroke is the ordinary input here, not an error case: an unterminated
- * construct becomes a diagnostic and the rest of the card parses normally.
+ * mid-keystroke is the ordinary input here, not an error case: an unclosed
+ * `[[` is text, a malformed link becomes a diagnostic, and the rest of the
+ * card parses normally.
  */
 
 import MarkdownIt from "markdown-it";
@@ -39,7 +40,7 @@ import {
 export const SUFFIX = ".hmd";
 
 /** Characters that may not appear literally in a link target. */
-export const RESERVED_CHARS: ReadonlySet<string> = new Set(["[", "]", "|", "#", "^", "\n"]);
+export const RESERVED_CHARS: ReadonlySet<string> = new Set(["[", "]", "|", "#", "^", ":", "\n"]);
 
 const BLOCK_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
 const ANCHOR_SUFFIX_RE = /[ \t]+\^[A-Za-z0-9][A-Za-z0-9_-]{0,63}[ \t]*$/;
@@ -328,18 +329,7 @@ function collectLinks(
     links.push({ ...target, isEmbed: found.isEmbed, raw, span });
   }
 
-  for (const start of scan.findUnterminated(masked)) {
-    const { line, column } = index.at(start);
-    diagnostics.push({
-      rule: "HMD010",
-      severity: ERROR,
-      path: rel,
-      line,
-      column,
-      message: "unterminated '[[' — expected ']]'",
-    });
-  }
-
+  // A `[[` that begins no link candidate is ordinary text, not HMD010.
   return { links, diagnostics };
 }
 

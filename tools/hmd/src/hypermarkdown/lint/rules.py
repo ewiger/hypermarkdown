@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..embed import MAX_EMBED_DEPTH
+from ..embed import MAX_EMBED_DEPTH, target_region
 from ..model import ERROR, WARNING, Diagnostic, Document, Link
 from ..resolve import CARD_SUFFIXES, INDEX_STEM, Outcome, Workspace
 
@@ -285,7 +285,15 @@ def _embed_cycles(workspace: Workspace, targets: list[Path]):
         yield from _walk(workspace, start, None, [], reported, wanted)
 
 
-def _walk(workspace: Workspace, path: Path, fragment: str | None, stack, reported, wanted):
+def _walk(workspace: Workspace, path: Path, via: Link | None, stack, reported, wanted):
+    """Follow the embeds inside what `via` embeds of `path`.
+
+    `via` is the embed that reached this card, or None for a card linted on its
+    own, which is walked whole. An embed of a section or a block expands to that
+    region only, so only the embeds inside it can continue the chain; one
+    section embedding another section of its own card is not a cycle.
+    """
+    fragment = via.fragment if via is not None else None
     key = (path, fragment)
     if key in stack:
         if key not in reported:
@@ -312,12 +320,19 @@ def _walk(workspace: Workspace, path: Path, fragment: str | None, stack, reporte
     if document is None:
         return
 
+    region = target_region(document, via) if via is not None else (0, len(document.text))
+    if region is None:
+        # The fragment matches nothing, so nothing expands; HMD004 or HMD005
+        # reports the fragment itself.
+        return
+    start, end = region
+
     stack.append(key)
     for link in document.links:
-        if not link.is_embed:
+        if not link.is_embed or not start <= link.span.index < end:
             continue
         result = workspace.resolve(path, link.page_ref)
         if result.outcome is not Outcome.RESOLVED or result.path is None:
             continue
-        yield from _walk(workspace, result.path, link.fragment, stack, reported, wanted)
+        yield from _walk(workspace, result.path, link, stack, reported, wanted)
     stack.pop()

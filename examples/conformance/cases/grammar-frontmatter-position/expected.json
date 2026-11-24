@@ -1,0 +1,29 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 5,
+      "message": "[[far]] does not resolve to a page",
+      "path": "a/at-byte-0.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[far]]",
+      "source": "a/after-a-blank-line.hmd",
+      "target": "b/far.hmd"
+    },
+    {
+      "raw": "[[far]]",
+      "source": "a/after-a-space.hmd",
+      "target": "b/far.hmd"
+    },
+    {
+      "raw": "[[far]]",
+      "source": "a/at-byte-0.hmd",
+      "target": null
+    }
+  ]
+}

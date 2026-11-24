@@ -83,6 +83,13 @@ anchors, matching the canonical implementation case for case.
 - **Candidates sort by code point**, as UTF-8 bytes do, in HMD002's list and
   in the diagnostic order. `<` compared UTF-16 code units and put a character
   outside the Basic Multilingual Plane before U+E000–U+FFFF.
+- **An unclosed `[[` is text, not HMD010.** A `[[` with no `]]` after it on
+  its line, or with a `[` or `]` first, begins no link and is ordinary
+  Markdown, so a matrix in maths such as `$[[1,2],[3,4]]$` no longer reports an
+  error. A link that is closed but malformed is still HMD010.
+  `findUnterminated` is gone from the scanner.
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. A target containing one is HMD010.
 - **A heading fragment matches by key, not by slug.** The key is the text in
   NFC, case-folded, with every character that is not a letter, mark, or number
   turned into a space and the spaces collapsed: `[[card#ошибка 404]]` reaches
@@ -128,6 +135,10 @@ anchors, matching the canonical implementation case for case.
   ledger.
 - `frontmatter must be a mapping, got str` names a scalar's type the way the
   canonical implementation does, where it said `string`.
+- An embed of a section no longer reports a false cycle. The HMD007 check
+  followed every embed in the embedded card, where an embed of a heading or a
+  block expands that region only, so one section of a card embedding another
+  section of the same card was reported as HMD007.
 
 ## [0.3.0] — 2026-11-15
 
