@@ -17,7 +17,7 @@ executable documents through the integration of HQL (Hyper Query Language).
 Embedded HQL cells allow documents to query data, perform computations, and
 incorporate their results into the document itself.
 
-This document is the language standard for HyperMarkDown version 0.1. It
+This document is the language standard for HyperMarkDown. It
 defines the syntax, semantics, parsing rules, vault structure, and reference
 resolution, building upon
 [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/). Its purpose is to
@@ -207,7 +207,7 @@ according to this priority order:
 - A `.md` or `.markdown` file is a **Markdown card**, specified under
   [Markdown cards](#markdown-cards).
 - Where two files compete for one name, the earlier extension wins; see
-  [Binding](#binding-an-unqualified-reference-in-one-directory).
+  [Resolving within a directory](#resolving-a-reference-within-a-directory).
 - A file is a member of the namespace if and only if it lies inside the
   [namespace root](#the-namespace) and has a card extension. Files with any
   other extension MUST be ignored: they are neither link targets nor inputs to
@@ -485,6 +485,62 @@ Absolute paths begin at the namespace root. Explicit relative paths begin with
 `./` or `../`. References without these prefixes are unqualified and are
 resolved according to the search rules defined below.
 
+### Resolving a reference within a directory
+
+Every phase of resolution looks a reference up in a directory the same way, so
+a folder note behaves the same everywhere.
+
+```text
+bind(dir, parts, ext = none, directory_only = false):
+    base := normalize(dir / join(parts))
+
+    if base violates namespace boundaries:
+        return Escapes
+
+    exts := [ext] if ext is specified
+            else [".hmd", ".md", ".markdown"]
+
+    if not directory_only:
+        for e in exts:
+            file := base + e
+            if file is a valid card:
+                return Resolved(file)
+
+    for e in exts:
+        note := base / ("index" + e)
+        if note is a valid card:
+            return Resolved(note)
+
+    return NotFound
+```
+
+A reference without an explicit extension follows the standard extension
+priority. A reference with an explicit extension considers only cards with that
+extension. References identifying a directory directly, such as `[[./]]` and
+`[[../]]`, resolve exclusively to its folder note.
+
+- Every candidate path MUST be checked against the namespace boundaries —
+  normalisation, symbolic links, and nested vaults included — before it is
+  accepted. A boundary violation is `Escapes`, an error
+  ([HMD003](#diagnostics)), and MUST NOT be treated as an ordinary missing card.
+- A **valid card** is a file with a card extension inside the namespace root,
+  outside any nested vault, and decodable as UTF-8.
+- A target naming a directory MUST resolve to that directory's folder note, so
+  the directory form and the explicit `index` form reach the same card.
+- Two files in one directory whose names differ only in their card extension
+  claim one name. The one with the earliest extension is the card at that name;
+  every other is **shadowed**: still a card, never bound by a reference that
+  writes no extension, bound by one that writes its extension. Each shadowed
+  file MUST be reported once, as a warning at its line 1, column 1
+  ([HMD018](#diagnostics)). Folder notes shadow one another the same way.
+- If a card and a module's folder note claim the same name as siblings, the
+  card is the one at that name, in every phase, and the folder note is
+  **shadowed**: still reachable by its `index` path and by a direct directory
+  reference. The pair MUST be reported once, as a warning
+  ([HMD012](#diagnostics)).
+
+### Resolution algorithm
+
 An absolute or explicit relative path is followed directly. An unqualified
 reference is searched for, and resolves to exactly one card or to a failure
 that can be diagnosed. The search checks named imports first. It then looks in
@@ -492,140 +548,169 @@ the referring card's own directory and in each parent directory up to the
 namespace root, then in the directories imported as search paths. Only if all
 of those find nothing does it run one recursive search of the namespace.
 
-**Why.** Searching the card's own directory and its parents answers *what does
-this reference mean here*, which must be predictable enough to hold in your
-head. The recursive search answers *does this reference exist anywhere*, which
-is a convenience and is allowed to fail loudly.
-
-### Binding an unqualified reference in one directory
-
-Every search phase binds a reference in a directory the same way, so a folder
-note behaves the same everywhere.
-
 ```text
-bind(dir, parts, ext?) -> Resolved(path) | NotFound
+resolve(target, source, root):
+    ext     := explicit card extension, if present
+    stem    := target.page_ref without ext
+    origin  := dirname(source)
+    imports := named_imports(source)
+    paths   := wildcard_imports(source)
+    enabled := autodiscovery(source)
+    mode    := discovery_mode(source)
 
-  exts := [ext] if the reference wrote one, else [".hmd", ".md", ".markdown"]
+    # Absolute reference
 
-  for e in exts:
-      file := dir / join(parts) + e
-      if file exists:                      return Resolved(file)
-  for e in exts:
-      note := dir / join(parts) / ("index" + e)
-      if note exists:                      return Resolved(note)
-  return NotFound
+    if stem starts with "/":
+        parts := path components after the leading "/"
+        return bind(root, parts, ext) or Unresolved
+
+    # Explicit relative reference
+
+    if stem starts with "./" or "../":
+        base := normalize(origin / stem)
+
+        if base violates namespace boundaries:
+            return Escapes
+
+        if stem identifies "." or ".." directly:
+            return bind(base, [], ext, directory_only = true)
+                   or Unresolved
+
+        return bind(dirname(base), [basename(base)], ext)
+               or Unresolved
+
+    # Unqualified reference
+
+    parts := split(stem, "/")
+
+    # Phase 0: Named imports
+
+    if size(parts) == 1 and parts[0] in imports:
+        card := imports[parts[0]]
+
+        if ext is absent or extension(card) == ext:
+            return Resolved(card)
+
+    # Phase 1: Current directory and parents
+
+    for dir in ancestors_inclusive(origin, root):
+        result := bind(dir, parts, ext)
+
+        if result != NotFound:
+            return result
+
+    # Phase 2: Imported search paths
+
+    matches := []
+
+    for dir in paths:
+        result := bind(dir, parts, ext)
+
+        if result is Escapes:
+            return Escapes
+
+        if result is Resolved:
+            append distinct result to matches
+
+    if size(matches) > 0:
+        report HMD016 for subsequent shadowed matches
+        return first(matches)
+
+    # Phase 3: Recursive search
+
+    if enabled == false:
+        return Unresolved
+
+    scope := origin if mode == "recursive" else root
+
+    candidates := valid_cards_below(scope)
+
+    if ext is specified:
+        candidates := candidates with extension ext
+    else:
+        candidates := candidates excluding
+                      extension-shadowed cards
+
+    matches := distinct candidates whose addressable
+               path components end with parts
+
+    if size(matches) == 1:
+        return Resolved(first(matches))
+
+    if size(matches) > 1:
+        return Ambiguous(sorted(matches))
+
+    return Unresolved
 ```
 
-- A target naming a directory MUST resolve to that directory's folder note, so
-  the directory form and the explicit `index` form reach the same card.
-- Two files in one directory whose names differ only in their card extension
-  claim one name. The one with the earliest extension is the card at that name;
-  every other is **shadowed**: still a card, never bound by a reference that
-  writes no extension, bound by one that writes its extension, and never a
-  candidate in the recursive search. Each shadowed file MUST be reported once, as a
-  warning at its line 1, column 1 ([HMD018](#diagnostics)). Folder notes shadow one another the same
-  way.
-- If a card and a folder note claim the same name as siblings, the pair MUST be
-  reported as an error ([HMD012](#diagnostics)). After that error an implementation MUST select the file
-  card, so that diagnostics and rendering stay deterministic; the selection does
-  not make the collision valid.
-
-### The algorithm
-
-```text
-resolve(target, source, root) -> Resolved(path) | Unresolved | Ambiguous(paths) | Escapes
-
-  ext   := the card extension target.page_ref ends in, if any
-  stem  := target.page_ref with ext removed
-  parts := stem split on "/"
-  bindings := named_imports(source)                      # name -> card
-  paths    := wildcard_imports(source)                   # ordered dirs
-  enabled  := autodiscovery(source)                      # on | off
-  mode     := the project's mode                         # both | recursive
-
-  1. ABSOLUTE — stem starts with "/"
-       return bind(root, parts) or Unresolved
-
-  2. RELATIVE — stem starts with "./" or "../"
-       base := normalize(dirname(source) / stem)
-       if base is outside root: return Escapes
-       return bind(dirname(base), [basename(base)]) or Unresolved
-
-  3. UNQUALIFIED — anything else
-
-       # Phase 0 — named imports. The most explicit thing wins.
-       if size(parts) == 1 and parts[0] in bindings:
-           return Resolved(bindings[parts[0]])
-
-       # Phase 1 — the card's own directory, then each parent up to the
-       # namespace root. Non-recursive, nearest first.
-       dirs := [dirname(source), parent(dirname(source)), ..., root]
-       for dir in dirs:
-           r := bind(dir, parts)
-           if r is Resolved: return r
-
-       # Phase 2 — imported search paths, in declaration order.
-       for dir in paths:
-           r := bind(dir, parts)
-           if r is Resolved: return r
-
-       if enabled == off: return Unresolved
-
-       # Phase 3 — recursive search. Runs at most once.
-       # Every card, less shadowed files; only `ext` when one was written.
-       if mode == "recursive":
-           candidates := cards_below(dirname(source), ext)
-       else:                                      # mode == "both"
-           candidates := cards_below(root, ext)
-       matches := { p in candidates
-                    : addressable_parts(p) ends with parts }
-       if size(matches) == 1: return Resolved(the match)
-       if size(matches) >  1: return Ambiguous(sorted(matches))
-       return Unresolved
-```
-
-`autodiscovery(source)` is the source card's effective `use` toggle for
-`autodiscovery`, and the project's `mode` is the setting of that name under
-[Project configuration](#project-configuration). `addressable_parts(p)` is
-`p`'s root-relative parts without its card extension, plus — when `p` is a
-folder note — the parts of its directory, so that an unqualified reference
-means the same thing in the recursive search as in the card's own directory
-and its parents.
+- `ancestors_inclusive(origin, root)` is `origin`, then each parent directory in
+  turn, up to and including `root`.
+- `autodiscovery(source)` is the source card's effective `use` toggle for
+  `autodiscovery`; `discovery_mode(source)` is the project's `mode`, under
+  [Project configuration](#project-configuration), which no card can change.
+- A card's **addressable path components** are its root-relative components
+  without its card extension; a folder note also has the components of its
+  directory, so that an unqualified reference means the same thing in the
+  recursive search as in the card's own directory and its parents.
 
 In the example vault, `[[tokens]]` in `guides/install.hmd` stops at Phase 1 in
 `guides/`. The same reference in `setup.hmd` reaches Phase 3 and is ambiguous.
 
 ### Rules the algorithm must satisfy
 
-- Resolution MUST follow the phase order above. A named import MAY shadow a
-  local card. A wildcard import MUST NOT override a named import or a match in
-  the card's own directory or its parents, but adding one MAY change a
+- **Order.** Resolution MUST follow the phase order above. A named import MAY
+  shadow a local card. A wildcard import MUST NOT override a named import or a
+  match in the card's own directory or its parents, but adding one MAY change a
   reference that previously resolved through the recursive search.
-- The search of the card's own directory and its parents MUST run from that
+- **Containment.** Every phase operates within the source card's namespace.
+  Paths MUST be normalised, and symbolic links validated, before a target is
+  accepted; a target outside the namespace is `Escapes`
+  ([HMD003](#diagnostics)), in whichever phase it is met.
+- **Explicit extensions.** A reference that writes a card extension considers
+  only cards with that extension, in every phase. An extension-shadowed card
+  stays addressable this way, the recursive search included. A named import
+  whose card has a different extension does not apply, and the search goes on
+  to the next phase.
+- **The card's own directory and its parents.** The search MUST run from that
   directory outward to the namespace root, inclusive of both ends, and each
   directory MUST be probed **non-recursively**. It never searches sideways into
   a sibling module.
-- Imported search paths MUST be probed in declaration order, non-recursively.
-  Where two of them hold the name, the earlier declaration wins, and the
-  shadowed candidate MUST be reported as a warning ([HMD016](#diagnostics)).
-- The recursive search MUST run only when the earlier phases found nothing, and
-  MUST run at most once. When autodiscovery is on, it MAY resolve a unique match
-  in a sibling module or anywhere else in its scope.
-- The recursive search MUST address folder notes by their directory name,
-  exactly as binding does.
-- In the recursive search **all matches rank equally**. A shallower match MUST NOT beat a
-  deeper one, and more than one match MUST be reported as an error rather than
-  resolved ([HMD002](#diagnostics)).
-- Candidate lists MUST be sorted by root-relative POSIX path.
-- An unresolved target is **not** a failure. It is a forward reference, reported
-  as a warning ([HMD001](#diagnostics)).
+- **Imported search paths.** They MUST be probed in declaration order,
+  non-recursively. The first match wins, but every later path MUST still be
+  probed: each distinct card it finds is shadowed, and MUST be reported as a
+  warning ([HMD016](#diagnostics)). Two search paths that reach the same card
+  are not a collision.
+- **The recursive search.** It MUST run only when the earlier phases found
+  nothing, and MUST run at most once. When autodiscovery is on, it MAY resolve
+  a unique match in a sibling module or anywhere else in its scope.
+- **Folder notes.** A reference that names a directory directly resolves only
+  to its folder note. A folder note stays addressable by both its directory's
+  name and its explicit `index` path, in the recursive search exactly as in
+  binding. The priority is the same too: where a card and a module's folder
+  note claim one name, the card is the candidate for that name, and the folder
+  note is reached by its `index` path.
+- **Candidate identity.** Candidates are cards, not names: several matching
+  paths or addressable names that refer to one card are one candidate, and MUST
+  NOT make a reference ambiguous.
+- **Ranking.** In the recursive search all matches rank equally. A shallower
+  match MUST NOT beat a deeper one, and more than one match MUST be reported as
+  an error rather than resolved ([HMD002](#diagnostics)). Candidate lists MUST
+  be sorted by root-relative POSIX path.
+- **Forward references.** An unresolved target is **not** a failure. It is a
+  forward reference, reported as a warning ([HMD001](#diagnostics)).
+- **Fragments.** The card is resolved first, and its heading or block fragment
+  after; see [Fragments](#fragments).
 
-**Why.** The recursive search runs only after the card's own directory, its
-parents, and the imported search paths have found nothing, so every match it
-produces lies outside all of them and the phases can never disagree. The remedy
-for an ambiguity is to qualify the link, not to memorise a tie-break. An
-earlier import silently winning is easy to write by accident, hence the
-warning. Sorted candidates make a diagnostic byte-identical across platforms.
+**Why.** Searching the card's own directory and its parents answers *what does
+this reference mean here*, which must be predictable enough to hold in your
+head. The recursive search answers *does this reference exist anywhere*, which
+is a convenience and is allowed to fail loudly. It runs only after every nearer
+phase has found nothing, so every match it produces lies outside them and the
+phases can never disagree. The remedy for an ambiguity is to qualify the link,
+not to memorise a tie-break. An earlier import silently winning is easy to
+write by accident, hence the warning. A boundary violation is reported as one
+because treating it as a missing card would hide a link that points outside the
+namespace. Sorted candidates make a diagnostic byte-identical across platforms.
 Writing forward is how a knowledge base grows.
 
 ### Path-suffix resolution
@@ -888,13 +973,13 @@ version has no way to silence a diagnostic.
 | HMD009 | error | Frontmatter is not valid YAML, or not a top-level mapping | [Frontmatter block](#frontmatter-block) |
 | HMD010 | error | Malformed wikilink or embed syntax | [Grammar](#grammar) |
 | HMD011 | warning | A heading has the same normalised identifier as an earlier one in the card, and no block anchor | [Heading anchors](#heading-anchors) |
-| HMD012 | error | A card and a folder note claim the same name | [Binding](#binding-an-unqualified-reference-in-one-directory) |
+| HMD012 | warning | A card shadows a module's folder note of the same name | [Resolving within a directory](#resolving-a-reference-within-a-directory) |
 | HMD013 | error | Unrecognised `use` feature, or a malformed `tags` or `nav` value | [`tags`](#tags-what-a-card-is-about), [`use`](#use-per-card-feature-toggles), [`nav`](#nav-placement-and-publication) |
 | HMD014 | error | Malformed `import` statement | [`import`](#import-explicit-name-binding) |
 | HMD015 | error | An import `ref` does not resolve, or two named imports bind one local name | [`import`](#import-explicit-name-binding) |
 | HMD016 | warning | An unqualified reference matched two imported search paths; the earlier won | [Rules](#rules-the-algorithm-must-satisfy) |
 | HMD017 | warning | A published card links to or embeds one that is not published | [`nav`](#nav-placement-and-publication) |
-| HMD018 | warning | A card shadows a card of the same name with a later card extension | [Binding](#binding-an-unqualified-reference-in-one-directory) |
+| HMD018 | warning | A card shadows a card of the same name with a later card extension | [Resolving within a directory](#resolving-a-reference-within-a-directory) |
 | HMD019 | error | A file with a card extension is not valid UTF-8 | [Encoding](#encoding) |
 
 - Each diagnostic MUST carry the rule identifier, the severity, a root-relative
@@ -911,8 +996,10 @@ version has no way to silence a diagnostic.
 **Why.** CI configuration and documentation cite rule identifiers, so they never
 move. An unresolved reference is a warning because writing forward is
 permitted, and the report is a to-do list. Several matches in the recursive
-search are an error because that search has no ranking rule; imported search paths do have an order,
-so a shadowed match there is only a warning. A strict run and an ordinary run
+search are an error because that search has no ranking rule. Every kind of
+shadowing is a warning — an earlier imported search path (HMD016), an earlier
+card extension (HMD018), a card beside a module's folder note (HMD012) —
+because a fixed order decides it and the shadowed card stays reachable. A strict run and an ordinary run
 over the same tree contain the same diagnostics and differ only in their summary
 and outcome.
 

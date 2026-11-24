@@ -38,6 +38,7 @@ exclude_docs: |
   issues/
   memory/
   status/
+  discussion/
   proposals/TEMPLATE.md
 
 # A card and its folder note share one URL, so directory URLs are required
