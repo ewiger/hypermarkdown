@@ -324,7 +324,9 @@ class Workspace:
                         ("HMD015", f"cannot import {name!r} from {stmt.ref!r}: no such page")
                     )
                     continue
-                if local in table.bindings and table.bindings[local] != target:
+                # Two bindings of one name are an error even when they reach one
+                # card: the name is declared twice. The first binding stands.
+                if local in table.bindings:
                     table.problems.append(
                         (
                             "HMD015",

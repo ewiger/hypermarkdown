@@ -60,6 +60,10 @@ anchors, matching the canonical implementation case for case.
 
 ### Changed
 
+- **A local name bound twice by imports is HMD015 even when both bindings
+  reach one card**, as in `from /shared import tokens` beside
+  `from ./shared import tokens`. It used to be reported only when the two
+  cards differed. The first binding stands.
 - **Resolution follows the HyperMarkDown 0.1 algorithm**, checked by the
   corpus's `resolve-*` cases, which are written from the specification rather
   than generated. `..` is normalised in every path form, so `[[/a/../b]]`

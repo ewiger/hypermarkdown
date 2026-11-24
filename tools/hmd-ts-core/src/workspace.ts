@@ -401,7 +401,9 @@ export class Workspace {
           continue;
         }
         const existing = table.bindings.get(local);
-        if (existing !== undefined && existing !== target) {
+        // Two bindings of one name are an error even when they reach one card:
+        // the name is declared twice. The first binding stands.
+        if (existing !== undefined) {
           table.problems.push([
             "HMD015",
             `'${local}' is bound twice by imports (${existing} and ${target})`,
