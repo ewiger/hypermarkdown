@@ -17,7 +17,8 @@ const CASES: Array<[string, Where, [number, number]]> = [
   ["nav:\n  order: 1\n  colour: red\n", nested("nav", "colour"), [4, 3]],
   ["nav:\n\torder: x\n", nested("nav", "order"), [3, 2]],
   ["nav:\n  order: 1\n", nested("nav", "colour"), [2, 1]],
-  ["nav: {order: x}\n", nested("nav", "order"), [2, 1]],
+  ["nav: {order: x}\n", nested("nav", "order"), [2, 7]],
+  ["nav: {visibility: x, 'order': y}\n", nested("nav", "order"), [2, 22]],
   ["import:\n  - from /a import b\n  - bad\n", entry("import", 1), [4, 5]],
   ["tags:\n- a\n- ''\n", entry("tags", 1), [4, 3]],
   ["tags:\n  - a\n  # a comment\n\n  - b\n", entry("tags", 1), [6, 5]],
@@ -43,5 +44,18 @@ describe("the position of a frontmatter diagnostic", () => {
 
   it("puts the block itself at line 1, column 1", () => {
     expect(new Locator("tags: [unclosed\n").locate(null)).toEqual([1, 1]);
+  });
+});
+
+describe("the raw value of a nested key", () => {
+  it.each([
+    ["nav:\n  order: 1.0\n", "1.0"],
+    ["nav:\n  order: 1e3  # an exponent\n", "1e3"],
+    ["nav:\n  visibility: public\n  order:   -3\n", "-3"],
+    ["nav:\n  visibility: public\n", null],
+    ["nav: {order: 1.0}\n", "1.0"],
+    ["nav: {visibility: public, order: 2}\n", "2"],
+  ])("%j is %j", (block, value) => {
+    expect(new Locator(block).nestedValue("nav", "order")).toBe(value);
   });
 });

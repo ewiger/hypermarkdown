@@ -138,6 +138,9 @@ only for the Python API.
   `--root`, where it used to load the repository root as a project.
 
 ### Fixed
+- **A key inside a one-line flow mapping is located.** A problem in
+  `nav: {order: x}` is reported at `order`, as the frontmatter position rules
+  say, no longer at `nav`.
 - **The embed depth limit counts from zero, and HMD008 is reported at the
   embed.** The starting card is depth zero and the limit is 16, so a chain of
   exactly sixteen nested embeds is fine; it used to be reported. HMD008 is now

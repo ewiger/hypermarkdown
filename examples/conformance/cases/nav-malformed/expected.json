@@ -3,6 +3,30 @@
     {
       "column": 3,
       "line": 3,
+      "message": "`nav.order` must be an integer, got '1e3'",
+      "path": "exponent.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 3,
+      "message": "`nav.order` must be an integer, got 1.0",
+      "path": "float.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 7,
+      "line": 2,
+      "message": "`nav.order` must be an integer, got 2.5",
+      "path": "flow.hmd",
+      "rule": "HMD013",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 3,
       "message": "`nav.order` must be an integer, got 'first'",
       "path": "order.hmd",
       "rule": "HMD013",

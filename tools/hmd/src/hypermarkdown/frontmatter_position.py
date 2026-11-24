@@ -83,12 +83,39 @@ class Locator:
         row = self._top(parent)
         if row is None:
             return (1, 1)
+        # A flow mapping on the key's own line: `nav: {order: x}`.
+        flow = re.search(r"[{,][ \t]*(" + _key_pattern(name) + r")[ \t]*:", self.lines[row])
+        if flow:
+            return (row + FIRST_LINE, flow.start(1) + 1)
         pattern = re.compile(r"^([ \t]+)" + _key_pattern(name) + r"[ \t]*:")
         for inner in self._block(row):
             m = pattern.match(self.lines[inner])
             if m:
                 return (inner + FIRST_LINE, len(m.group(1)) + 1)
         return self.key(parent)
+
+    def nested_value(self, parent: str, name: str) -> str | None:
+        """The raw text of a nested key's value, as written, or None.
+
+        A YAML parser reads `1.0` as a number in some implementations and a
+        float in others; the token as written is what tells them apart.
+        """
+        row = self._top(parent)
+        if row is None:
+            return None
+        # A flow mapping on the key's own line: `nav: {order: 1.0}`.
+        flow = re.search(
+            r"[{,][ \t]*" + _key_pattern(name) + r"[ \t]*:[ \t]*([^,}]*)", self.lines[row]
+        )
+        if flow:
+            return flow.group(1).strip(" \t")
+        pattern = re.compile(r"^[ \t]+" + _key_pattern(name) + r"[ \t]*:(.*)$")
+        for inner in self._block(row):
+            m = pattern.match(self.lines[inner])
+            if m:
+                value = re.sub(r"(?:^|[ \t])#.*$", "", m.group(1))
+                return value.strip(" \t")
+        return None
 
     def entry(self, parent: str, index: int) -> tuple[int, int]:
         row = self._top(parent)

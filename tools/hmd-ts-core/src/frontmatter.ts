@@ -8,13 +8,29 @@
 
 import { load as yamlLoad, JSON_SCHEMA, YAMLException } from "js-yaml";
 
-import { Locator, entry, key, nested, type Position, type Where } from "./frontmatterPosition.js";
+import {
+  Locator,
+  entry,
+  key,
+  nested,
+  type Position,
+  type Where,
+} from "./frontmatterPosition.js";
 import { ImportSyntaxError, parseStatement } from "./imports.js";
 import { pyRepr } from "./pyrepr.js";
-import { VISIBILITIES, type CardConfig, type ImportStmt, type NavConfig } from "./model.js";
+import {
+  VISIBILITIES,
+  type CardConfig,
+  type ImportStmt,
+  type NavConfig,
+} from "./model.js";
 import { splitLines, stripEol } from "./scan.js";
 
-export const RESERVED_KEYS: ReadonlySet<string> = new Set(["tags", "use", "import"]);
+export const RESERVED_KEYS: ReadonlySet<string> = new Set([
+  "tags",
+  "use",
+  "import",
+]);
 
 /** Features nameable in `use`. Prefixing `no_` disables, as in vim's `set no…`. */
 export const KNOWN_FEATURES: ReadonlySet<string> = new Set(["autodiscovery"]);
@@ -78,7 +94,11 @@ export function parseYaml(raw: string): Record<string, unknown> {
   return data as Record<string, unknown>;
 }
 
-export type Problem = readonly [rule: string, message: string, position: Position];
+export type Problem = readonly [
+  rule: string,
+  message: string,
+  position: Position,
+];
 
 type Found = [rule: string, message: string, where: Where];
 
@@ -102,7 +122,7 @@ export function parseCardConfig(
   const locator = new Locator(raw);
   const tags = parseTags(data["tags"], found);
   const use = parseUse(data["use"], found);
-  const nav = parseNav(data["nav"], found);
+  const nav = parseNav(data["nav"], found, locator);
   const imports = parseImports(data["import"], found).map(([stmt, where]) => {
     const [line, column] = locator.locate(where);
     return { ...stmt, line, column };
@@ -123,12 +143,17 @@ export function parseCardConfig(
  * Only the validation is here. What `visibility` does — publication, and
  * HMD017 — is not ported yet.
  */
-function parseNav(value: unknown, problems: Found[]): NavConfig {
+function parseNav(
+  value: unknown,
+  problems: Found[],
+  locator: Locator,
+): NavConfig {
   const none: NavConfig = { order: null, visibility: null };
   if (value === undefined || value === null) return none;
   if (typeof value !== "object" || Array.isArray(value)) {
     const integer =
-      typeof value === "boolean" || (typeof value === "number" && Number.isInteger(value));
+      typeof value === "boolean" ||
+      (typeof value === "number" && Number.isInteger(value));
     const hint = integer ? " — write `nav:` with an `order:` under it" : "";
     problems.push([
       "HMD013",
@@ -140,7 +165,9 @@ function parseNav(value: unknown, problems: Found[]): NavConfig {
 
   const mapping = value as Record<string, unknown>;
   const known = [...NAV_KEYS].sort().join(", ");
-  for (const name of Object.keys(mapping).filter((k) => !NAV_KEYS.has(k)).sort(byCodePoint)) {
+  for (const name of Object.keys(mapping)
+    .filter((k) => !NAV_KEYS.has(k))
+    .sort(byCodePoint)) {
     problems.push([
       "HMD013",
       `unknown key ${repr(name)} in \`nav\` (known: ${known})`,
@@ -151,7 +178,17 @@ function parseNav(value: unknown, problems: Found[]): NavConfig {
   let order: number | null = null;
   const rawOrder = mapping["order"];
   if (rawOrder !== undefined && rawOrder !== null) {
-    if (typeof rawOrder === "number" && Number.isInteger(rawOrder)) order = rawOrder;
+    // js-yaml reads `1.0` and `1e3` as the number 1 and 1000, where YAML (and
+    // the canonical implementation) has a float or a string: the token as
+    // written decides, so a decimal point or an exponent is never an integer.
+    const written = locator.nestedValue("nav", "order");
+    const floatLike = written !== null && /[.eE]/u.test(written);
+    if (
+      typeof rawOrder === "number" &&
+      Number.isInteger(rawOrder) &&
+      !floatLike
+    )
+      order = rawOrder;
     else {
       problems.push([
         "HMD013",
@@ -192,7 +229,11 @@ function byCodePoint(a: string, b: string): number {
 function parseTags(value: unknown, problems: Found[]): string[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) {
-    problems.push(["HMD013", `\`tags\` must be a list, got ${typeName(value)}`, key("tags")]);
+    problems.push([
+      "HMD013",
+      `\`tags\` must be a list, got ${typeName(value)}`,
+      key("tags"),
+    ]);
     return [];
   }
   const tags: string[] = [];
@@ -228,7 +269,11 @@ function parseUse(value: unknown, problems: Found[]): Record<string, boolean> {
   for (const [index, item] of items.entries()) {
     const where = scalar ? key("use") : entry("use", index);
     if (typeof item !== "string") {
-      problems.push(["HMD013", `\`use\` entries must be strings, got ${repr(item)}`, where]);
+      problems.push([
+        "HMD013",
+        `\`use\` entries must be strings, got ${repr(item)}`,
+        where,
+      ]);
       continue;
     }
     let name = item.trim();
@@ -253,7 +298,10 @@ function parseUse(value: unknown, problems: Found[]): Record<string, boolean> {
 
 /** Each statement with where it is written, so a later HMD015 or HMD003 about
  * it is reported at the statement too. */
-function parseImports(value: unknown, problems: Found[]): Array<[ImportStmt, Where]> {
+function parseImports(
+  value: unknown,
+  problems: Found[],
+): Array<[ImportStmt, Where]> {
   if (value === undefined || value === null) return [];
   const scalar = typeof value === "string";
   const items = scalar ? [value] : value;
@@ -272,7 +320,8 @@ function parseImports(value: unknown, problems: Found[]): Array<[ImportStmt, Whe
     try {
       stmts.push([parseStatement(item), where]);
     } catch (exc) {
-      if (exc instanceof ImportSyntaxError) problems.push(["HMD014", exc.message, where]);
+      if (exc instanceof ImportSyntaxError)
+        problems.push(["HMD014", exc.message, where]);
       else throw exc;
     }
   }
@@ -285,7 +334,8 @@ function typeName(value: unknown): string {
   if (typeof value === "object") return "dict";
   if (typeof value === "string") return "str";
   if (typeof value === "boolean") return "bool";
-  if (typeof value === "number") return Number.isInteger(value) ? "int" : "float";
+  if (typeof value === "number")
+    return Number.isInteger(value) ? "int" : "float";
   return typeof value;
 }
 

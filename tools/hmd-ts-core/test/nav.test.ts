@@ -22,6 +22,9 @@ describe("`nav` in frontmatter", () => {
     ["nav:\n  order: 1\n  colour: red\n", [4, 3], "unknown key 'colour'"],
     ["nav:\n  order: first\n", [3, 3], "`nav.order` must be an integer"],
     ["nav:\n  order: true\n", [3, 3], "`nav.order` must be an integer"],
+    // js-yaml reads both as whole numbers; YAML, and the text, do not.
+    ["nav:\n  order: 1.0\n", [3, 3], "`nav.order` must be an integer"],
+    ["nav:\n  order: 1e3\n", [3, 3], "`nav.order` must be an integer"],
     ["nav:\n  visibility: hidden\n", [3, 3], "`nav.visibility` must be one of"],
   ])("reports %j as HMD013 at %j", (block, position, message) => {
     const { problems } = read(block);

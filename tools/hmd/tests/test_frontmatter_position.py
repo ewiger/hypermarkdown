@@ -20,7 +20,8 @@ CASES = [
     ("nav:\n  order: 1\n  colour: red\n", Nested("nav", "colour"), (4, 3)),
     ("nav:\n\torder: x\n", Nested("nav", "order"), (3, 2)),
     ("nav:\n  order: 1\n", Nested("nav", "colour"), (2, 1)),  # falls back to the key
-    ("nav: {order: x}\n", Nested("nav", "order"), (2, 1)),  # flow mapping: the key
+    ("nav: {order: x}\n", Nested("nav", "order"), (2, 7)),  # a flow mapping
+    ("nav: {visibility: x, 'order': y}\n", Nested("nav", "order"), (2, 22)),
     # Block lists: the first character after `- `.
     ("import:\n  - from /a import b\n  - bad\n", Entry("import", 1), (4, 5)),
     ("tags:\n- a\n- ''\n", Entry("tags", 1), (4, 3)),  # a list at column 1
@@ -50,3 +51,18 @@ def test_the_position_of(block, where, position):
 
 def test_the_block_itself_is_at_line_one_column_one():
     assert Locator("tags: [unclosed\n")(None) == (1, 1)
+
+
+@pytest.mark.parametrize(
+    ("block", "value"),
+    [
+        ("nav:\n  order: 1.0\n", "1.0"),
+        ("nav:\n  order: 1e3  # an exponent\n", "1e3"),
+        ("nav:\n  visibility: public\n  order:   -3\n", "-3"),
+        ("nav:\n  visibility: public\n", None),  # no such key
+        ("nav: {order: 1.0}\n", "1.0"),  # a flow mapping on the key's line
+        ("nav: {visibility: public, order: 2}\n", "2"),
+    ],
+)
+def test_the_raw_value_of_a_nested_key(block, value):
+    assert Locator(block).nested_value("nav", "order") == value

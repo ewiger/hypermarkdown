@@ -161,6 +161,13 @@ anchors, matching the canonical implementation case for case.
 
 ### Fixed
 
+- **A key inside a one-line flow mapping is located.** A problem in
+  `nav: {order: x}` is reported at `order`, as the frontmatter position rules
+  say, no longer at `nav`.
+- **`nav.order: 1.0` is HMD013.** js-yaml reads `1.0` and `1e3` as the
+  whole numbers 1 and 1000, where YAML has a float and the canonical
+  implementation reports it. The token as written decides: a decimal point or
+  an exponent is never an integer.
 - **The embed depth limit counts from zero, and HMD008 is reported at the
   embed.** The starting card is depth zero and the limit is 16, so a chain of
   exactly sixteen nested embeds is fine; it used to be reported. HMD008 is now

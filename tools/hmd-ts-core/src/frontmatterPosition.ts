@@ -62,12 +62,37 @@ export class Locator {
   nested(parent: string, name: string): Position {
     const row = this.top(parent);
     if (row === null) return [1, 1];
+    // A flow mapping on the key's own line: `nav: {order: x}`.
+    const flow = new RegExp(`^(.*?[{,][ \\t]*)${keyPattern(name)}[ \\t]*:`, "u").exec(this.text(row));
+    if (flow) return [row + FIRST_LINE, [...flow[1]!].length + 1];
     const pattern = new RegExp(`^([ \\t]+)${keyPattern(name)}[ \\t]*:`, "u");
     for (const inner of this.block(row)) {
       const m = pattern.exec(this.text(inner));
       if (m) return [inner + FIRST_LINE, [...m[1]!].length + 1];
     }
     return this.key(parent);
+  }
+
+  /**
+   * The raw text of a nested key's value, as written, or null.
+   *
+   * A YAML parser reads `1.0` as a number in some implementations and a float
+   * in others; the token as written is what tells them apart.
+   */
+  nestedValue(parent: string, name: string): string | null {
+    const row = this.top(parent);
+    if (row === null) return null;
+    // A flow mapping on the key's own line: `nav: {order: 1.0}`.
+    const flow = new RegExp(`[{,][ \\t]*${keyPattern(name)}[ \\t]*:[ \\t]*([^,}]*)`, "u").exec(
+      this.text(row),
+    );
+    if (flow) return flow[1]!.replace(/^[ \t]+|[ \t]+$/gu, "");
+    const pattern = new RegExp(`^[ \\t]+${keyPattern(name)}[ \\t]*:(.*)$`, "u");
+    for (const inner of this.block(row)) {
+      const m = pattern.exec(this.text(inner));
+      if (m) return m[1]!.replace(/(?:^|[ \t])#.*$/u, "").replace(/^[ \t]+|[ \t]+$/gu, "");
+    }
+    return null;
   }
 
   entry(parent: string, index: number): Position {
