@@ -85,7 +85,7 @@ leaks into the contract.
 | `resolve-nested-vault` | A path into a nested vault is HMD003, and none of its cards is a candidate |
 | `resolve-unicode-nfc` | Names are compared after NFC normalisation, case-sensitively, and not under NFKC |
 | `resolve-fragments` | Heading and block fragments are checked against the resolved card and never change which card it is |
-| `grammar-display` | A display after a page reference and after either fragment, a `\|` inside a display, an embed with a display, and an unresolved link with its display |
+| `grammar-display` | A display after a page reference and after either fragment, a <code>&#124;</code> inside a display, an embed with a display, and an unresolved link with its display |
 | `grammar-block-ids` | Block identifiers of 1 and 64 characters, `_` and `-` after the first character, a leading digit, upper case, and a `^mid` followed by text, which is no anchor (HMD005) |
 | `grammar-reference-forms` | Absolute, both explicit relative forms, a bare name, an unqualified path, an embed, `^` inside a heading fragment after its first character, and `!![[x]]` as an embed |
 | `grammar-fences` | `~~~` fences, an info string, a longer fence an inner shorter one does not close, and a fence indented three spaces |
