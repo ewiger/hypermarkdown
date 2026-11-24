@@ -38,6 +38,11 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **An `import` statement takes only spaces and tabs as whitespace**, between
+  its words and on either side of a comma, as the grammar's `WS` says; another
+  whitespace character there is HMD014. An imported name or alias is a
+  segment with no whitespace, so `:` and the reserved characters make it
+  HMD014 too.
 - **A local name bound twice by imports is HMD015 even when both bindings
   reach one card**, as in `from /shared import tokens` beside
   `from ./shared import tokens`. It used to be reported only when the two

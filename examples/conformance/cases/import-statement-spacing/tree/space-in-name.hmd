@@ -1,0 +1,7 @@
+---
+use: [no_autodiscovery]
+import:
+  - from /shared import my card
+---
+
+[[my card]]

@@ -1,0 +1,6 @@
+---
+import:
+  - From /shared import a
+---
+
+# Card

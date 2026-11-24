@@ -11,8 +11,11 @@ import unicodedata
 
 from .model import ImportStmt
 
-_STMT_RE = re.compile(r"^from\s+(?P<ref>\S+)\s+import\s+(?P<names>.+?)\s*$")
-_NAME_RE = re.compile(r"^(?P<name>[^\s/]+)(?:\s+as\s+(?P<alias>[^\s/]+))?$")
+# WS is spaces and tabs, and an import-name is a segment with no whitespace in
+# it: no `/`, no reserved character, no `:`.
+_STMT_RE = re.compile(r"^from[ \t]+(?P<ref>\S+)[ \t]+import[ \t]+(?P<names>.+?)[ \t]*$")
+_NAME = r"[^\s/\[\]|#^:]+"
+_NAME_RE = re.compile(rf"^(?P<name>{_NAME})(?:[ \t]+as[ \t]+(?P<alias>{_NAME}))?$")
 
 
 class ImportError_(ValueError):
@@ -43,13 +46,14 @@ def parse_statement(raw: str) -> ImportStmt:
             f"import ref {ref!r} must be absolute ('/x') or relative ('./x', '../x'), never bare"
         )
 
-    names = m.group("names").strip()
+    names = m.group("names").strip(" \t")
     if names == "*":
         return ImportStmt(ref=ref, wildcard=True, bindings=(), raw=raw.strip())
 
     bindings: list[tuple[str, str]] = []
     for part in names.split(","):
-        part = part.strip()
+        # Spaces and tabs may stand on either side of a comma, nothing else.
+        part = part.strip(" \t")
         if not part:
             raise ImportError_(f"empty name in import list: {raw.strip()!r}")
         if part == "*":

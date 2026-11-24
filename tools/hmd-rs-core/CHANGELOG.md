@@ -27,6 +27,9 @@ crates.io. Implementation state is tracked in
 
 ### Changed
 
+- **`Import::parse` takes only spaces and tabs as whitespace**, between a
+  statement's words and on either side of a comma, as the grammar's `WS`
+  says, and refuses a name or alias holding `:` or a reserved character.
 - **Breaking: `EntryKind` has a third variant, `LeavesRoot`**, for a symbolic
   link whose target lies outside the namespace root. Neither the entry nor
   anything through it is part of the namespace. `FsHost` reports one instead

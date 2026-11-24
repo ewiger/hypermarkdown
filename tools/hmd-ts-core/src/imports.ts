@@ -6,8 +6,16 @@
 import type { ImportStmt } from "./model.js";
 import { pyRepr } from "./pyrepr.js";
 
-const STMT_RE = /^from\s+(\S+)\s+import\s+([\s\S]+?)\s*$/;
-const NAME_RE = /^([^\s/]+)(?:\s+as\s+([^\s/]+))?$/;
+// WS is spaces and tabs, and an import-name is a segment with no whitespace in
+// it: no `/`, no reserved character, no `:`.
+const STMT_RE = /^from[ \t]+(\S+)[ \t]+import[ \t]+([\s\S]+?)[ \t]*$/;
+const NAME = String.raw`[^\s/\[\]|#^:]+`;
+const NAME_RE = new RegExp(String.raw`^(${NAME})(?:[ \t]+as[ \t]+(${NAME}))?$`);
+
+/** `text` without the spaces and tabs at either end. */
+function stripWs(text: string): string {
+  return text.replace(/^[ \t]+|[ \t]+$/g, "");
+}
 
 /** A malformed import statement (HMD014). */
 export class ImportSyntaxError extends Error {}
@@ -42,14 +50,15 @@ export function parseStatement(raw: unknown): ImportStmt {
     );
   }
 
-  const names = m[2]!.trim();
+  const names = stripWs(m[2]!);
   if (names === "*") {
     return { ref, wildcard: true, bindings: [], raw: trimmed };
   }
 
   const bindings: Array<readonly [string, string]> = [];
   for (const chunk of names.split(",")) {
-    const part = chunk.trim();
+    // Spaces and tabs may stand on either side of a comma, nothing else.
+    const part = stripWs(chunk);
     if (!part) {
       throw new ImportSyntaxError(`empty name in import list: ${pyRepr(trimmed)}`);
     }

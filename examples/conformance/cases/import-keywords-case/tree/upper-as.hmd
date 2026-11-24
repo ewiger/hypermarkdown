@@ -1,0 +1,6 @@
+---
+import:
+  - from /shared import a AS x
+---
+
+# Card
