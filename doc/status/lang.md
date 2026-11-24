@@ -201,6 +201,11 @@ withdrew two dozen claims.
 
 ## Changelog
 
+- 2026-11-24: the specification declares its version in a *Version* callout
+  under the introduction: HyperMarkDown 0.1.0, in the three-part form Semantic
+  Versioning requires. The callout links the language's changelog. The
+  changelog's section is now `0.1.0`, the README badge says the same, and the
+  docs test reads the version from the callout.
 - 2026-11-24: proofreading from the introduction through the start of
   *Grammar*. The example vault no longer claims its output comes from one
   implementation, and an unresolved link is explained as the wiki way of

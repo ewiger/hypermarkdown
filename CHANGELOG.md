@@ -23,9 +23,11 @@ HyperMarkDown wiki, published by the MkDocs plugin the Python tool ships, so a
 specification that made the site unbuildable would be caught by its own
 publication.
 
-**The language's version is declared by the specification itself** — the opening
-sentence of [`doc/wiki/hmd-lang-spec.hmd`](doc/wiki/hmd-lang-spec.hmd), which
-currently specifies HyperMarkDown **0.1** against CommonMark 0.31.2. A version
+**The language's version is declared by the specification itself** — the
+*Version* callout at the top of
+[`doc/wiki/hmd-lang-spec.hmd`](doc/wiki/hmd-lang-spec.hmd), which currently
+specifies HyperMarkDown **0.1.0** against CommonMark 0.31.2. The version follows
+Semantic Versioning, so it always has three parts. A version
 section here is that number; the dated entries inside it record when each decision
 landed, because a language is worked on continuously and released rarely.
 `tests/test_docs.py` fails if the card names a version this file has no section
@@ -36,7 +38,7 @@ for one. Progress is not tracked here either — the trackers under
 `doc/status/` are the only place work is recorded, one per tool plus one for the
 language itself.
 
-## [0.1] — drafted
+## [0.1.0] — drafted
 
 The first version of the language: the six constructs, resolution, the severities,
 and the publication model. Still `drafted`, which is what the `0.x` means — a

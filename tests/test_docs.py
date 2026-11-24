@@ -117,7 +117,7 @@ def test_the_guard_catches_the_original_defect_and_nothing_else():
 #: The sentence the language specification opens with, which is the only place the
 #: language's version is declared. A second literal in a config file or a `VERSION`
 #: would be a number free to disagree with the document that defines the format.
-SPEC_VERSION = re.compile(r"language standard for HyperMarkDown version (\d+(?:\.\d+)*)")
+SPEC_VERSION = re.compile(r"This document specifies HyperMarkDown \*\*(\d+\.\d+\.\d+)\*\*")
 
 
 def test_the_language_version_has_a_changelog_section():
@@ -134,7 +134,8 @@ def test_the_language_version_has_a_changelog_section():
     match = SPEC_VERSION.search(card)
     assert match is not None, (
         "hmd-lang-spec.hmd no longer says which version of the language it"
-        " specifies; that sentence is the version's only declaration"
+        " specifies; the Version callout is the version's only declaration, and"
+        " it must give all three SemVer parts"
     )
     version = match.group(1)
 
@@ -151,7 +152,7 @@ def test_the_language_version_has_a_changelog_section():
     assert f"/badge/spec-{version}-" in readme, (
         f"the spec card specifies HyperMarkDown {version}, and README.md's `spec`"
         " badge says something else. Either bump the badge or drop it — the card's"
-        " opening sentence is the declaration, the badge only repeats it."
+        " Version callout is the declaration, the badge only repeats it."
     )
 
 

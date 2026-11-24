@@ -24,6 +24,12 @@ resolution, building upon
 ensure consistent interpretation of HyperMarkDown documents across independent
 implementations.
 
+!!! info "Version"
+    This document specifies HyperMarkDown **0.1.0**. The version follows the
+    rules under [Versioning and Authority](#versioning-and-authority), and
+    what each version changed is recorded in
+    [the language's changelog](https://github.com/ewiger/hypermarkdown/blob/main/CHANGELOG.md).
+
 **Contents**
 
 - [Versioning and Authority](#versioning-and-authority)
