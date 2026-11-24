@@ -426,8 +426,7 @@ impl Vault {
             // name a directory, and bind only its folder note; so does a path
             // that normalizes to the root itself.
             let last = stem.rsplit('/').next();
-            let directory_only =
-                dir_ref || parts.is_empty() || matches!(last, Some("." | ".."));
+            let directory_only = dir_ref || parts.is_empty() || matches!(last, Some("." | ".."));
             return by_path_rule(self.bind_path(&parts, ext, directory_only));
         }
 
