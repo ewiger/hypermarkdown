@@ -7,7 +7,7 @@
 [issue 0017](0017-verify-path-suffix-resolution.md),
 [[hmd-lang-spec#resolution-algorithm]],
 [[hmd-lang-spec#resolving-a-reference-within-a-directory]],
-[[hmd-lang-spec#rules-the-algorithm-must-satisfy]],
+[[hmd-lang-spec#resolution-rules]],
 [the conformance corpus](../../../examples/conformance/README.md)
 
 ## What

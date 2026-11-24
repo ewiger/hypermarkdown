@@ -17,17 +17,17 @@ executable documents through the integration of HQL (Hyper Query Language).
 Embedded HQL cells allow documents to query data, perform computations, and
 incorporate their results into the document itself.
 
-This document is the language standard for HyperMarkDown. It
-defines the syntax, semantics, parsing rules, vault structure, and reference
-resolution, building upon
+This document is the language standard for HyperMarkDown. It defines the
+syntax, semantics, parsing rules, vault structure, and reference resolution,
+building upon
 [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/). Its purpose is to
 ensure consistent interpretation of HyperMarkDown documents across independent
 implementations.
 
 !!! info "Version"
     This document specifies HyperMarkDown **0.1.0**. The version follows the
-    rules under [Versioning and authority](#versioning-and-authority), and
-    what each version changed is recorded in
+    rules under [Versioning and authority](#versioning-and-authority). Changes
+    between versions are recorded in
     [the language's changelog](https://github.com/ewiger/hypermarkdown/blob/main/CHANGELOG.md).
 
 **Contents**
@@ -49,11 +49,12 @@ implementations.
 - [Rendering](#rendering)
 - [Cells](#cells)
 - [Extended Markdown syntax](#extended-markdown-syntax)
-- [Not in this version](#not-in-this-version)
+- [Reserved syntax and future extensions](#reserved-syntax-and-future-extensions)
 
 ## Versioning and authority
 
-The HyperMarkDown language follows Semantic Versioning (SemVer 2.0.0) and is
+The HyperMarkDown language follows
+[Semantic Versioning (SemVer 2.0.0)](https://semver.org/spec/v2.0.0.html) and is
 versioned independently of its software implementations. Editorial corrections
 and clarifications that do not change the syntax or semantics of the language
 are published as patch releases.
@@ -79,7 +80,7 @@ rather than defining it.
 | **block anchor** | A trailing `^id` that names a block. |
 | **fragment** | What follows `#` in a target: a heading's text, or `^` and a block anchor's identifier. |
 | **unqualified reference** | A target with no leading `/`, `./`, or `../`, which is searched for. |
-| **cell** | A fenced block that a tool runs or draws. |
+| **cell** | A fenced code block identified as executable or visualizable content. |
 
 ## The example vault
 
@@ -183,10 +184,10 @@ appear in all capitals, as shown here.
   the test dataset, and an implementation is investigated and resolved in
   favor of the standard.
 
-Renaming a `.md` file to `.hmd` keeps it syntactically valid, but can change
-how it is read: `[[foo]]` is literal text in CommonMark and a wikilink in
-HyperMarkDown, and a leading `---` block that matches the grammar below is
-frontmatter.
+Renaming a `.md` file to `.hmd` can change its interpretation. For example,
+`[[foo]]` becomes a wikilink, and a leading frontmatter block becomes subject
+to the HyperMarkDown metadata rules. Content that was valid as a Markdown
+card may therefore produce HyperMarkDown diagnostics after renaming.
 
 HyperMarkDown defines the syntax and semantics of documents independently of
 their presentation. Implementations may render documents differently, provided
@@ -200,8 +201,9 @@ standard. Documents are stored as UTF-8 encoded text files.
 
 HyperMarkDown recognizes three card extensions: `.hmd`, `.md`, and
 `.markdown`. Extensions are compared exactly, case included, as names are:
-`shout.HMD` and `notes.MD` have no card extension and are ignored. When multiple cards in the same directory have the same name but
-different extensions, references without an explicit extension resolve
+`shout.HMD` and `notes.MD` have no recognized card extension and are ignored.
+When multiple cards in the same directory have the same name but different
+extensions, references without an explicit extension resolve
 according to this priority order:
 
 ```text
@@ -357,9 +359,10 @@ display-char     = %x00-09 / %x0B-0C / %x0E-5A / %x5E-D7FF
   segments and no leading `/`, `./`, or `../` is an **unqualified path**. Both
   are **unqualified references** and use the same search; only a bare name can
   match a named import.
-- The **reserved characters** in a `target` are `[`, `]`, `|`, `#`, `^`, `:`,
-  `\`, and a line ending, and `/` everywhere except as the separator between
-  segments.
+- The characters `[`, `]`, `|`, `#`, `^`, `:`, `\`, and line endings
+  are excluded from path segments. The `/` character separates path
+  components. Heading fragments and display text have their own character
+  rules, as defined in the grammar above.
 - **A backslash MUST NOT appear anywhere in a wikilink**: not in its path,
   its fragment, or its display. A wikilink that contains one is malformed, an
   error ([HMD010](#diagnostics)). A backslash is never a path separator, on
@@ -387,16 +390,15 @@ display-char     = %x00-09 / %x0B-0C / %x0E-5A / %x5E-D7FF
 - A `page-ref` MAY end in a card extension. An implementation MUST strip it
   before matching and MUST then bind only that extension: `[[owl.md]]` reaches
   `owl.md` even where `owl.hmd` shadows it.
-- **No escape mechanism exists in this version.** A target that needs a
-  reserved character is malformed, an error ([HMD010](#diagnostics)).[^no-escape]
+- **No escape mechanism exists in this version.** A target containing a
+  character prohibited in its syntactic position is malformed, an error
+  ([HMD010](#diagnostics)).
 - The `namespace:path` form is reserved for references across namespaces, not
-  part of the 0.1 grammar; see [Not in this version](#not-in-this-version).
+  part of the 0.1 grammar; see [Reserved syntax and future extensions](#reserved-syntax-and-future-extensions).
   Because `:` is a reserved character, every such target is malformed.
 
 `[`, `]`, and `|` delimit the wikilink, and `#` and `^` introduce its fragment,
 so none of them can be part of a name.
-
-[^no-escape]: The missing escape is a known gap, not a design position.
 
 ### Link candidates
 
@@ -464,16 +466,19 @@ byte 0 of the card.
 - Every other key is the author's and MUST NOT be interpreted. An implementation
   MUST still expose the whole mapping to its consumers.
 
-[^mechanisms]: The language ships mechanisms, not vocabulary: the four keys it
-    needs, and nothing that would collide with an author's own.
+[^mechanisms]: Reserving only these four properties leaves other metadata names
+    available to authors and their tools.
 
 ## Heading anchors
 
-A heading fragment names a heading by its text. Both sides are normalized
-before they are compared, so a link need not repeat a heading's capitalization
-or punctuation. Link by heading text where the link should read naturally;
-anchor a heading whose links must survive a rename, or whose text is awkward
-to type.
+Headings can be referenced directly by their text. For example,
+`[[setup#Linux]]` references the heading `Linux` in the card `setup`. Both
+the heading text and the reference fragment are normalized before comparison,
+so differences in capitalization and punctuation are handled by the rules below.
+
+Heading references are convenient when the heading text is known and stable.
+Block anchors provide persistent identifiers that remain valid when a heading
+is renamed.
 
 - A **heading** is an ATX heading (`# Setup`) or a setext heading (`Setup`
   over a line of `===` or `---`), as CommonMark defines them. Both are
@@ -483,7 +488,7 @@ to type.
   removed: `# The *fast* path` has the text `The fast path`. A closing run of
   `#` and a trailing block anchor are not part of it.
 - The **normalized heading identifier** of a text, a heading's or a
-  fragment's, is computed in four steps:[^own-normalization]
+  fragment's, is computed in four steps:
 
 ```text
 heading_identifier(text):
@@ -515,27 +520,28 @@ heading_identifier(text):
 In the example vault, `[[setup#linux]]`, `[[setup#Linux]]`, and
 `[[setup#LINUX!]]` all reach `## Linux`.
 
-[^own-normalization]: The matching agrees with Obsidian's, which also ignores
-    case and punctuation. The specification states the normalization itself
-    rather than naming a library, so no implementation has to copy another's
-    behavior.
-
 ## The namespace
 
-The namespace is a single rooted subtree. In version 0.1 nothing outside it is
-addressable by a page reference. Ordinary Markdown links still address files
-and URLs outside it.
+A namespace is organized as a directory tree starting at the namespace root.
+Cards and modules are organized within this tree.
+
+Wikilinks and embeds resolve only within their namespace. Ordinary Markdown
+links can reference files and URLs outside it. The syntax
+`[[namespace:article]]` is reserved for references to cards in other namespaces;
+cross-namespace resolution is not defined in version 0.1.0.
 
 - The **vault** is the nearest ancestor directory that contains a `.hmd/`
-  directory. Nothing else marks one; a `.git` directory does
-  not.[^one-marker] A tree with no `.hmd/` above it has no vault, and its
-  namespace root has to be named directly.
+  directory, starting with the referring document's own directory.
 - By default, the **namespace root** is the vault directory itself. The
   optional `location_path` setting in `.hmd/config.toml` specifies it as a
   path relative to the vault directory; see
   [Project configuration](#project-configuration).
-- An implementation MUST offer a way to name the namespace root directly,
-  overriding both the search for a vault and the `location_path` setting.
+- An implementation MUST offer a way to set an **explicit namespace root**,
+  for example through a command-line argument, an API parameter, or
+  application configuration. An explicit namespace root overrides both the
+  search for a vault and the `location_path` setting.
+- If no vault is found and no explicit namespace root is set, the
+  implementation MUST report an error and MUST NOT read the documents.
 - A card's path is written relative to the namespace root. What makes a file
   a card is defined under [Documents](#documents).
 - A resolved target MUST lie inside the namespace root. One that does not is
@@ -549,22 +555,23 @@ and URLs outside it.
   resolution does not cross vault boundaries in either direction.
 - Each vault defines its namespace root through `location_path`. The
   `location_path` of an enclosing vault MUST NOT resolve into a nested vault,
-  and its namespace excludes all nested vaults and their contents. Nested
-  vaults are thus allowed, and each card still belongs to exactly one
-  namespace, even where the directory trees are physically nested.
+  and its namespace excludes all nested vaults and their contents. This allows
+  nested vaults while ensuring that each card belongs to exactly one namespace.
 
-A directory inside the namespace is a **module**: the unit that scopes a name
-and inherits configuration. A directory MAY carry a **folder note**, a card
-named `index` with any card extension. A reference to the directory and a
-reference to its explicit `index` path resolve to that one card.
-Configuration inherits from `index.hmd` only; a Markdown folder note's
-frontmatter is not interpreted, so it sets nothing for its subtree.
+A directory within the namespace represents a **module**. A module MAY
+contain a **folder note** named `index.hmd`, `index.md`, or `index.markdown`,
+which represents the directory itself.
+
+A direct directory reference such as `[[guides/]]` and the corresponding
+`[[guides/index]]` reference resolve to the same folder note. An unqualified
+reference such as `[[guides]]` can also reach that note, subject to the
+precedence rules below.
+
+Only `index.hmd` provides configuration inherited by the module and its
+descendants. A Markdown folder note's frontmatter is not interpreted.
 
 In the example vault, `handbook/` is the vault, `wiki/` is the namespace root,
 and `[[guides]]` reaches `guides/index.hmd`.
-
-[^one-marker]: One marker has one meaning: a tree inside a git repository is
-    not a vault until it says so.
 
 ## Name resolution
 
@@ -591,8 +598,41 @@ resolved according to the search rules defined below.
 
 ### Resolving a reference within a directory
 
-Every phase of resolution looks a reference up in a directory the same way, so
-a folder note behaves the same everywhere.
+Every resolution phase uses the same directory lookup rules. Ordinary cards
+take precedence over folder notes when they claim the same name. Card extension
+priority applies unless the reference specifies an extension explicitly.
+
+For example, given a referring card in `guides/` and the following files:
+
+```text
+guides/
+  overview.hmd
+  setup/
+    index.hmd
+    linux.hmd
+```
+
+| Reference | Resolved card |
+| --- | --- |
+| `[[overview]]` | `overview.hmd` |
+| `[[overview.hmd]]` | `overview.hmd` |
+| `[[setup]]` | `setup/index.hmd` |
+| `[[setup/]]` | `setup/index.hmd` |
+| `[[setup/index]]` | `setup/index.hmd` |
+| `[[setup/linux]]` | `setup/linux.hmd` |
+
+These references introduce no naming-collision diagnostics. If `setup.hmd`
+is added alongside the `setup/` directory, `[[setup]]` resolves to
+`setup.hmd`, while `[[setup/]]` still resolves to `setup/index.hmd`. The
+expected linter warning is HMD012. The diagnostic message is illustrative:
+
+```text
+warning[HMD012] A card shadows a module folder note of the same name.
+```
+
+Name resolution identifies the target of a reference; validation identifies
+structural problems in the knowledge base. A reference can resolve successfully
+even when a naming collision produces a diagnostic.
 
 ```text
 bind(dir, parts, ext = none, directory_only = false):
@@ -627,7 +667,7 @@ extension. References identifying a directory directly, such as `[[./]]` and
   normalization, symbolic links, and nested vaults included — before it is
   accepted. A boundary violation is `Escapes`, an error
   ([HMD003](#diagnostics)), and MUST NOT be treated as an ordinary missing card.
-- A **valid card** is a card as defined under [Documents](#documents).
+- A valid card satisfies the conditions under [Documents](#documents).
 - A target naming a directory MUST resolve to that directory's folder note, so
   the directory form and the explicit `index` form reach the same card.
 - Two files in one directory whose names differ only in their card extension
@@ -649,7 +689,8 @@ reference is searched for, and resolves to exactly one card or to a failure
 that can be diagnosed. The search checks named imports first. It then looks in
 the referring card's own directory and in each parent directory up to the
 namespace root, then in the directories imported as search paths. Only if all
-of those find nothing does it run one recursive search of the namespace.
+of those find nothing does it perform a recursive search, if enabled, within
+the configured discovery scope.
 
 ```text
 resolve(target, source, root):
@@ -770,13 +811,12 @@ resolve(target, source, root):
 In the example vault, `[[tokens]]` in `guides/install.hmd` stops at Phase 1 in
 `guides/`. The same reference in `setup.hmd` reaches Phase 3 and is ambiguous.
 
-### Rules the algorithm must satisfy
+### Resolution rules
 
-Searching the card's own directory and its parents answers *what does this
-reference mean here*, which must be predictable. The recursive search answers
-*does this reference exist anywhere*: a convenience, which is allowed to fail
-loudly. It runs only after every nearer phase has found nothing, so every match
-it produces lies outside them, and the phases never disagree.
+Searching the current directory and its parent directories gives priority to
+the local context of a card. Recursive search allows authors to reference cards
+without knowing their exact location within the knowledge base. It runs only
+after the preceding resolution phases have found no match.
 
 - **Order.** Resolution MUST follow the phase order above. A named import can
   shadow a local card. A wildcard import MUST NOT override a named import or a
@@ -825,8 +865,8 @@ it produces lies outside them, and the phases never disagree.
   Ordering is independent of locale, operating system, and filesystem
   traversal order. This applies wherever candidate ordering affects
   observable results or diagnostics, such as a candidate list.
-- **Forward references.** An unresolved target is **not** a failure. It is a
-  forward reference, reported as a warning ([HMD001](#diagnostics)).[^forward]
+- **Forward references.** An unresolved target can represent a card that has not yet been created. It
+  is reported as a warning ([HMD001](#diagnostics)).[^forward]
 - **Fragments.** The card is resolved first, and its heading or block fragment
   after; see [Fragments](#fragments).
 
@@ -837,8 +877,7 @@ it produces lies outside them, and the phases never disagree.
     accident, hence the warning.
 
 [^qualify]: The remedy for an ambiguity is to qualify the link, not to
-    memorize a tie-break. Ordered candidates make a diagnostic byte-identical
-    across platforms.
+    memorize a tie-break. Ordering makes candidate lists consistent across platforms.
 
 [^forward]: Writing forward is how a knowledge base grows.
 
@@ -885,12 +924,16 @@ Once a card is resolved, its fragment is matched against that card.
 
 ## Frontmatter
 
-Configuration has two levels. A card says **whether** a feature applies to it;
-project configuration says **how** that feature behaves. The order of the
-resolution phases is the same everywhere. A card may explicitly enable or
-disable the recursive search through its frontmatter configuration. In the
-absence of an explicit setting, the inherited configuration applies, with the
-precedence given under [Project configuration](#project-configuration).
+Frontmatter provides structured metadata for a card. Authors can use it to
+describe and classify knowledge, configure language features, declare imports,
+and control navigation and publication. The four reserved properties defined
+by this standard are `tags`, `use`, `import`, and `nav`. Other properties remain
+available for authors and their tools.
+
+A card can explicitly enable or disable recursive search through `use`; project
+configuration defines its scope. The order of resolution phases is unchanged.
+In the absence of an explicit setting, the inherited configuration applies, as
+described under [Project configuration](#project-configuration).
 
 ```yaml
 ---
@@ -922,8 +965,9 @@ diagnostic is reported at the beginning of the frontmatter block. Exactly:
 
 ### `tags` — what a card is about
 
-A wikilink says where a card lives; a tag says what it is about. The two are
-kept apart, because collapsing them breaks both.[^tag-slot]
+Tags classify the knowledge represented by a card independently of its
+location in the namespace. A hierarchical tag such as `area/backend` can group
+cards from different modules under a shared subject.
 
 - `tags` is a list of strings. A `/` separates hierarchy levels, so
   `area/backend` is a descendant of `area`. An empty tag is malformed. A
@@ -932,9 +976,6 @@ kept apart, because collapsing them breaks both.[^tag-slot]
   target beginning with `#` is malformed ([HMD010](#diagnostics)).
 - What tags mean beyond their shape — tag pages, hierarchy queries — is not
   specified in this version.
-
-[^tag-slot]: Only the slot is fixed, so authors can tag against a stable shape
-    now.
 
 ### `use` — per-card feature toggles
 
@@ -952,8 +993,8 @@ kept apart, because collapsing them breaks both.[^tag-slot]
 [^visible-deps]: With the recursive search off, every dependency a card has is
     visible in its header or in the link itself.
 
-[^misspelling]: A dropped misspelling would hand the author the default while
-    they believe they configured something else.
+[^misspelling]: Reporting unrecognized feature names prevents misspellings from
+    silently selecting the default behavior.
 
 ### `import` — explicit name binding
 
@@ -1002,8 +1043,8 @@ WS          = 1*( %x20 / %x09 )     ; spaces and tabs
 [^legible]: Probing without recursion keeps the reachable set legible from a
     directory listing.
 
-[^last-wins]: Two bindings of one name have no declaration order to appeal to,
-    and last-wins is guessing.
+[^last-wins]: Rejecting duplicate bindings prevents an import from silently
+    replacing another binding of the same name.
 
 [^header-defect]: A wrong import is a defect in the header whether or not the
     body uses it.
@@ -1046,32 +1087,28 @@ nav:
   degrades to the same unresolved link and the same warning. Expansion itself
   takes the publication predicate from its caller.[^private-bytes]
 - A scalar `nav`, an unknown key inside it, or a non-integer `order` MUST be
-  reported as an error ([HMD013](#diagnostics)). A scalar such as `nav: 10` is
-  an attempt to set the order; accepted silently, it would set nothing, and
-  the card would sort last.
+  reported as an error ([HMD013](#diagnostics)). For example, `nav: 10` is invalid; use `nav: {order: 10}` instead.
 
 In the example vault, `index.hmd` is `public`, so every card is published.
 
-[^opt-in]: The two possible mistakes are not symmetric. A card that should
-    have shipped and did not is visible to its author on the next build; one
-    that shipped and should not have is a leak nobody looks for.
+[^opt-in]: Private-by-default publication reduces the risk of unintentionally
+    exposing unpublished content.
 
-[^address]: A page reachable by typing its address is published, whatever the
-    sidebar says.
+[^address]: Excluding a page from navigation alone does not prevent access
+    through its address.
 
-[^private-bytes]: Copying a private card's bytes into a public page is the one
-    outcome the gate exists to prevent. Rendering a card named directly is not
-    the same situation as building a site, so expansion stays free of policy.
+[^private-bytes]: Publication must prevent private content from being included through
+    an embed. Local rendering and site publication can use different policies.
 
 ## Project configuration
 
-The `.hmd/` directory marks the vault and holds its configuration. This version
-reads exactly three settings from `.hmd/config.toml` — `location_path`,
-`autodiscovery`, and `mode` — and MUST ignore the rest of the
-file,[^ignore-unknown] with one exception: the key `wiki` is banned. An
-implementation that reads a vault MUST reject a `.hmd/config.toml` that sets
-`wiki`, and MUST NOT read the vault, with an error that names the key and its
-replacement, `location_path`.[^location-path-was-wiki]
+Project configuration defines the namespace root and default discovery
+behavior. It is stored in `.hmd/config.toml` and can be omitted when the
+defaults are sufficient. The settings defined in this version are
+`location_path`, `discovery.autodiscovery`, and `discovery.mode`. Other settings
+MUST be ignored,[^ignore-unknown] except for the obsolete `wiki` key. An
+implementation MUST reject a configuration that sets `wiki` and MUST NOT read
+the vault. The error MUST identify the key and its replacement, `location_path`.
 
 ```toml
 location_path = "doc/wiki"  # the namespace root, relative to the vault; default "."
@@ -1099,12 +1136,6 @@ mode = "both"               # both (default) | recursive — where it searches
   root is the vault, autodiscovery is on, and the mode is
   `both`.[^no-config]
 
-[^location-path-was-wiki]: Before 0.1.0 this setting was called `wiki`, and
-    defaulted to `doc/wiki`. The rename is a breaking change. The key is
-    banned rather than ignored, so that an old configuration fails loudly
-    instead of silently moving the namespace root to the vault. Rename the key
-    to `location_path`.
-
 Precedence, most specific first:[^card-first]
 
 ```text
@@ -1125,8 +1156,14 @@ Precedence, most specific first:[^card-first]
 
 ## Embed expansion
 
-An **embed** is any wikilink with a `!` in front. It is resolved by the
-algorithm above and then expanded in place.
+An **embed** incorporates the content of another card into the referring
+document. This operation is also called transclusion. An embed uses the same
+name resolution rules as a wikilink, with a leading `!` indicating that the
+resolved content is expanded in place.
+
+For example, `![[setup]]` embeds the entire body of a card,
+`![[setup#Linux]]` embeds a heading section, and `![[setup#^setup-linux]]`
+embeds content identified by an explicit block anchor.
 
 - An embed of a whole card MUST expand to the target's full body with its
   frontmatter block removed.
@@ -1170,8 +1207,13 @@ the same text: the `## Linux` heading and its paragraph, up to `## macOS`.
 
 ## Diagnostics
 
-Rule identifiers are stable and MUST NOT be renumbered once
-released.[^cited-ids] This version has no way to silence a diagnostic.
+Validation identifies problems in documents and their relationships, such as
+malformed references, ambiguous names, and invalid metadata. A linter reports
+these problems as errors or warnings according to the rules below. An error
+identifies a violation of a defined rule; a warning identifies a condition
+that the standard permits but authors may want to address.
+
+Rule identifiers are stable and MUST NOT be renumbered once released.[^cited-ids] This version has no way to silence a diagnostic.
 
 Diagnostic identifiers, severity levels, reporting conditions, and source
 positions are defined by this standard. Human-readable diagnostic messages are
@@ -1179,8 +1221,8 @@ not standardized and may differ between implementations.
 
 | ID | Severity | Condition | Defined in |
 | --- | --- | --- | --- |
-| HMD001 | warning | A link target does not resolve | [Rules the algorithm must satisfy](#rules-the-algorithm-must-satisfy) |
-| HMD002 | error | An unqualified reference matches more than one card in the recursive search | [Rules the algorithm must satisfy](#rules-the-algorithm-must-satisfy) |
+| HMD001 | warning | A link target does not resolve | [Resolution rules](#resolution-rules) |
+| HMD002 | error | An unqualified reference matches more than one card in the recursive search | [Resolution rules](#resolution-rules) |
 | HMD003 | error | A target lies outside the namespace root or inside a nested vault | [The namespace](#the-namespace) |
 | HMD004 | error | A heading fragment is not present in the resolved card | [Heading anchors](#heading-anchors) |
 | HMD005 | error | A block identifier is not present in the resolved card | [Fragments](#fragments) |
@@ -1194,7 +1236,7 @@ not standardized and may differ between implementations.
 | HMD013 | error | A `use` feature is unrecognized, or a `tags` or `nav` value is malformed | [`tags` — what a card is about](#tags-what-a-card-is-about), [`use` — per-card feature toggles](#use-per-card-feature-toggles), [`nav` — placement and publication](#nav-placement-and-publication) |
 | HMD014 | error | An `import` statement is malformed | [`import` — explicit name binding](#import-explicit-name-binding) |
 | HMD015 | error | An import cannot resolve its target, or two named imports bind one local name | [`import` — explicit name binding](#import-explicit-name-binding) |
-| HMD016 | warning | An unqualified reference matches in more than one imported search path, and the earliest wins | [Rules the algorithm must satisfy](#rules-the-algorithm-must-satisfy) |
+| HMD016 | warning | An unqualified reference matches in more than one imported search path, and the earliest wins | [Resolution rules](#resolution-rules) |
 | HMD017 | warning | A published card links to or embeds one that is not published | [`nav` — placement and publication](#nav-placement-and-publication) |
 | HMD018 | warning | A card shadows a card of the same name with a later card extension | [Resolving a reference within a directory](#resolving-a-reference-within-a-directory) |
 | HMD019 | error | A file with a card extension is not valid UTF-8 | [Encoding](#encoding) |
@@ -1212,13 +1254,11 @@ not standardized and may differ between implementations.
   frontmatter, and the encoding, and makes no claim about prose, style, or
   inherited Markdown.
 
-The severities follow from the rules. An unresolved reference is a warning
-because writing forward is permitted, and the report is a to-do list. Several
-matches in the recursive search are an error because that search has no
-ranking rule. Every kind of shadowing is a warning — an earlier imported search
-path (HMD016), an earlier card extension (HMD018), a card beside a module's
-folder note (HMD012) — because a fixed order decides it and the shadowed card
-stays reachable.
+An unresolved reference is a warning because authors can create references
+before creating their targets. Multiple matches in recursive search are an
+error because no ranking rule selects a target. Shadowing through imported
+search paths (HMD016), card extensions (HMD018), or folder notes (HMD012)
+produces a warning because the resolution rules determine a target.
 
 [^cited-ids]: Continuous integration configuration and documentation cite rule
     identifiers, so they never move.
@@ -1233,20 +1273,24 @@ normative, because a renderer that breaks them changes what the document means:
 - Embed expansion MUST follow [Embed expansion](#embed-expansion), including the
   depth and cycle bounds, whatever the output format.
 
-An implementation MAY erase the graph on output — resolving every link to a path
-and expanding every embed — producing ordinary Markdown or HTML that a reader
-can use without knowing the format exists. Erasure is lossy: the boundary
-between a card and the content it embedded is gone, and so is the source of
-each link. Erasure suits shipping, and not anything that must show a reader
-where content came from.
+An implementation MAY export a resolved document as ordinary Markdown or HTML
+by converting references to links and expanding embeds. Such an export can
+lose information about the original references, the boundaries of embedded
+content, and the source cards from which that content originated. The exported
+document is suitable for reading and distribution, but is not necessarily a
+reversible representation of the knowledge base.
 
-[^work-item]: A missing card is a work item; erasing the author's reference
-    hides it.
+[^work-item]: Preserving unresolved links allows authors to identify references
+    whose target cards still need to be created or corrected.
 
 ## Cells
 
-A **cell** is a fenced code block that a tool runs or draws. Its kind is the
-first word of the fence's info string, and the cell kinds are exactly:
+Executable documents combine authored content with computations and
+visualizations. HQL cells allow a card to query data and produce results;
+diagram cells describe visualizations using a textual notation. A **cell** is
+a fenced code block whose info string identifies it as executable or
+visualizable content. The first word of that string determines its kind.
+The cell kinds defined by this version are:
 
 | Kind | What it is |
 | --- | --- |
@@ -1270,10 +1314,24 @@ first word of the fence's info string, and the cell kinds are exactly:
   that tells a current output from a stale one are HQL's, and are specified
   there.
 
-*Suggested presentation, not a rule.* Show a cell's output or drawing first,
-with its source behind a toggle. Run an HQL cell only when the reader asks, and
-write its output into the card. Draw a diagram cell when the card opens and
-again when the reader asks, and never write the drawing into the card.
+The following Mermaid cell describes a diagram rather than a code listing:
+
+```mermaid#show
+graph LR
+    CardA --> CardB
+```
+
+A plain `mermaid` fence containing the same source is a listing, not a diagram
+cell. The same distinction applies to `hql` and `hql#eval` fences.
+
+HyperMarkDown defines the representation of cells within a document. The
+[HQL language documentation](https://hql-lang.org/) defines the HQL code and
+execution conventions. Recognizing a cell is distinct from authorizing its
+execution. Execution authorization and sandboxing are implementation policies.
+
+An implementation can present cell output or diagrams with the source available
+on demand. For untrusted documents, execution should require explicit
+authorization rather than being triggered merely by opening a card.
 
 ## Extended Markdown syntax
 
@@ -1283,38 +1341,35 @@ specifications referenced below.
 
 | Construct | Syntax | Reference |
 | --- | --- | --- |
-| Tables | pipe-delimited rows, with a delimiter row under the header | GitHub Flavored Markdown |
-| Task lists | `- [ ] open` and `- [x] done` | GitHub Flavored Markdown |
-| Strikethrough | `~~text~~`, with a double tilde | GitHub Flavored Markdown |
-| Subscript | `~text~`, with a single tilde | PyMdown Extensions |
-| Footnotes | `text[^1]`, with `[^1]: the note` elsewhere | PHP Markdown Extra |
-| Callouts | `!!! note "Title"`, then a body indented four spaces | Python-Markdown |
-| Collapsible callouts | `??? note` closed, `???+ note` open | PyMdown Extensions |
-| Math | `$…$` inline, `$$…$$` on lines of its own | TeX |
-| Attribute lists | `{: .class }` after a block | Python-Markdown |
-| Markdown inside HTML | `<div markdown>` | Python-Markdown |
-| Drawn diagrams | a `d2#show` or `mermaid#show` cell | D2, Mermaid |
+| Tables | pipe-delimited rows, with a delimiter row under the header | [GitHub Flavored Markdown](https://github.github.com/gfm/) |
+| Task lists | `- [ ] open` and `- [x] done` | [GitHub Flavored Markdown](https://github.github.com/gfm/) |
+| Strikethrough | `~~text~~`, with a double tilde | [GitHub Flavored Markdown](https://github.github.com/gfm/) |
+| Subscript | `~text~`, with a single tilde | [PyMdown Tilde](https://facelessuser.github.io/pymdown-extensions/extensions/tilde/) |
+| Footnotes | `text[^1]`, with `[^1]: the note` elsewhere | [PHP Markdown Extra](https://michelf.ca/projects/php-markdown/extra/) |
+| Callouts | `!!! note "Title"`, then a body indented four spaces | [Python-Markdown](https://python-markdown.github.io/extensions/admonition/) |
+| Collapsible callouts | `??? note` closed, `???+ note` open | [PyMdown Details](https://facelessuser.github.io/pymdown-extensions/extensions/details/) |
+| Math | `$…$` inline, `$$…$$` on lines of its own | [TeX](https://www.tug.org/) |
+| Attribute lists | `{: .class }` after a block | [Python-Markdown](https://python-markdown.github.io/extensions/attr_list/) |
+| Markdown inside HTML | `<div markdown>` | [Python-Markdown](https://python-markdown.github.io/extensions/md_in_html/) |
+| Drawn diagrams | a `d2#show` or `mermaid#show` cell | [D2](https://d2lang.com/), [Mermaid](https://mermaid.js.org/) |
 
 A single tilde is subscript, and only a double tilde is strikethrough. GitHub
 Flavored Markdown also reads a single tilde as strikethrough; HyperMarkDown
 does not.
 
-## Not in this version
+## Reserved syntax and future extensions
 
-The following are **deferred**, specified nowhere yet and not to be inferred
-from their absence: inline properties, highlights, templates and parameterized
+The following features are outside the scope of version 0.1.0: inline
+properties, highlights, templates and parameterized
 transclusion, backlinks and generated category pages, and heading-level
-shifting on embed. Querying the document graph is
-[HQL](https://hql-lang.org/)'s, a language of its own; a card carries it in
-cells.
+shifting on embed. Querying the document graph is provided by [HQL](https://hql-lang.org/),
+which can be embedded in cards through cells.
 
-The following is **reserved**: a cross-namespace address of the form
-`namespace:path/to/card`. The spelling is claimed so that it cannot be given
-another meaning, and an implementation of this version MUST treat it as a
+The cross-namespace address form `namespace:path/to/card` is reserved for
+a future version. An implementation of version 0.1.0 MUST treat it as a
 malformed target.
 
-The gap an author is most likely to meet is the absence of an **escape
-mechanism**, in both directions. A target cannot contain a reserved character,
-and the only way to show a construct without invoking it is to put it in a code
-span or a fenced block. Raw inline HTML is not excluded from recognition and is
-therefore not a workaround.
+Version 0.1.0 does not define an escape mechanism for wikilinks or embeds.
+Characters excluded by the grammar cannot be included by escaping them. Code
+spans and fenced code blocks can display HyperMarkDown syntax without invoking
+it. Raw inline HTML is not an excluded region.
