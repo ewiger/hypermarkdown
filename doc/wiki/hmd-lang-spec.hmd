@@ -50,7 +50,6 @@ implementations.
 - [Cells](#cells)
 - [Extended Markdown syntax](#extended-markdown-syntax)
 - [Not in this version](#not-in-this-version)
-- [See also](#see-also)
 
 ## Versioning and Authority
 
@@ -292,65 +291,112 @@ a licence to diverge on ordinary input.[^divergence]
 
 ## Grammar
 
-The following grammar defines the syntax of wikilinks, embeds, and their
-reference targets. These rules apply wherever HyperMarkDown syntax is
-recognized, as defined in the preceding section.
+The grammar below defines wikilinks, embeds, and their reference targets. It
+applies wherever HyperMarkDown syntax is recognized, as defined in
+[Lexical model](#lexical-model). It is written in ABNF
+([RFC 5234](https://www.rfc-editor.org/rfc/rfc5234)), with the case-sensitive
+strings of [RFC 7405](https://www.rfc-editor.org/rfc/rfc7405). `ALPHA` and `DIGIT` are
+RFC 5234's core rules: ASCII letters and digits only. A character is a Unicode
+scalar value.
 
-```text
-embed            := "!" wikilink
-wikilink         := "[[" target [ "|" display ] "]]"
-target           := page_ref [ fragment ]
+```abnf
+embed            = "!" wikilink
+wikilink         = "[[" target [ "|" display ] "]]"
+target           = page-ref [ fragment ]
 
-page_ref         := absolute | relative | unqualified
-absolute         := "/" segment { "/" segment }
-relative         := "./" [ path_component { "/" path_component } ]
-                  | "../" [ path_component { "/" path_component } ]
-path_component   := segment | ".."
-unqualified      := bare_name | unqualified_path
-bare_name        := segment
-unqualified_path := segment "/" segment { "/" segment }
-segment          := 1*( any character except "/" or reserved )
-reserved         := "[" | "]" | "|" | "#" | "^" | newline
+page-ref         = absolute / relative / unqualified
+absolute         = "/" segment *( "/" segment )
+relative         = ( "./" / "../" ) [ rel-component *( "/" rel-component ) ]
+rel-component    = segment / "." / ".."
+unqualified      = bare-name / unqualified-path
+bare-name        = segment
+unqualified-path = segment 1*( "/" segment )
+segment          = 1*seg-char
+seg-char         = %x00-09 / %x0B-0C / %x0E-22 / %x24-2E / %x30-39
+                 / %x3B-5A / %x5C / %x5F-7B / %x7D-D7FF / %xE000-10FFFF
+                 ; any character except "/", ":", "[", "]", "|", "#",
+                 ; "^", and a line ending
 
-fragment         := "#" heading_text
-                  | "#^" block_id
-heading_text     := heading_first { heading_char }
-heading_first    := any character except "[" / "]" / "|" / "^" / newline
-heading_char     := any character except "[" / "]" / "|" / newline
-block_id         := ( ALPHA / DIGIT ) *63( ALPHA / DIGIT / "_" / "-" )
+fragment         = "#" heading-text / "#^" block-id
+heading-text     = heading-first *heading-char
+heading-first    = %x00-09 / %x0B-0C / %x0E-5A / %x5C / %x5F-7B / %x7D-D7FF
+                 / %xE000-10FFFF
+                 ; any character except "[", "]", "|", "^", and a line ending
+heading-char     = %x00-09 / %x0B-0C / %x0E-5A / %x5C / %x5E-7B / %x7D-D7FF
+                 / %xE000-10FFFF
+                 ; any character except "[", "]", "|", and a line ending
+block-id         = ( ALPHA / DIGIT ) 0*63( ALPHA / DIGIT / "_" / "-" )
 
-display          := 1*( any character except "[" / "]" / newline )
+display          = 1*display-char
+display-char     = %x00-09 / %x0B-0C / %x0E-5A / %x5C / %x5E-D7FF
+                 / %xE000-10FFFF
+                 ; any character except "[", "]", and a line ending
 ```
 
 - A **bare name** is exactly one `segment`. A page reference with two or more
-  segments and no leading path marker is an **unqualified path**. Both are
-  **unqualified references** and use the same search; only a bare name can
+  segments and no leading `/`, `./`, or `../` is an **unqualified path**. Both
+  are **unqualified references** and use the same search; only a bare name can
   match a named import.
-- The **reserved characters** inside a `target` are exactly `[`, `]`, `|`, `#`,
-  `^`, and newline. They MUST NOT appear in a `segment`, and neither may `/`,
-  the segment separator.
-- A `heading_text` MUST contain at least one non-whitespace character. `#` and
-  `^` MAY appear after its first character.
+- The **reserved characters** in a `target` are `[`, `]`, `|`, `#`, `^`, `:`,
+  and a line ending, and `/` everywhere except as the separator between
+  segments.
+- A `segment` MUST NOT be `.` or `..`. Only an explicit relative reference may
+  contain them, and they follow Unix path semantics: the reference is
+  normalised before it is resolved, and the namespace containment rule applies
+  to the result.
 - `./` and `../` with no following component are valid references to the
-  current and parent directory. They resolve only when that directory has a
-  folder note, and the namespace containment rule still applies.
-- A `page_ref` MAY end in a card extension. An implementation MUST strip it
+  current and the parent directory. So is a relative reference whose last
+  component is `.` or `..`. They resolve only to that directory's folder note.
+- In a `heading-text`, `#` MAY appear anywhere and `^` anywhere but first; both
+  are ordinary characters of the heading text. A `^` directly after the
+  fragment's `#` makes the fragment a `block-id` instead. Neither character
+  survives normalisation (see [Heading anchors](#heading-anchors)), so
+  `[[setup#C# tips]]` and `[[setup#C tips]]` both reach `## C# tips`.
+- A `heading-text` and a `display` MUST each contain at least one character
+  that is not whitespace. Otherwise the wikilink is malformed, an error
+  ([HMD010](#diagnostics)).
+- Whitespace at the start and the end of a `page-ref` is not part of it:
+  `[[ setup ]]` is `[[setup]]`.
+- A `page-ref` MAY end in a card extension. An implementation MUST strip it
   before matching and MUST then bind only that extension: `[[owl.md]]` reaches
-  the Markdown card a HyperMarkDown card of the same name shadows.
-- A `display` MUST NOT be empty. A wikilink with an empty display is malformed,
-  an error ([HMD010](#diagnostics)).
-- **No escape mechanism exists in this version.** A target that needs a reserved
-  character is malformed, an error ([HMD010](#diagnostics)).
-- The `namespace:path` form is reserved, not part of the 0.1 grammar; see
-  [Not in this version](#not-in-this-version).
+  `owl.md` even where `owl.hmd` shadows it.
+- **No escape mechanism exists in this version.** A target that needs a
+  reserved character is malformed, an error ([HMD010](#diagnostics)).
+- The `namespace:path` form is reserved for references across namespaces, not
+  part of the 0.1 grammar; see [Not in this version](#not-in-this-version).
+  Because `:` is a reserved character, every such target is malformed.
 
 **Why.** `[`, `]`, and `|` delimit the wikilink, and `#` and `^` introduce its
-fragment, so none of them can be part of a name. The missing escape is a known
-gap, not a design position.
+fragment, so none of them can be part of a name. `:` is held back for
+references across namespaces. The missing escape is a known gap, not a design
+position.
+
+### Link candidates
+
+- A **link candidate** begins at each `[[` outside an excluded region. It ends
+  at the first `]]` after it, provided no `[`, `]`, or line ending comes before
+  that `]]`. A `!` directly before the `[[` makes the candidate an embed.
+- A candidate MUST match `wikilink`, or `embed` when it has the `!`. One that
+  does not is malformed, an error ([HMD010](#diagnostics)), reported at its
+  first character.
+- A `[[` that begins no candidate is ordinary text. An implementation MAY warn
+  that it looks like an unfinished wikilink; such a warning is not one of the
+  diagnostics of this specification.
+- A backslash escapes nothing here: `\[[x]]` is a wikilink, because the
+  grammar has no escape mechanism. To show a construct without invoking it,
+  put it in a code span or a fenced block.
+- Candidates are found in the text whatever CommonMark inline syntax surrounds
+  them. A candidate inside a CommonMark link's text or destination, or inside
+  emphasis, is still a candidate. Only an excluded region stops recognition.
+
+In `[[[a]]]`, the first `[[` is followed by `[`, so it begins no candidate, and
+the second begins the candidate `[[a]]`; the last `]` is text. In the maths
+`$[[1,2],[3,4]]$`, a `]` comes before the first `]]`, so no candidate begins
+and the text stays as written.
 
 ### Block anchors
 
-A **block anchor** is a trailing `^block_id` at the end of a block's last line,
+A **block anchor** is a trailing `^block-id` at the end of a block's last line,
 preceded by at least one space and followed only by the line ending.
 
 - The anchor and its leading whitespace are not part of the block's content,
@@ -400,7 +446,7 @@ heading_identifier(text):
   4. collapse every run of spaces into one, and trim both ends
 ```
 
-- A `heading_text` fragment MUST match the first heading, in document order,
+- A `heading-text` fragment MUST match the first heading, in document order,
   whose normalised identifier equals the fragment's. A fragment that matches no
   heading is an error ([HMD004](#diagnostics)).
 - Letters and digits of every script are kept. `Ошибка 404`, `Café`, and `数据`
@@ -473,7 +519,9 @@ an embed.
 HyperMarkDown uses Unix-style paths with forward slashes (`/`) as directory
 separators, regardless of the underlying operating system. Reference names and
 filesystem names MUST be normalized to Unicode NFC before
-comparison.[^nfc-names]
+comparison.[^nfc-names] They MUST then be compared code point
+by code point: case is significant on every platform, whatever the filesystem
+does.
 
 [^nfc-names]: The same name can be stored in two Unicode forms, and a reference
     must resolve the same way on every platform.
@@ -551,7 +599,7 @@ of those find nothing does it run one recursive search of the namespace.
 ```text
 resolve(target, source, root):
     ext     := explicit card extension, if present
-    stem    := target.page_ref without ext
+    stem    := target.page-ref without ext
     origin  := dirname(source)
     imports := named_imports(source)
     paths   := wildcard_imports(source)
@@ -651,7 +699,10 @@ resolve(target, source, root):
 - A card's **addressable path components** are its root-relative components
   without its card extension; a folder note also has the components of its
   directory, so that an unqualified reference means the same thing in the
-  recursive search as in the card's own directory and its parents.
+  recursive search as in the card's own directory and its parents. A folder
+  note shadowed by a sibling card ([HMD012](#diagnostics)) does not have its
+  directory's components: it is not a candidate by its directory's name, and
+  stays reachable by its `index` path.
 
 In the example vault, `[[tokens]]` in `guides/install.hmd` stops at Phase 1 in
 `guides/`. The same reference in `setup.hmd` reaches Phase 3 and is ambiguous.
@@ -747,9 +798,9 @@ existing search scope, resolution precedence, and ambiguity rules apply.
 
 Once a card is resolved, its fragment is matched against that card.
 
-- A `heading_text` fragment MUST match by the rule under
+- A `heading-text` fragment MUST match by the rule under
   [Heading anchors](#heading-anchors); no match is an error ([HMD004](#diagnostics)).
-- A `block_id` fragment MUST match a block anchor in the resolved card; no match
+- A `block-id` fragment MUST match a block anchor in the resolved card; no match
   is an error ([HMD005](#diagnostics)).
 - A fragment MUST NOT influence which card is resolved.
 
@@ -808,14 +859,21 @@ default while they believe they configured something else.
 
 `import` is a list of one-line statements in the grammar below, not nested YAML.
 
-```text
-import_stmt := "from" WS ref WS "import" WS import_list
-import_list := "*" | binding *( "," WS binding )
-binding     := name [ WS "as" WS alias ]
-ref         := absolute | relative          ; never unqualified
-name        := segment
-alias       := segment
+```abnf
+import-stmt = %s"from" WS ref WS %s"import" WS import-list
+import-list = "*" / binding *( [ WS ] "," [ WS ] binding )
+binding     = import-name [ WS %s"as" WS import-name ]
+ref         = absolute / relative   ; never unqualified
+import-name = 1*seg-char            ; with no whitespace in it
+WS          = 1*( %x20 / %x09 )     ; spaces and tabs
 ```
+
+- Whitespace at the start and the end of a statement is not part of it.
+  Spaces and tabs MAY stand on either side of a comma: `a,b`, `a, b`, and
+  `a , b` are the same list.
+- An `import-name` MUST NOT contain whitespace, so a card whose name contains a
+  space cannot be imported by name; a wildcard import reaches it.
+- `from`, `import`, and `as` are case-sensitive.
 
 - **A named binding** binds one name: the alias if given, otherwise the
   imported name, resolves to that one card and to nothing else. It applies only
@@ -964,7 +1022,7 @@ version has no way to silence a diagnostic.
 | --- | --- | --- | --- |
 | HMD001 | warning | Link target does not resolve | [Rules](#rules-the-algorithm-must-satisfy) |
 | HMD002 | error | An unqualified reference matches more than one card in the recursive search | [Rules](#rules-the-algorithm-must-satisfy) |
-| HMD003 | error | A target resolves outside the namespace root | [The namespace](#the-namespace) |
+| HMD003 | error | A target lies outside the namespace root or inside a nested vault | [The namespace](#the-namespace) |
 | HMD004 | error | A heading fragment is not present in the resolved card | [Heading anchors](#heading-anchors) |
 | HMD005 | error | A block identifier is not present in the resolved card | [Fragments](#fragments) |
 | HMD006 | error | Duplicate block anchor identifier within one card | [Block anchors](#block-anchors) |
@@ -1096,14 +1154,3 @@ mechanism**, in both directions. A target cannot contain a reserved character,
 and the only way to show a construct without invoking it is to put it in a code
 span or a fenced block. Raw inline HTML is not excluded from recognition and is
 therefore not a workaround.
-
-## See also
-
-- [[hmd-tutorial]] — the same constructs taught in order, for a reader learning
-  the format rather than implementing it.
-- [[hmd-feature-list]] — every construct as a numbered row with its status,
-  including what is deferred and what was turned down.
-- [[md-hmd-interop]] — the relationship to plain Markdown, and the two
-  directions of conversion.
-- [The language's changelog](https://github.com/ewiger/hypermarkdown/blob/main/CHANGELOG.md)
-  — what each version changed.
