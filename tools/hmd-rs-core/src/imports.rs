@@ -89,9 +89,9 @@ fn skip_space(text: &str) -> Option<&str> {
 /// no `/`, no reserved character, and no `:`.
 fn is_import_name(name: &str) -> bool {
     !name.is_empty()
-        && !name.chars().any(|c| {
-            text::is_space(c) || matches!(c, '/' | '[' | ']' | '|' | '#' | '^' | ':')
-        })
+        && !name
+            .chars()
+            .any(|c| text::is_space(c) || matches!(c, '/' | '[' | ']' | '|' | '#' | '^' | ':'))
 }
 
 /// Reads `<name>` or `<name> as <alias>`, with spaces or tabs between the
@@ -180,7 +180,10 @@ mod tests {
     #[test]
     fn ws_is_spaces_and_tabs_only() {
         let import = Import::parse("from\t./a\timport\ta,b , c\t,\td\tas\te").unwrap();
-        assert_eq!(pairs(&import), [("a", "a"), ("b", "b"), ("c", "c"), ("d", "e")]);
+        assert_eq!(
+            pairs(&import),
+            [("a", "a"), ("b", "b"), ("c", "c"), ("d", "e")]
+        );
         for statement in [
             "from\u{a0}./a import a",
             "from ./a import\u{a0}a",
