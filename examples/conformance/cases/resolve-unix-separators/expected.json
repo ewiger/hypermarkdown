@@ -1,0 +1,50 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 4,
+      "message": "[[sub\\card]] does not resolve to a page",
+      "path": "src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 5,
+      "message": "[[./sub\\card]] does not resolve to a page",
+      "path": "src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 6,
+      "message": "[[/sub\\card]] does not resolve to a page",
+      "path": "src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[./sub\\card]]",
+      "source": "src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[/sub\\card]]",
+      "source": "src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[sub/card]]",
+      "source": "src.hmd",
+      "target": "sub/card.hmd"
+    },
+    {
+      "raw": "[[sub\\card]]",
+      "source": "src.hmd",
+      "target": null
+    }
+  ]
+}

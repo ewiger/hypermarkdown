@@ -31,8 +31,11 @@ NAMES = sorted(p.name for p in CASES.iterdir() if p.is_dir())
 
 
 def run_case(case: Path, scratch: Path) -> dict:
-    root = scratch / "project"
-    shutil.copytree(case / "tree", root)
+    # The whole case is copied with its symbolic links kept as links, so a
+    # link from `tree/` to a sibling such as `outside/` still points out of
+    # the namespace root rather than becoming an ordinary file inside it.
+    shutil.copytree(case, scratch / "case", symlinks=True)
+    root = scratch / "case" / "tree"
     case_config = case / CONFIG_NAME
     if case_config.is_file():
         (root / MARKER_DIR).mkdir()

@@ -78,6 +78,19 @@ class Resolution:
     shadowed: tuple[Path, ...] = ()
 
 
+class _Escapes:
+    """What `Workspace.bind` returns for a path that leaves the namespace."""
+
+    def __repr__(self) -> str:
+        return "ESCAPES"
+
+
+#: A boundary violation met while binding: outside the root, inside a nested
+#: vault, or through a symbolic link that leads out of the root. It is HMD003,
+#: never an ordinary missing card.
+ESCAPES = _Escapes()
+
+
 @dataclass
 class ImportTable:
     bindings: dict[str, Path] = field(default_factory=dict)
@@ -110,6 +123,10 @@ class Workspace:
         self._by_nfc: dict[Path, Path] = {}
         #: The same, for every directory below the root (import origins).
         self._dirs_by_nfc: dict[Path, Path] = {}
+        #: Symbolic links below the root whose target lies outside it, in NFC.
+        #: Neither they nor anything reached through them is part of the
+        #: namespace, and a path that meets one escapes it.
+        self._escaping_links: set[Path] = set()
         self._load()
 
     # -- loading ---------------------------------------------------------
@@ -119,6 +136,10 @@ class Workspace:
         # Sorted, so nothing below depends on the order the filesystem lists
         # a directory in, or the order its files were created in.
         for path in sorted(self.root.rglob("*")):
+            if path.is_symlink() and not self._inside_root(path.resolve()):
+                if not self._hidden(path):
+                    self._escaping_links.add(_nfc_path(path))
+                continue
             if path.is_dir():
                 if not self._hidden(path) and not self._in_nested_vault(path):
                     self._dirs_by_nfc.setdefault(_nfc_path(path), path)
@@ -156,10 +177,9 @@ class Workspace:
                 self.shadowed[loser] = ranked[0]
 
         for path in self._pages:
-            if path in self.shadowed:
-                # Reachable only by a reference that writes its extension, so
-                # never a sweep candidate.
-                continue
+            # A shadowed card is indexed too: a reference that writes its
+            # extension reaches it in the sweep, and one that writes none
+            # skips it there (see `_sweep`).
             parts = tuple(nfc(part) for part in self.parts(path))
             self._by_parts.setdefault(parts, []).append(path)
             # A folder note is also addressable by its directory's name, so a
@@ -212,31 +232,58 @@ class Workspace:
     # -- §5.1 binding ----------------------------------------------------
 
     def bind(
-        self, directory: Path, parts: tuple[str, ...], suffix: str | None = None
-    ) -> Path | None:
-        """Bind `parts` in one directory, honouring folder notes.
+        self,
+        directory: Path,
+        parts: tuple[str, ...],
+        suffix: str | None = None,
+        directory_only: bool = False,
+    ) -> Path | _Escapes | None:
+        """Look `parts` up in one directory, honouring folder notes.
 
-        The card extensions are tried in priority order, then the folder note
-        with the same extensions in the same order (HMD-0029). A target naming
-        a directory resolves to that directory's folder note, which is what
-        makes it the namespace's landing page. When both `foo.hmd` and
-        `foo/index.hmd` exist the file wins; the collision is reported
-        separately as HMD012. A `suffix` the reference wrote binds only that
-        extension.
+        The specification's *Resolving a reference within a directory*. The
+        path is normalised first, and one that leaves the namespace is
+        `ESCAPES`. The card extensions are tried in priority order, then the
+        folder note with the same extensions in the same order. A target
+        naming a directory resolves to that directory's folder note. When both
+        `foo.hmd` and `foo/index.hmd` exist the file wins; the collision is
+        reported separately as HMD012. A `suffix` the reference wrote binds
+        only that extension, and `directory_only` — `[[./]]` and `[[../]]` —
+        skips the file and binds only the folder note.
         """
-        if not parts:
+        if not parts and not directory_only:
             return None
+        base = _normalize(directory.joinpath(*parts))
+        if self._violates(base):
+            return ESCAPES
         suffixes = (suffix,) if suffix else CARD_SUFFIXES
-        base = directory.joinpath(*parts[:-1])
-        for each in suffixes:
-            candidate = self.card(base / f"{parts[-1]}{each}")
-            if candidate is not None:
-                return candidate
-        for each in suffixes:
-            folder_note = self.card(directory.joinpath(*parts) / f"{INDEX_STEM}{each}")
-            if folder_note is not None:
-                return folder_note
+        candidates = [] if directory_only or base == self.root else [
+            base.parent / f"{base.name}{each}" for each in suffixes
+        ]
+        candidates += [base / f"{INDEX_STEM}{each}" for each in suffixes]
+        for candidate in candidates:
+            if _nfc_path(candidate) in self._escaping_links:
+                return ESCAPES
+            card = self.card(candidate)
+            if card is not None:
+                return card
         return None
+
+    def _violates(self, path: Path) -> bool:
+        """Whether a normalised `path` breaks the namespace's boundaries.
+
+        Outside the root, inside a nested vault, or reached through a symbolic
+        link that leads out of the root.
+        """
+        if not self._inside_root(path) or self._in_nested_vault(path):
+            return True
+        if not self._escaping_links:
+            return False
+        current = self.root
+        for part in path.relative_to(self.root).parts:
+            current = current / part
+            if _nfc_path(current) in self._escaping_links:
+                return True
+        return False
 
     # -- imports ---------------------------------------------------------
 
@@ -272,7 +319,7 @@ class Workspace:
 
             for name, local in stmt.bindings:
                 target = self.bind(directory, (name,))
-                if target is None:
+                if not isinstance(target, Path):
                     table.problems.append(
                         ("HMD015", f"cannot import {name!r} from {stmt.ref!r}: no such page")
                     )
@@ -374,16 +421,16 @@ class Workspace:
         stem = page_ref[: -len(suffix)] if suffix else page_ref
 
         if stem.startswith("/"):
-            parts = _split(stem)
-            target = self.bind(self.root, parts, suffix)
-            return _hit(target, phase=None) if target else Resolution(Outcome.UNRESOLVED)
+            return _bound(self.bind(self.root, _split(stem), suffix))
 
         if stem.startswith("./") or stem.startswith("../"):
             base = _normalize(source.parent.joinpath(stem))
-            if not self._inside_root(base):
+            if self._violates(base):
                 return Resolution(Outcome.ESCAPES)
-            target = self.bind(base.parent, (base.name,), suffix)
-            return _hit(target, phase=None) if target else Resolution(Outcome.UNRESOLVED)
+            if all(part in (".", "..") for part in _split(stem)):
+                # `[[./]]`, `[[../]]`: the directory itself, so its folder note.
+                return _bound(self.bind(base, (), suffix, directory_only=True))
+            return _bound(self.bind(base.parent, (base.name,), suffix))
 
         parts = _split(stem)
         if not parts:
@@ -392,22 +439,33 @@ class Workspace:
         table = self.import_table(source)
 
         # Phase 0 — named imports. A binding names a page, not a namespace, so
-        # it applies to single-segment targets only.
+        # it applies to single-segment targets only, and not to a reference
+        # that writes an extension the bound card does not have.
         if len(parts) == 1 and parts[0] in table.bindings:
-            return Resolution(Outcome.RESOLVED, table.bindings[parts[0]], phase=0)
+            bound = table.bindings[parts[0]]
+            if suffix is None or card_suffix(bound.name) == suffix:
+                return Resolution(Outcome.RESOLVED, bound, phase=0)
 
         # Phase 1 — spine walk, non-recursive, nearest first.
         for directory in self._spine(source):
             target = self.bind(directory, parts, suffix)
+            if target is ESCAPES:
+                return Resolution(Outcome.ESCAPES)
             if target is not None:
                 return Resolution(Outcome.RESOLVED, target, phase=1)
 
-        # Phase 2 — imported search paths, in declaration order.
-        hits = [d for d in table.search_paths if self.bind(d, parts, suffix) is not None]
-        if hits:
-            winner = self.bind(hits[0], parts, suffix)
-            shadowed = tuple(self.bind(d, parts, suffix) for d in hits[1:])
-            return Resolution(Outcome.RESOLVED, winner, phase=2, shadowed=shadowed)
+        # Phase 2 — imported search paths, in declaration order. Every one is
+        # probed: the first card wins, and each other distinct card is
+        # shadowed (HMD016). One card reached twice is not a collision.
+        found: list[Path] = []
+        for directory in table.search_paths:
+            target = self.bind(directory, parts, suffix)
+            if target is ESCAPES:
+                return Resolution(Outcome.ESCAPES)
+            if target is not None and target not in found:
+                found.append(target)
+        if found:
+            return Resolution(Outcome.RESOLVED, found[0], phase=2, shadowed=tuple(found[1:]))
 
         if not self.autodiscovery_enabled(source):
             return Resolution(Outcome.UNRESOLVED)
@@ -441,7 +499,11 @@ class Workspace:
             if key[-len(parts) :] == parts
             for page in pages
             if (scope == self.root or scope in page.parents)
-            and (suffix is None or card_suffix(page.name) == suffix)
+            and (
+                card_suffix(page.name) == suffix
+                if suffix is not None
+                else page not in self.shadowed
+            )
         }
         # Sorted by root-relative POSIX path, so diagnostics are byte-identical
         # across platforms and runs (P1).
@@ -451,8 +513,13 @@ class Workspace:
         return path == self.root or self.root in path.parents
 
 
-def _hit(target: Path, phase: int | None) -> Resolution:
-    return Resolution(Outcome.RESOLVED, target, phase=phase)
+def _bound(target: Path | _Escapes | None) -> Resolution:
+    """The resolution of a path reference from what `bind` returned."""
+    if target is ESCAPES:
+        return Resolution(Outcome.ESCAPES)
+    if target is None:
+        return Resolution(Outcome.UNRESOLVED)
+    return Resolution(Outcome.RESOLVED, target)
 
 
 def _split(ref: str) -> tuple[str, ...]:

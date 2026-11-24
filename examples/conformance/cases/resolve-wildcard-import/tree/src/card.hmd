@@ -1,0 +1,14 @@
+---
+import:
+  - from /a import *
+  - from /b import *
+  - from /b import *
+---
+
+# Card
+
+[[term]]
+[[near]]
+[[only]]
+[[hidden]]
+[[deep/hidden]]

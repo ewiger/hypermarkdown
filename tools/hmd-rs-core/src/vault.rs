@@ -19,12 +19,16 @@
 //! In every directory a name binds the card `name.hmd`, `name.md` or
 //! `name.markdown`, in that order, and failing those the folder note
 //! `name/index` with the same extensions in the same order. A reference that
-//! writes an extension binds only that extension. Where two files of one
-//! directory share a name, the later extension is shadowed: bound only by a
-//! reference that writes its extension, and never found by autodiscovery.
+//! writes an extension binds only that extension, and a named import whose
+//! card has another extension does not apply. Where two files of one directory
+//! share a name, the later extension is shadowed: bound, and found by
+//! autodiscovery, only by a reference that writes its extension. `./` and
+//! `../` alone name a directory, and bind only its folder note.
 //!
 //! A directory below the root that holds its own `.hmd` directory is the root
-//! of another vault. None of its cards belong to this one.
+//! of another vault. None of its cards belong to this one, and a reference
+//! whose path enters it escapes the namespace, as does one whose path climbs
+//! above the root or meets a symbolic link out of it.
 //!
 //! Names compare in Unicode NFC: a reference, a name on disk and an import's
 //! directory match whether each is stored composed or decomposed. Two files
@@ -79,7 +83,19 @@ pub enum Resolution {
         /// The paths of the cards found, sorted.
         candidates: Vec<String>,
     },
-    /// A relative reference climbs above the namespace root.
+    /// The reference's path leaves the namespace: it climbs above the root,
+    /// enters a nested vault, or meets a symbolic link out of the root.
+    Escapes,
+}
+
+/// What looking a path up in one directory finds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Bound<'a> {
+    /// The card at this path.
+    Card(&'a str),
+    /// No card.
+    NotFound,
+    /// The path leaves the namespace.
     Escapes,
 }
 
@@ -131,6 +147,8 @@ pub struct Vault {
     nested: Vec<String>,
     /// A shadowed card's path to the path of the card that shadows it.
     shadowed: HashMap<String, String>,
+    /// Symbolic links below the root that lead out of it, in NFC.
+    escaping: HashSet<String>,
     /// The files with a card extension that are not valid UTF-8, in path
     /// order.
     undecodable: Vec<String>,
@@ -158,6 +176,7 @@ impl Vault {
             cards: mut found,
             directories,
             mut nested,
+            escaping,
         } = tree;
         found.sort_by(|a, b| compare_paths(a, b));
         nested.sort();
@@ -179,7 +198,7 @@ impl Vault {
             }
             pages.push(Page::parse(path, &text));
         }
-        let mut vault = Vault::index(config, pages, directories, nested);
+        let mut vault = Vault::index(config, pages, directories, nested, escaping);
         vault.undecodable = undecodable;
         Ok(vault)
     }
@@ -207,6 +226,7 @@ impl Vault {
         pages: Vec<Page>,
         directories: HashSet<String>,
         nested: Vec<String>,
+        escaping: HashSet<String>,
     ) -> Vault {
         let mut vault = Vault {
             config,
@@ -218,6 +238,7 @@ impl Vault {
             directories,
             nested,
             shadowed: HashMap::new(),
+            escaping,
             undecodable: Vec::new(),
         };
 
@@ -244,11 +265,10 @@ impl Vault {
         for (at, page) in vault.pages.iter().enumerate() {
             vault.by_path.insert(page.path.clone(), at);
             vault.by_nfc.insert(nfc(&page.path).into_owned(), at);
-            if vault.shadowed.contains_key(&page.path) {
-                // Reachable only by a reference that writes its extension.
-                continue;
-            }
 
+            // A shadowed card is filed too: a reference that writes its
+            // extension finds it in the sweep, and one that writes none skips
+            // it there.
             let key = nfc(&page.path).into_owned();
             let parts = paths::page_parts(&key);
             vault.by_parts.entry(parts.join("/")).or_default().push(at);
@@ -361,7 +381,7 @@ impl Vault {
         let stem = &reference[..reference.len() - ext.map_or(0, str::len)];
 
         if stem.starts_with('/') {
-            return self.by_path_rule(self.bind(&[], &paths::split(stem), ext));
+            return by_path_rule(self.bind(&[], &paths::split(stem), ext));
         }
 
         if stem.starts_with("./") || stem.starts_with("../") {
@@ -369,9 +389,11 @@ impl Vault {
             let Some(parts) = paths::normalize(from.into_iter().chain(stem.split('/'))) else {
                 return Resolution::Escapes;
             };
-            // A reference that normalizes to the root itself, such as `../`
-            // from a card one directory down, names the root's folder note.
-            return self.by_path_rule(self.bind_path(&parts, ext));
+            // `./` and `../` alone name a directory, and bind only its folder
+            // note; so does a path that normalizes to the root itself.
+            let directory_only =
+                parts.is_empty() || stem.split('/').all(|part| matches!(part, "" | "." | ".."));
+            return by_path_rule(self.bind_path(&parts, ext, directory_only));
         }
 
         let parts = paths::split(stem);
@@ -382,9 +404,11 @@ impl Vault {
         let table = self.by_path.get(source).map(|&at| &self.imports[at]);
 
         // A named import binds a card, not a directory, so it applies to a
-        // single-segment reference only.
+        // single-segment reference only, and not to one that writes an
+        // extension the bound card does not have.
         if let ([name], Some(table)) = (&parts[..], table)
             && let Some(path) = table.bindings.get(*name)
+            && ext.is_none_or(|ext| paths::card_suffix(path) == Some(ext))
         {
             return resolved(path, Via::NamedImport);
         }
@@ -392,19 +416,31 @@ impl Vault {
         // The spine, nearest directory first.
         let mut directory = paths::parent(source);
         loop {
-            if let Some(path) = self.bind(&directory, &parts, ext) {
-                return resolved(path, Via::Spine);
+            match self.bind(&directory, &parts, ext) {
+                Bound::Card(path) => return resolved(path, Via::Spine),
+                Bound::Escapes => return Resolution::Escapes,
+                Bound::NotFound => {}
             }
             if directory.pop().is_none() {
                 break;
             }
         }
 
-        // Imported directories, in the order the card wrote them.
+        // Imported directories, in the order the card wrote them. Every one is
+        // probed: the first card wins, and a path out of the namespace in any
+        // of them escapes.
+        let mut first = None;
         for directory in table.iter().flat_map(|table| &table.search_paths) {
-            if let Some(path) = self.bind(&paths::split(directory), &parts, ext) {
-                return resolved(path, Via::SearchPath);
+            match self.bind(&paths::split(directory), &parts, ext) {
+                Bound::Card(path) => {
+                    first.get_or_insert(path);
+                }
+                Bound::Escapes => return Resolution::Escapes,
+                Bound::NotFound => {}
             }
+        }
+        if let Some(path) = first {
+            return resolved(path, Via::SearchPath);
         }
 
         if !self.autodiscovery(source) {
@@ -424,59 +460,72 @@ impl Vault {
         }
     }
 
-    /// The outcome of a reference that names its card by path.
-    fn by_path_rule(&self, bound: Option<&str>) -> Resolution {
-        match bound {
-            Some(path) => resolved(path, Via::Path),
-            None => Resolution::Unresolved,
-        }
-    }
-
     /// Binds `parts` in the directory `directory`: the card `directory/parts`
     /// with a card extension, or failing that the folder note
     /// `directory/parts/index` with one; `ext`, when given, is the only
     /// extension tried.
     ///
-    /// When both exist the card wins. A `.` among the parts is dropped, as the
-    /// canonical implementation's path type drops it.
-    fn bind(&self, directory: &[&str], parts: &[&str], ext: Option<&str>) -> Option<&str> {
+    /// When both exist the card wins. The path is normalized first, and one
+    /// that climbs above the root escapes.
+    fn bind(&self, directory: &[&str], parts: &[&str], ext: Option<&str>) -> Bound<'_> {
         if parts.is_empty() {
-            return None;
+            return Bound::NotFound;
         }
-        let full: Vec<&str> = directory
-            .iter()
-            .chain(parts)
-            .copied()
-            .filter(|part| *part != ".")
-            .collect();
-        self.bind_path(&full, ext)
+        match paths::normalize(directory.iter().chain(parts).copied()) {
+            Some(full) => self.bind_path(&full, ext, false),
+            None => Bound::Escapes,
+        }
     }
 
-    /// Binds the root-relative path `full`: the card `full` with a card
-    /// extension, or failing that the folder note `full/index` with one, the
-    /// extensions in priority order or `ext` alone. The empty path, the root,
-    /// binds the root's folder note.
-    fn bind_path(&self, full: &[&str], ext: Option<&str>) -> Option<&str> {
+    /// Binds the normalized root-relative path `full`: the card `full` with a
+    /// card extension, or failing that the folder note `full/index` with one,
+    /// the extensions in priority order or `ext` alone. `directory_only` skips
+    /// the card and binds only the folder note, and the empty path, the root,
+    /// binds only the root's folder note. A path that enters a nested vault or
+    /// meets a symbolic link out of the root escapes.
+    fn bind_path(&self, full: &[&str], ext: Option<&str>, directory_only: bool) -> Bound<'_> {
+        if self.violates(full) {
+            return Bound::Escapes;
+        }
         let extensions: Vec<&str> = match ext {
             Some(ext) => vec![ext],
             None => CARD_SUFFIXES.to_vec(),
         };
-        if let Some((last, head)) = full.split_last() {
+        let mut candidates = Vec::new();
+        if let Some((last, head)) = full.split_last()
+            && !directory_only
+        {
             for ext in &extensions {
-                let candidate = join(head, &[&format!("{last}{ext}")]);
-                if let Some(page) = self.card(&candidate) {
-                    return Some(&page.path);
-                }
+                candidates.push(join(head, &[&format!("{last}{ext}")]));
             }
+        }
+        for ext in &extensions {
+            candidates.push(join(full, &[&format!("{INDEX_STEM}{ext}")]));
         }
 
-        for ext in &extensions {
-            let folder_note = join(full, &[&format!("{INDEX_STEM}{ext}")]);
-            if let Some(page) = self.card(&folder_note) {
-                return Some(&page.path);
+        for candidate in candidates {
+            if self.escaping.contains(nfc(&candidate).as_ref()) {
+                return Bound::Escapes;
+            }
+            if let Some(page) = self.card(&candidate) {
+                return Bound::Card(&page.path);
             }
         }
-        None
+        Bound::NotFound
+    }
+
+    /// Whether the normalized root-relative path `full` breaks the namespace's
+    /// boundaries: it enters a nested vault, or meets a symbolic link out of
+    /// the root.
+    fn violates(&self, full: &[&str]) -> bool {
+        let path = nfc(&full.join("/")).into_owned();
+        let nested = self.nested.iter().any(|root| {
+            let root = nfc(root);
+            path == root.as_ref() || path.starts_with(&format!("{root}/"))
+        });
+        nested
+            || (1..=full.len())
+                .any(|end| self.escaping.contains(nfc(&full[..end].join("/")).as_ref()))
     }
 
     /// Resolves the import statements of `page` into bindings and search
@@ -514,7 +563,7 @@ impl Vault {
             }
 
             for binding in &import.bindings {
-                if let Some(target) = self.bind(&directory, &[&binding.name], None) {
+                if let Bound::Card(target) = self.bind(&directory, &[&binding.name], None) {
                     table
                         .bindings
                         .entry(nfc(&binding.local).into_owned())
@@ -529,8 +578,8 @@ impl Vault {
     /// path.
     ///
     /// In `recursive` mode only cards beneath the directory of `source` count.
-    /// A shadowed card is never found, and with `ext` only cards with that
-    /// extension are.
+    /// With `ext` only cards with that extension are found, shadowed or not;
+    /// without it a shadowed card is never found.
     fn sweep(&self, source: &str, parts: &[&str], ext: Option<&str>) -> Vec<String> {
         let scope = match self.config.mode {
             Mode::Both => String::new(),
@@ -550,13 +599,25 @@ impl Vault {
                     || path
                         .strip_prefix(&scope)
                         .is_some_and(|rest| rest.starts_with('/'));
-                let kept = ext.is_none_or(|ext| paths::card_suffix(path) == Some(ext));
+                let kept = match ext {
+                    Some(ext) => paths::card_suffix(path) == Some(ext),
+                    None => !self.shadowed.contains_key(path),
+                };
                 if in_scope && kept {
                     matches.insert(path.clone());
                 }
             }
         }
         matches.into_iter().collect()
+    }
+}
+
+/// The outcome of a reference that names its card by path.
+fn by_path_rule(bound: Bound<'_>) -> Resolution {
+    match bound {
+        Bound::Card(path) => resolved(path, Via::Path),
+        Bound::NotFound => Resolution::Unresolved,
+        Bound::Escapes => Resolution::Escapes,
     }
 }
 
@@ -599,6 +660,8 @@ struct Tree {
     directories: HashSet<String>,
     /// The root of every nested vault.
     nested: Vec<String>,
+    /// Every symbolic link out of the root, in NFC.
+    escaping: HashSet<String>,
 }
 
 /// Collects the cards, directories and nested vaults under `dir` into `tree`.
@@ -629,6 +692,9 @@ fn walk<H: Host + ?Sized>(host: &H, dir: &str, tree: &mut Tree) -> Result<(), Er
             EntryKind::Directory => walk(host, &path, tree)?,
             EntryKind::File if paths::card_suffix(&path).is_some() => tree.cards.push(path),
             EntryKind::File => {}
+            EntryKind::LeavesRoot => {
+                tree.escaping.insert(nfc(&path).into_owned());
+            }
         }
     }
     Ok(())
@@ -698,7 +764,13 @@ mod tests {
         // It is looked up nowhere else: no spine, no sweep.
         assert_eq!(v.resolve(from, "/login"), Resolution::Unresolved);
         assert_eq!(v.resolve(from, "/"), Resolution::Unresolved);
-        assert_eq!(v.resolve(from, "/shared/../tokens"), Resolution::Unresolved);
+        // `..` is normalised before binding, and climbing above the root
+        // escapes rather than missing.
+        assert_eq!(
+            v.resolve(from, "/shared/../tokens"),
+            hit("tokens.hmd", Via::Path)
+        );
+        assert_eq!(v.resolve(from, "/shared/../../tokens"), Resolution::Escapes);
     }
 
     #[test]
@@ -1190,7 +1262,10 @@ mod tests {
             v.resolve("here.hmd", "time"),
             hit("wiki/time.hmd", Via::Autodiscovery)
         );
-        assert_eq!(v.resolve("here.hmd", "/inner/time"), Resolution::Unresolved);
+        // A path into the nested vault leaves this namespace; the sweep finds
+        // nothing behind its marker.
+        assert_eq!(v.resolve("here.hmd", "/inner/time"), Resolution::Escapes);
+        assert_eq!(v.resolve("here.hmd", "./inner/time"), Resolution::Escapes);
         assert_eq!(v.resolve("here.hmd", "abs"), Resolution::Unresolved);
     }
 

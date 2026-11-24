@@ -13,13 +13,18 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-/// Whether a directory entry is a file or a directory.
+/// Whether a directory entry is a file, a directory, or a link out of the
+/// namespace.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EntryKind {
     /// A regular file.
     File,
     /// A directory.
     Directory,
+    /// A symbolic link whose target lies outside the namespace root. Neither
+    /// the entry nor anything reached through it is part of the namespace,
+    /// and a reference whose path meets it escapes the namespace.
+    LeavesRoot,
 }
 
 /// One name in a directory listing.
@@ -45,6 +50,15 @@ impl Entry {
         Entry {
             name: name.into(),
             kind: EntryKind::Directory,
+        }
+    }
+
+    /// An entry for a symbolic link called `name` that leads out of the
+    /// namespace root.
+    pub fn leaves_root(name: impl Into<String>) -> Self {
+        Entry {
+            name: name.into(),
+            kind: EntryKind::LeavesRoot,
         }
     }
 }
@@ -82,9 +96,11 @@ impl<H: Host + ?Sized> Host for &H {
 
 /// A [`Host`] over a directory on disk, read with `std::fs`.
 ///
-/// A symbolic link to a file is listed as a file. A symbolic link to a
-/// directory is not listed, so a link cannot make the walk loop or carry it
-/// out of the tree. An entry whose name is not UTF-8 is not listed.
+/// A symbolic link whose target lies outside the root is listed as
+/// [`EntryKind::LeavesRoot`] and never followed. Inside the root, a link to a
+/// file is listed as a file, and a link to a directory is not listed, so a link
+/// cannot make the walk loop; nor is a link whose target does not exist. An
+/// entry whose name is not UTF-8 is not listed.
 #[derive(Debug, Clone)]
 pub struct FsHost {
     root: PathBuf,
@@ -123,9 +139,17 @@ impl Host for FsHost {
             } else if file_type.is_file() {
                 EntryKind::File
             } else if file_type.is_symlink() {
-                match fs::metadata(entry.path()) {
-                    Ok(target) if target.is_file() => EntryKind::File,
-                    _ => continue,
+                let Ok(target) = fs::canonicalize(entry.path()) else {
+                    continue;
+                };
+                let inside =
+                    fs::canonicalize(&self.root).is_ok_and(|root| target.starts_with(root));
+                if !inside {
+                    EntryKind::LeavesRoot
+                } else if target.is_file() {
+                    EntryKind::File
+                } else {
+                    continue;
                 }
             } else {
                 continue;

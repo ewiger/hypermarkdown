@@ -126,24 +126,33 @@ fn an_unusable_configuration_file_is_an_error() {
 
 #[cfg(unix)]
 #[test]
-fn a_linked_file_is_a_card_and_a_linked_directory_is_not_walked() {
+fn a_link_out_of_the_root_escapes_and_a_link_inside_it_is_read() {
     use std::os::unix::fs::symlink;
 
     let root = tree(
         "links",
         &[
             ("vault/a.hmd", ""),
+            ("vault/real/d.hmd", ""),
             ("elsewhere/b.hmd", ""),
             ("elsewhere/c.hmd", ""),
         ],
     );
-    symlink(root.join("elsewhere/b.hmd"), root.join("vault/b.hmd")).expect("a file link");
-    symlink(root.join("elsewhere"), root.join("vault/linked")).expect("a directory link");
+    symlink(root.join("elsewhere/b.hmd"), root.join("vault/b.hmd")).expect("a file link out");
+    symlink(root.join("elsewhere"), root.join("vault/linked")).expect("a directory link out");
+    symlink(root.join("vault/real/d.hmd"), root.join("vault/d.hmd")).expect("a file link in");
+    symlink(root.join("vault/real"), root.join("vault/alias")).expect("a directory link in");
 
     let vault =
         Vault::load(&FsHost::new(root.join("vault")), Config::default()).expect("the vault loads");
     let paths: Vec<_> = vault.pages().iter().map(|p| p.path.as_str()).collect();
-    assert_eq!(paths, ["a.hmd", "b.hmd"]);
+    // Nothing through a link out of the root is a card, and a linked directory
+    // inside it is not walked, so a link cannot make the walk loop.
+    assert_eq!(paths, ["a.hmd", "d.hmd", "real/d.hmd"]);
+    // A reference whose path meets a link out of the root escapes.
+    assert_eq!(vault.resolve("a.hmd", "b"), Resolution::Escapes);
+    assert_eq!(vault.resolve("a.hmd", "/linked/c"), Resolution::Escapes);
+    assert_eq!(vault.resolve("a.hmd", "c"), Resolution::Unresolved);
 }
 
 #[test]

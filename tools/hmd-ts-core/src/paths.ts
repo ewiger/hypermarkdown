@@ -44,6 +44,24 @@ export function basenameRel(rel: string): string {
 }
 
 /** Join a root-relative directory with further segments. */
+/**
+ * Order two strings by Unicode code point, which is the order of their UTF-8
+ * bytes. `<` compares UTF-16 code units instead, and puts a character outside
+ * the Basic Multilingual Plane before U+E000–U+FFFF.
+ */
+export function compareCodePoints(a: string, b: string): number {
+  let i = 0;
+  let j = 0;
+  while (i < a.length && j < b.length) {
+    const x = a.codePointAt(i)!;
+    const y = b.codePointAt(j)!;
+    if (x !== y) return x < y ? -1 : 1;
+    i += x > 0xffff ? 2 : 1;
+    j += y > 0xffff ? 2 : 1;
+  }
+  return (i < a.length ? 1 : 0) - (j < b.length ? 1 : 0);
+}
+
 export function joinRel(dir: string, ...parts: string[]): string {
   const all = dir === "" ? parts : [dir, ...parts];
   return all.filter((p) => p !== "").join("/");

@@ -1,0 +1,27 @@
+{
+  "diagnostics": [
+    {
+      "candidates": [
+        "a-b/x.hmd",
+        "a/b/x.hmd",
+        "a/x.hmd",
+        "p/x/index.hmd",
+        "ｑ/x.hmd",
+        "𝒜/x.hmd"
+      ],
+      "column": 1,
+      "line": 3,
+      "message": "[[x]] matches 6 pages; qualify it (candidates: a-b/x.hmd, a/b/x.hmd, a/x.hmd, p/x/index.hmd, ｑ/x.hmd, 𝒜/x.hmd)",
+      "path": "src/src.hmd",
+      "rule": "HMD002",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[x]]",
+      "source": "src/src.hmd",
+      "target": null
+    }
+  ]
+}

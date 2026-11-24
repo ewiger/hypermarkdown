@@ -1,0 +1,24 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 3,
+      "message": "[[target]] does not resolve to a page",
+      "path": "a.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[target]]",
+      "source": "a.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[target]]",
+      "source": "b.hmd",
+      "target": "far/target.hmd"
+    }
+  ]
+}

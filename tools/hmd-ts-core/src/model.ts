@@ -6,6 +6,7 @@
  * read from the same positions.
  */
 
+import { compareCodePoints } from "./paths.js";
 import { headingKey } from "./unicode.js";
 
 export const ERROR = "error";
@@ -113,7 +114,7 @@ export function diagnosticSortKey(d: Diagnostic): [string, number, number, strin
 export function compareDiagnostics(a: Diagnostic, b: Diagnostic): number {
   const [ap, al, ac, ar] = diagnosticSortKey(a);
   const [bp, bl, bc, br] = diagnosticSortKey(b);
-  if (ap !== bp) return ap < bp ? -1 : 1;
+  if (ap !== bp) return compareCodePoints(ap, bp);
   if (al !== bl) return al - bl;
   if (ac !== bc) return ac - bc;
   if (ar !== br) return ar < br ? -1 : 1;

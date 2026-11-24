@@ -1,0 +1,65 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 7,
+      "message": "[[Owl]] does not resolve to a page",
+      "path": "src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 8,
+      "message": "[[ﬁle]] does not resolve to a page",
+      "path": "src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 9,
+      "message": "[[cafe]] does not resolve to a page",
+      "path": "src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[/naïve/note]]",
+      "source": "src.hmd",
+      "target": "naïve/note.hmd"
+    },
+    {
+      "raw": "[[Owl]]",
+      "source": "src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[cafe]]",
+      "source": "src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[café]]",
+      "source": "src.hmd",
+      "target": "café.hmd"
+    },
+    {
+      "raw": "[[café]]",
+      "source": "src.hmd",
+      "target": "café.hmd"
+    },
+    {
+      "raw": "[[note]]",
+      "source": "src.hmd",
+      "target": "naïve/note.hmd"
+    },
+    {
+      "raw": "[[ﬁle]]",
+      "source": "src.hmd",
+      "target": null
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "lib/gloss.hmd shadows lib/gloss.md; [[lib/gloss]] means lib/gloss.hmd",
+      "path": "lib/gloss.md",
+      "rule": "HMD018",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 1,
+      "message": "notes/owl.hmd shadows notes/owl.md; [[notes/owl]] means notes/owl.hmd",
+      "path": "notes/owl.md",
+      "rule": "HMD018",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 11,
+      "message": "[[only.hmd]] does not resolve to a page",
+      "path": "notes/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 12,
+      "message": "[[only.markdown]] does not resolve to a page",
+      "path": "notes/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 14,
+      "message": "[[mod.hmd]] does not resolve to a page",
+      "path": "notes/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "candidates": [
+        "deep/far.markdown",
+        "other/far.hmd"
+      ],
+      "column": 1,
+      "line": 20,
+      "message": "[[far]] matches 2 pages; qualify it (candidates: deep/far.markdown, other/far.hmd)",
+      "path": "notes/src.hmd",
+      "rule": "HMD002",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[./owl.md]]",
+      "source": "notes/src.hmd",
+      "target": "notes/owl.md"
+    },
+    {
+      "raw": "[[/notes/owl.md]]",
+      "source": "notes/src.hmd",
+      "target": "notes/owl.md"
+    },
+    {
+      "raw": "[[far.markdown]]",
+      "source": "notes/src.hmd",
+      "target": "deep/far.markdown"
+    },
+    {
+      "raw": "[[far]]",
+      "source": "notes/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[gloss.md]]",
+      "source": "notes/src.hmd",
+      "target": "lib/gloss.md"
+    },
+    {
+      "raw": "[[gloss]]",
+      "source": "notes/src.hmd",
+      "target": "lib/gloss.hmd"
+    },
+    {
+      "raw": "[[mod.hmd]]",
+      "source": "notes/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[mod.md]]",
+      "source": "notes/src.hmd",
+      "target": "notes/mod/index.md"
+    },
+    {
+      "raw": "[[only.hmd]]",
+      "source": "notes/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[only.markdown]]",
+      "source": "notes/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[owl.hmd]]",
+      "source": "notes/src.hmd",
+      "target": "notes/owl.hmd"
+    },
+    {
+      "raw": "[[owl.md]]",
+      "source": "notes/src.hmd",
+      "target": "notes/owl.md"
+    },
+    {
+      "raw": "[[owl]]",
+      "source": "notes/src.hmd",
+      "target": "notes/owl.hmd"
+    }
+  ]
+}

@@ -9,6 +9,14 @@
 export interface DirEntry {
   name: string;
   isDirectory: boolean;
+  /**
+   * A symbolic link whose target lies outside the namespace root. Neither the
+   * entry nor anything reached through it is part of the namespace, and a
+   * reference whose path meets it escapes the namespace (HMD003). Optional:
+   * only a host that can follow links can tell, and one that cannot leaves it
+   * out.
+   */
+  leavesRoot?: boolean;
 }
 
 export interface WorkspaceHost {

@@ -1,0 +1,97 @@
+{
+  "diagnostics": [
+    {
+      "candidates": [
+        "chem/heat/thermodynamics.hmd",
+        "science/physics/thermodynamics.hmd"
+      ],
+      "column": 1,
+      "line": 3,
+      "message": "[[thermodynamics]] matches 2 pages; qualify it (candidates: chem/heat/thermodynamics.hmd, science/physics/thermodynamics.hmd)",
+      "path": "other/src.hmd",
+      "rule": "HMD002",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 7,
+      "message": "[[dynamics]] does not resolve to a page",
+      "path": "other/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 8,
+      "message": "[[sics/thermodynamics]] does not resolve to a page",
+      "path": "other/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 12,
+      "message": "[[other/thermodynamics]] does not resolve to a page",
+      "path": "other/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[dynamics]]",
+      "source": "other/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[heat/thermodynamics]]",
+      "source": "other/src.hmd",
+      "target": "chem/heat/thermodynamics.hmd"
+    },
+    {
+      "raw": "[[other/thermodynamics]]",
+      "source": "other/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[physics/index]]",
+      "source": "other/src.hmd",
+      "target": "science/physics/index.hmd"
+    },
+    {
+      "raw": "[[physics/thermodynamics]]",
+      "source": "other/src.hmd",
+      "target": "science/physics/thermodynamics.hmd"
+    },
+    {
+      "raw": "[[physics]]",
+      "source": "other/src.hmd",
+      "target": "science/physics/index.hmd"
+    },
+    {
+      "raw": "[[science/physics/thermodynamics]]",
+      "source": "other/src.hmd",
+      "target": "science/physics/thermodynamics.hmd"
+    },
+    {
+      "raw": "[[science/physics]]",
+      "source": "other/src.hmd",
+      "target": "science/physics/index.hmd"
+    },
+    {
+      "raw": "[[sics/thermodynamics]]",
+      "source": "other/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[thermodynamics]]",
+      "source": "other/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[physics/thermodynamics]]",
+      "source": "science/notes.hmd",
+      "target": "science/physics/thermodynamics.hmd"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# Src
+
+[[foo]]
+[[foo/index]]
+[[/x/bar]]
+[[x/bar]]
+[[/x/bar/index]]

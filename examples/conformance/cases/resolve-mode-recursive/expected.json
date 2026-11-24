@@ -1,0 +1,64 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 4,
+      "message": "[[far]] does not resolve to a page",
+      "path": "a/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "column": 1,
+      "line": 3,
+      "message": "[[dup]] does not resolve to a page",
+      "path": "a/x/deep.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    },
+    {
+      "candidates": [
+        "a/y/dup.hmd",
+        "b/dup.hmd"
+      ],
+      "column": 1,
+      "line": 3,
+      "message": "[[dup]] matches 2 pages; qualify it (candidates: a/y/dup.hmd, b/dup.hmd)",
+      "path": "top.hmd",
+      "rule": "HMD002",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[deep]]",
+      "source": "a/src.hmd",
+      "target": "a/x/deep.hmd"
+    },
+    {
+      "raw": "[[dup]]",
+      "source": "a/src.hmd",
+      "target": "a/y/dup.hmd"
+    },
+    {
+      "raw": "[[far]]",
+      "source": "a/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[top]]",
+      "source": "a/src.hmd",
+      "target": "top.hmd"
+    },
+    {
+      "raw": "[[dup]]",
+      "source": "a/x/deep.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[dup]]",
+      "source": "top.hmd",
+      "target": null
+    }
+  ]
+}

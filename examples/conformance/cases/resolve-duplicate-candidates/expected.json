@@ -1,0 +1,15 @@
+{
+  "diagnostics": [],
+  "resolutions": [
+    {
+      "raw": "[[index]]",
+      "source": "src/src.hmd",
+      "target": "k/index/index.hmd"
+    },
+    {
+      "raw": "[[k/index]]",
+      "source": "src/src.hmd",
+      "target": "k/index/index.hmd"
+    }
+  ]
+}
