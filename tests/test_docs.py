@@ -117,7 +117,7 @@ def test_the_guard_catches_the_original_defect_and_nothing_else():
 #: The sentence the language specification opens with, which is the only place the
 #: language's version is declared. A second literal in a config file or a `VERSION`
 #: would be a number free to disagree with the document that defines the format.
-SPEC_VERSION = re.compile(r"specifies HyperMarkDown (\d+(?:\.\d+)*)")
+SPEC_VERSION = re.compile(r"language standard for HyperMarkDown version (\d+(?:\.\d+)*)")
 
 
 def test_the_language_version_has_a_changelog_section():

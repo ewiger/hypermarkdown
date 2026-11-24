@@ -38,7 +38,12 @@ followed through the sections, and each section's rules ahead of a short *Why*.
 On 2026-11-24 it gained a new introduction, which calls it the language
 standard, and the Conformance section was renamed *Conformance to the Standard*
 with a new opening paragraph. The rest of that section's normative text is
-kept until its replacement is agreed. Proofreading continues with each
+kept until its replacement is agreed. The same day the language adopted
+Semantic Versioning, under *Versioning and Authority*. A card is now defined
+first as a unit of knowledge, with the file rules kept under *Documents*. The
+split between the language and its extras is gone: what *Extras* listed is now
+*Extended Markdown syntax*, part of the standard. Proofreading resumes at the
+definition of a namespace, and continues with each
 construct described at three levels: a conceptual definition (what it is and
 what it is for), a formal definition (syntax, semantics, behaviour, and edge
 cases), and executable examples (inputs and expected outputs a test can run).
@@ -59,7 +64,7 @@ cases), and executable examples (inputs and expected outputs a test can run).
 | backlog | **Define the constructs over the CommonMark parse instead of a masked scan.** A wikilink is a `[[…]]` found in the text of the CommonMark document, so whether something is code is CommonMark's answer and the known-divergence clause goes away. A candidate for 0.2, not for 0.1 | Waits on the dataset, which is what shows whether the change moves any existing card | [[hmd-lang-spec#lexical-model]] |
 | parked | **A Lean model of resolution and embed expansion.** Nice to have. It would turn claims the specification only asserts — the result does not depend on file order, a wildcard import never changes a name the spine resolved, a resolved path stays inside the root, expansion terminates — into theorems, and as executable code it could serve as an oracle for the three implementations on generated trees | Unparked if a property-based test finds a counterexample to one of those claims, or a fourth implementation needs a reference the existing three cannot settle between them | [[hmd-lang-spec#name-resolution]], [[hmd-lang-spec#embed-expansion]] |
 | doing | **Replace the rest of *Conformance to the Standard*.** The section's title and its opening paragraph are new. The rest is the previous normative text, kept as it is until a replacement is agreed. That text covers the RFC 2119 key words, the conforming implementation, CommonMark compatibility, extras, determinism, and arbitration by the corpus. The new opening paragraph uses a lowercase "must" just above the line that gives **MUST** its RFC 2119 meaning; the replacement should settle which one is meant | The opening paragraph was agreed on 2026-11-24; the rest of the wording was not | [[hmd-lang-spec#conformance-to-the-standard]] |
-| todo | **Make the introduction agree with *Extras*.** The new introduction says HyperMarkDown extends Markdown with mathematical notation and with visualizations (diagrams, graphs, and charts). *Extras* lists maths and drawn diagrams as not part of the language, and *Conformance to the Standard* says the same. The table of terms gives a construct as only a wikilink, an embed, a block anchor, or a frontmatter block, and there is no cell kind for a chart or a graph. Either the introduction calls these extras, or maths and diagrams become part of the language for 0.1 | A decision about what 0.1 promises, not an editorial fix; open below as a question | [[hmd-lang-spec#extras]], [[hmd-lang-spec#cells]], [[hmd-lang-spec#terms]] |
+| todo | **Specify the Extended Markdown syntax.** On 2026-11-24 the constructs *Extras* listed became part of the language: tables, task lists, strikethrough, subscript, footnotes, callouts, collapsible callouts, maths, attribute lists, Markdown inside HTML, and drawn diagrams. Renaming the section did not standardise them. Each row needs a pinned reference specification and the exact syntax and semantics it takes from that reference. Some references are implementations rather than specifications: Python-Markdown and PyMdown Extensions. The standard also has to say what a conforming implementation owes these constructs, since rendering is outside conformance in 0.1. The introduction promises charts and graphs, and no cell kind or row covers them | The section is normative now but specifies little more than a list | [[hmd-lang-spec#extended-markdown-syntax]], [[hmd-lang-spec#cells]] |
 | backlog | **Derive a test dataset from the standard.** Each construct, each interaction between constructs, and each corner case the formal definitions state becomes an executable example with its expected output. The aim is that every rule in the standard has a case and every case cites the rule it tests. Outside the scope of the 2026-11-24 revision | Follows the proofreading at three levels of specificity; extends the shared corpus rather than replacing it | [[hmd-lang-spec]], `examples/conformance/cases/` |
 | todo | **Accept Mermaid as a diagram language on par with D2.** The format rejected it as superseded by D2 when it was first sketched, and the MVP grammar, the D2 proposal's non-goals, and the feature list still say so, while HQL's `mermaid` step already writes Mermaid fences that every tool then shows as code. Reverse the rejection in all four places in one pass. The specification's line rejecting a second diagram notation is already gone. The format's half is answered by diagram cells: a `mermaid#show` fence is a diagram whose body is opaque to the resolver, exactly as a `d2#show` fence is | The renderer choice comes first: Mermaid is a JavaScript library, not a single binary like `d2` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.md), [[hmd-0022]], [[hmd-0030]] |
 
@@ -170,16 +175,25 @@ withdrew two dozen claims.
 | Should an address name a range across two *named* steps, anchor to anchor, rather than only a range within one unit? | [[hmd-0006#counted-steps-cite-an-ordinal-inside-the-enclosing-scope]] |
 | Which Unicode version do heading keys follow? The key depends on general categories and case folding, and the TypeScript implementation's are Unicode 17 while the canonical one's are Unicode 16, so 4699 characters new in Unicode 17 key differently. Pinning a version — and generating both implementations' tables from it, as the case-folding table already is — would close the gap | [[hmd-lang-spec#heading-anchors]] |
 | What is a wikilink's text inside a heading? The implementations read a wikilink in a heading as its display text, or, without one, as its page reference less the fragment; the specification says only that inline markup is removed | [[hmd-lang-spec#heading-anchors]] |
-| Do attribute-list braces count in a heading's key? `## Setup {#install}` keys as `setup install` today, so `#Setup` does not reach it, while the site's `id` honours `{#install}`. Attribute lists are an extra, which argues for keeping them out of the language | [[hmd-lang-spec#heading-anchors]], [[hmd-lang-spec#extras]] |
+| Do attribute-list braces count in a heading's key? `## Setup {#install}` keys as `setup install` today, so `#Setup` does not reach it, while the site's `id` honours `{#install}`. Attribute lists are now part of the language under *Extended Markdown syntax*, which argues for the key rule saying so | [[hmd-lang-spec#heading-anchors]], [[hmd-lang-spec#extended-markdown-syntax]] |
 | Is a fragment whose key is empty, such as `#***`, a missing heading (HMD004, today) or a malformed link (HMD010)? | [[hmd-lang-spec#heading-anchors]] |
 | Does HMD019 apply to `.md` and `.markdown` files, which are never checked? Today it does, since an undecodable file cannot be a card of any kind | [[hmd-lang-spec#encoding]] |
 | Two names on disk that are equal after NFC: the first in sorted order is the card and the other is dropped silently in all three implementations. Should that be a diagnostic, and is "sorted" by code point or by UTF-16 unit? | [[hmd-lang-spec#encoding]] |
 | Is the long form canonical when a tool mints an address, so two tools produce the same string for one location? | [[hmd-0006#both-spellings-and-which-one-is-which]] |
-| Are mathematical notation and diagrams part of HyperMarkDown 0.1, as the introduction now says, or extras, as *Extras* says? Charts and graphs have no cell kind at all | [[hmd-lang-spec#extras]], [[hmd-lang-spec#cells]] |
+| Each construct under *Extended Markdown syntax* takes its syntax from a different dialect. Which reference is pinned for each, and at what version? | [[hmd-lang-spec#extended-markdown-syntax]] |
+| A patch release is for an editorial correction that changes neither syntax nor semantics. What moves the minor and the major version of the language, and what does a 0.x version promise? | [[hmd-lang-spec#versioning-and-authority]] |
 | What replaces the rest of *Conformance to the Standard*, and does its opening "must" carry the RFC 2119 meaning? | [[hmd-lang-spec#conformance-to-the-standard]] |
 
 ## Changelog
 
+- 2026-11-24: *Status of this document* is now *Versioning and Authority*. The
+  language follows Semantic Versioning, and the specification is the
+  authoritative definition. A card is defined as the unit of knowledge, and a
+  construct as any syntactic element the standard defines. The term *extra* and
+  the conformance bullet that kept extras out of the language are gone. *Extras*
+  is now *Extended Markdown syntax*, a part of the language whose rows still
+  need specifying. The Features page no longer calls tables and task lists
+  extras.
 - 2026-11-24: the specification opens with a new introduction that names it
   the language standard for 0.1, describes the language and its HQL cells, and
   states its purpose: consistent interpretation across independent

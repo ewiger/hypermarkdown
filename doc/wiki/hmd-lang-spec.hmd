@@ -26,7 +26,7 @@ implementations.
 
 **Contents**
 
-- [Status of this document](#status-of-this-document)
+- [Versioning and Authority](#versioning-and-authority)
 - [Terms](#terms)
 - [The example vault](#the-example-vault)
 - [Conformance to the Standard](#conformance-to-the-standard)
@@ -42,35 +42,26 @@ implementations.
 - [Diagnostics](#diagnostics)
 - [Rendering](#rendering)
 - [Cells](#cells)
-- [Extras](#extras)
+- [Extended Markdown syntax](#extended-markdown-syntax)
 - [Not in this version](#not-in-this-version)
 - [See also](#see-also)
 
-## Status of this document
+## Versioning and Authority
 
-This is the normative text for the language. It defines what a HyperMarkDown
-document is, what its constructs mean, and what an implementation must do with
-them. No program's behaviour overrides it.
+The HyperMarkDown language follows Semantic Versioning (SemVer 2.0.0) and is
+versioned independently of its software implementations. Editorial corrections
+and clarifications that do not change the syntax or semantics of the language
+are published as patch releases.
 
-- The language is versioned apart from the tools that implement it. The
-  version above changes when the constructs below change, and nothing else
-  moves it.
-- What each version changed is recorded in
-  [the language's changelog](https://github.com/ewiger/hypermarkdown/blob/main/CHANGELOG.md).
-- Adopting a later CommonMark is an edit to this document, not something that
-  happens to it.
-- [[hmd-tutorial]] teaches the constructs; [[hmd-feature-list]] lists every
-  construct, including the ones this version does not have. Where either
-  disagrees with this document, this document is right.
-
-**Why.** The baseline is named by version because "Markdown" names a family,
-not a standard, and a superset of an unnamed dialect specifies nothing.
+This specification is the authoritative definition of HyperMarkDown.
+Implementations and accompanying documentation are derived from the standard,
+rather than defining it.
 
 ## Terms
 
 | Term | Meaning |
 | --- | --- |
-| **card** | One file with a card extension inside the namespace root |
+| **card** | A card is the fundamental unit of knowledge in HyperMarkDown, represented as an individually addressable document. Cards within a namespace can be interconnected to form a structured knowledge base. |
 | **HyperMarkDown card** | A card with the extension `.hmd`; the only kind that is scanned |
 | **Markdown card** | A card with the extension `.md` or `.markdown`: a link and embed target, never scanned |
 | **vault** | The directory that contains a `.hmd/` directory; it holds the configuration |
@@ -78,7 +69,7 @@ not a standard, and a superset of an unnamed dialect specifies nothing.
 | **namespace** | Every card below the namespace root: the tree a reference resolves in |
 | **module** | A directory inside the namespace; the unit that scopes a name |
 | **folder note** | A card named `index`, standing for its directory |
-| **construct** | A wikilink, an embed, a block anchor, or a frontmatter block |
+| **construct** | A syntactic element defined by the HyperMarkDown language standard |
 | **wikilink** | A link in double square brackets, such as `[[setup]]`, optionally with display text after a pipe |
 | **embed** | A wikilink with `!` in front, expanded in place |
 | **block anchor** | A trailing `^id` that names a block |
@@ -88,7 +79,6 @@ not a standard, and a superset of an unnamed dialect specifies nothing.
 | **sweep** | The search of the whole namespace that runs when nothing nearer matched; also called autodiscovery |
 | **key** | The normalised form of a heading's text, used to match a fragment |
 | **cell** | A fenced block that a tool runs or draws |
-| **extra** | A construct beyond CommonMark that tools render, but that is not part of the language |
 
 ## The example vault
 
@@ -175,9 +165,6 @@ and **MAY** are to be interpreted as described in RFC 2119.
   constructs where a CommonMark reading of the document puts them, within the
   [known divergence](#lexical-model). How it renders the inherited Markdown is
   not part of conformance in this version.
-- **Extras are not the language.** The constructs listed under
-  [Extras](#extras) come on top of the baseline and are not part of
-  HyperMarkDown. A conforming implementation need not render any of them.
 - **Determinism.** The same tree MUST produce the same result — the same
   resolutions, the same expansions, and byte-identical diagnostics — however
   often it is processed, on whichever platform, and in whatever order its files
@@ -198,8 +185,8 @@ are what HyperMarkDown owns, so they are what has to agree.
 
 ## Documents
 
-A **card** is one file with a **card extension**. The card extensions, in
-priority order, are exactly:
+A card is stored as a file with a recognized card extension.
+The card extensions, in priority order, are exactly:
 
 ```text
 .hmd  .md  .markdown
@@ -906,15 +893,13 @@ again when the reader asks, and never write the drawing into the card.
 
 **Why.** A listing is how a card shows such source without invoking it.
 
-## Extras
+## Extended Markdown syntax
 
-This section is **not normative**. It lists the constructs beyond CommonMark
-0.31.2 that this project's site and tools render, so that a reader knows what
-they are and where their syntax comes from. They are not part of the
-language: a conforming implementation need not render any of them, and none of
-them changes what a HyperMarkDown construct means.
+HyperMarkDown extends CommonMark 0.31.2 with the
+following language constructs. Their syntax and semantics
+are based on the corresponding specifications referenced below.
 
-| Extra | Written | Syntax from |
+| Construct | Syntax | Reference |
 | --- | --- | --- |
 | Tables | pipe-delimited rows, with a delimiter row under the header | GitHub Flavored Markdown |
 | Task lists | `- [ ] open` and `- [x] done` | GitHub Flavored Markdown |

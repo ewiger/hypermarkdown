@@ -3,7 +3,8 @@
 ## TL;DR
 
 * **Markdown compatible.** Every CommonMark document is valid HyperMarkDown.
-  Tables, task lists, and strikethrough render too, as extras on top.
+  Tables, task lists, strikethrough, footnotes, and maths are part of the
+  language too.
 
 * **Wiki links.** Link to a document, a heading, or a single block:
   `[[page]]`, `[[page#Section]]`, `[[page#^block]]`. Alias with
