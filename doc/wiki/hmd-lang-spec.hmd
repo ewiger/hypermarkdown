@@ -895,7 +895,16 @@ nav:
 Diagnostics concerning a frontmatter property are reported at the source
 position of the offending key or value, whenever that position can be
 determined. If a more specific source position cannot be determined, the
-diagnostic is reported at the beginning of the frontmatter block.
+diagnostic is reported at the beginning of the frontmatter block. Exactly:
+
+1. A block that is not valid YAML, or not a mapping ([HMD009](#diagnostics)),
+   is reported at line 1, column 1, the beginning of the block.
+2. A malformed value of a top-level key is reported at that key.
+3. A problem inside `nav` is reported at the offending key inside `nav`.
+4. A malformed list entry, such as a tag, a `use` entry, or an `import`
+   statement, is reported at the entry's first character: in a block list,
+   the first character after `- `.
+5. Anything else is reported at its nearest enclosing key.
 
 ### `tags` — what a card is about
 
