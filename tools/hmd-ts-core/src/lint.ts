@@ -18,6 +18,7 @@ import {
   type ParsedDocument,
   type Severity,
 } from "./model.js";
+import { expand, isFailure } from "./expand.js";
 import { CARD_SUFFIXES, INDEX_STEM, pageParts } from "./paths.js";
 import type { Workspace } from "./workspace.js";
 
@@ -336,14 +337,23 @@ function embedCycles(workspace: Workspace, targets: readonly string[]): Diagnost
   return out;
 }
 
+/**
+ * Follow the embeds inside what `via` embeds of `path`.
+ *
+ * `via` is the embed that reached this card, or null for a card linted on its
+ * own, which is walked whole. An embed of a section or a block expands to that
+ * region only, so only the embeds inside it can continue the chain; one
+ * section embedding another section of its own card is not a cycle.
+ */
 function walk(
   workspace: Workspace,
   path: string,
-  fragment: string | null,
+  via: Link | null,
   stack: Array<[string, string | null]>,
   reported: Set<string>,
   out: Diagnostic[],
 ): void {
+  const fragment = via?.fragment ?? null;
   const key = `${path} ${fragment ?? ""}`;
   const onStack = stack.findIndex(([p, f]) => p === path && f === fragment);
 
@@ -370,12 +380,23 @@ function walk(
   const document = workspace.documents.get(path);
   if (document === undefined) return;
 
+  let firstLine = 1;
+  let lastLine = Number.POSITIVE_INFINITY;
+  if (via !== null) {
+    const slice = expand(document, via.fragment, via.fragmentKind);
+    // The fragment matches nothing, so nothing expands; HMD004 or HMD005
+    // reports the fragment itself.
+    if (isFailure(slice)) return;
+    firstLine = slice.startLine;
+    lastLine = slice.startLine + slice.text.split(/\r\n|\r|\n/).length - 1;
+  }
+
   stack.push([path, fragment]);
   for (const link of document.links) {
-    if (!link.isEmbed) continue;
+    if (!link.isEmbed || link.span.line < firstLine || link.span.line > lastLine) continue;
     const result = workspace.resolve(path, link.pageRef);
     if (result.outcome !== "resolved" || result.path === null) continue;
-    walk(workspace, result.path, link.fragment, stack, reported, out);
+    walk(workspace, result.path, link, stack, reported, out);
   }
   stack.pop();
 }

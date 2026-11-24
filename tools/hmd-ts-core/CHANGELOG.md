@@ -100,6 +100,10 @@ anchors, matching the canonical implementation case for case.
   ledger.
 - `frontmatter must be a mapping, got str` names a scalar's type the way the
   canonical implementation does, where it said `string`.
+- An embed of a section no longer reports a false cycle. The HMD007 check
+  followed every embed in the embedded card, where an embed of a heading or a
+  block expands that region only, so one section of a card embedding another
+  section of the same card was reported as HMD007.
 
 ## [0.3.0] — 2026-11-15
 

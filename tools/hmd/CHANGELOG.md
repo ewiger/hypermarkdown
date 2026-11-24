@@ -76,6 +76,12 @@ only for the Python API.
   with no `.hmd/` above it is refused with a pointer to `hmd init` and
   `--root`, where it used to load the repository root as a project.
 
+### Fixed
+- **An embed of a section no longer reports a false cycle.** The HMD007 check
+  followed every embed in the embedded card, where an embed of a heading or a
+  block expands that region only. One section of a card embedding another
+  section of the same card is not a cycle, and is no longer reported as one.
+
 ## [0.4.0] — 2026-11-15
 
 ### Added
