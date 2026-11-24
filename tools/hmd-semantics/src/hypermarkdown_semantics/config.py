@@ -24,8 +24,10 @@ index reads `[semantics] index` from the same file."""
 DEFAULT_INDEX = ".hmd/index.sqlite"
 """Where a vault's index is when `[semantics] index` does not say."""
 
-DEFAULT_WIKI = "doc/wiki"
-"""The cards location when `wiki` does not say, as HyperMarkdown defines it."""
+DEFAULT_LOCATION_PATH = "."
+"""The namespace root when `location_path` does not say: the vault itself, as
+HyperMarkDown defines it. The key was called `wiki` before 0.1, and that name is
+not read."""
 
 LOCAL = "local"
 HTTP = "http"
@@ -79,16 +81,16 @@ def read(root: Path) -> Embedder:
 
 
 def namespace_root(root: Path) -> Path:
-    """The directory the vault's cards start in: `wiki` against the vault root.
+    """The directory the vault's cards start in: `location_path` against the vault root.
 
     A card's path is relative to it, which is what HQL and every HyperMarkdown
     tool take a card's path to be (HMD-0029, HQL issue 0079).
     """
     root = Path(root)
     path = root / CONFIG_FILE
-    declared = _table(path).get("wiki", DEFAULT_WIKI)
+    declared = _table(path).get("location_path", DEFAULT_LOCATION_PATH)
     if not isinstance(declared, str) or not declared.strip():
-        raise ConfigError(f"{path}: `wiki` must be a non-empty string")
+        raise ConfigError(f"{path}: `location_path` must be a non-empty string")
     return root / declared.strip()
 
 

@@ -25,9 +25,9 @@ uv tool install "hypermarkdown-semantics[local]"   # with the in-process model
 ```
 
 `--vault` names the vault root, the directory holding `.hmd/`. The cards are
-read from the namespace root its `wiki` setting names (default `doc/wiki`), a
-card's path is relative to it, and a `.md` or `.markdown` file there is a card
-as much as a `.hmd` file.
+read from the namespace root its `location_path` setting names (default `.`,
+the vault itself), a card's path is relative to it, and a `.md` or `.markdown`
+file there is a card as much as a `.hmd` file.
 
 That installs the `hmd-semantics` command and no dependency: reading a vault,
 writing the index and calling an embedder over HTTP use the standard library.
@@ -173,7 +173,7 @@ in HQL, or a score would describe text nobody wrote.
 
 The same coupling fixes which files are cards and what they are named, and
 here the tool does not yet follow the format. A vault's cards start at its
-cards location, the `wiki` setting of `.hmd/config.toml`, and are `.hmd`
+namespace root, the `location_path` setting of `.hmd/config.toml`, and are `.hmd`
 files. This tool, as HQL's loader does, reads every
 `.hmd`, `.md` and `.markdown` file under the vault's root, outside entries
 whose name starts with a dot, named by its file name without the extension, or

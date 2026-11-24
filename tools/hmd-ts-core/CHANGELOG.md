@@ -60,6 +60,9 @@ anchors, matching the canonical implementation case for case.
 
 ### Changed
 
+- **`wiki` is renamed `location_path`, and defaults to `.`.** The config field
+  is `locationPath` and the constant `DEFAULT_LOCATION_PATH`; the old key is
+  not read, so a config that says only `wiki` gets the default.
 - **An `import` statement takes only spaces and tabs as whitespace**, between
   its words and on either side of a comma, as the grammar's `WS` says; another
   whitespace character there is HMD014. An imported name or alias is a

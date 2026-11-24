@@ -16,6 +16,12 @@ on PyPI, tagged `semantics-vX.Y.Z`. Implementation state is tracked in
 
 ## [Unreleased]
 
+### Changed
+
+- **The namespace root is `location_path`, and defaults to the vault itself.**
+  The key was called `wiki`, with the default `doc/wiki`; the old name is not
+  read. A vault whose HQL views still need `wiki` keeps both lines.
+
 ## [0.1.0] — 2026-11-15
 
 The first release on PyPI.

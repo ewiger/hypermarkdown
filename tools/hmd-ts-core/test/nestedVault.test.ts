@@ -13,7 +13,7 @@ import { DEFAULT_CONFIG, Workspace } from "../src/workspace.js";
 const TREE: Record<string, string> = {
   "here.hmd": "# Here\n\nSee [[time]].\n",
   "wiki/time.hmd": "# Time\n",
-  "inner/.hmd/config.toml": 'wiki = "."\n',
+  "inner/.hmd/config.toml": 'location_path = "."\n',
   "inner/time.hmd": "# Inner time\n",
   "inner/abs.hmd": "# Abs\n\nSee [[/time]].\n",
 };
@@ -61,7 +61,7 @@ describe("a nested vault", () => {
   it("cannot be reached by an import", async () => {
     const ws = await load({
       "a.hmd": "---\nimport:\n  - from /inner import time\n---\n\n# A\n",
-      "inner/.hmd/config.toml": 'wiki = "."\n',
+      "inner/.hmd/config.toml": 'location_path = "."\n',
       "inner/time.hmd": "# Inner time\n",
     });
     const table = ws.importTable("a.hmd");

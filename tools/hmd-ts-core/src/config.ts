@@ -1,7 +1,7 @@
 /**
  * `.hmd/config.toml` (HMD-0001 §4, §5.3, HMD-0020 §5).
  *
- * Root *discovery* — walking up for a `.hmd/` or `.git` directory — belongs to
+ * Root *discovery* — walking up for a `.hmd/` directory — belongs to
  * the host, which is the only party with a filesystem above the namespace root.
  * The core reads exactly three settings and nothing else.
  */
@@ -12,7 +12,7 @@ import type { WorkspaceConfig } from "./workspace.js";
 
 export const MARKER_DIR = ".hmd";
 export const CONFIG_NAME = "config.toml";
-export const DEFAULT_WIKI = "doc/wiki";
+export const DEFAULT_LOCATION_PATH = ".";
 export const DEFAULT_MODE = "both";
 export const VALID_MODES: ReadonlySet<string> = new Set(["both", "recursive"]);
 
@@ -20,12 +20,12 @@ export const VALID_MODES: ReadonlySet<string> = new Set(["both", "recursive"]);
 export class ConfigError extends Error {}
 
 export interface ProjectConfig extends WorkspaceConfig {
-  /** The `wiki` setting: the cards location, naming the namespace root relative to the project root. */
-  wiki: string;
+  /** The `location_path` setting: the namespace root, relative to the vault. */
+  locationPath: string;
 }
 
 export const DEFAULT_PROJECT_CONFIG: ProjectConfig = {
-  wiki: DEFAULT_WIKI,
+  locationPath: DEFAULT_LOCATION_PATH,
   autodiscovery: true,
   mode: DEFAULT_MODE,
   source: null,
@@ -40,9 +40,11 @@ export function parseConfigToml(text: string, source: string | null = null): Pro
     throw new ConfigError(`cannot read ${source ?? CONFIG_NAME}: ${String(exc)}`);
   }
 
-  const wiki = data["wiki"] ?? DEFAULT_WIKI;
-  if (typeof wiki !== "string") {
-    throw new ConfigError(`\`wiki\` must be a string in ${source ?? CONFIG_NAME}`);
+  // `wiki` was this key's name before 0.1. It is not read: a config that still
+  // says only `wiki` gets the default, as every unknown key does.
+  const locationPath = data["location_path"] ?? DEFAULT_LOCATION_PATH;
+  if (typeof locationPath !== "string") {
+    throw new ConfigError(`\`location_path\` must be a string in ${source ?? CONFIG_NAME}`);
   }
 
   const discovery =
@@ -62,5 +64,5 @@ export function parseConfigToml(text: string, source: string | null = null): Pro
     );
   }
 
-  return { wiki, autodiscovery, mode: mode as "both" | "recursive", source };
+  return { locationPath, autodiscovery, mode: mode as "both" | "recursive", source };
 }

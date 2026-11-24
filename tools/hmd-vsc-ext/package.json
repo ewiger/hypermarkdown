@@ -178,7 +178,7 @@
         "hyperMarkdown.root": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Namespace root for the workspace folder itself, relative to it. Vaults are otherwise discovered from the card, by walking up to the nearest `.hmd/` directory; this setting names the root for cards no vault claims, and wins for the folder it is set in. Empty means discover it from the folder's `.hmd/config.toml`, falling back to `doc/wiki`."
+          "markdownDescription": "Namespace root for the workspace folder itself, relative to it. Vaults are otherwise discovered from the card, by walking up to the nearest `.hmd/` directory; this setting names the root for cards no vault claims, and wins for the folder it is set in. Empty means read `location_path` from the folder's `.hmd/config.toml`, which defaults to the folder itself."
         },
         "hyperMarkdown.preview.scrollSync": {
           "type": "boolean",

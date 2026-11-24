@@ -30,7 +30,7 @@ export {
   parseConfigToml,
   ConfigError,
   DEFAULT_PROJECT_CONFIG,
-  DEFAULT_WIKI,
+  DEFAULT_LOCATION_PATH,
   MARKER_DIR,
   CONFIG_NAME,
   type ProjectConfig,
