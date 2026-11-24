@@ -93,7 +93,13 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
 
         self.docs_dir = docs_dir = Path(config.docs_dir).resolve()
         root = Path(self.config.root).resolve() if self.config.root else docs_dir
-        self.workspace = Workspace(config_mod.load(root_override=root))
+        try:
+            loaded = config_mod.load(root_override=root)
+        except config_mod.ConfigError as exc:
+            # A vault the tool refuses to read (a retired `wiki` key, an
+            # unreadable config) stops the build with the tool's own message.
+            raise PluginError(f"HyperMarkDown: {exc}") from exc
+        self.workspace = Workspace(loaded)
         self.prefix = _prefix(docs_dir, self.workspace.root)
         self._ids = {}
         self._toc = _toc_settings(config)

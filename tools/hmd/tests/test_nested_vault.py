@@ -21,7 +21,7 @@ PUBLIC = "---\nnav:\n  visibility: public\n---\n\n"
 TREE = {
     "here.hmd": PUBLIC + "# Here\n\nSee [[time]].\n",
     "wiki/time.hmd": PUBLIC + "# Time\n",
-    "inner/.hmd/config.toml": 'wiki = "."\n',
+    "inner/.hmd/config.toml": 'location_path = "."\n',
     "inner/time.hmd": PUBLIC + "# Inner time\n",
     "inner/abs.hmd": PUBLIC + "# Abs\n\nSee [[/time]].\n",
 }
@@ -69,7 +69,7 @@ def test_import_cannot_reach_into_a_nested_vault(tmp_path):
         tmp_path,
         {
             "a.hmd": "---\nimport:\n  - from /inner import time\n---\n\n# A\n",
-            "inner/.hmd/config.toml": 'wiki = "."\n',
+            "inner/.hmd/config.toml": 'location_path = "."\n',
             "inner/time.hmd": "# Inner time\n",
         },
     )

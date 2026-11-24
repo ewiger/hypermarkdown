@@ -12,9 +12,11 @@ expected-failure ledger. The TypeScript runner is
 `tools/hmd-rs-core/tests/corpus.rs`; the first two build the same
 `{diagnostics, resolutions}` shape.
 
-A case's `config.toml` sits beside its `tree/`, not inside it, so the tree is
-copied under a fresh project root with that file as its `.hmd/config.toml`.
-A tree may carry markers of its own further down; those are part of the case.
+A case's `tree/` is a vault. Its `config.toml` sits beside the tree, not
+inside it, so the tree is copied with a `.hmd/` marker of its own, holding
+that file when there is one, and loaded the way `hmd` loads any vault: its
+`location_path` names the namespace root, the tree itself by default. A tree
+may carry markers of its own further down; those are part of the case.
 """
 
 from __future__ import annotations
@@ -40,13 +42,13 @@ def run_case(case: Path, scratch: Path) -> dict:
     # link from `tree/` to a sibling such as `outside/` still points out of
     # the namespace root rather than becoming an ordinary file inside it.
     shutil.copytree(case, scratch / "case", symlinks=True)
-    root = scratch / "case" / "tree"
+    vault = scratch / "case" / "tree"
+    (vault / MARKER_DIR).mkdir()
     case_config = case / CONFIG_NAME
     if case_config.is_file():
-        (root / MARKER_DIR).mkdir()
-        shutil.copy(case_config, root / MARKER_DIR / CONFIG_NAME)
+        shutil.copy(case_config, vault / MARKER_DIR / CONFIG_NAME)
 
-    workspace = Workspace(config.load(root_override=root))
+    workspace = Workspace(config.load(start=vault))
     diagnostics = [d.to_dict() for d in check(workspace)]
 
     resolutions = []

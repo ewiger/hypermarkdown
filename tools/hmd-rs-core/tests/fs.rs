@@ -83,7 +83,7 @@ fn a_vault_opens_from_its_root_with_its_own_configuration() {
         &[
             (
                 ".hmd/config.toml",
-                "wiki = \"notes\"\n[discovery]\nmode = \"recursive\"\n",
+                "location_path = \"notes\"\n[discovery]\nmode = \"recursive\"\n",
             ),
             ("notes/a.hmd", "[[b]]"),
             ("notes/sub/b.hmd", ""),
@@ -91,7 +91,7 @@ fn a_vault_opens_from_its_root_with_its_own_configuration() {
         ],
     );
     let vault = Vault::open(&root).expect("the vault opens");
-    assert_eq!(vault.config().wiki, "notes");
+    assert_eq!(vault.config().location_path, "notes");
     assert_eq!(vault.config().mode, Mode::Recursive);
     let paths: Vec<_> = vault.pages().iter().map(|p| p.path.as_str()).collect();
     assert_eq!(paths, ["a.hmd", "sub/b.hmd"]);
@@ -99,11 +99,15 @@ fn a_vault_opens_from_its_root_with_its_own_configuration() {
 }
 
 #[test]
-fn a_vault_without_configuration_reads_doc_wiki() {
-    let root = tree("open-default", &[("doc/wiki/a.hmd", "[[missing]]")]);
+fn a_vault_without_configuration_reads_the_vault_itself() {
+    let root = tree(
+        "open-default",
+        &[("a.hmd", "[[missing]]"), ("doc/wiki/b.hmd", "")],
+    );
     let vault = Vault::open(&root).expect("the vault opens");
     assert_eq!(*vault.config(), Config::default());
-    assert_eq!(vault.pages().len(), 1);
+    let paths: Vec<_> = vault.pages().iter().map(|p| p.path.as_str()).collect();
+    assert_eq!(paths, ["a.hmd", "doc/wiki/b.hmd"]);
     assert_eq!(vault.resolve("a.hmd", "missing"), Resolution::Unresolved);
 }
 
@@ -111,7 +115,7 @@ fn a_vault_without_configuration_reads_doc_wiki() {
 fn a_missing_namespace_root_is_a_configuration_error() {
     let root = tree(
         "open-missing",
-        &[(".hmd/config.toml", "wiki = \"nowhere\"\n")],
+        &[(".hmd/config.toml", "location_path = \"nowhere\"\n")],
     );
     let err = Vault::open(&root).expect_err("the namespace root does not exist");
     assert!(matches!(err, Error::Config { .. }), "{err}");
@@ -119,8 +123,22 @@ fn a_missing_namespace_root_is_a_configuration_error() {
 }
 
 #[test]
+fn a_vault_whose_configuration_sets_wiki_is_not_opened() {
+    let root = tree(
+        "open-retired",
+        &[
+            (".hmd/config.toml", "wiki = \"notes\"\n"),
+            ("notes/a.hmd", ""),
+        ],
+    );
+    let err = Vault::open(&root).expect_err("a config with `wiki` is refused");
+    assert!(matches!(err, Error::Config { .. }), "{err}");
+    assert!(err.to_string().contains("`location_path`"), "{err}");
+}
+
+#[test]
 fn an_unusable_configuration_file_is_an_error() {
-    let root = tree("open-bad", &[(".hmd/config.toml", "wiki = [")]);
+    let root = tree("open-bad", &[(".hmd/config.toml", "location_path = [")]);
     assert!(matches!(Vault::open(&root), Err(Error::Config { .. })));
 }
 

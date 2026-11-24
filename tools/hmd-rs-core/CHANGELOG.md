@@ -27,6 +27,12 @@ crates.io. Implementation state is tracked in
 
 ### Changed
 
+- **Breaking: `wiki` is renamed `location_path`, and its default is `.`**, the
+  vault itself, where it was `doc/wiki`. `Config::wiki` is
+  `Config::location_path`, and `DEFAULT_WIKI` is `DEFAULT_LOCATION_PATH`. A
+  `config.toml` that still sets `wiki` is an `Error::Config` that names `wiki`
+  and `location_path`, so `Config::parse`, `Config::read`, and `Vault::open`
+  all refuse it, and no vault is loaded.
 - **A backslash anywhere in a reference is refused**: in its page, its
   fragment, or its display. `Reference::parse` returns the new
   `ReferenceError::Backslash`, and the link is left out of the card's links.

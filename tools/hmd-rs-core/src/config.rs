@@ -15,8 +15,14 @@ pub const MARKER_DIR: &str = ".hmd";
 /// The name of the configuration file inside the marker directory.
 pub const CONFIG_NAME: &str = "config.toml";
 
-/// The namespace root when `wiki` is not set, relative to the vault's root.
-pub const DEFAULT_WIKI: &str = "doc/wiki";
+/// The namespace root when `location_path` is not set, relative to the
+/// vault's root: the vault itself.
+pub const DEFAULT_LOCATION_PATH: &str = ".";
+
+/// The key `location_path` replaced, with the default `doc/wiki`. A config
+/// that still sets it is refused rather than read with a different root: the
+/// vault would load, silently, as a different namespace than its author wrote.
+const RETIRED_KEY: &str = "wiki";
 
 /// How far the autodiscovery sweep reaches.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -32,8 +38,9 @@ pub enum Mode {
 /// The settings a vault is loaded with.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
-    /// The namespace root, relative to the vault's root; the `wiki` key.
-    pub wiki: String,
+    /// The namespace root, relative to the vault's root; the `location_path`
+    /// key.
+    pub location_path: String,
     /// Whether a bare reference that no nearer rule resolves is looked up
     /// across the namespace; the `autodiscovery` key of `[discovery]`.
     pub autodiscovery: bool,
@@ -43,10 +50,11 @@ pub struct Config {
 
 impl Default for Config {
     /// The settings of a vault with no `config.toml`: the namespace root is
-    /// `doc/wiki`, autodiscovery is on, and the sweep covers the namespace.
+    /// the vault itself, autodiscovery is on, and the sweep covers the
+    /// namespace.
     fn default() -> Self {
         Config {
-            wiki: DEFAULT_WIKI.to_owned(),
+            location_path: DEFAULT_LOCATION_PATH.to_owned(),
             autodiscovery: true,
             mode: Mode::Both,
         }
@@ -55,16 +63,25 @@ impl Default for Config {
 
 impl Config {
     /// Parses the text of a `.hmd/config.toml`, taking the default for every
-    /// setting the text does not state and ignoring every other key.
+    /// setting the text does not state and ignoring every other key, except
+    /// the retired `wiki`: a config that sets it is an [`Error::Config`] that
+    /// names `wiki` and `location_path`, and no vault is loaded from it.
     pub fn parse(text: &str) -> Result<Config, Error> {
         let data: toml::Table = text
             .parse()
             .map_err(|err| Error::config(format!("cannot read {CONFIG_NAME}: {err}")))?;
 
-        let wiki = match data.get("wiki") {
-            None => DEFAULT_WIKI.to_owned(),
-            Some(toml::Value::String(wiki)) => wiki.clone(),
-            Some(_) => return Err(Error::config("`wiki` must be a string")),
+        if data.contains_key(RETIRED_KEY) {
+            return Err(Error::config(format!(
+                "{CONFIG_NAME} sets `{RETIRED_KEY}`, which HyperMarkDown 0.1 renamed to \
+                 `location_path`. Rename the key; the vault is not loaded until it is."
+            )));
+        }
+
+        let location_path = match data.get("location_path") {
+            None => DEFAULT_LOCATION_PATH.to_owned(),
+            Some(toml::Value::String(path)) => path.clone(),
+            Some(_) => return Err(Error::config("`location_path` must be a string")),
         };
 
         // A `discovery` key that is not a table is read as an empty one.
@@ -95,7 +112,7 @@ impl Config {
         };
 
         Ok(Config {
-            wiki,
+            location_path,
             autodiscovery,
             mode,
         })
@@ -113,10 +130,10 @@ impl Config {
         Config::parse(&text)
     }
 
-    /// The directory the `wiki` setting names for the vault rooted at
-    /// `vault_root`.
+    /// The directory the `location_path` setting names for the vault rooted
+    /// at `vault_root`.
     pub fn namespace_root(&self, vault_root: &Path) -> PathBuf {
-        vault_root.join(&self.wiki)
+        vault_root.join(&self.location_path)
     }
 }
 
@@ -145,7 +162,7 @@ mod tests {
     #[test]
     fn an_empty_file_is_the_defaults() {
         assert_eq!(Config::parse("").unwrap(), Config::default());
-        assert_eq!(Config::default().wiki, "doc/wiki");
+        assert_eq!(Config::default().location_path, ".");
         assert!(Config::default().autodiscovery);
         assert_eq!(Config::default().mode, Mode::Both);
     }
@@ -153,13 +170,29 @@ mod tests {
     #[test]
     fn the_three_settings_are_read_and_other_keys_ignored() {
         let config = Config::parse(
-            "wiki = \".\"\nextra = 1\n[namespace]\nname = \"x\"\n\
+            "location_path = \"notes\"\nextra = 1\n[namespace]\nname = \"x\"\n\
              [discovery]\nautodiscovery = false\nmode = \"recursive\"\n",
         )
         .unwrap();
-        assert_eq!(config.wiki, ".");
+        assert_eq!(config.location_path, "notes");
         assert!(!config.autodiscovery);
         assert_eq!(config.mode, Mode::Recursive);
+    }
+
+    #[test]
+    fn the_retired_wiki_key_is_refused_and_named_with_its_replacement() {
+        for text in [
+            "wiki = \"notes\"\n",
+            "location_path = \"notes\"\nwiki = \"notes\"\n",
+        ] {
+            let err = Config::parse(text).expect_err("a config with `wiki` is refused");
+            assert!(matches!(err, Error::Config { .. }), "{err}");
+            let message = err.to_string();
+            assert!(
+                message.contains("`wiki`") && message.contains("`location_path`"),
+                "{message}"
+            );
+        }
     }
 
     #[test]
@@ -170,11 +203,11 @@ mod tests {
     #[test]
     fn a_setting_of_the_wrong_type_is_refused() {
         for text in [
-            "wiki = 3\n",
+            "location_path = 3\n",
             "[discovery]\nautodiscovery = \"yes\"\n",
             "[discovery]\nmode = \"spine\"\n",
             "[discovery]\nmode = 1\n",
-            "wiki = \n",
+            "location_path = \n",
         ] {
             assert!(
                 matches!(Config::parse(text), Err(Error::Config { .. })),
@@ -184,11 +217,15 @@ mod tests {
     }
 
     #[test]
-    fn the_namespace_root_is_the_wiki_setting_under_the_vault_root() {
-        let config = Config::default();
+    fn the_namespace_root_is_the_location_path_setting_under_the_vault_root() {
+        let config = Config::parse("location_path = \"doc/wiki\"\n").unwrap();
         assert_eq!(
             config.namespace_root(Path::new("/project")),
             Path::new("/project/doc/wiki")
+        );
+        assert_eq!(
+            Config::default().namespace_root(Path::new("/project")),
+            Path::new("/project/.")
         );
     }
 }

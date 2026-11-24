@@ -15,7 +15,7 @@ from hypermarkdown import config
 from hypermarkdown.cli import app
 
 CONFIG = """\
-wiki = "."
+location_path = "."
 
 [hql]
 project = ".."
@@ -64,7 +64,7 @@ def test_a_vault_holding_the_two_tables_lints_clean(tmp_path):
 def test_a_value_only_hql_can_judge_is_not_refused(tmp_path):
     # Whether `project` is a string, and whether it names an HQL project, is
     # HQL's to refuse. `hmd` reads neither.
-    vault = _vault(tmp_path, 'wiki = "."\n\n[hql]\nproject = 7\n\n[semantics]\nindex = 7\n')
+    vault = _vault(tmp_path, 'location_path = "."\n\n[hql]\nproject = 7\n\n[semantics]\nindex = 7\n')
     assert config.load(start=vault).root == vault.resolve()
     result = CliRunner().invoke(app, ["lint", "--root", str(vault), "--strict"])
     assert result.exit_code == 0, result.output

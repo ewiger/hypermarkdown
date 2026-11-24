@@ -28,9 +28,10 @@ def test_a_git_directory_does_not_mark_a_project_root(tmp_path):
 def test_a_marker_below_a_git_directory_still_wins(tmp_path):
     (tmp_path / ".git").mkdir()
     (tmp_path / "vault" / ".hmd").mkdir(parents=True)
-    (tmp_path / "vault" / "doc" / "wiki").mkdir(parents=True)
+    (tmp_path / "vault" / "doc").mkdir(parents=True)
     loaded = config.load(start=tmp_path / "vault" / "doc")
-    assert loaded.root == (tmp_path / "vault" / "doc" / "wiki").resolve()
+    # With no `location_path`, the namespace root is the vault itself.
+    assert loaded.root == (tmp_path / "vault").resolve()
 
 
 def test_a_named_root_needs_no_marker_at_all(tmp_path):

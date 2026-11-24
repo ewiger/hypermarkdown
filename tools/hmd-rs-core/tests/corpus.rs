@@ -134,7 +134,10 @@ fn observed(case: &Path) -> (Value, Value) {
         Ok(text) => Config::parse(&text).expect("the case's config.toml parses"),
         Err(_) => Config::default(),
     };
-    let vault = Vault::load(&FsHost::new(case.join("tree")), config).expect("the case loads");
+    // The tree is the vault, and its `location_path` names the namespace
+    // root: the tree itself by default.
+    let root = config.namespace_root(&case.join("tree"));
+    let vault = Vault::load(&FsHost::new(root), config).expect("the case loads");
 
     let mut rows: Vec<(String, String, Option<String>)> = Vec::new();
     let mut outcomes: Vec<Value> = Vec::new();

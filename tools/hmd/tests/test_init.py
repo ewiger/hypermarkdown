@@ -24,15 +24,16 @@ def test_init_writes_the_marker_and_the_root_it_names(tmp_path):
 
     assert result.config == tmp_path / ".hmd" / "config.toml"
     assert result.config.is_file()
-    assert result.wiki == tmp_path / "doc" / "wiki"
-    assert result.wiki.is_dir(), "the wiki root is created too; load() rejects one that is missing"
+    # The default `location_path` is `.`, the project root itself.
+    assert result.location == tmp_path
+    assert result.location.is_dir()
 
 
 def test_the_written_config_parses_to_the_documented_defaults(tmp_path):
     written = tomllib.loads(config.init(tmp_path).config.read_text(encoding="utf-8"))
 
     assert written == {
-        "wiki": "doc/wiki",
+        "location_path": ".",
         "namespace": {"name": tmp_path.name, "provider": "folder"},
         "discovery": {"autodiscovery": True, "mode": "both"},
     }
@@ -44,24 +45,72 @@ def test_a_fresh_project_loads_without_arguments(tmp_path):
 
     loaded = config.load(start=tmp_path)
 
-    assert loaded.root == (tmp_path / "doc" / "wiki").resolve()
+    assert loaded.root == tmp_path.resolve()
     assert loaded.source == (tmp_path / ".hmd" / "config.toml").resolve()
     assert loaded.autodiscovery is True
     assert loaded.mode == "both"
 
 
-def test_a_custom_wiki_round_trips(tmp_path):
-    result = config.init(tmp_path, wiki="notes")
+def test_a_custom_location_round_trips(tmp_path):
+    result = config.init(tmp_path, location_path="notes")
 
-    assert result.wiki == tmp_path / "notes"
+    assert result.location == tmp_path / "notes"
+    assert (tmp_path / "notes").is_dir(), "the root is created too; load() rejects one that is missing"
     assert config.load(start=tmp_path).root == (tmp_path / "notes").resolve()
 
 
-def test_the_project_root_itself_can_be_the_wiki(tmp_path):
-    """`wiki = "."` is what `examples/small` uses to be self-contained."""
-    config.init(tmp_path, wiki=".")
+def test_the_project_root_itself_can_be_named_explicitly(tmp_path):
+    """`location_path = "."` is the default, and may also be written out."""
+    config.init(tmp_path, location_path=".")
 
     assert config.load(start=tmp_path).root == tmp_path.resolve()
+
+
+def _retired(tmp_path, text='wiki = "notes"\n'):
+    (tmp_path / ".hmd").mkdir()
+    (tmp_path / ".hmd" / "config.toml").write_text(text, encoding="utf-8")
+    (tmp_path / "notes").mkdir()
+
+
+def test_a_config_that_sets_the_retired_wiki_key_is_refused(tmp_path):
+    """`wiki` was renamed `location_path` in 0.1. Read with the new default, the
+    vault would load as a different namespace than its author wrote, so it is
+    not loaded at all, and the error names both keys."""
+    _retired(tmp_path)
+
+    with pytest.raises(config.ConfigError) as refused:
+        config.load(start=tmp_path)
+
+    assert "`wiki`" in str(refused.value)
+    assert "`location_path`" in str(refused.value)
+
+
+def test_the_retired_key_is_refused_beside_location_path_too(tmp_path):
+    _retired(tmp_path, 'location_path = "notes"\nwiki = "notes"\n')
+
+    with pytest.raises(config.ConfigError, match="location_path"):
+        config.load(start=tmp_path)
+
+
+def test_the_retired_key_is_refused_when_the_root_is_named_directly(tmp_path):
+    """`--root` still reads the enclosing vault's `[discovery]`, so it reads, and
+    refuses, the same file."""
+    _retired(tmp_path)
+
+    with pytest.raises(config.ConfigError, match="wiki"):
+        config.load(root_override=tmp_path / "notes")
+
+
+def test_the_cli_refuses_a_vault_with_the_retired_key(tmp_path, monkeypatch):
+    _retired(tmp_path)
+    (tmp_path / "index.hmd").write_text("# Home\n\n[[missing]]\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["lint"])
+
+    assert result.exit_code == 2
+    assert "`wiki`" in result.stderr and "`location_path`" in result.stderr
+    assert "HMD001" not in result.output, "nothing is linted in a vault that is not loaded"
 
 
 # --- the namespace name and its provider -------------------------------------
@@ -134,7 +183,7 @@ def test_an_unknown_provider_is_refused(tmp_path):
 
 
 def test_load_still_ignores_everything_but_the_two_settings_it_reads(tmp_path):
-    """The spec pins this: the MVP reads `wiki` and `[discovery]`, and nothing else.
+    """The spec pins this: 0.1 reads `location_path` and `[discovery]`, and nothing else.
 
     `init` writes `[namespace]` because binding needs somewhere to land, but no
     key of it may reach resolution before HMD-0004 says what it means.
@@ -146,7 +195,7 @@ def test_load_still_ignores_everything_but_the_two_settings_it_reads(tmp_path):
     assert not hasattr(loaded, "name")
     assert not hasattr(loaded, "provider")
     assert (loaded.root, loaded.autodiscovery, loaded.mode) == (
-        (tmp_path / "doc" / "wiki").resolve(),
+        tmp_path.resolve(),
         True,
         "both",
     )
@@ -155,7 +204,7 @@ def test_load_still_ignores_everything_but_the_two_settings_it_reads(tmp_path):
 def test_a_config_with_no_namespace_section_still_loads(tmp_path):
     """Every tree written before `init` existed has no `[namespace]`, and must not break."""
     (tmp_path / ".hmd").mkdir()
-    (tmp_path / ".hmd" / "config.toml").write_text('wiki = "w"\n', encoding="utf-8")
+    (tmp_path / ".hmd" / "config.toml").write_text('location_path = "w"\n', encoding="utf-8")
     (tmp_path / "w").mkdir()
 
     assert config.load(start=tmp_path).root == (tmp_path / "w").resolve()
@@ -171,9 +220,9 @@ def test_a_missing_project_directory_is_created(tmp_path):
 
 
 def test_created_names_only_what_was_absent(tmp_path):
-    (tmp_path / "doc" / "wiki").mkdir(parents=True)
+    (tmp_path / "notes").mkdir()
 
-    result = config.init(tmp_path)
+    result = config.init(tmp_path, location_path="notes")
 
     assert result.created == frozenset({result.config})
 
@@ -186,9 +235,9 @@ def test_reinitialising_is_refused(tmp_path):
 
 
 def test_force_replaces_an_existing_config(tmp_path):
-    config.init(tmp_path, wiki="notes")
+    config.init(tmp_path, location_path="notes")
 
-    result = config.init(tmp_path, wiki="doc/wiki", force=True)
+    result = config.init(tmp_path, location_path="doc/wiki", force=True)
 
     assert result.overwritten is True
     assert config.load(start=tmp_path).root == (tmp_path / "doc" / "wiki").resolve()
@@ -205,21 +254,21 @@ def test_a_marker_directory_without_a_config_is_not_reinitialisation(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "wiki",
+    "location_path",
     ["/etc", "../outside", "doc/../../outside", "", "   ", 'doc/"wiki"'],
 )
-def test_an_unusable_wiki_setting_is_refused(tmp_path, wiki):
+def test_an_unusable_location_setting_is_refused(tmp_path, location_path):
     with pytest.raises(config.ConfigError):
-        config.init(tmp_path, wiki=wiki)
+        config.init(tmp_path, location_path=location_path)
 
     assert not (tmp_path / ".hmd").exists(), "a rejected setting must not leave a half-written project"
 
 
-def test_a_file_where_the_wiki_root_should_be_is_refused_before_anything_is_written(tmp_path):
+def test_a_file_where_the_namespace_root_should_be_is_refused_before_anything_is_written(tmp_path):
     (tmp_path / "notes").write_text("", encoding="utf-8")
 
     with pytest.raises(config.ConfigError, match="not a directory"):
-        config.init(tmp_path, wiki="notes")
+        config.init(tmp_path, location_path="notes")
 
     assert not (tmp_path / ".hmd").exists(), "a config naming a root that cannot exist must not be written"
 
@@ -241,7 +290,7 @@ def test_a_file_where_the_project_should_be_is_refused(tmp_path):
 
 def test_a_nested_project_is_reported_rather_than_refused(tmp_path):
     config.init(tmp_path)
-    inner = tmp_path / "doc" / "wiki" / "inner"
+    inner = tmp_path / "inner"
 
     result = config.init(inner)
 
@@ -304,11 +353,13 @@ def test_cli_init_refuses_a_second_run_with_a_usage_exit(tmp_path):
     assert "--force" in result.output
 
 
-def test_cli_init_then_lint_is_clean(tmp_path):
-    """The sequence a new author runs. An empty namespace has nothing to report."""
+def test_cli_init_then_lint_is_clean(tmp_path, monkeypatch):
+    """The sequence a new author runs, with no `--root`. A namespace holding one
+    card with no links has nothing to report."""
     runner.invoke(app, ["init", str(tmp_path)])
-    (tmp_path / "doc" / "wiki" / "index.hmd").write_text("# Home\n", encoding="utf-8")
+    (tmp_path / "index.hmd").write_text("# Home\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
 
-    result = runner.invoke(app, ["lint", "--root", str(tmp_path / "doc" / "wiki")])
+    result = runner.invoke(app, ["lint"])
 
     assert result.exit_code == 0

@@ -57,7 +57,7 @@ def test_an_undecodable_file_is_left_out_of_the_graph(tmp_path):
 
 def test_lint_takes_an_undecodable_file_by_path(tmp_path, monkeypatch):
     (tmp_path / ".hmd").mkdir()
-    (tmp_path / ".hmd" / "config.toml").write_text('wiki = "."\n', encoding="utf-8")
+    (tmp_path / ".hmd" / "config.toml").write_text('location_path = "."\n', encoding="utf-8")
     (tmp_path / "bad.hmd").write_bytes(LATIN1)
     monkeypatch.chdir(tmp_path)
 

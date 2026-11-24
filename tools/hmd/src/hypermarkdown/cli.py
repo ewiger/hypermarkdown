@@ -32,7 +32,9 @@ EXIT_OK = 0
 EXIT_DIAGNOSTICS = 1
 EXIT_USAGE = 2
 
-RootOption = typer.Option(None, "--root", help="Namespace root (default: the `wiki` setting, or doc/wiki).")
+RootOption = typer.Option(
+    None, "--root", help="Namespace root (default: the `location_path` setting, or the vault itself)."
+)
 FormatOption = typer.Option("text", "--format", help="Output format: text or json.")
 
 
@@ -100,13 +102,17 @@ def _selected(workspace: Workspace, paths: list[Path] | None) -> list[Path] | No
 @app.command()
 def init(
     path: Optional[Path] = typer.Argument(None, help="Project root to initialise (default: the working directory)."),
-    wiki: str = typer.Option(config_mod.DEFAULT_WIKI, "--wiki", help="Namespace root, relative to the project root."),
+    location_path: str = typer.Option(
+        config_mod.DEFAULT_LOCATION_PATH,
+        "--location-path",
+        help="Namespace root, relative to the project root (default: the project root itself).",
+    ),
     name: Optional[str] = typer.Option(None, "--name", help="Namespace name (default: the project directory's name)."),
     force: bool = typer.Option(False, "--force", help="Replace an existing .hmd/config.toml."),
 ) -> None:
     """Create `.hmd/config.toml` and the namespace root it names."""
     try:
-        result = config_mod.init(path, wiki=wiki, name=name, force=force)
+        result = config_mod.init(path, location_path=location_path, name=name, force=force)
     except config_mod.ConfigError as exc:
         typer.echo(f"hmd: {exc}", err=True)
         raise typer.Exit(EXIT_USAGE)
@@ -120,7 +126,7 @@ def init(
 
     typer.echo(f"project:   {result.project}{note(result.project)}")
     typer.echo(f"config:    {result.config}{note(result.config)}")
-    typer.echo(f"wiki:      {result.wiki}{note(result.wiki)}")
+    typer.echo(f"location:  {result.location}{note(result.location)}")
     typer.echo(
         f"namespace: {result.name} ({result.provider})"
         f"{' — from the directory name' if result.derived_name else ''}"

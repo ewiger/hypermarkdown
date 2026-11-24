@@ -38,6 +38,16 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **Breaking: `wiki` is renamed `location_path`, and its default is `.`**, the
+  vault itself, where it was `doc/wiki`. A `.hmd/config.toml` that still sets
+  `wiki` is refused: the vault is not loaded, every command exits 2, and the
+  error names `wiki` and `location_path`. The MkDocs plugin stops the build
+  with the same message. `hmd init` takes `--location-path` in place of
+  `--wiki`, writes `location_path`, and with no flag makes no directory of its
+  own, since `.` is the project root; it prints the root on a `location:`
+  line. In the Python API, `config.init` takes `location_path=`,
+  `InitResult.wiki` is `InitResult.location`, and `DEFAULT_WIKI` is
+  `DEFAULT_LOCATION_PATH`.
 - **A backslash anywhere in a wikilink is HMD010**: in its path, its
   fragment, or its display. A backslash is never a path separator and
   escapes nothing; one before `[[` is outside the link and changes nothing.
