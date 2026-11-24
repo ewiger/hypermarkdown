@@ -1,0 +1,87 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 3,
+      "message": "'.' or '..' outside an explicit relative reference in [[/b/../a/x]]",
+      "path": "a/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 4,
+      "message": "'.' or '..' outside an explicit relative reference in [[/./b/y]]",
+      "path": "a/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 5,
+      "message": "'.' or '..' outside an explicit relative reference in [[/a/./x]]",
+      "path": "a/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 6,
+      "message": "'.' or '..' outside an explicit relative reference in [[..]]",
+      "path": "a/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 7,
+      "message": "'.' or '..' outside an explicit relative reference in [[.]]",
+      "path": "a/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 8,
+      "message": "'.' or '..' outside an explicit relative reference in [[b/../a/x]]",
+      "path": "a/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 9,
+      "message": "'.' or '..' outside an explicit relative reference in [[a/./x]]",
+      "path": "a/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[../a/../b/y]]",
+      "source": "a/src.hmd",
+      "target": "b/y.hmd"
+    },
+    {
+      "raw": "[[../b/y]]",
+      "source": "a/src.hmd",
+      "target": "b/y.hmd"
+    },
+    {
+      "raw": "[[./../b/y]]",
+      "source": "a/src.hmd",
+      "target": "b/y.hmd"
+    },
+    {
+      "raw": "[[./x]]",
+      "source": "a/src.hmd",
+      "target": "a/x.hmd"
+    },
+    {
+      "raw": "[[/a/x]]",
+      "source": "a/src.hmd",
+      "target": "a/x.hmd"
+    }
+  ]
+}
