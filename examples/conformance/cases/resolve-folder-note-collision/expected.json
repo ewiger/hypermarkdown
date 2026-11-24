@@ -39,6 +39,21 @@
       "target": "x/bar.hmd"
     },
     {
+      "raw": "[[bar.hmd]]",
+      "source": "y/src.hmd",
+      "target": "x/bar.hmd"
+    },
+    {
+      "raw": "[[bar/index]]",
+      "source": "y/src.hmd",
+      "target": "x/bar/index.hmd"
+    },
+    {
+      "raw": "[[bar]]",
+      "source": "y/src.hmd",
+      "target": "x/bar.hmd"
+    },
+    {
       "raw": "[[foo/index]]",
       "source": "y/src.hmd",
       "target": "foo/index.hmd"

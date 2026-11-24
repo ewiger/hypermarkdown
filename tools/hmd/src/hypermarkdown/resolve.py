@@ -504,10 +504,29 @@ class Workspace:
                 if suffix is not None
                 else page not in self.shadowed
             )
+            and not self._note_yields_to_card(page, key, suffix)
         }
         # Sorted by root-relative POSIX path, so diagnostics are byte-identical
         # across platforms and runs (P1).
         return sorted(matches, key=self.rel)
+
+    def _note_yields_to_card(self, page: Path, key: tuple[str, ...], suffix: str | None) -> bool:
+        """Whether a folder note, matched by its directory's name, gives way.
+
+        A card beside the directory claims the same name, and is selected in
+        every phase (HMD012); the note stays reachable by its `index` path.
+        Only a card the reference could bind counts: one with the written
+        extension, or any card that is not shadowed.
+        """
+        parts = tuple(nfc(part) for part in self.parts(page))
+        if len(parts) < 2 or parts[-1] != INDEX_STEM or key != parts[:-1]:
+            return False
+        directory = page.parent
+        for each in (suffix,) if suffix else CARD_SUFFIXES:
+            card = self.card(directory.parent / f"{directory.name}{each}")
+            if card is not None and (suffix or card not in self.shadowed):
+                return True
+        return False
 
     def _inside_root(self, path: Path) -> bool:
         return path == self.root or self.root in path.parents

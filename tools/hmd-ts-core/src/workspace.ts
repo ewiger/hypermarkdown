@@ -546,6 +546,25 @@ export class Workspace {
     return out;
   }
 
+  /**
+   * Whether a folder note, matched by its directory's name, gives way: a card
+   * beside the directory claims the same name and is selected in every phase
+   * (HMD012), while the note stays reachable by its `index` path. Only a card
+   * the reference could bind counts: one with the written extension, or any
+   * card that is not shadowed.
+   */
+  private noteYieldsToCard(page: string, keyParts: readonly string[], ext: string | null): boolean {
+    const parts = pageParts(page).map(nfc);
+    if (parts.length < 2 || parts[parts.length - 1] !== INDEX_STEM) return false;
+    if (keyParts.join("/") !== parts.slice(0, -1).join("/")) return false;
+    const directory = dirnameRel(page);
+    for (const each of ext === null ? CARD_SUFFIXES : [ext]) {
+      const card = this.card(`${directory}${each}`);
+      if (card !== null && (ext !== null || !this.shadowed.has(card))) return true;
+    }
+    return false;
+  }
+
   private sweep(source: string, parts: readonly string[], ext: string | null): string[] {
     this.ensureIndex();
     const scope = this.config.mode === "recursive" ? dirnameRel(source) : "";
@@ -558,6 +577,7 @@ export class Workspace {
       if (keyParts.slice(keyParts.length - parts.length).join("/") !== suffix) continue;
       for (const page of pages) {
         if (ext !== null ? cardSuffix(page) !== ext : this.shadowed.has(page)) continue;
+        if (this.noteYieldsToCard(page, keyParts, ext)) continue;
         if (scope === "" || isUnder(scope, page)) matches.add(page);
       }
     }

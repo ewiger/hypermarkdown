@@ -574,6 +574,31 @@ impl Vault {
         table
     }
 
+    /// Whether the folder note at `path`, matched under `key` by its
+    /// directory's name, gives way: a card beside the directory claims the
+    /// same name and is selected in every phase (HMD012), while the note stays
+    /// reachable by its `index` path. Only a card the reference could bind
+    /// counts: one with the written extension, or any card that is not
+    /// shadowed.
+    fn note_yields_to_card(&self, path: &str, key: &str, ext: Option<&str>) -> bool {
+        let normalized = nfc(path).into_owned();
+        let parts = paths::page_parts(&normalized);
+        let [directory @ .., INDEX_STEM] = &parts[..] else {
+            return false;
+        };
+        if directory.is_empty() || directory.join("/") != key {
+            return false;
+        }
+        let extensions: Vec<&str> = match ext {
+            Some(ext) => vec![ext],
+            None => CARD_SUFFIXES.to_vec(),
+        };
+        extensions.iter().any(|each| {
+            self.card(&format!("{}{each}", directory.join("/")))
+                .is_some_and(|card| ext.is_some() || !self.shadowed.contains_key(&card.path))
+        })
+    }
+
     /// The cards whose path, without its suffix, ends with `parts`, sorted by
     /// path.
     ///
@@ -603,7 +628,7 @@ impl Vault {
                     Some(ext) => paths::card_suffix(path) == Some(ext),
                     None => !self.shadowed.contains_key(path),
                 };
-                if in_scope && kept {
+                if in_scope && kept && !self.note_yields_to_card(path, key, ext) {
                     matches.insert(path.clone());
                 }
             }

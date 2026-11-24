@@ -1,9 +1,9 @@
 # 0017 — Verify path-suffix resolution
 
-**Column**: todo
+**Column**: done — closed into [issue 0020](../0020-validate-name-resolution-across-implementations.md)
 **Opened**: 2026-11-24
-**Related**: [the format's tracker](../status/lang.md),
-[the canonical implementation's tracker](../status/hmd.md),
+**Related**: [the format's tracker](../../status/lang.md),
+[the canonical implementation's tracker](../../status/hmd.md),
 [[hmd-lang-spec#path-suffix-resolution]]
 
 ## What
@@ -42,3 +42,10 @@ under test.
 ## Out of scope
 
 The specification text itself, which is settled.
+
+## Closed
+
+Closed into issue 0020, which validates the whole resolution algorithm across
+the three implementations; path-suffix matching is one of its acceptance
+criteria. The case `resolve-path-suffix` covers what the steps above list, and
+the rest of the list is covered by the other `resolve-*` cases.

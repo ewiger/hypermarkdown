@@ -10,6 +10,9 @@
  * already finds a project root.
  */
 
+import { realpath } from "node:fs/promises";
+import { sep } from "node:path";
+
 import * as vscode from "vscode";
 
 import {
@@ -54,10 +57,38 @@ export class VsCodeHost implements WorkspaceHost {
 
   async listDirectory(rel: string): Promise<DirEntry[]> {
     const entries = await vscode.workspace.fs.readDirectory(this.uriFor(rel));
-    return entries.map(([name, kind]) => ({
-      name,
-      isDirectory: kind === vscode.FileType.Directory,
-    }));
+    const listed = await Promise.all(
+      entries.map(async ([name, kind]): Promise<DirEntry | null> => {
+        if ((kind & vscode.FileType.SymbolicLink) === 0) {
+          return { name, isDirectory: kind === vscode.FileType.Directory };
+        }
+        return this.link(rel, name, kind);
+      }),
+    );
+    return listed.filter((entry): entry is DirEntry => entry !== null);
+  }
+
+  /**
+   * A symbolic link, as the core needs to see it. A link out of the namespace
+   * root is reported and never followed: nothing through it is part of the
+   * namespace, and a reference whose path meets it escapes (HMD003). Inside
+   * the root, a link to a file is read like the file, and a link to a
+   * directory is not walked, which also keeps a link to an ancestor from
+   * looping. Only a `file:` root can be followed to its target; elsewhere a
+   * link to a file is read as before.
+   */
+  private async link(rel: string, name: string, kind: vscode.FileType): Promise<DirEntry | null> {
+    const isDirectory = (kind & vscode.FileType.Directory) !== 0;
+    if (this.root.scheme !== "file") return isDirectory ? null : { name, isDirectory: false };
+    const target = await realpath(this.uriFor(rel === "" ? name : `${rel}/${name}`).fsPath).catch(
+      () => null,
+    );
+    if (target === null) return null;
+    const root = await realpath(this.root.fsPath);
+    if (target !== root && !target.startsWith(root + sep)) {
+      return { name, isDirectory: false, leavesRoot: true };
+    }
+    return isDirectory ? null : { name, isDirectory: false };
   }
 }
 
