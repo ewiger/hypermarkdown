@@ -4,11 +4,14 @@
 # issues, the proposals and the trackers as cards for the generated views in
 # status/ (see status/README.md, "Generated views").
 #
-# `wiki = "."` is load-bearing in both directions. HQL reads `cards` from the
-# `wiki` location, not from the whole vault, so anything narrower hides
-# issues/, proposals/ and status/ from those views. And hmd resolves `wiki`
-# against this directory, so leaving the key out points it at doc/doc/wiki.
+# The namespace root is the vault itself, which is also the default. HQL reads
+# `cards` from that root, not from the whole vault, so anything narrower hides
+# issues/, proposals/ and status/ from those views.
+#
+# `location_path` is the key the HMD tools read. `wiki` is its former name,
+# which the HMD tools ignore and HQL still reads.
 #
 # The site is unaffected: mkdocs.yml names its own namespace root, doc/wiki,
 # and CI lints with an explicit `--root doc/wiki`.
+location_path = "."
 wiki = "."

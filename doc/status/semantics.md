@@ -66,9 +66,12 @@ Its first reader is HQL's `hmd` package.
 
 ## Done
 
+- **`location_path` names the namespace root** — the builder reads the
+  setting formerly called `wiki`, with the default `.`, the vault itself;
+  unreleased.
 - **Published to PyPI** — `release-semantics.yml` on a `semantics-vX.Y.Z` tag,
   trusted publishing, 0.1.0 [[hmd-0028#deployment--activation]].
-- **The cards of the namespace root** — read from the directory `wiki` names,
+- **The cards of the namespace root** — read from the directory `location_path` names,
   paths relative to it, `.md` and `.markdown` cards included and nested vaults left out, as HQL
   reads them [HMD-0029].
 
@@ -103,6 +106,7 @@ None.
 
 ## Changelog
 
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-24: before the 0.1.0 release. Status names the released version and
   says how the tool stands to HyperMarkDown 0.1.0: it reads cards and does not
   implement the language. The Broken row about the cards location was fixed in

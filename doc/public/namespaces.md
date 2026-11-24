@@ -26,11 +26,12 @@ folder note and can provide module-level configuration.
 
 A **vault** is the directory that holds `.hmd/`: one `config.toml` configures
 it. A **namespace** is a rooted tree of modules, the tree of cards a reference
-resolves in. The two are not the same directory unless the configuration says
-so: the `wiki` setting in `.hmd/config.toml` is the **cards location**, where
-inside the vault the cards start. The directory it names is the default
-namespace root. It defaults to `doc/wiki`, `wiki = "."` puts the cards directly
-under the vault, and a command or integration can override it. A page reference that escapes this root
+resolves in. Its **namespace root** is the directory the `location_path`
+setting in `.hmd/config.toml` names, relative to the vault: where inside the
+vault the cards start. It defaults to `.`, the vault itself;
+`location_path = "doc/wiki"` puts the cards in a subdirectory, and a command or
+integration can override it. The key used to be called `wiki`. A
+configuration that still sets only `wiki` gets the default. A page reference that escapes this root
 is `HMD003`; path normalization happens before that check, and symlinks are not
 followed out of the tree.
 
@@ -168,7 +169,7 @@ Bindings live in `.hmd/config.toml` — the configuration for the whole wiki
 space, next to the root and the discovery policy that are already there:
 
 ```toml
-wiki = "doc/wiki"                # the cards location: where this vault's own cards start
+location_path = "doc/wiki"       # the namespace root: where this vault's own cards start
 
 [namespaces.design]              # a second tree on this filesystem
 folder = "../design-wiki"

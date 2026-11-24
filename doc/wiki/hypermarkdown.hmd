@@ -97,10 +97,10 @@ Frontmatter is optional, and no card under `doc/wiki/` currently uses it.
 
 ## Name resolution
 
-The **namespace root** is `doc/wiki/`. That is the upstream default for the
-`wiki` setting in `.hmd/config.toml`, the cards location: where inside the
-vault the cards start, and this repository has no such config, so
-the default stands. The graph is therefore closed to `doc/wiki/`: a `[[ ]]` link
+The **namespace root** is `doc/wiki/`. The site build and CI name it directly,
+which overrides the `location_path` setting in `.hmd/config.toml`, the setting
+that otherwise says where inside the vault the cards start. The graph is
+therefore closed to `doc/wiki/`: a `[[ ]]` link
 resolves only to a card in the wiki space, and a reference that escapes the root
 is an error. Anything outside — `src/`, proposals, model specs — is reached with
 an ordinary relative Markdown link.

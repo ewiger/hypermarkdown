@@ -60,12 +60,14 @@ HTML with its embeds expanded, `hmd graph` dumps the resolved link graph, and
 passing `--root`, run `hmd init` at the top of your project:
 
 ```bash
-hmd init                    # or: hmd init --wiki notes --name shared
+hmd init                    # or: hmd init --location-path notes --name shared
 ```
 
-That writes `.hmd/config.toml` with every setting at its default and creates the
-directory its `wiki` setting names: the cards location, where inside the vault
-the cards start. The directory doubles as the root marker, so any
+That writes `.hmd/config.toml` with every setting at its default. Its
+`location_path` setting names the namespace root, where inside the vault the
+cards start; by default that is the vault itself, and with `--location-path`
+the command also creates the directory it names. The `.hmd/` directory doubles
+as the root marker, so any
 subtree can be self-contained — `hmd init` inside one is how you make it so.
 
 It also names the tree, in a `[namespace]` section, after the project directory

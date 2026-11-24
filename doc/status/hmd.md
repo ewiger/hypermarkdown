@@ -89,6 +89,10 @@ commit: the retired domain does not redirect.
 
 ## Done
 
+- **`location_path` names the namespace root** — the setting formerly called
+  `wiki`, read relative to the vault with the default `.`, the vault itself,
+  instead of `doc/wiki`; no alias. `hmd init --location-path` replaces
+  `--wiki`, and with no flag creates no directory; unreleased.
 - **The HMD007 check follows only the embedded region** — it walks the
   section a fragment expands to, not every embed in the target card, so two
   embeds of different sections of one card, or a section embedding a sibling
@@ -197,6 +201,7 @@ improvement.
 
 ## Changelog
 
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-22: the 0.1 rules are implemented, unreleased.
 - 2026-11-22: the diagnostic count, eighteen, matches the code. Corrected on
   2026-11-24: it is nineteen, with HMD019.
