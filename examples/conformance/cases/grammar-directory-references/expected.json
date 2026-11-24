@@ -1,0 +1,81 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "m.hmd and m/index.hmd both claim the name 'm'; the file wins",
+      "path": "m.hmd",
+      "rule": "HMD012",
+      "severity": "warning"
+    },
+    {
+      "candidates": [
+        "x/deep/index.hmd",
+        "y/deep.hmd"
+      ],
+      "column": 47,
+      "line": 11,
+      "message": "[[deep]] matches 2 pages; qualify it (candidates: x/deep/index.hmd, y/deep.hmd)",
+      "path": "m/k/src.hmd",
+      "rule": "HMD002",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[../../m/]]",
+      "source": "m/k/src.hmd",
+      "target": "m/index.hmd"
+    },
+    {
+      "raw": "[[../]]",
+      "source": "m/k/src.hmd",
+      "target": "m/index.hmd"
+    },
+    {
+      "raw": "[[/]]",
+      "source": "m/k/src.hmd",
+      "target": "index.hmd"
+    },
+    {
+      "raw": "[[/m/]]",
+      "source": "m/k/src.hmd",
+      "target": "m/index.hmd"
+    },
+    {
+      "raw": "[[/m]]",
+      "source": "m/k/src.hmd",
+      "target": "m.hmd"
+    },
+    {
+      "raw": "[[deep/]]",
+      "source": "m/k/src.hmd",
+      "target": "x/deep/index.hmd"
+    },
+    {
+      "raw": "[[deep]]",
+      "source": "m/k/src.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[m/]]",
+      "source": "m/k/src.hmd",
+      "target": "m/index.hmd"
+    },
+    {
+      "raw": "[[m]]",
+      "source": "m/k/src.hmd",
+      "target": "m.hmd"
+    },
+    {
+      "raw": "[[tokens/]]",
+      "source": "m/k/src.hmd",
+      "target": "z/tokens/index.hmd"
+    },
+    {
+      "raw": "[[tokens]]",
+      "source": "m/k/src.hmd",
+      "target": "shared/tokens.hmd"
+    }
+  ]
+}

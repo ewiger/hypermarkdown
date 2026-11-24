@@ -1,6 +1,6 @@
 # 0018 — Validate the grammar
 
-**Column**: todo
+**Column**: done
 **Opened**: 2026-11-24
 **Related**: [the format's tracker](../status/lang.md),
 [the release card](0016-prepare-the-0-1-specification-release.md),
@@ -104,3 +104,71 @@ Rendering is out of scope.
 - All three implementations pass those cases on diagnostics and resolutions;
   the Rust crate on resolutions. Any remaining difference is a ledger entry
   that says where it is tracked.
+
+## Closed
+
+Closed on 2026-11-24, with every criterion under *Done when* met.
+
+**Verdicts.** Every production in *Grammar*, and the syntax defined in prose
+under *Block anchors*, *Frontmatter block*, and *Lexical model*, was checked
+against the text around it. Each disagreement found went to the user as a
+decision, and each is now settled in the specification:
+
+- `:` and `\` are reserved, `\` anywhere in a wikilink;
+- `.` and `..` are allowed only in explicit relative references;
+- a trailing `/` names a directory, and `[[/]]` is the root's folder note;
+- a link candidate is defined, and an unclosed `[[` is text;
+- `#` and `^` in heading text, and a blank heading or display, are HMD010;
+- a line ending is defined;
+- the grammar and the `import` grammar are written in ABNF;
+- spaces or tabs come before a block anchor and may follow it, and its
+  position starts at the `^`;
+- a block identifier matches exactly, case included;
+- the frontmatter boundaries are defined;
+- whitespace around a page reference is trimmed.
+
+**Cases.** Each one is written from the text, never generated, and passes in
+Python, TypeScript, and Rust (Rust on resolutions):
+
+- `grammar-reference-forms`
+- `grammar-display`
+- `grammar-block-ids`
+- `grammar-duplicate-anchors`
+- `grammar-anchor-trailing-blanks`
+- `grammar-fences`
+- `grammar-code-spans-and-comments`
+- `grammar-line-endings`
+- `grammar-frontmatter-position`
+- `frontmatter-boundaries`
+- `grammar-malformed-links`
+- `grammar-unclosed-brackets`
+- `grammar-heading-hash-caret`
+- `grammar-dots`
+- `grammar-backslash`
+- `grammar-page-ref-whitespace`
+- `grammar-directory-references`
+- `heading-text-markup`
+- `heading-empty-identifiers`
+- `import-statement-spacing`
+- `import-keywords-case`
+
+No ledger lists any of them.
+
+**What the implementations got wrong, now fixed:**
+
+- `:` was not reserved;
+- `\` was not refused;
+- an unclosed `[[` was HMD010;
+- an import's `WS` took any Unicode whitespace, and an imported name took
+  reserved characters;
+- an anchor's position started at its blanks;
+- a trailing `/` was dropped, so `[[m/]]` reached `m.hmd`, and `[[/]]`
+  resolved to nothing;
+- the cycle check followed embeds outside the embedded section.
+
+**Left elsewhere, not here:**
+
+- parse-level output (reference components, and spans other than a
+  diagnostic's position), deferred past 0.1, as *Limitations* says;
+- the CommonMark edges of the excluded regions, in issue 0019;
+- symbolic links, in issue 0024.
