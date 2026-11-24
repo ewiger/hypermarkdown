@@ -250,6 +250,51 @@ describe("the preview", () => {
 
 const HQL_BIN = process.env["HQL_BIN"];
 
+/**
+ * The first HQL that finds a vault's cards by `location_path`. An older one
+ * reads the key's former name, `wiki`, which HyperMarkDown now refuses, and
+ * falls back to `doc/wiki`, so it cannot run a card in a vault that is valid
+ * today. The tests that need a vault skip on such an HQL, saying why, and run
+ * again by themselves once the toolchain ships this version or later.
+ */
+const LOCATION_PATH_HQL: readonly [number, number, number] = [0, 8, 0];
+
+/** The `hql --version` of `bin` as three numbers, or null if it says none. */
+function hqlVersion(bin: string | undefined): [number, number, number] | null {
+  if (bin === undefined || !existsSync(bin)) return null;
+  try {
+    const out = execFileSync(bin, ["--version"], { encoding: "utf8" });
+    const m = /\bhql (\d+)\.(\d+)\.(\d+)\b/.exec(out);
+    return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+  } catch {
+    return null;
+  }
+}
+
+function before(version: readonly number[], floor: readonly number[]): boolean {
+  for (let i = 0; i < floor.length; i += 1) {
+    if (version[i]! !== floor[i]!) return version[i]! < floor[i]!;
+  }
+  return false;
+}
+
+const HQL_VERSION = hqlVersion(HQL_BIN);
+// An unreadable version runs the tests rather than skipping them: a gate that
+// cannot tell should fail loudly, not go quiet.
+const TOO_OLD_FOR_VAULTS = HQL_VERSION !== null && before(HQL_VERSION, LOCATION_PATH_HQL);
+const vaultTest = TOO_OLD_FOR_VAULTS ? it.skip : it;
+if (TOO_OLD_FOR_VAULTS) {
+  // The reporter does not list skipped tests, so the reason goes to the log.
+  console.warn(
+    `hql.test.ts: skipping the two vault tests against the real hql: hql ` +
+      `${HQL_VERSION!.join(".")} reads \`wiki\`, not \`location_path\`, and needs to be ` +
+      `${LOCATION_PATH_HQL.join(".")} or later. They run again once the toolchain ships it.`,
+  );
+}
+const tooOld = TOO_OLD_FOR_VAULTS
+  ? ` (skipped: hql ${HQL_VERSION!.join(".")} reads \`wiki\`, not \`location_path\`; needs ${LOCATION_PATH_HQL.join(".")})`
+  : "";
+
 // Skipped only when `HQL_BIN` is unset. CI sets it to the toolchain's `hql`,
 // and a path that names nothing there is a broken gate, not a reason to skip.
 describe.skipIf(HQL_BIN === undefined)("against the real hql", () => {
@@ -257,11 +302,11 @@ describe.skipIf(HQL_BIN === undefined)("against the real hql", () => {
     expect(existsSync(HQL_BIN!)).toBe(true);
   });
 
-  it("writes one output exactly as hql render does", async () => {
+  vaultTest(`writes one output exactly as hql render does${tooOld}`, async () => {
     const vault = join(dir, "vault");
     mkdirSync(join(vault, ".hmd"), { recursive: true });
-    // The cards sit at the vault root, so the vault says so: HQL 0.7 reads
-    // them from the namespace root its `location_path` names.
+    // The cards sit at the vault root, so the vault says so: HQL reads them
+    // from the namespace root its `location_path` names.
     writeFileSync(join(vault, ".hmd", "config.toml"), 'location_path = "."\n');
     writeFileSync(join(vault, "dune.hmd"), "---\ntitle: Dune\nmetadata:\n  category: book\n---\n# Dune\n");
     writeFileSync(join(vault, "emma.hmd"), "---\ntitle: Emma\nmetadata:\n  category: book\n---\n# Emma\n");
@@ -286,11 +331,11 @@ describe.skipIf(HQL_BIN === undefined)("against the real hql", () => {
     expect(again).toBe(masked);
   });
 
-  it("writes a failing cell's error below it", async () => {
+  vaultTest(`writes a failing cell's error below it${tooOld}`, async () => {
     const vault = join(dir, "vault");
     mkdirSync(join(vault, ".hmd"), { recursive: true });
-    // The cards sit at the vault root, so the vault says so: HQL 0.7 reads
-    // them from the namespace root its `location_path` names.
+    // The cards sit at the vault root, so the vault says so: HQL reads them
+    // from the namespace root its `location_path` names.
     writeFileSync(join(vault, ".hmd", "config.toml"), 'location_path = "."\n');
     const text = "```hql#eval id=a\n1 + \"x\"\n```\n";
     const result = await new HqlEngine({ configuredPath: HQL_BIN! }).run(text, vault, 0);
