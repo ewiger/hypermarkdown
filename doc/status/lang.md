@@ -47,7 +47,15 @@ terminology review finished: the terms table defines a namespace and a module
 by what they are for, and drops four terms of the specification's own
 (*spine*, *sweep*, *key*, and *construct*) in favour of plain language. Name
 resolution now opens with its principles, and explains path-suffix matching.
-Proofreading continues with the next section, and continues with each
+A later pass the same day completed proofreading from the introduction through
+the start of *Grammar*. Normative rules now describe observable behaviour, and
+implementation guidance and rationale move into informative footnotes. The
+*Lexical model* section defines regions excluded from recognition instead of
+prescribing a masking scanner. The corpus no longer arbitrates: a discrepancy
+between the standard, the test dataset, and an implementation is investigated
+and resolved. The formal grammar productions and the permitted divergence from
+CommonMark are unchanged and under separate review. Proofreading continues
+after *Grammar*, with each
 construct described at three levels: a conceptual definition (what it is and
 what it is for), a formal definition (syntax, semantics, behaviour, and edge
 cases), and executable examples (inputs and expected outputs a test can run).
@@ -67,9 +75,11 @@ cases), and executable examples (inputs and expected outputs a test can run).
 | backlog | **Grow the CommonMark examples into a differential dataset.** Generate inputs, run them through several parsers (cmark, commonmark.js, markdown-it, pulldown-cmark), and keep each disagreement as a case: either the CommonMark text is silent there, or one parser is wrong and the text decides. The reference parser's branch coverage measures how complete the dataset is | Follows the oracle. Completeness in the strict sense is impossible — the inputs are infinite — so the measure is coverage, not a count | [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/) |
 | backlog | **Define the constructs over the CommonMark parse instead of a masked scan.** A wikilink is a `[[…]]` found in the text of the CommonMark document, so whether something is code is CommonMark's answer and the known-divergence clause goes away. A candidate for 0.2, not for 0.1 | Waits on the dataset, which is what shows whether the change moves any existing card | [[hmd-lang-spec#lexical-model]] |
 | parked | **A Lean model of resolution and embed expansion.** Nice to have. It would turn claims the specification only asserts — the result does not depend on file order, a wildcard import never changes a name the spine resolved, a resolved path stays inside the root, expansion terminates — into theorems, and as executable code it could serve as an oracle for the three implementations on generated trees | Unparked if a property-based test finds a counterexample to one of those claims, or a fourth implementation needs a reference the existing three cannot settle between them | [[hmd-lang-spec#name-resolution]], [[hmd-lang-spec#embed-expansion]] |
-| doing | **Replace the rest of *Conformance to the Standard*.** The section's title and its opening paragraph are new. The rest is the previous normative text, kept as it is until a replacement is agreed. That text covers the RFC 2119 key words, the conforming implementation, CommonMark compatibility, extras, determinism, and arbitration by the corpus. The new opening paragraph uses a lowercase "must" just above the line that gives **MUST** its RFC 2119 meaning; the replacement should settle which one is meant | The opening paragraph was agreed on 2026-11-24; the rest of the wording was not | [[hmd-lang-spec#conformance-to-the-standard]] |
+| todo | **Settle the lowercase "must" in *Conformance to the Standard*.** The section was revised on 2026-11-24: CommonMark compatibility, determinism, and verification replace the old wording, and the extras bullet is gone. Two of its passages use a lowercase "must" next to the line that gives **MUST** its RFC 2119 meaning: the opening paragraph, and the verification bullet's "must be investigated and resolved". Decide whether each is normative | Wording only, but it decides what an implementation can be held to | [[hmd-lang-spec#conformance-to-the-standard]] |
 | todo | **Specify the Extended Markdown syntax.** On 2026-11-24 the constructs *Extras* listed became part of the language: tables, task lists, strikethrough, subscript, footnotes, callouts, collapsible callouts, maths, attribute lists, Markdown inside HTML, and drawn diagrams. Renaming the section did not standardise them. Each row needs a pinned reference specification and the exact syntax and semantics it takes from that reference. Some references are implementations rather than specifications: Python-Markdown and PyMdown Extensions. The standard also has to say what a conforming implementation owes these constructs, since rendering is outside conformance in 0.1. The introduction promises charts and graphs, and no cell kind or row covers them | The section is normative now but specifies little more than a list | [[hmd-lang-spec#extended-markdown-syntax]], [[hmd-lang-spec#cells]] |
 | todo | **Verify path-suffix resolution in every implementation.** The standard now explains that an unqualified reference with several path components matches the ending components of a candidate card in the recursive search, never a string suffix. No conformance case uses such a reference yet. Check the three implementations, add the cases, and fix any discrepancy; the standard is the source of truth | Kept apart from the specification, which is settled | [the card](../issues/0017-verify-path-suffix-resolution.md), [[hmd-lang-spec#path-suffix-resolution]] |
+| todo | **Validate the grammar, a release requirement for 0.1.** Check every production in *Grammar* against the normative prose, and record each rule the prose adds that a production does not express. Write language-neutral positive and negative cases for every production, block anchors, the frontmatter block, and masking. Run them against Python, TypeScript, and Rust. Compare the syntax recognised, the parsed reference components, source positions, and diagnostics, independently of rendering. Report each discrepancy and correct the implementation; a change to the standard is a reviewed decision, never a quiet match to one implementation. | Kept separate from the specification and from the existing corpus, which compares only diagnostics and resolutions, and in Rust resolutions only. Two things to decide first: grammar cases cannot be generated from the canonical implementation if they are to find it wrong, and they need a parse-level output that `expected.json` does not have | [the card](../issues/0018-validate-the-grammar.md), [[hmd-lang-spec#grammar]], [[hmd-lang-spec#lexical-model]] |
+| todo | **Review lexical compatibility with CommonMark.** *Lexical model* permits a line-oriented scanner to differ from a full CommonMark parser on pathological input, such as a wikilink in an HTML block or a fence opened in a blockquote. *Conformance to the Standard* requires every implementation to recognise the same syntax. Find out whether two conforming implementations can read one document differently, list the cases and what each implementation does, and propose resolutions | The divergence paragraph stays as it is until a semantic decision is made | [the card](../issues/0019-lexical-compatibility-with-commonmark.md), [[hmd-lang-spec#lexical-model]] |
 | backlog | **Derive a test dataset from the standard.** Each construct, each interaction between constructs, and each corner case the formal definitions state becomes an executable example with its expected output. The aim is that every rule in the standard has a case and every case cites the rule it tests. Outside the scope of the 2026-11-24 revision | Follows the proofreading at three levels of specificity; extends the shared corpus rather than replacing it | [[hmd-lang-spec]], `examples/conformance/cases/` |
 | todo | **Accept Mermaid as a diagram language on par with D2.** The format rejected it as superseded by D2 when it was first sketched, and the MVP grammar, the D2 proposal's non-goals, and the feature list still say so, while HQL's `mermaid` step already writes Mermaid fences that every tool then shows as code. Reverse the rejection in all four places in one pass. The specification's line rejecting a second diagram notation is already gone. The format's half is answered by diagram cells: a `mermaid#show` fence is a diagram whose body is opaque to the resolver, exactly as a `d2#show` fence is | The renderer choice comes first: Mermaid is a JavaScript library, not a single binary like `d2` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.md), [[hmd-0022]], [[hmd-0030]] |
 
@@ -191,6 +201,27 @@ withdrew two dozen claims.
 
 ## Changelog
 
+- 2026-11-24: proofreading from the introduction through the start of
+  *Grammar*. The example vault no longer claims its output comes from one
+  implementation, and an unresolved link is explained as the wiki way of
+  writing ahead of a card. *Conformance to the Standard* has new CommonMark
+  compatibility and determinism bullets, and *Verification* replaces
+  arbitration by the corpus: the standard is authoritative, and a discrepancy
+  between it, the test dataset, and an implementation is investigated and
+  resolved. Rendering is described as presentation, independent of meaning.
+  *Documents* opens with the document model and the extension priority. The NFC
+  rule moved from *Encoding* to *Name resolution*. *Markdown cards* opens with
+  its purpose. *Lexical model* defines the regions excluded from recognition
+  instead of a masking scanner. Implementation guidance and rationale are
+  informative footnotes, and the *Why* paragraphs of the revised sections are
+  gone. The grammar productions and the permitted divergence are unchanged.
+  Issue 0019 reviews that divergence, and issue 0018 now lists the grammar
+  areas to cover.
+- 2026-11-24: grammar validation is a separate release requirement for 0.1.
+  Each production is checked against the prose, and positive and negative
+  cases are run against all three implementations. They compare the syntax
+  recognised, the reference components, positions, and diagnostics. Issue
+  0018 carries it.
 - 2026-11-24: the terms table defines a namespace as the collection of cards
   and modules that share one naming and addressing space, and a module as a
   directory that groups cards and scopes names. *Spine*, *sweep*, *key*, and

@@ -62,8 +62,8 @@ rather than defining it.
 | Term | Meaning |
 | --- | --- |
 | **card** | A card is the fundamental unit of knowledge in HyperMarkDown, represented as an individually addressable document. Cards within a namespace can be interconnected to form a structured knowledge base. |
-| **HyperMarkDown card** | A card with the extension `.hmd`; the only kind that is scanned |
-| **Markdown card** | A card with the extension `.md` or `.markdown`: a link and embed target, never scanned |
+| **HyperMarkDown card** | A card with the extension `.hmd`; the only kind in which HyperMarkDown syntax is recognized |
+| **Markdown card** | A card with the extension `.md` or `.markdown`: a link and embed target, in which HyperMarkDown syntax is never recognized |
 | **vault** | The directory that contains a `.hmd/` directory; it holds the configuration |
 | **namespace root** | The directory inside the vault where the cards start, named by the `wiki` setting |
 | **namespace** | A logical collection of cards and modules that together form a knowledge base with a shared naming and addressing space. |
@@ -78,8 +78,8 @@ rather than defining it.
 
 ## The example vault
 
-The sections below use one small vault. It is real: the lint output shown is
-what the canonical implementation prints for it.
+Throughout this specification, the following example vault illustrates the
+organization of cards and modules, name resolution, embeds, and diagnostics.
 
 ```text
 handbook/                      the vault
@@ -122,7 +122,7 @@ How each of its references resolves:
 | `![[setup#^setup-linux]]` | the `Linux` section of `setup.hmd` | An anchor on a heading line embeds that heading's section |
 | `[[tokens]]` | `guides/tokens.hmd` | Found in the card's own directory, which is searched before its parents |
 | `[[api]]` | `reference/api.md` | A named import binds the name |
-| `[[deploy]]` | unresolved: a warning | A forward reference, not a failure |
+| `[[deploy]]` | unresolved: a warning | The referenced card does not yet exist. Unresolved wikilinks allow authors to reference concepts before creating their corresponding cards, following the traditional wiki approach. |
 
 `setup.hmd` also links `[[tokens]]`. That card sits at the namespace root, which
 has no parent to search and holds no `tokens`, so the recursive search runs and
@@ -152,38 +152,43 @@ and **MAY** are to be interpreted as described in RFC 2119.
   and severity given there.
 - An implementation MAY provide constructs beyond this specification, but MUST
   NOT assign a different meaning to any construct defined here.
-- **CommonMark compatibility.** Every document CommonMark 0.31.2 accepts is
-  syntactically valid HyperMarkDown. CommonMark constructs keep their CommonMark
-  meaning, except where their bytes form a HyperMarkDown construct. Where this
-  document and CommonMark 0.31.2 disagree about inherited syntax, this document
-  is right; whatever inherited syntax it does not restate is specified at
-  <https://spec.commonmark.org/0.31.2/>.
+- **CommonMark compatibility.** HyperMarkDown inherits the syntax and
+  semantics of [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/). Where
+  HyperMarkDown explicitly extends or modifies these rules, this standard takes
+  precedence. All other CommonMark rules remain unchanged.
 - **What must agree with CommonMark in 0.1.** An implementation MUST find the
   constructs where a CommonMark reading of the document puts them, within the
   [known divergence](#lexical-model). How it renders the inherited Markdown is
   not part of conformance in this version.
-- **Determinism.** The same tree MUST produce the same result — the same
-  resolutions, the same expansions, and byte-identical diagnostics — however
-  often it is processed, on whichever platform, and in whatever order its files
-  were created or are listed by the filesystem.
-- **Arbitration.** Where two implementations disagree about behaviour this
-  document leaves under-determined, the language-neutral conformance corpus at
-  `examples/conformance/cases/` decides. A case that starts passing or failing
-  unexpectedly is a defect in the implementation, not in the corpus.
+- **Determinism.** Given the same documents and configuration, an
+  implementation MUST produce identical reference resolutions, embed
+  expansions, and diagnostics, regardless of the operating system or
+  filesystem traversal order.
+- **Verification.** The language standard serves as the basis for automated
+  tests. The test dataset, at `examples/conformance/cases/`, provides concrete
+  examples of valid and invalid documents and their expected interpretation.
+  Any discrepancy between the standard, the test dataset, and an
+  implementation must be investigated and resolved.
 
 Renaming a `.md` file to `.hmd` keeps it syntactically valid, but can change
 how it is read: `[[foo]]` is literal text in CommonMark and a wikilink in
 HyperMarkDown, and a leading `---` block that matches the grammar below is
 frontmatter.
 
-**Why.** Rendering is left out of conformance in 0.1 because the renderers in
-use, this project's site included, keep older Markdown rules. The constructs
-are what HyperMarkDown owns, so they are what has to agree.
+HyperMarkDown defines the syntax and semantics of documents independently of
+their presentation. Implementations may render documents differently, provided
+they preserve their defined meaning.
 
 ## Documents
 
-A card is stored as a file with a recognized card extension.
-The card extensions, in priority order, are exactly:
+A HyperMarkDown document consists of an optional YAML frontmatter block
+followed by Markdown content, including the extensions defined by this
+standard. Documents are stored as UTF-8 encoded text files.
+
+HyperMarkDown recognizes three card extensions: `.hmd`, `.md`, and
+`.markdown`. When multiple cards in the same directory have the same name but
+different extensions, references without an explicit extension resolve
+according to this priority order:
 
 ```text
 .hmd  .md  .markdown
@@ -206,26 +211,28 @@ The card extensions, in priority order, are exactly:
 
 - A card MUST be encoded in UTF-8. A file with a card extension that is not
   valid UTF-8 MUST be reported as an error at line 1, column 1 ([HMD019](#diagnostics)). It is
-  then not a card: it is neither scanned nor a link target.
+  then not a card: no HyperMarkDown syntax is recognized in it, and it is not a
+  link target.
 - A single byte-order mark (`EF BB BF`) at the start of a card MUST be
-  ignored. Byte 0 of the card, wherever this specification names it, is the
-  first byte after it.
+  ignored.[^byte-order-mark] Byte 0 of the card, wherever this specification
+  names it, is the first byte after it.
 - A line ends at `\n`, at `\r\n`, or at a `\r` not followed by `\n`, as in
   CommonMark.
-- A name in a reference and a name on disk MUST be compared after both are
-  normalised to Unicode NFC.
 
-**Why.** One encoding keeps every tool, and git, reading cards the same way. A
-byte-order mark is invisible, and if it were not ignored it would hide
-frontmatter. The same name can be stored in two Unicode forms, and a reference
-must resolve the same way on every platform.
+[^byte-order-mark]: A byte-order mark is invisible in most editors. If it were
+    not ignored, it would hide a frontmatter block, which must begin at byte 0.
 
 ### Markdown cards
 
-A Markdown card is addressable as a card and is read as CommonMark.
+Markdown cards allow existing Markdown documents to participate in a
+HyperMarkDown knowledge base without modifying their content or interpreting it
+as HyperMarkDown.
 
-- A Markdown card MUST NOT be scanned. Its body yields no wikilink, no embed and
-  no block anchor; a `[[...]]` in it is text.
+They can be referenced and embedded by other cards, while their body retains
+its CommonMark semantics.
+
+- HyperMarkDown syntax MUST NOT be recognized in a Markdown card. Its body
+  yields no wikilink, no embed and no block anchor; a `[[...]]` in it is text.
 - It MAY open with a frontmatter block under the same fence rule. An
   implementation MUST expose the mapping and MUST NOT interpret any of its keys,
   the four reserved keys included. A block that does not parse as a YAML
@@ -236,46 +243,52 @@ A Markdown card is addressable as a card and is read as CommonMark.
 - An embed of a Markdown card transcludes its body as CommonMark, with no
   HyperMarkDown expansion inside it.
 
-**Why.** Its author wrote Markdown, so nothing in it is read as HyperMarkDown.
-
 ## Lexical model
 
-HyperMarkDown constructs are found by **scanning**, not by fully parsing the
-document as CommonMark. An implementation extracts only the constructs this
-specification owns and leaves every other byte to whatever renders the document.
+This section defines where HyperMarkDown syntax is recognized within a
+document, which regions are excluded from recognition, and how the source
+positions of recognized elements are represented.
 
-- Before extracting any construct, an implementation MUST **mask** these
-  regions, so their contents never yield a link, an embed, or an anchor: fenced
-  code blocks (both ` ``` ` and `~~~`), inline code spans, and HTML comments
-  (`<!-- ... -->`). They are the only masked regions.
-- Indented code blocks MUST NOT be masked.
-- Raw inline HTML is not masked: a hand-written `<code>` element is scanned like
-  any other text.
-- Masking MUST preserve byte offsets, so that every construct carries an exact
-  source span.
+- HyperMarkDown syntax MUST NOT be recognized within fenced code blocks (both
+  ` ``` ` and `~~~`), inline code spans, or HTML comments (`<!-- ... -->`).
+  These are the only excluded regions: their contents never yield a link, an
+  embed, or an anchor.[^excluded-regions]
+- Indented code blocks are not excluded: HyperMarkDown syntax inside them MUST
+  be recognized.[^indented-code]
+- Raw inline HTML is not excluded: a hand-written `<code>` element is treated
+  like any other text.
 - Every construct MUST record a span of `(start_offset, end_offset, line,
   column)`. Offsets count UTF-8 bytes from the start of the card, starting at
-  0. `line` and `column` start at 1, and `column` counts Unicode code points.
-- Scanning MUST NOT depend on filesystem iteration order, on the contents of any
-  other file, or on any state outside the card's own bytes. Everything
-  cross-file belongs to resolution.
+  0. `line` and `column` start at 1, and `column` counts Unicode code
+  points.[^code-point-columns]
+- Recognition MUST NOT depend on filesystem traversal order, on the contents of
+  any other file, or on any state outside the card's own bytes. Everything
+  cross-file belongs to name resolution.
 
 **Known divergence.** A line-oriented masking scanner differs from a full
 CommonMark parser on pathological input, such as a wikilink inside an HTML
 block or a fence opened inside a blockquote. This is permitted in 0.1. It is not
-a licence to diverge on ordinary input.
+a licence to diverge on ordinary input.[^divergence]
 
-**Why.** A four-space indent is also how a callout body and a footnote
-continuation are written, so masking indented code would silently drop real
-links from ordinary prose; an author who needs code has fences. Columns count
-code points so that a position is the same in every implementation, whatever
-its string type. The divergence is tolerated because the construct set is small
-and every divergence can be diagnosed.
+[^excluded-regions]: An implementation may achieve this by identifying and
+    masking excluded regions before scanning the document for HyperMarkDown
+    syntax. Masking that preserves byte offsets keeps every source span exact.
+
+[^indented-code]: A four-space indent is also how a callout body and a footnote
+    continuation are written, so excluding indented code would silently drop
+    real links from ordinary prose. An author who needs code has fences.
+
+[^code-point-columns]: Columns count code points so that a position is the
+    same in every implementation, whatever its string type.
+
+[^divergence]: The divergence is tolerated because the set of HyperMarkDown
+    constructs is small, and every divergence can be diagnosed.
 
 ## Grammar
 
-The constructs below are the format's own. Masked regions are the only way to
-write a construct without invoking it.
+The following grammar defines the syntax of wikilinks, embeds, and their
+reference targets. These rules apply wherever HyperMarkDown syntax is
+recognized, as defined in the preceding section.
 
 ```text
 embed            := "!" wikilink
@@ -364,7 +377,8 @@ or punctuation.
 
 - A **heading** is an ATX heading (`# Setup`) or a setext heading (`Setup`
   over a line of `===` or `---`), as CommonMark defines them. Both are
-  addressable. A line inside a masked region is never a heading.
+  addressable. A line inside an [excluded region](#lexical-model) is never a
+  heading.
 - A heading's **text** is its content as a reader sees it, with inline markup
   removed: `# The *fast* path` has the text `The fast path`. A closing run of
   `#` and a trailing block anchor are not part of it.
@@ -451,7 +465,12 @@ Name resolution is the process of locating a card referenced by a wikilink or
 an embed.
 
 HyperMarkDown uses Unix-style paths with forward slashes (`/`) as directory
-separators, regardless of the underlying operating system.
+separators, regardless of the underlying operating system. Reference names and
+filesystem names MUST be normalized to Unicode NFC before
+comparison.[^nfc-names]
+
+[^nfc-names]: The same name can be stored in two Unicode forms, and a reference
+    must resolve the same way on every platform.
 
 Relative paths are resolved from the directory containing the referring
 document, not from the working directory of the application.
@@ -632,9 +651,6 @@ Matching operates on complete path components rather than arbitrary string
 suffixes: `[[dynamics]]` does not reach `thermodynamics.hmd`, and
 `[[sics/thermodynamics]]` does not reach `physics/thermodynamics.hmd`. The
 existing search scope, resolution precedence, and ambiguity rules apply.
-
-This subsection explains existing semantics rather than introducing a separate
-resolution mechanism.
 
 ### Fragments
 
@@ -930,7 +946,8 @@ first word of the fence's info string, and the cell kinds are exactly:
   is an ordinary fenced block.
 - A plain `hql`, `d2`, or `mermaid` fence is a **listing**: source shown as
   code, never run and never drawn.
-- A cell's body is masked like that of every fenced block. It yields no link,
+- A cell's body is excluded from recognition like that of every fenced block.
+  It yields no link,
   no embed, no anchor, and no edge in the graph.
 - An `hql#eval` cell MAY be followed by its saved output, between an
   `<!-- hql:output … -->` and an `<!-- /hql:output -->` marker. The output is
@@ -984,8 +1001,8 @@ malformed target.
 The gap an author is most likely to meet is the absence of an **escape
 mechanism**, in both directions. A target cannot contain a reserved character,
 and the only way to show a construct without invoking it is to put it in a code
-span or a fenced block. Raw inline HTML is not masked and is therefore not a
-workaround.
+span or a fenced block. Raw inline HTML is not excluded from recognition and is
+therefore not a workaround.
 
 ## See also
 

@@ -52,7 +52,7 @@ the board, in the order this view lists them.
 | state   | rows |
 | ------- | ---- |
 | doing   | 1    |
-| todo    | 33   |
+| todo    | 35   |
 | blocked | 5    |
 | backlog | 10   |
 | parked  | 3    |
@@ -89,6 +89,8 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Test the scanner against CommonMark's own examples.                                                | [lang](lang.md)           |
 | todo    | Specify the Extended Markdown syntax.                                                              | [lang](lang.md)           |
 | todo    | Verify path-suffix resolution in every implementation.                                             | [lang](lang.md)           |
+| todo    | Validate the grammar, a release requirement for 0.1.                                               | [lang](lang.md)           |
+| todo    | Review lexical compatibility with CommonMark.                                                      | [lang](lang.md)           |
 | todo    | Accept Mermaid as a diagram language on par with D2.                                               | [lang](lang.md)           |
 | todo    | The roadmap is behind the releases                                                                 | [pages](pages.md)         |
 | todo    | A screenshot of the example notebook for the cover                                                 | [pages](pages.md)         |

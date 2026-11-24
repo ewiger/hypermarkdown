@@ -46,7 +46,17 @@ Rendering is out of scope.
 2. **Write language-neutral positive and negative cases for every
    production**, including the boundaries: each reserved character in each
    position, empty components, `./` and `../` alone, the length limit of
-   `block_id`, and a construct inside and beside each masked region.
+   `block_id`, and a construct inside and beside each excluded region. Cover
+   in particular:
+   - absolute, explicit relative, and unqualified references;
+   - `.` and `..` as path components, and multi-component paths;
+   - backslashes, colons, and the delimiters, which the grammar does not
+     reserve or reserves only in part;
+   - explicit and implicit card extensions;
+   - heading fragments and block identifiers;
+   - valid and malformed display text;
+   - Unicode: NFC normalisation of names, and source positions in code points;
+   - invalid syntax: whether it is recognised, rejected, and diagnosed.
 3. **Run the same cases against Python, TypeScript, and Rust.**
 4. **Compare, independently of rendering:**
    - the syntax recognised: which construct, or none;
@@ -56,8 +66,11 @@ Rendering is out of scope.
    - source positions: the byte offsets, line, and code-point column of each
      construct;
    - diagnostics, HMD010 in particular.
-5. **Correct each discrepancy** in the grammar or in the implementation,
-   whichever is wrong, and record which one it was.
+5. **Report each discrepancy** between the grammar, the prose, and an
+   implementation's behaviour, and record which one is wrong. Correct an
+   implementation to match the standard. Never change the standard quietly
+   to match one implementation: a change to the grammar or the prose is a
+   decision, made in review and recorded in the tracker.
 
 ## Open
 
