@@ -21,6 +21,8 @@ against
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-11-24
+
 ### Changed
 
 - **The namespace root comes from `location_path`, and defaults to the folder
@@ -372,7 +374,8 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.2...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.6.0...HEAD
+[0.6.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.2...vsc-ext-v0.6.0
 [0.5.2]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.1...vsc-ext-v0.5.2
 [0.5.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.0...vsc-ext-v0.5.1
 [0.5.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.4.4...vsc-ext-v0.5.0

@@ -16,6 +16,8 @@ on PyPI, tagged `semantics-vX.Y.Z`. Implementation state is tracked in
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-11-24
+
 ### Changed
 
 - **The namespace root is `location_path`, and defaults to the vault itself.**

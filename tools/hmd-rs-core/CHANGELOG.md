@@ -16,6 +16,8 @@ crates.io. Implementation state is tracked in
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-11-24
+
 ### Added
 
 - **A file that is not valid UTF-8 is not a card.** A file with a card

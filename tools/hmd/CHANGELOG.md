@@ -13,6 +13,8 @@ only for the Python API.
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-11-24
+
 ### Added
 - **A Pygments lexer for HyperMarkDown**, registered as `hmd` (alias
   `hypermarkdown`, files `*.hmd`). A code sample fenced as ```` ```hmd ```` is
@@ -455,7 +457,9 @@ Deliberate, and tracked per proposal under `doc/proposals/HMD-NNNN/STATUS.md`:
 Both specifications — the format and the site — are still `drafted`. Expect the
 format to move before `1.0`.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/ewiger/hypermarkdown/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/ewiger/hypermarkdown/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/ewiger/hypermarkdown/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ewiger/hypermarkdown/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ewiger/hypermarkdown/compare/v0.1.1...v0.2.0

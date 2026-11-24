@@ -15,7 +15,7 @@ from .config import Config, ConfigError
 from .model import Diagnostic, Document, Link, Span
 from .resolve import Outcome, Resolution, Workspace
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 __all__ = [
     "Config",
