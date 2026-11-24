@@ -1,0 +1,10 @@
+# Install
+
+Absolute: [[/guides/setup]]
+Relative: [[./setup]] and [[../index]]
+Bare: [[setup]]
+Path: [[guides/setup]]
+Embed: ![[setup#Linux]]
+Caret after the first character: [[setup#a^b]]
+Two bangs: !![[setup]]
+Missing: [[guides/nowhere]]

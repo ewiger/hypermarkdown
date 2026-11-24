@@ -38,7 +38,9 @@ export {
 export {
   Workspace,
   DEFAULT_CONFIG,
+  ESCAPES,
   INDEX_STEM,
+  type Escapes,
   type ImportTable,
   type Outcome,
   type Resolution,
@@ -93,6 +95,7 @@ export * from "./ir.js";
 export * from "./model.js";
 export {
   basenameRel,
+  compareCodePoints,
   dirnameRel,
   isUnder,
   joinRel,

@@ -72,25 +72,35 @@ Rendering is out of scope.
    to match one implementation: a change to the grammar or the prose is a
    decision, made in review and recorded in the tracker.
 
-## Open
+## Decided for 0.1
 
-- **Where the expected output comes from.** Every `expected.json` in the corpus
-  today is generated from the canonical implementation. For grammar cases the
-  expected output has to come from the productions and the prose. Otherwise
-  step 5 can never find the canonical implementation wrong. Decide whether
-  these cases are written by hand and reviewed, and how that fits the corpus's
-  rule on canonicity.
-- **The shape of a grammar case.** Most of these cases need one card and no
-  tree. They also need an output the current `expected.json` does not have.
-  Decide whether that output goes into a new file beside it or into a separate
-  kind of case. Also decide what each runner must expose to produce it,
-  including the Rust crate, which emits no diagnostics.
+- **Expected output is written from the specification**, never generated from
+  an implementation. The specification is the authority over every
+  implementation, the canonical one included.
+- **Grammar cases use the existing tree-case format and runners**:
+  `examples/conformance/cases/grammar-*/`, with `expected.json` holding
+  diagnostics and resolutions. There is no new kind of case and no new scan
+  interface in 0.1, so no new logic.
+
+## Limitations (known gaps)
+
+- **Parse-level output is not compared.** The tree-case format has no place
+  for the parsed components of a reference — the kind of page reference, its
+  path components, the extension, the fragment kind and text, and the display —
+  or for the span of a construct other than a diagnostic's line and column.
+  A grammar disagreement is caught only when it changes a diagnostic, a
+  resolution, or the raw text of a recognised link. A corpus format for
+  parse-level output is deferred past 0.1.
+- **The Rust crate compares resolutions only**, so it takes part in a grammar
+  case only through which links it recognises and where they resolve.
 
 ## Done when
 
 - Every production has a recorded verdict against the prose, and every
   disagreement found is corrected.
-- Every production has positive and negative cases in the corpus.
-- All three implementations pass those cases on recognised syntax, components,
-  and positions, and Python and TypeScript also pass them on diagnostics. Any
-  remaining difference is a ledger entry that says where it is tracked.
+- Every production that agrees with the prose, and every gap the specification
+  settles, has positive and negative cases in the corpus. The malformed-link
+  cases follow once the rule for a malformed link is in the specification.
+- All three implementations pass those cases on diagnostics and resolutions;
+  the Rust crate on resolutions. Any remaining difference is a ledger entry
+  that says where it is tracked.

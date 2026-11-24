@@ -22,7 +22,7 @@ from .model import (
 )
 
 #: Characters that may not appear literally in a link target (HMD-0001 §2).
-RESERVED_CHARS = frozenset("[]|#^\n")
+RESERVED_CHARS = frozenset("[]|#^:\n")
 
 _BLOCK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
@@ -254,10 +254,7 @@ def _links(
             )
         )
 
-    for start in scan.find_unterminated(masked):
-        line, column = positions.line_col(start)
-        diagnostics.append(Diagnostic("HMD010", ERROR, rel, line, column, "unterminated '[[' — expected ']]'"))
-
+    # A `[[` that begins no link candidate is ordinary text, not HMD010.
     return tuple(links), diagnostics
 
 
@@ -299,4 +296,18 @@ def _parse_target(inner: str) -> tuple[str, str | None, str | None, str | None]:
     if bad:
         raise ValueError(f"reserved character {''.join(sorted(bad))!r} in target")
 
+    if dot_segment_outside_relative(page_ref):
+        raise ValueError("'.' or '..' outside an explicit relative reference")
+
     return page_ref, fragment, fragment_kind, display
+
+
+def dot_segment_outside_relative(page_ref: str) -> bool:
+    """Whether an absolute or unqualified `page_ref` has a `.` or `..` segment.
+
+    Only an explicit relative reference, one opening with `./` or `../`, may
+    hold them; anywhere else the reference is malformed (HMD010).
+    """
+    if page_ref.startswith(("./", "../")):
+        return False
+    return any(part in (".", "..") for part in page_ref.split("/"))

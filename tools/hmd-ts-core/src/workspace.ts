@@ -13,7 +13,7 @@ import { MARKER_DIR } from "./config.js";
 import { cardText, decodeCard } from "./encoding.js";
 import type { WorkspaceHost } from "./host.js";
 import type { ImportStmt, ParsedDocument } from "./model.js";
-import { parse } from "./parse.js";
+import { dotSegmentOutsideRelative, parse } from "./parse.js";
 import {
   CARD_SUFFIXES,
   INDEX_STEM,
@@ -401,7 +401,9 @@ export class Workspace {
           continue;
         }
         const existing = table.bindings.get(local);
-        if (existing !== undefined && existing !== target) {
+        // Two bindings of one name are an error even when they reach one card:
+        // the name is declared twice. The first binding stands.
+        if (existing !== undefined) {
           table.problems.push([
             "HMD015",
             `'${local}' is bound twice by imports (${existing} and ${target})`,
@@ -469,6 +471,9 @@ export class Workspace {
     const suffix = cardSuffix(pageRef);
     const stem = suffix === null ? pageRef : pageRef.slice(0, -suffix.length);
 
+    // Malformed (HMD010): never a link, so never resolved.
+    if (dotSegmentOutsideRelative(stem)) return resolution({ outcome: "unresolved" });
+
     if (stem.startsWith("/")) return bound(this.bind("", split(stem), suffix));
 
     if (stem.startsWith("./") || stem.startsWith("../")) {
@@ -477,8 +482,10 @@ export class Workspace {
         ...stem.split("/"),
       ]);
       if (escapes || this.violates(parts)) return resolution({ outcome: "escapes" });
-      if (parts.length === 0 || stem.split("/").every((p) => p === "." || p === ".." || p === "")) {
-        // `[[./]]`, `[[../]]`: the directory itself, so its folder note.
+      const last = stem.replace(/\/+$/, "").split("/").pop();
+      if (parts.length === 0 || last === "." || last === "..") {
+        // `[[./]]`, `[[../]]`, or a last component of `.` or `..`: the
+        // directory itself, so its folder note.
         return bound(this.bind(parts.join("/"), [], suffix, true));
       }
       return bound(this.bind(parts.slice(0, -1).join("/"), [parts[parts.length - 1]!], suffix));
@@ -546,6 +553,25 @@ export class Workspace {
     return out;
   }
 
+  /**
+   * Whether a folder note, matched by its directory's name, gives way: a card
+   * beside the directory claims the same name and is selected in every phase
+   * (HMD012), while the note stays reachable by its `index` path. Only a card
+   * the reference could bind counts: one with the written extension, or any
+   * card that is not shadowed.
+   */
+  private noteYieldsToCard(page: string, keyParts: readonly string[], ext: string | null): boolean {
+    const parts = pageParts(page).map(nfc);
+    if (parts.length < 2 || parts[parts.length - 1] !== INDEX_STEM) return false;
+    if (keyParts.join("/") !== parts.slice(0, -1).join("/")) return false;
+    const directory = dirnameRel(page);
+    for (const each of ext === null ? CARD_SUFFIXES : [ext]) {
+      const card = this.card(`${directory}${each}`);
+      if (card !== null && (ext !== null || !this.shadowed.has(card))) return true;
+    }
+    return false;
+  }
+
   private sweep(source: string, parts: readonly string[], ext: string | null): string[] {
     this.ensureIndex();
     const scope = this.config.mode === "recursive" ? dirnameRel(source) : "";
@@ -558,6 +584,7 @@ export class Workspace {
       if (keyParts.slice(keyParts.length - parts.length).join("/") !== suffix) continue;
       for (const page of pages) {
         if (ext !== null ? cardSuffix(page) !== ext : this.shadowed.has(page)) continue;
+        if (this.noteYieldsToCard(page, keyParts, ext)) continue;
         if (scope === "" || isUnder(scope, page)) matches.add(page);
       }
     }

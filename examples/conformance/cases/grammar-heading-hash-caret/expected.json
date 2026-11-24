@@ -1,0 +1,57 @@
+{
+  "diagnostics": [
+    {
+      "column": 21,
+      "line": 3,
+      "message": "setup.hmd has no heading '#Chapter#Section'",
+      "path": "index.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    },
+    {
+      "column": 34,
+      "line": 4,
+      "message": "setup.hmd has no block '^x'",
+      "path": "index.hmd",
+      "rule": "HMD005",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[setup##C tips]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#C tips]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#C# tips]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#Chapter#Section]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#^x]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#a#^b]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#a^b]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    }
+  ]
+}

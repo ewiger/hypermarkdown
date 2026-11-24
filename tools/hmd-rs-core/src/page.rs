@@ -38,9 +38,12 @@ pub enum ReferenceError {
     InvalidBlockId(String),
     /// Nothing names a page, as in `[[#heading]]`.
     NoPage,
-    /// The page reference holds `^`, `[`, `]` or a newline, which are
+    /// The page reference holds `^`, `[`, `]`, `:` or a newline, which are
     /// reserved.
     ReservedCharacter,
+    /// An absolute or unqualified page reference has a `.` or `..` segment,
+    /// which only a relative reference, opening with `./` or `../`, may hold.
+    DotSegment,
 }
 
 impl fmt::Display for ReferenceError {
@@ -52,6 +55,9 @@ impl fmt::Display for ReferenceError {
             ReferenceError::InvalidBlockId(id) => write!(f, "invalid block id '{id}'"),
             ReferenceError::NoPage => f.write_str("link target has no page reference"),
             ReferenceError::ReservedCharacter => f.write_str("reserved character in target"),
+            ReferenceError::DotSegment => {
+                f.write_str("'.' or '..' outside an explicit relative reference")
+            }
         }
     }
 }
@@ -104,8 +110,11 @@ impl Reference {
         if page.is_empty() {
             return Err(ReferenceError::NoPage);
         }
-        if page.contains(['^', '[', ']', '\n']) {
+        if page.contains(['^', '[', ']', ':', '\n']) {
             return Err(ReferenceError::ReservedCharacter);
+        }
+        if dot_segment_outside_relative(page) {
+            return Err(ReferenceError::DotSegment);
         }
 
         Ok(Reference {
@@ -262,6 +271,13 @@ impl Positions {
     }
 }
 
+/// Whether an absolute or unqualified page reference has a `.` or `..`
+/// segment. Only an explicit relative reference may hold them.
+pub(crate) fn dot_segment_outside_relative(page: &str) -> bool {
+    !(page.starts_with("./") || page.starts_with("../"))
+        && page.split('/').any(|part| part == "." || part == "..")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -319,6 +335,10 @@ mod tests {
             ("#tag", ReferenceError::NoPage),
             ("|x", ReferenceError::NoPage),
             ("a^b", ReferenceError::ReservedCharacter),
+            ("/a/../b", ReferenceError::DotSegment),
+            ("/./a", ReferenceError::DotSegment),
+            ("a/../b", ReferenceError::DotSegment),
+            ("..", ReferenceError::DotSegment),
         ] {
             assert_eq!(Reference::parse(inner), Err(why), "{inner:?}");
         }

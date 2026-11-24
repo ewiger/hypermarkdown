@@ -46,9 +46,6 @@ board:
       - id: "0016"
         title: "Prepare the 0.1 specification release"
         file: "0016-prepare-the-0-1-specification-release.md"
-      - id: "0017"
-        title: "Verify path-suffix resolution"
-        file: "0017-verify-path-suffix-resolution.md"
       - id: "0018"
         title: "Validate the grammar"
         file: "0018-validate-the-grammar.md"
@@ -90,6 +87,9 @@ board:
         file: 0115-mermaid-diagrams-on-par-with-d2.md
     doing: []
     done:
+      - id: "0017"
+        title: "Verify path-suffix resolution"
+        file: "archive/0017-verify-path-suffix-resolution.md"
       - id: "0010"
         title: "A folder note's Markdown links resolve one directory up"
         file: "archive/0010-folder-note-links-resolve-one-level-up.md"

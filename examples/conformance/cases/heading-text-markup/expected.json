@@ -1,0 +1,62 @@
+{
+  "diagnostics": [
+    {
+      "column": 37,
+      "line": 6,
+      "message": "setup.hmd has no heading '#Re name d'",
+      "path": "index.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    },
+    {
+      "column": 30,
+      "line": 7,
+      "message": "setup.hmd has no heading '#See the docs https example com page'",
+      "path": "index.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[setup#Closing run]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#Re name d]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#Renamed]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#Run hmd now]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#See the docs https example com page]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#See the docs]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#^bangs]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    },
+    {
+      "raw": "[[setup#^stars]]",
+      "source": "index.hmd",
+      "target": "setup.hmd"
+    }
+  ]
+}

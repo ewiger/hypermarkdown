@@ -23,6 +23,14 @@
       "path": "m/src.hmd",
       "rule": "HMD004",
       "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 8,
+      "message": "[[./k/.]] does not resolve to a page",
+      "path": "m/src.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
     }
   ],
   "resolutions": [
@@ -70,6 +78,16 @@
       "raw": "[[./]]",
       "source": "m/src.hmd",
       "target": "m/index.hmd"
+    },
+    {
+      "raw": "[[./k/..]]",
+      "source": "m/src.hmd",
+      "target": "m/index.hmd"
+    },
+    {
+      "raw": "[[./k/.]]",
+      "source": "m/src.hmd",
+      "target": null
     },
     {
       "raw": "[[./]]",

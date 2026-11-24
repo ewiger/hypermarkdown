@@ -1,0 +1,44 @@
+{
+  "diagnostics": [
+    {
+      "column": 16,
+      "line": 3,
+      "message": "ids.hmd has no block '^mid'",
+      "path": "index.hmd",
+      "rule": "HMD005",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[ids#^9lives]]",
+      "source": "index.hmd",
+      "target": "ids.hmd"
+    },
+    {
+      "raw": "[[ids#^Case]]",
+      "source": "index.hmd",
+      "target": "ids.hmd"
+    },
+    {
+      "raw": "[[ids#^a0123456789abcdef-_ABCDEF0123456789abcdef-_ABCDEF0123456789abcde]]",
+      "source": "index.hmd",
+      "target": "ids.hmd"
+    },
+    {
+      "raw": "[[ids#^a]]",
+      "source": "index.hmd",
+      "target": "ids.hmd"
+    },
+    {
+      "raw": "[[ids#^mid]]",
+      "source": "index.hmd",
+      "target": "ids.hmd"
+    },
+    {
+      "raw": "[[ids#^step_1-b]]",
+      "source": "index.hmd",
+      "target": "ids.hmd"
+    }
+  ]
+}

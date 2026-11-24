@@ -1,0 +1,24 @@
+{
+  "diagnostics": [
+    {
+      "column": 40,
+      "line": 7,
+      "message": "[[after-tick]] does not resolve to a page",
+      "path": "index.hmd",
+      "rule": "HMD001",
+      "severity": "warning"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[after-tick]]",
+      "source": "index.hmd",
+      "target": null
+    },
+    {
+      "raw": "[[target]]",
+      "source": "index.hmd",
+      "target": "target.hmd"
+    }
+  ]
+}

@@ -33,7 +33,6 @@ const ATX_HEADING_RE = /(?<=^|\n)[ \t]{0,3}(#{1,6})[ \t]+([^\n]*?)[ \t]*(?=\n|$)
 const ANCHOR_RE = /[ \t]+\^([A-Za-z0-9][A-Za-z0-9_-]{0,63})[ \t]*(?=\n|$)/g;
 /** A wikilink target may not contain "[", "]" or a line break. */
 const LINK_RE = /(!?)\[\[([^[\]\n]*)\]\]/g;
-const OPEN_RE = /!?\[\[/g;
 
 /** One line ending, in each of the three forms CommonMark recognises. */
 const EOL_RE = /\r\n|\r|\n/g;
@@ -408,21 +407,6 @@ export function findLinks(masked: string): RawLink[] {
       start: m.index!,
       end: m.index! + m[0].length,
     });
-  }
-  return out;
-}
-
-/** Offsets of every `[[` that does not open a complete link. */
-export function findUnterminated(masked: string): number[] {
-  const closed = new Set<number>();
-  for (const m of masked.matchAll(LINK_RE)) {
-    closed.add(m.index! + (m[1] === "!" ? 1 : 0));
-  }
-
-  const out: number[] = [];
-  for (const m of masked.matchAll(OPEN_RE)) {
-    const start = m.index! + (m[0].startsWith("!") ? 1 : 0);
-    if (!closed.has(start)) out.push(m.index!);
   }
   return out;
 }

@@ -27,6 +27,31 @@ crates.io. Implementation state is tracked in
 
 ### Changed
 
+- **Breaking: `EntryKind` has a third variant, `LeavesRoot`**, for a symbolic
+  link whose target lies outside the namespace root. Neither the entry nor
+  anything through it is part of the namespace. `FsHost` reports one instead
+  of reading the file it points at, and `Entry::leaves_root` builds one. A
+  `match` over `EntryKind` that names every variant no longer compiles.
+- **Resolution follows the specification's corrected algorithm.** `.` and
+  `..` belong to relative references alone, and are normalised there. In an
+  absolute or unqualified reference, such as `/a/../b`, `Reference::parse`
+  fails with the new `ReferenceError::DotSegment`, a card leaves such a
+  reference out of its links, and `Vault::resolve` returns `Unresolved` for
+  it. A relative reference whose last component is `.` or `..` names that
+  directory, and binds only its folder note. A path that leaves
+  the namespace is `Resolution::Escapes` in every phase: one that climbs above
+  the root, enters a nested vault, or meets a symbolic link out of the root.
+  It used to be `Unresolved` everywhere but in a relative reference. `./` and
+  `../` alone bind only the directory's folder note, the root's included. A
+  reference that writes an extension reaches a shadowed card in
+  autodiscovery too. A named import whose card has another extension does not
+  apply to it. In autodiscovery, a folder note matched by its directory's name
+  gives way to a card beside the directory, which claims the same name; the
+  note stays reachable by its `index` path.
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. `Reference::parse` returns
+  `ReferenceError::ReservedCharacter` for one, and the link is left out of
+  the card's links.
 - **A leading byte-order mark is ignored**, so frontmatter after one is
   frontmatter, and line 1, column 1 is the character after it.
 - **A line ends at `\n`, `\r\n` or a lone `\r`, and nowhere else.** A form

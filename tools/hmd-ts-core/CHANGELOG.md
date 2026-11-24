@@ -26,6 +26,11 @@ anchors, matching the canonical implementation case for case.
 
 ### Added
 
+- **`DirEntry.leavesRoot`**, optional: a host sets it on a symbolic link whose
+  target lies outside the namespace root. Nothing through such an entry is a
+  card, and a reference whose path meets it is `escapes`, HMD003. `ESCAPES` is
+  what `Workspace.bind` returns for such a path, and `compareCodePoints`
+  orders strings by code point.
 - **HMD012 is a warning.** A card beside a module's folder note of the same name
   shadows the note, which stays reachable by its `index` path; like HMD018,
   that is a shadow decided by a fixed order, not a content bug.
@@ -55,6 +60,36 @@ anchors, matching the canonical implementation case for case.
 
 ### Changed
 
+- **A local name bound twice by imports is HMD015 even when both bindings
+  reach one card**, as in `from /shared import tokens` beside
+  `from ./shared import tokens`. It used to be reported only when the two
+  cards differed. The first binding stands.
+- **Resolution follows the HyperMarkDown 0.1 algorithm**, checked by the
+  corpus's `resolve-*` cases, which are written from the specification rather
+  than generated. `.` and `..` belong to relative references alone, and are
+  normalised there: in an absolute or unqualified reference, such as
+  `[[/a/../b]]` or `[[a/../b]]`, either one is HMD010 and the reference is not
+  a link. A relative reference whose last component is `.` or `..` names that
+  directory, and reaches only its folder note. A path that leaves the namespace is HMD003 in every phase: one
+  that climbs above the root, enters a nested vault, or meets a symbolic link
+  out of the root; a path into a nested vault used to be HMD001. `[[./]]` and
+  `[[../]]` bind only the directory's folder note, the root's included. A
+  reference that writes an extension reaches a shadowed card in the
+  recursive search too, and a named import whose card has another extension
+  does not apply to it. In the recursive search a folder note matched by its
+  directory's name gives way to a card beside the directory. Every imported
+  search path is probed, and HMD016 names each other card once; one card
+  reached through two imports is not reported.
+- **Candidates sort by code point**, as UTF-8 bytes do, in HMD002's list and
+  in the diagnostic order. `<` compared UTF-16 code units and put a character
+  outside the Basic Multilingual Plane before U+E000–U+FFFF.
+- **An unclosed `[[` is text, not HMD010.** A `[[` with no `]]` after it on
+  its line, or with a `[` or `]` first, begins no link and is ordinary
+  Markdown, so a matrix in maths such as `$[[1,2],[3,4]]$` no longer reports an
+  error. A link that is closed but malformed is still HMD010.
+  `findUnterminated` is gone from the scanner.
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. A target containing one is HMD010.
 - **A heading fragment matches by key, not by slug.** The key is the text in
   NFC, case-folded, with every character that is not a letter, mark, or number
   turned into a space and the spaces collapsed: `[[card#ошибка 404]]` reaches
@@ -104,6 +139,10 @@ anchors, matching the canonical implementation case for case.
   ledger.
 - `frontmatter must be a mapping, got str` names a scalar's type the way the
   canonical implementation does, where it said `string`.
+- An embed of a section no longer reports a false cycle. The HMD007 check
+  followed every embed in the embedded card, where an embed of a heading or a
+  block expands that region only, so one section of a card embedding another
+  section of the same card was reported as HMD007.
 
 ## [0.3.0] — 2026-11-15
 

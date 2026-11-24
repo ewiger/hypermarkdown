@@ -38,6 +38,35 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **A local name bound twice by imports is HMD015 even when both bindings
+  reach one card**, as in `from /shared import tokens` beside
+  `from ./shared import tokens`. It used to be reported only when the two
+  cards differed. The first binding stands.
+- **Resolution follows the HyperMarkDown 0.1 algorithm**, checked by the
+  corpus's `resolve-*` cases, which are written from the specification rather
+  than generated. `.` and `..` belong to relative references alone, and are
+  normalised there: in an absolute or unqualified reference, such as
+  `[[/a/../b]]` or `[[a/../b]]`, either one is HMD010 and the reference is not
+  a link. A relative reference whose last component is `.` or `..` names that
+  directory, and reaches only its folder note. A path that leaves the namespace is HMD003 in every phase: one
+  that climbs above the root, enters a nested vault, or meets a symbolic link
+  out of the root; a path into a nested vault used to be HMD001. `[[./]]` and
+  `[[../]]` bind only the directory's folder note, the root's included. A
+  reference that writes an extension reaches a shadowed card in the
+  recursive search too, and a named import whose card has another extension
+  does not apply to it. In the recursive search a folder note matched by its
+  directory's name gives way to a card beside the directory. Every imported
+  search path is probed, and HMD016 names each other card once; one card
+  reached through two imports is not reported.
+- **A symbolic link out of the namespace root is not a card.** Nothing
+  through one is loaded, where a linked file used to be read as a card
+  wherever it pointed.
+- **An unclosed `[[` is text, not HMD010.** A `[[` with no `]]` after it on
+  its line, or with a `[` or `]` first, begins no link and is ordinary
+  Markdown, so a matrix in maths such as `$[[1,2],[3,4]]$` no longer reports an
+  error. A link that is closed but malformed is still HMD010.
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. A target containing one is HMD010.
 - **HMD012 is a warning.** A card beside a module's folder note of the same name
   shadows the note, which stays reachable by its `index` path; like HMD018,
   that is a shadow decided by a fixed order, not a content bug.
@@ -75,6 +104,12 @@ only for the Python API.
 - **Only `.hmd/` marks a project root.** The `.git` fallback is gone: a tree
   with no `.hmd/` above it is refused with a pointer to `hmd init` and
   `--root`, where it used to load the repository root as a project.
+
+### Fixed
+- **An embed of a section no longer reports a false cycle.** The HMD007 check
+  followed every embed in the embedded card, where an embed of a heading or a
+  block expands that region only. One section of a card embedding another
+  section of the same card is not a cycle, and is no longer reported as one.
 
 ## [0.4.0] — 2026-11-15
 

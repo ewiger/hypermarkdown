@@ -1,0 +1,23 @@
+~~~
+[[in-tilde]]
+~~~
+
+~~~ text
+[[in-info-string]]
+~~~
+
+~~~~
+~~~
+[[in-longer-fence]]
+~~~~
+
+````
+```
+[[in-longer-backticks]]
+````
+
+   ```
+[[in-indented-fence]]
+   ```
+
+After the fences: [[target]] and [[missing]]

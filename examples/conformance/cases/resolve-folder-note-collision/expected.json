@@ -19,6 +19,11 @@
   ],
   "resolutions": [
     {
+      "raw": "[[../bar/.]]",
+      "source": "x/bar/inner.hmd",
+      "target": "x/bar/index.hmd"
+    },
+    {
       "raw": "[[../bar]]",
       "source": "x/bar/inner.hmd",
       "target": "x/bar.hmd"
@@ -35,6 +40,21 @@
     },
     {
       "raw": "[[/x/bar]]",
+      "source": "y/src.hmd",
+      "target": "x/bar.hmd"
+    },
+    {
+      "raw": "[[bar.hmd]]",
+      "source": "y/src.hmd",
+      "target": "x/bar.hmd"
+    },
+    {
+      "raw": "[[bar/index]]",
+      "source": "y/src.hmd",
+      "target": "x/bar/index.hmd"
+    },
+    {
+      "raw": "[[bar]]",
       "source": "y/src.hmd",
       "target": "x/bar.hmd"
     },

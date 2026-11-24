@@ -30,7 +30,6 @@ _ATX_HEADING_RE = re.compile(r"^[ \t]{0,3}(?P<hashes>#{1,6})[ \t]+(?P<text>.*?)[
 _ANCHOR_RE = re.compile(r"[ \t]+\^(?P<id>[A-Za-z0-9][A-Za-z0-9_-]{0,63})[ \t]*$", re.MULTILINE)
 # A wikilink target may not contain "[", "]" or a newline (HMD-0001 §2).
 _LINK_RE = re.compile(r"(?P<bang>!?)\[\[(?P<inner>[^\[\]\n]*)\]\]")
-_OPEN_RE = re.compile(r"!?\[\[")
 
 #: One line ending, in each of the three forms CommonMark recognises.
 _EOL_RE = re.compile(r"\r\n|\r|\n")
@@ -329,12 +328,3 @@ def find_links(masked: str):
     """Yield (bang, inner, span_start, span_end) for each well-formed link."""
     for m in _LINK_RE.finditer(masked):
         yield m.group("bang") == "!", m.group("inner"), m.start(), m.end()
-
-
-def find_unterminated(masked: str):
-    """Yield the offset of every ``[[`` that does not open a complete link."""
-    closed = {m.start() + (1 if m.group("bang") else 0) for m in _LINK_RE.finditer(masked)}
-    for m in _OPEN_RE.finditer(masked):
-        start = m.start() + (1 if m.group(0).startswith("!") else 0)
-        if start not in closed:
-            yield m.start()

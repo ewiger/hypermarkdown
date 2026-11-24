@@ -1,0 +1,123 @@
+{
+  "diagnostics": [
+    {
+      "column": 3,
+      "line": 1,
+      "message": "empty link target in [[]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 2,
+      "message": "empty link target in [[ ]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 3,
+      "message": "empty display text in [[target|]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 4,
+      "message": "empty display text in [[target| ]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 5,
+      "message": "empty heading fragment in [[target#]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 6,
+      "message": "empty heading fragment in [[target# ]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 7,
+      "message": "link target has no page reference in [[#Setup]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 8,
+      "message": "invalid block id '' in [[target#^]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 9,
+      "message": "invalid block id '_x' in [[target#^_x]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 10,
+      "message": "invalid block id 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' in [[target#^aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 11,
+      "message": "reserved character '^' in target in [[a^b]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 12,
+      "message": "empty link target in ![[]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 13,
+      "message": "reserved character ':' in target in [[ns:article]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 14,
+      "message": "reserved character ':' in target in [[Re: draft]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[target]]",
+      "source": "index.hmd",
+      "target": "target.hmd"
+    }
+  ]
+}
