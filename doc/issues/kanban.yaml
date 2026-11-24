@@ -23,10 +23,13 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0026, the editor line's is 0116.
-  last_id: 115 # highest assigned overall; per stream — Python 25, editor 115
+  # the Python line's next issue is 0027, the editor line's is 0116.
+  last_id: 115 # highest assigned overall; per stream — Python 26, editor 115
   items:
     backlog:
+      - id: "0026"
+        title: "Check frontmatter with an HQL-like data type system"
+        file: "0026-frontmatter-types-from-an-hql-like-type-system.md"
       - id: "0024"
         title: "Define symbolic link semantics"
         file: "0024-define-symbolic-link-semantics.md"
