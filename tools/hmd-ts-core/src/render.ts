@@ -343,9 +343,12 @@ export class Renderer {
 
     // Block anchors are never rendered: the marker and the blanks before it go.
     for (const anchor of anchors) {
-      const start = columnOffset(line, anchor.span.column);
+      const caret = columnOffset(line, anchor.span.column);
       const length = (anchor.span.indexEnd ?? 0) - (anchor.span.index ?? 0);
-      edits.push({ start, end: start + length, replacement: "" });
+      // The anchor's span starts at its `^`; the blanks before it go too.
+      let start = caret;
+      while (start > 0 && (line[start - 1] === " " || line[start - 1] === "\t")) start -= 1;
+      edits.push({ start, end: caret + length, replacement: "" });
     }
 
     edits.sort((a, b) => b.start - a.start);

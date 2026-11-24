@@ -48,6 +48,18 @@ def test_block_embed_strips_the_anchor_marker(build_workspace):
     assert "first paragraph" not in out and "after" not in out
 
 
+def test_a_block_embed_drops_the_tabs_and_spaces_before_the_anchor(build_workspace):
+    ws = build_workspace(
+        {
+            "a.hmd": "# A\n\n![[b#^def]]\n",
+            "b.hmd": "# B\n\nthe definition\t \t^def\n\nafter\n",
+        }
+    )
+    out = expand(ws, page(ws, "a.hmd")).text
+    assert "the definition\n" in out
+    assert "the definition\t" not in out and "the definition " not in out
+
+
 def test_an_anchor_on_a_heading_embeds_the_whole_section(build_workspace):
     ws = build_workspace(
         {

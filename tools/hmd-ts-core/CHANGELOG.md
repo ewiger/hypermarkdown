@@ -60,6 +60,9 @@ anchors, matching the canonical implementation case for case.
 
 ### Changed
 
+- **A block anchor's position starts at its `^`**, not at the spaces or
+  tabs before it, so HMD006 points at the `^`. The blanks before the anchor
+  still go with it when a block is embedded or rendered.
 - **`wiki` is renamed `location_path`, and defaults to `.`.** The config field
   is `locationPath` and the constant `DEFAULT_LOCATION_PATH`. A config that
   still sets `wiki` is refused with a `ConfigError` that names both keys, so a

@@ -1,0 +1,21 @@
+{
+  "diagnostics": [
+    {
+      "column": 9,
+      "line": 5,
+      "message": "duplicate block anchor '^same' (first defined on line 3)",
+      "path": "dup.hmd",
+      "rule": "HMD006",
+      "severity": "error"
+    },
+    {
+      "column": 30,
+      "line": 19,
+      "message": "duplicate block anchor '^tabbed' (first defined on line 17)",
+      "path": "dup.hmd",
+      "rule": "HMD006",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}

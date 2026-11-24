@@ -1,0 +1,19 @@
+# Dup
+
+First. ^same
+
+Second. ^same
+
+~~~
+In a fence. ^same
+~~~
+
+Too long. ^a0123456789abcdef-_ABCDEF0123456789abcdef-_ABCDEF0123456789abcdex
+
+Too long again. ^a0123456789abcdef-_ABCDEF0123456789abcdef-_ABCDEF0123456789abcdex
+
+Shared with another card. ^shared
+
+A tab before the anchor.	^tabbed
+
+Spaces and tabs before it. 	 ^tabbed
