@@ -35,6 +35,13 @@ What this side still owes is how a card carries a query.
 **Being written now: the 0.1 release.** The specification was restructured
 for reading on 2026-11-22 — a contents list, a table of terms, one example vault
 followed through the sections, and each section's rules ahead of a short *Why*.
+On 2026-11-24 it gained a new introduction, which calls it the language
+standard, and the Conformance section was renamed *Conformance to the Standard*
+with a new opening paragraph. The rest of that section's normative text is
+kept until its replacement is agreed. Proofreading continues with each
+construct described at three levels: a conceptual definition (what it is and
+what it is for), a formal definition (syntax, semantics, behaviour, and edge
+cases), and executable examples (inputs and expected outputs a test can run).
 
 ## Open
 
@@ -51,6 +58,9 @@ followed through the sections, and each section's rules ahead of a short *Why*.
 | backlog | **Grow the CommonMark examples into a differential dataset.** Generate inputs, run them through several parsers (cmark, commonmark.js, markdown-it, pulldown-cmark), and keep each disagreement as a case: either the CommonMark text is silent there, or one parser is wrong and the text decides. The reference parser's branch coverage measures how complete the dataset is | Follows the oracle. Completeness in the strict sense is impossible — the inputs are infinite — so the measure is coverage, not a count | [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/) |
 | backlog | **Define the constructs over the CommonMark parse instead of a masked scan.** A wikilink is a `[[…]]` found in the text of the CommonMark document, so whether something is code is CommonMark's answer and the known-divergence clause goes away. A candidate for 0.2, not for 0.1 | Waits on the dataset, which is what shows whether the change moves any existing card | [[hmd-lang-spec#lexical-model]] |
 | parked | **A Lean model of resolution and embed expansion.** Nice to have. It would turn claims the specification only asserts — the result does not depend on file order, a wildcard import never changes a name the spine resolved, a resolved path stays inside the root, expansion terminates — into theorems, and as executable code it could serve as an oracle for the three implementations on generated trees | Unparked if a property-based test finds a counterexample to one of those claims, or a fourth implementation needs a reference the existing three cannot settle between them | [[hmd-lang-spec#name-resolution]], [[hmd-lang-spec#embed-expansion]] |
+| doing | **Replace the rest of *Conformance to the Standard*.** The section's title and its opening paragraph are new. The rest is the previous normative text, kept as it is until a replacement is agreed. That text covers the RFC 2119 key words, the conforming implementation, CommonMark compatibility, extras, determinism, and arbitration by the corpus. The new opening paragraph uses a lowercase "must" just above the line that gives **MUST** its RFC 2119 meaning; the replacement should settle which one is meant | The opening paragraph was agreed on 2026-11-24; the rest of the wording was not | [[hmd-lang-spec#conformance-to-the-standard]] |
+| todo | **Make the introduction agree with *Extras*.** The new introduction says HyperMarkDown extends Markdown with mathematical notation and with visualizations (diagrams, graphs, and charts). *Extras* lists maths and drawn diagrams as not part of the language, and *Conformance to the Standard* says the same. The table of terms gives a construct as only a wikilink, an embed, a block anchor, or a frontmatter block, and there is no cell kind for a chart or a graph. Either the introduction calls these extras, or maths and diagrams become part of the language for 0.1 | A decision about what 0.1 promises, not an editorial fix; open below as a question | [[hmd-lang-spec#extras]], [[hmd-lang-spec#cells]], [[hmd-lang-spec#terms]] |
+| backlog | **Derive a test dataset from the standard.** Each construct, each interaction between constructs, and each corner case the formal definitions state becomes an executable example with its expected output. The aim is that every rule in the standard has a case and every case cites the rule it tests. Outside the scope of the 2026-11-24 revision | Follows the proofreading at three levels of specificity; extends the shared corpus rather than replacing it | [[hmd-lang-spec]], `examples/conformance/cases/` |
 | todo | **Accept Mermaid as a diagram language on par with D2.** The format rejected it as superseded by D2 when it was first sketched, and the MVP grammar, the D2 proposal's non-goals, and the feature list still say so, while HQL's `mermaid` step already writes Mermaid fences that every tool then shows as code. Reverse the rejection in all four places in one pass. The specification's line rejecting a second diagram notation is already gone. The format's half is answered by diagram cells: a `mermaid#show` fence is a diagram whose body is opaque to the resolver, exactly as a `d2#show` fence is | The renderer choice comes first: Mermaid is a JavaScript library, not a single binary like `d2` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.md), [[hmd-0022]], [[hmd-0030]] |
 
 ## Broken
@@ -165,9 +175,19 @@ withdrew two dozen claims.
 | Does HMD019 apply to `.md` and `.markdown` files, which are never checked? Today it does, since an undecodable file cannot be a card of any kind | [[hmd-lang-spec#encoding]] |
 | Two names on disk that are equal after NFC: the first in sorted order is the card and the other is dropped silently in all three implementations. Should that be a diagnostic, and is "sorted" by code point or by UTF-16 unit? | [[hmd-lang-spec#encoding]] |
 | Is the long form canonical when a tool mints an address, so two tools produce the same string for one location? | [[hmd-0006#both-spellings-and-which-one-is-which]] |
+| Are mathematical notation and diagrams part of HyperMarkDown 0.1, as the introduction now says, or extras, as *Extras* says? Charts and graphs have no cell kind at all | [[hmd-lang-spec#extras]], [[hmd-lang-spec#cells]] |
+| What replaces the rest of *Conformance to the Standard*, and does its opening "must" carry the RFC 2119 meaning? | [[hmd-lang-spec#conformance-to-the-standard]] |
 
 ## Changelog
 
+- 2026-11-24: the specification opens with a new introduction that names it
+  the language standard for 0.1, describes the language and its HQL cells, and
+  states its purpose: consistent interpretation across independent
+  implementations. *Conformance* is now *Conformance to the Standard* and opens
+  with a paragraph on what independent implementations must agree on. The rest
+  of that section's text is unchanged. Three rows are open: replacing the rest
+  of the section, reconciling the introduction with *Extras*, and a test dataset
+  derived from the standard.
 - 2026-11-22: the 0.1 decisions are in all three implementations and pinned by
   six new corpus cases; an anchor on a heading embeds its section, an anchored
   repeat heading is not HMD011, and for 0.1 only the constructs have to agree

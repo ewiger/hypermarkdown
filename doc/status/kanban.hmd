@@ -60,7 +60,7 @@ then the archive.
 | lane    | issues |
 | ------- | ------ |
 | backlog | 5      |
-| todo    | 8      |
+| todo    | 11     |
 | doing   | 0      |
 | done    | 0      |
 | archive | 16     |
@@ -98,6 +98,9 @@ range(0, depth)
 | 0101 The live-editing behaviours are only checked by hand  | 0113 A relative image in a card is not shown in the preview                      |       |      |
 | 0008 A public card linking to a private one needs a policy | 0105 The preview freezes on the card it was opened over                          |       |      |
 | 0007 Conversion should name its output target              | 0100 A `???` callout snaps shut on every re-render                               |       |      |
+|                                                            | 0016 Prepare the 0.1 specification release                                       |       |      |
+|                                                            | 0015 CommonMark's own examples as a test dataset                                 |       |      |
+|                                                            | 0014 A heading in a non-Latin script cannot be linked                            |       |      |
 |                                                            | 0013 The roadmap is behind the releases, and it is the one page that states them |       |      |
 |                                                            | 0012 An embedded card's Markdown links resolve from the host page                |       |      |
 |                                                            | 0011 Vault and namespace: the declared design, HMD, and HQL have drifted apart   |       |      |

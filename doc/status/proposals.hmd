@@ -80,4 +80,6 @@ cards
 | [HMD-0027](../proposals/HMD-0027/README.md) | `hypermarkdown` — the resolver as a Rust crate                                    | drafted    | [rs-core](rs-core.md)                                                                                   |
 | [HMD-0028](../proposals/HMD-0028/README.md) | The `[hql]` and `[semantics]` tables, and the semantic index                      | drafted    | [hmd](hmd.md), [semantics](semantics.md)                                                                |
 | [HMD-0029](../proposals/HMD-0029/README.md) | Markdown files are cards                                                          | drafted    | [hmd](hmd.md), [lang](lang.md), [rs-core](rs-core.md), [semantics](semantics.md), [ts-core](ts-core.md) |
+| [HMD-0030](../proposals/HMD-0030/README.md) | Diagram cells                                                                     | drafted    | [hmd](hmd.md), [lang](lang.md), [pages](pages.md), [ts-core](ts-core.md), [vsc-ext](vsc-ext.md)         |
+| [HMD-0031](../proposals/HMD-0031/README.md) | Freeze                                                                            | drafted    | —                                                                                                       |
 <!-- /hql:output -->

@@ -7,15 +7,29 @@ nav:
 
 # HyperMarkDown Language Specification
 
-**This document specifies HyperMarkDown 0.1, a syntactic extension of
-[CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/).**
+HyperMarkDown is a document language based on CommonMark that extends Markdown
+with wikilinks, embeds, block anchors, structured frontmatter, mathematical
+notation (inline and block LaTeX expressions), and visualizations (diagrams,
+graphs, and charts).
+
+Beyond static document representation, HyperMarkDown introduces the concept of
+executable documents through the integration of HQL (Hyper Query Language).
+Embedded HQL cells allow documents to query data, perform computations, and
+incorporate their results into the document itself.
+
+This document is the language standard for HyperMarkDown version 0.1. It
+defines the syntax, semantics, parsing rules, vault structure, and reference
+resolution, building upon
+[CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/). Its purpose is to
+ensure consistent interpretation of HyperMarkDown documents across independent
+implementations.
 
 **Contents**
 
 - [Status of this document](#status-of-this-document)
 - [Terms](#terms)
 - [The example vault](#the-example-vault)
-- [Conformance](#conformance)
+- [Conformance to the Standard](#conformance-to-the-standard)
 - [Documents](#documents)
 - [Lexical model](#lexical-model)
 - [Grammar](#grammar)
@@ -134,7 +148,13 @@ setup.hmd:9:51: error[HMD002] [[tokens]] matches 2 pages; qualify it (candidates
 1 error(s), 1 warning(s)
 ```
 
-## Conformance
+## Conformance to the Standard
+
+Independent implementations of HyperMarkDown must interpret documents according
+to the syntax and semantics defined by this standard. Given the same document
+and vault context, implementations must recognize the same language constructs,
+resolve references to the same targets, and assign the same meaning to those
+constructs.
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHOULD**, **SHOULD NOT**,
 and **MAY** are to be interpreted as described in RFC 2119.
