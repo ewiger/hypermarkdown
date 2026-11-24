@@ -55,9 +55,6 @@ board:
         title: "There is no way to search the wiki from the preview"
         file: 0106-search-the-wiki-from-the-preview.md
     todo:
-      - id: "0022"
-        title: "Align the implementations with the finalized 0.1 decisions"
-        file: "0022-align-implementations-with-the-0-1-decisions.md"
       - id: "0016"
         title: "Prepare the 0.1 specification release"
         file: "0016-prepare-the-0-1-specification-release.md"
@@ -96,6 +93,9 @@ board:
         file: 0115-mermaid-diagrams-on-par-with-d2.md
     doing: []
     done:
+      - id: "0022"
+        title: "Align the implementations with the finalized 0.1 decisions"
+        file: "archive/0022-align-implementations-with-the-0-1-decisions.md"
       - id: "0023"
         title: "Rename wiki to location_path"
         file: "archive/0023-rename-wiki-to-location-path.md"

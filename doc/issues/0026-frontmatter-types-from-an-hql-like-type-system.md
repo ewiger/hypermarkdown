@@ -3,7 +3,7 @@
 **Column**: backlog
 **Opened**: 2026-11-24
 **Related**: [the format's tracker](../status/lang.md),
-[the alignment card](0022-align-implementations-with-the-0-1-decisions.md),
+[the alignment card](archive/0022-align-implementations-with-the-0-1-decisions.md),
 [[hmd-lang-spec#frontmatter]]
 
 ## Decided

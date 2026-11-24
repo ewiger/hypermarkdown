@@ -1,11 +1,11 @@
 # 0022 — Align the implementations with the finalized 0.1 decisions
 
-**Column**: todo
+**Column**: done — closed 2026-11-24
 **Opened**: 2026-11-24
-**Related**: [the format's tracker](../status/lang.md),
-[the release card](0016-prepare-the-0-1-specification-release.md),
-[the grammar card](0018-validate-the-grammar.md),
-[the shared test coverage card](0025-extend-shared-test-coverage.md),
+**Related**: [the format's tracker](../../status/lang.md),
+[the release card](../0016-prepare-the-0-1-specification-release.md),
+[the grammar card](../0018-validate-the-grammar.md),
+[the shared test coverage card](../0025-extend-shared-test-coverage.md),
 [[hmd-lang-spec]]
 
 ## What
@@ -63,3 +63,14 @@ The approved behavioral changes:
 
 All three suites pass with a case or test for every item above, and the
 ledgers hold no entry for any of them.
+
+## Closed
+
+Closed on 2026-11-24. All 13 items hold in Python, TypeScript, and, where it
+resolves, Rust, each pinned by a shared case or a unit test. The fixes:
+anchors from `^` (Carol), HMD008 depth and position, frontmatter positions,
+messages left out of the comparison, and `nav` validated in TypeScript
+(Bob), and cycles by identity and imported paths that cross the boundary
+(Dave). The ledgers hold no entry for any item. TypeScript's remaining entry,
+`publication-private-link`, belongs to its unported publication model,
+which the release card lists as a known gap.
