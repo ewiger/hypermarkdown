@@ -485,7 +485,11 @@ export class Workspace {
     // Malformed (HMD010): never a link, so never resolved.
     if (dotSegmentOutsideRelative(stem)) return resolution({ outcome: "unresolved" });
 
-    if (stem.startsWith("/")) return bound(this.bind("", split(stem), suffix));
+    // A reference that ends in `/` names a directory, and resolves only to its
+    // folder note, in every phase; `[[/]]` is the root's.
+    const dirRef = stem.endsWith("/");
+
+    if (stem.startsWith("/")) return bound(this.bind("", split(stem), suffix, dirRef));
 
     if (stem.startsWith("./") || stem.startsWith("../")) {
       const { parts, escapes } = normalizeParts([
@@ -493,10 +497,10 @@ export class Workspace {
         ...stem.split("/"),
       ]);
       if (escapes || this.violates(parts)) return resolution({ outcome: "escapes" });
-      const last = stem.replace(/\/+$/, "").split("/").pop();
-      if (parts.length === 0 || last === "." || last === "..") {
-        // `[[./]]`, `[[../]]`, or a last component of `.` or `..`: the
-        // directory itself, so its folder note.
+      const last = stem.split("/").pop();
+      if (dirRef || parts.length === 0 || last === "." || last === "..") {
+        // `[[./]]`, `[[../]]`, a trailing `/`, or a last component of `.` or
+        // `..`: the directory itself, so its folder note.
         return bound(this.bind(parts.join("/"), [], suffix, true));
       }
       return bound(this.bind(parts.slice(0, -1).join("/"), [parts[parts.length - 1]!], suffix));
@@ -508,9 +512,10 @@ export class Workspace {
     const table = this.importTable(source);
 
     // Phase 0 — named imports. A binding names a page, not a namespace, so it
-    // applies to single-segment targets only, and not to a reference that
-    // writes an extension the bound card does not have.
-    if (parts.length === 1) {
+    // applies to single-segment targets only, never to a reference that names
+    // a directory, and not to a reference that writes an extension the bound
+    // card does not have.
+    if (!dirRef && parts.length === 1) {
       const named = table.bindings.get(parts[0]!);
       if (named !== undefined && (suffix === null || cardSuffix(named) === suffix)) {
         return resolution({ outcome: "resolved", path: named, phase: 0 });
@@ -519,7 +524,7 @@ export class Workspace {
 
     // Phase 1 — spine walk, non-recursive, nearest first.
     for (const directory of this.spine(source)) {
-      const target = this.bind(directory, parts, suffix);
+      const target = this.bind(directory, parts, suffix, dirRef);
       if (target === ESCAPES) return resolution({ outcome: "escapes" });
       if (target !== null) {
         return resolution({ outcome: "resolved", path: target, phase: 1 });
@@ -534,7 +539,7 @@ export class Workspace {
     const found: string[] = [];
     const escaped: string[] = [];
     for (const directory of table.searchPaths) {
-      const target = this.bind(directory, parts, suffix);
+      const target = this.bind(directory, parts, suffix, dirRef);
       if (target === ESCAPES) {
         if (found.length === 0) return resolution({ outcome: "escapes" });
         escaped.push(directory);
@@ -555,7 +560,7 @@ export class Workspace {
     if (!this.autodiscoveryEnabled(source)) return resolution({ outcome: "unresolved" });
 
     // Phase 3 — autodiscovery, at most once.
-    const matches = this.sweep(source, parts, suffix);
+    const matches = this.sweep(source, parts, suffix, dirRef);
     if (matches.length === 1) {
       return resolution({ outcome: "resolved", path: matches[0]!, phase: 3 });
     }
@@ -596,7 +601,17 @@ export class Workspace {
     return false;
   }
 
-  private sweep(source: string, parts: readonly string[], ext: string | null): string[] {
+  /**
+   * The recursive search. A reference that names a directory considers only
+   * folder notes, and a folder note it asks for never yields to a card beside
+   * its directory.
+   */
+  private sweep(
+    source: string,
+    parts: readonly string[],
+    ext: string | null,
+    directoryOnly = false,
+  ): string[] {
     this.ensureIndex();
     const scope = this.config.mode === "recursive" ? dirnameRel(source) : "";
     const suffix = parts.join("/");
@@ -608,7 +623,11 @@ export class Workspace {
       if (keyParts.slice(keyParts.length - parts.length).join("/") !== suffix) continue;
       for (const page of pages) {
         if (ext !== null ? cardSuffix(page) !== ext : this.shadowed.has(page)) continue;
-        if (this.noteYieldsToCard(page, keyParts, ext)) continue;
+        if (directoryOnly) {
+          if (pageParts(page).at(-1) !== INDEX_STEM) continue;
+        } else if (this.noteYieldsToCard(page, keyParts, ext)) {
+          continue;
+        }
         if (scope === "" || isUnder(scope, page)) matches.add(page);
       }
     }

@@ -1,0 +1,11 @@
+---
+import:
+  - from /shared import tokens
+---
+
+Root: [[/]]
+Absolute: [[/m/]] is the folder note, [[/m]] the card beside it
+Unqualified: [[m/]] is the folder note, [[m]] the card
+Relative: [[../../m/]] [[../]]
+Import: [[tokens]] is the import, [[tokens/]] is not
+Search: [[deep/]] finds the folder note only, [[deep]] finds both

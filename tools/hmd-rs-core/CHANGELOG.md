@@ -27,6 +27,10 @@ crates.io. Implementation state is tracked in
 
 ### Changed
 
+- **A reference that ends in `/` names a directory**, and `Vault::resolve`
+  binds only its folder note, in every phase: never a named import, and in
+  the recursive search only folder notes. `"/"` resolves to the root's
+  folder note, where it used to be `Resolution::Unresolved`.
 - **A `location_path` that resolves into a nested vault is refused.**
   `Vault::open` returns `Error::Config`, naming `location_path` and the nested
   vault, when a directory between the vault and the namespace root carries

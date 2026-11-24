@@ -409,8 +409,12 @@ impl Vault {
             return Resolution::Unresolved;
         }
 
+        // A reference that ends in `/` names a directory, and resolves only to
+        // its folder note, in every phase; `[[/]]` is the root's.
+        let dir_ref = stem.ends_with('/');
+
         if stem.starts_with('/') {
-            return by_path_rule(self.bind(&[], &paths::split(stem), ext));
+            return by_path_rule(self.bind(&[], &paths::split(stem), ext, dir_ref));
         }
 
         if stem.starts_with("./") || stem.starts_with("../") {
@@ -418,11 +422,12 @@ impl Vault {
             let Some(parts) = paths::normalize(from.into_iter().chain(stem.split('/'))) else {
                 return Resolution::Escapes;
             };
-            // `./`, `../`, and a last component of `.` or `..` name a
-            // directory, and bind only its folder note; so does a path that
-            // normalizes to the root itself.
-            let last = stem.trim_end_matches('/').rsplit('/').next();
-            let directory_only = parts.is_empty() || matches!(last, Some("." | ".."));
+            // `./`, `../`, a trailing `/`, and a last component of `.` or `..`
+            // name a directory, and bind only its folder note; so does a path
+            // that normalizes to the root itself.
+            let last = stem.rsplit('/').next();
+            let directory_only =
+                dir_ref || parts.is_empty() || matches!(last, Some("." | ".."));
             return by_path_rule(self.bind_path(&parts, ext, directory_only));
         }
 
@@ -434,9 +439,10 @@ impl Vault {
         let table = self.by_path.get(source).map(|&at| &self.imports[at]);
 
         // A named import binds a card, not a directory, so it applies to a
-        // single-segment reference only, and not to one that writes an
-        // extension the bound card does not have.
-        if let ([name], Some(table)) = (&parts[..], table)
+        // single-segment reference only, never to one that names a directory,
+        // and not to one that writes an extension the bound card does not have.
+        if !dir_ref
+            && let ([name], Some(table)) = (&parts[..], table)
             && let Some(path) = table.bindings.get(*name)
             && ext.is_none_or(|ext| paths::card_suffix(path) == Some(ext))
         {
@@ -446,7 +452,7 @@ impl Vault {
         // The spine, nearest directory first.
         let mut directory = paths::parent(source);
         loop {
-            match self.bind(&directory, &parts, ext) {
+            match self.bind(&directory, &parts, ext, dir_ref) {
                 Bound::Card(path) => return resolved(path, Via::Spine),
                 Bound::Escapes => return Resolution::Escapes,
                 Bound::NotFound => {}
@@ -462,7 +468,7 @@ impl Vault {
         // is the caller's.
         let mut first = None;
         for directory in table.iter().flat_map(|table| &table.search_paths) {
-            match self.bind(&paths::split(directory), &parts, ext) {
+            match self.bind(&paths::split(directory), &parts, ext, dir_ref) {
                 Bound::Card(path) => {
                     first.get_or_insert(path);
                 }
@@ -478,7 +484,7 @@ impl Vault {
             return Resolution::Unresolved;
         }
 
-        let mut matches = self.sweep(source, &parts, ext);
+        let mut matches = self.sweep(source, &parts, ext, dir_ref);
         match matches.len() {
             0 => Resolution::Unresolved,
             1 => Resolution::Resolved {
@@ -497,13 +503,21 @@ impl Vault {
     /// extension tried.
     ///
     /// When both exist the card wins. The path is normalized first, and one
-    /// that climbs above the root escapes.
-    fn bind(&self, directory: &[&str], parts: &[&str], ext: Option<&str>) -> Bound<'_> {
-        if parts.is_empty() {
+    /// that climbs above the root escapes. `directory_only`, for a reference
+    /// that names a directory, binds only the folder note; with it, empty
+    /// `parts` name `directory` itself.
+    fn bind(
+        &self,
+        directory: &[&str],
+        parts: &[&str],
+        ext: Option<&str>,
+        directory_only: bool,
+    ) -> Bound<'_> {
+        if parts.is_empty() && !directory_only {
             return Bound::NotFound;
         }
         match paths::normalize(directory.iter().chain(parts).copied()) {
-            Some(full) => self.bind_path(&full, ext, false),
+            Some(full) => self.bind_path(&full, ext, directory_only),
             None => Bound::Escapes,
         }
     }
@@ -594,7 +608,7 @@ impl Vault {
             }
 
             for binding in &import.bindings {
-                if let Bound::Card(target) = self.bind(&directory, &[&binding.name], None) {
+                if let Bound::Card(target) = self.bind(&directory, &[&binding.name], None, false) {
                     table
                         .bindings
                         .entry(nfc(&binding.local).into_owned())
@@ -635,8 +649,16 @@ impl Vault {
     ///
     /// In `recursive` mode only cards beneath the directory of `source` count.
     /// With `ext` only cards with that extension are found, shadowed or not;
-    /// without it a shadowed card is never found.
-    fn sweep(&self, source: &str, parts: &[&str], ext: Option<&str>) -> Vec<String> {
+    /// without it a shadowed card is never found. With `directory_only`, for a
+    /// reference that names a directory, only folder notes are found, and a
+    /// folder note it asks for never yields to a card beside its directory.
+    fn sweep(
+        &self,
+        source: &str,
+        parts: &[&str],
+        ext: Option<&str>,
+        directory_only: bool,
+    ) -> Vec<String> {
         let scope = match self.config.mode {
             Mode::Both => String::new(),
             Mode::Recursive => paths::parent(source).join("/"),
@@ -659,7 +681,12 @@ impl Vault {
                     Some(ext) => paths::card_suffix(path) == Some(ext),
                     None => !self.shadowed.contains_key(path),
                 };
-                if in_scope && kept && !self.note_yields_to_card(path, key, ext) {
+                let eligible = if directory_only {
+                    paths::page_parts(path).last() == Some(&INDEX_STEM)
+                } else {
+                    !self.note_yields_to_card(path, key, ext)
+                };
+                if in_scope && kept && eligible {
                     matches.insert(path.clone());
                 }
             }
@@ -813,10 +840,9 @@ mod tests {
             hit("shared/tokens.hmd", Via::Path)
         );
         assert_eq!(v.resolve(from, "/tokens.hmd"), hit("tokens.hmd", Via::Path));
-        assert_eq!(
-            v.resolve(from, "/shared//tokens/"),
-            hit("shared/tokens.hmd", Via::Path)
-        );
+        // A trailing `/` names a directory, so only a folder note answers it,
+        // and `shared/tokens/` has none.
+        assert_eq!(v.resolve(from, "/shared/tokens/"), Resolution::Unresolved);
         // It is looked up nowhere else: no spine, no sweep.
         assert_eq!(v.resolve(from, "/login"), Resolution::Unresolved);
         assert_eq!(v.resolve(from, "/"), Resolution::Unresolved);
@@ -880,8 +906,29 @@ mod tests {
             hit("index.hmd", Via::Path)
         );
         assert_eq!(v.resolve("a.hmd", "./"), hit("index.hmd", Via::Path));
-        // The absolute form names nothing.
-        assert_eq!(v.resolve("a.hmd", "/"), Resolution::Unresolved);
+        // `[[/]]` names the namespace root, so its folder note too.
+        assert_eq!(v.resolve("a.hmd", "/"), hit("index.hmd", Via::Path));
+    }
+
+    #[test]
+    fn a_trailing_slash_names_a_directory_in_every_phase() {
+        let v = vault(&[
+            ("m.hmd", ""),
+            ("m/index.hmd", ""),
+            ("m/k/src.hmd", ""),
+            ("x/deep/index.hmd", ""),
+            ("y/deep.hmd", ""),
+        ]);
+        let from = "m/k/src.hmd";
+        assert_eq!(v.resolve(from, "/m"), hit("m.hmd", Via::Path));
+        assert_eq!(v.resolve(from, "/m/"), hit("m/index.hmd", Via::Path));
+        assert_eq!(v.resolve(from, "m"), hit("m.hmd", Via::Spine));
+        assert_eq!(v.resolve(from, "m/"), hit("m/index.hmd", Via::Spine));
+        assert_eq!(v.resolve(from, "../../m/"), hit("m/index.hmd", Via::Path));
+        assert_eq!(
+            v.resolve(from, "deep/"),
+            hit("x/deep/index.hmd", Via::Autodiscovery)
+        );
     }
 
     #[test]

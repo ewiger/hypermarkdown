@@ -38,6 +38,11 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **A reference that ends in `/` names a directory**, and resolves only to
+  its folder note, in every phase: `[[m/]]` reaches `m/index.hmd` even
+  where `m.hmd` claims the name, it never matches a named import, and the
+  recursive search considers only folder notes. `[[/]]` is the root's folder
+  note. A trailing `/` used to be dropped, so `[[m/]]` reached `m.hmd`.
 - **A `location_path` that resolves into a nested vault is refused.** If a
   directory between the vault and the namespace root carries its own `.hmd/`,
   the vault is not loaded, and the error names `location_path` and the nested

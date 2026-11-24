@@ -70,6 +70,11 @@ anchors, matching the canonical implementation case for case.
 
 ### Changed
 
+- **A reference that ends in `/` names a directory**, and resolves only to
+  its folder note, in every phase: `[[m/]]` reaches `m/index.hmd` even
+  where `m.hmd` claims the name, it never matches a named import, and the
+  recursive search considers only folder notes. `[[/]]` is the root's folder
+  note. A trailing `/` used to be dropped, so `[[m/]]` reached `m.hmd`.
 - **Frontmatter diagnostics are reported where the problem is written**, no
   longer all at line 1, column 1. A malformed value of a top-level key is at
   the key; a malformed list entry,

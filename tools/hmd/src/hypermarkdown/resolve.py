@@ -432,16 +432,20 @@ class Workspace:
             # Malformed (HMD010): never a link, so never resolved.
             return Resolution(Outcome.UNRESOLVED)
 
+        # A reference that ends in `/` names a directory, and resolves only to
+        # its folder note, in every phase; `[[/]]` is the root's.
+        dir_ref = stem.endswith("/")
+
         if stem.startswith("/"):
-            return _bound(self.bind(self.root, _split(stem), suffix))
+            return _bound(self.bind(self.root, _split(stem), suffix, directory_only=dir_ref))
 
         if stem.startswith("./") or stem.startswith("../"):
             base = _normalize(source.parent.joinpath(stem))
             if self._violates(base):
                 return Resolution(Outcome.ESCAPES)
-            if stem.rstrip("/").split("/")[-1] in (".", ".."):
-                # `[[./]]`, `[[../]]`, or a last component of `.` or `..`:
-                # the directory itself, so its folder note.
+            if dir_ref or stem.split("/")[-1] in (".", ".."):
+                # `[[./]]`, `[[../]]`, a trailing `/`, or a last component of
+                # `.` or `..`: the directory itself, so its folder note.
                 return _bound(self.bind(base, (), suffix, directory_only=True))
             return _bound(self.bind(base.parent, (base.name,), suffix))
 
@@ -452,16 +456,17 @@ class Workspace:
         table = self.import_table(source)
 
         # Phase 0 — named imports. A binding names a page, not a namespace, so
-        # it applies to single-segment targets only, and not to a reference
-        # that writes an extension the bound card does not have.
-        if len(parts) == 1 and parts[0] in table.bindings:
+        # it applies to single-segment targets only, never to a reference that
+        # names a directory, and not to a reference that writes an extension
+        # the bound card does not have.
+        if not dir_ref and len(parts) == 1 and parts[0] in table.bindings:
             bound = table.bindings[parts[0]]
             if suffix is None or card_suffix(bound.name) == suffix:
                 return Resolution(Outcome.RESOLVED, bound, phase=0)
 
         # Phase 1 — spine walk, non-recursive, nearest first.
         for directory in self._spine(source):
-            target = self.bind(directory, parts, suffix)
+            target = self.bind(directory, parts, suffix, directory_only=dir_ref)
             if target is ESCAPES:
                 return Resolution(Outcome.ESCAPES)
             if target is not None:
@@ -475,7 +480,7 @@ class Workspace:
         found: list[Path] = []
         escaped: list[Path] = []
         for directory in table.search_paths:
-            target = self.bind(directory, parts, suffix)
+            target = self.bind(directory, parts, suffix, directory_only=dir_ref)
             if target is ESCAPES:
                 if not found:
                     return Resolution(Outcome.ESCAPES)
@@ -496,7 +501,7 @@ class Workspace:
             return Resolution(Outcome.UNRESOLVED)
 
         # Phase 3 — autodiscovery, at most once.
-        matches = self._sweep(source, parts, suffix)
+        matches = self._sweep(source, parts, suffix, directory_only=dir_ref)
         if len(matches) == 1:
             return Resolution(Outcome.RESOLVED, matches[0], phase=3)
         if len(matches) > 1:
@@ -516,7 +521,16 @@ class Workspace:
             directory = directory.parent
         return spine
 
-    def _sweep(self, source: Path, parts: tuple[str, ...], suffix: str | None = None) -> list[Path]:
+    def _sweep(
+        self,
+        source: Path,
+        parts: tuple[str, ...],
+        suffix: str | None = None,
+        directory_only: bool = False,
+    ) -> list[Path]:
+        """The recursive search. A reference that names a directory considers
+        only folder notes, and a folder note it asks for never yields to a card
+        beside its directory."""
         scope = source.parent if self.config.mode == "recursive" else self.root
         matches = {
             page
@@ -529,7 +543,11 @@ class Workspace:
                 if suffix is not None
                 else page not in self.shadowed
             )
-            and not self._note_yields_to_card(page, key, suffix)
+            and (
+                _is_folder_note(page)
+                if directory_only
+                else not self._note_yields_to_card(page, key, suffix)
+            )
         }
         # Sorted by root-relative POSIX path, so diagnostics are byte-identical
         # across platforms and runs (P1).
@@ -564,6 +582,11 @@ def _bound(target: Path | _Escapes | None) -> Resolution:
     if target is None:
         return Resolution(Outcome.UNRESOLVED)
     return Resolution(Outcome.RESOLVED, target)
+
+
+def _is_folder_note(page: Path) -> bool:
+    """Whether `page` is a folder note: a card named `index`, any extension."""
+    return page.name[: -len(card_suffix(page.name) or "")] == INDEX_STEM
 
 
 def _split(ref: str) -> tuple[str, ...]:
