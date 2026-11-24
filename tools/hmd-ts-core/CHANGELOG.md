@@ -94,6 +94,10 @@ anchors, matching the canonical implementation case for case.
 
 ### Fixed
 
+- **Diagnostic messages quote values as the canonical implementation does.** A
+  malformed `tags` entry read `got [object Object]`, and a malformed import
+  statement was quoted with double quotes. Both now use Python's `repr`
+  spelling, so the corpus can compare the messages byte for byte.
 - Columns after a character outside the Basic Multilingual Plane, and setext
   headings, now agree with the canonical implementation; the
   `astral-plane-columns` and `setext-headings` entries leave the divergence

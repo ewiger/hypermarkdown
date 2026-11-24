@@ -1,0 +1,7 @@
+---
+import:
+  - from /shared import tokens
+  - from /other import tokens
+---
+
+# Bound twice
