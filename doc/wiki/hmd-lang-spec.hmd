@@ -410,7 +410,9 @@ so none of them can be part of a name.
   that it looks like an unfinished wikilink; such a warning is not one of the
   diagnostics of this specification.
 - A backslash escapes nothing here: `\[[x]]` is a wikilink, because the
-  grammar has no escape mechanism. To show a construct without invoking it,
+  grammar has no escape mechanism. The backslash before `[[` is text, not part
+  of the wikilink, so the ban on a backslash inside a wikilink does not apply
+  to it. To show a construct without invoking it,
   put it in a code span or a fenced block.
 - Candidates are found in the text whatever CommonMark inline syntax surrounds
   them. A candidate inside a CommonMark link's text or destination, or inside
