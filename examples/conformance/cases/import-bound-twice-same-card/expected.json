@@ -1,8 +1,8 @@
 {
   "diagnostics": [
     {
-      "column": 1,
-      "line": 1,
+      "column": 5,
+      "line": 4,
       "message": "'tokens' is bound twice by imports (shared/tokens.hmd and shared/tokens.hmd)",
       "path": "twice.hmd",
       "rule": "HMD015",

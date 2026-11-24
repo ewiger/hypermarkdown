@@ -82,6 +82,9 @@ export interface ImportStmt {
   wildcard: boolean;
   bindings: ReadonlyArray<readonly [string, string]>;
   raw: string;
+  /** Where the statement is written in the card, for the diagnostics about it. */
+  line?: number;
+  column?: number;
 }
 
 /** The reserved frontmatter keys: `tags`, `use`, `import`. */

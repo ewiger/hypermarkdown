@@ -65,6 +65,13 @@ anchors, matching the canonical implementation case for case.
 
 ### Changed
 
+- **Frontmatter diagnostics are reported where the problem is written**, no
+  longer all at line 1, column 1. A malformed value of a top-level key is at
+  the key; a malformed list entry,
+  such as a tag, a `use` entry, or an `import` statement, at the entry's first
+  character (after `- ` in a block list, its own first character in a flow
+  list); anything else at its nearest enclosing key. HMD015 and HMD003 about an
+  import are at its statement. Invalid YAML stays at the block's start.
 - **A block anchor's position starts at its `^`**, not at the spaces or
   tabs before it, so HMD006 points at the `^`. The blanks before the anchor
   still go with it when a block is embedded or rendered.

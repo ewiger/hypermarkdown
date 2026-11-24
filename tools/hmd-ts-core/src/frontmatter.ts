@@ -8,6 +8,7 @@
 
 import { load as yamlLoad, JSON_SCHEMA, YAMLException } from "js-yaml";
 
+import { Locator, entry, key, type Position, type Where } from "./frontmatterPosition.js";
 import { ImportSyntaxError, parseStatement } from "./imports.js";
 import { pyRepr } from "./pyrepr.js";
 import type { CardConfig, ImportStmt } from "./model.js";
@@ -74,37 +75,56 @@ export function parseYaml(raw: string): Record<string, unknown> {
   return data as Record<string, unknown>;
 }
 
-export type Problem = readonly [rule: string, message: string];
+export type Problem = readonly [rule: string, message: string, position: Position];
+
+type Found = [rule: string, message: string, where: Where];
 
 /**
- * Read the reserved keys out of `data`, returning the config plus problems the
- * caller attaches to a span.
+ * Read the reserved keys out of `data`, parsed from the block `raw`, returning
+ * the config plus problems, each placed by the frontmatter position rules
+ * (`frontmatterPosition.ts`).
  *
  * Unrecognised input is reported rather than ignored: silently dropping a
  * misspelled `no_autodiscovry` hands the author the default while they believe
  * they configured something else.
  */
-export function parseCardConfig(data: Record<string, unknown>): {
+export function parseCardConfig(
+  data: Record<string, unknown>,
+  raw = "",
+): {
   card: CardConfig;
   problems: Problem[];
 } {
-  const problems: Problem[] = [];
-  const tags = parseTags(data["tags"], problems);
-  const use = parseUse(data["use"], problems);
-  const imports = parseImports(data["import"], problems);
+  const found: Found[] = [];
+  const locator = new Locator(raw);
+  const tags = parseTags(data["tags"], found);
+  const use = parseUse(data["use"], found);
+  const imports = parseImports(data["import"], found).map(([stmt, where]) => {
+    const [line, column] = locator.locate(where);
+    return { ...stmt, line, column };
+  });
+  const problems: Problem[] = found.map(([rule, message, where]) => [
+    rule,
+    message,
+    locator.locate(where),
+  ]);
   return { card: { tags, use, imports }, problems };
 }
 
-function parseTags(value: unknown, problems: Problem[]): string[] {
+function parseTags(value: unknown, problems: Found[]): string[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) {
-    problems.push(["HMD013", `\`tags\` must be a list, got ${typeName(value)}`]);
+    problems.push(["HMD013", `\`tags\` must be a list, got ${typeName(value)}`, key("tags")]);
     return [];
   }
   const tags: string[] = [];
-  for (const item of value) {
+  for (const [index, item] of value.entries()) {
     if (typeof item !== "string" || item.trim() === "") {
-      problems.push(["HMD013", `\`tags\` entries must be non-empty strings, got ${repr(item)}`]);
+      problems.push([
+        "HMD013",
+        `\`tags\` entries must be non-empty strings, got ${repr(item)}`,
+        entry("tags", index),
+      ]);
       continue;
     }
     tags.push(item.trim());
@@ -112,18 +132,25 @@ function parseTags(value: unknown, problems: Problem[]): string[] {
   return tags;
 }
 
-function parseUse(value: unknown, problems: Problem[]): Record<string, boolean> {
+function parseUse(value: unknown, problems: Found[]): Record<string, boolean> {
   if (value === undefined || value === null) return {};
-  const items = typeof value === "string" ? [value] : value;
+  // A single string is the key's own value; an entry of a list is its own.
+  const scalar = typeof value === "string";
+  const items = scalar ? [value] : value;
   if (!Array.isArray(items)) {
-    problems.push(["HMD013", `\`use\` must be a string or list, got ${typeName(value)}`]);
+    problems.push([
+      "HMD013",
+      `\`use\` must be a string or list, got ${typeName(value)}`,
+      key("use"),
+    ]);
     return {};
   }
 
   const use: Record<string, boolean> = {};
-  for (const item of items) {
+  for (const [index, item] of items.entries()) {
+    const where = scalar ? key("use") : entry("use", index);
     if (typeof item !== "string") {
-      problems.push(["HMD013", `\`use\` entries must be strings, got ${repr(item)}`]);
+      problems.push(["HMD013", `\`use\` entries must be strings, got ${repr(item)}`, where]);
       continue;
     }
     let name = item.trim();
@@ -137,6 +164,7 @@ function parseUse(value: unknown, problems: Problem[]): Record<string, boolean> 
       problems.push([
         "HMD013",
         `unknown feature ${repr(item.trim())} in \`use\` (known: ${known})`,
+        where,
       ]);
       continue;
     }
@@ -145,20 +173,28 @@ function parseUse(value: unknown, problems: Problem[]): Record<string, boolean> 
   return use;
 }
 
-function parseImports(value: unknown, problems: Problem[]): ImportStmt[] {
+/** Each statement with where it is written, so a later HMD015 or HMD003 about
+ * it is reported at the statement too. */
+function parseImports(value: unknown, problems: Found[]): Array<[ImportStmt, Where]> {
   if (value === undefined || value === null) return [];
-  const items = typeof value === "string" ? [value] : value;
+  const scalar = typeof value === "string";
+  const items = scalar ? [value] : value;
   if (!Array.isArray(items)) {
-    problems.push(["HMD014", `\`import\` must be a string or list, got ${typeName(value)}`]);
+    problems.push([
+      "HMD014",
+      `\`import\` must be a string or list, got ${typeName(value)}`,
+      key("import"),
+    ]);
     return [];
   }
 
-  const stmts: ImportStmt[] = [];
-  for (const item of items) {
+  const stmts: Array<[ImportStmt, Where]> = [];
+  for (const [index, item] of items.entries()) {
+    const where = scalar ? key("import") : entry("import", index);
     try {
-      stmts.push(parseStatement(item));
+      stmts.push([parseStatement(item), where]);
     } catch (exc) {
-      if (exc instanceof ImportSyntaxError) problems.push(["HMD014", exc.message]);
+      if (exc instanceof ImportSyntaxError) problems.push(["HMD014", exc.message, where]);
       else throw exc;
     }
   }

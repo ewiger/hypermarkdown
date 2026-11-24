@@ -8,8 +8,11 @@ rather than an extension of it — worth noticing, not repeating casually.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import yaml
 
+from .frontmatter_position import Entry, Key, Locator, Nested, Where
 from .imports import ImportError_, parse_statement
 from .model import VISIBILITIES, CardConfig, ImportStmt, NavConfig
 from .scan import split_lines
@@ -62,21 +65,31 @@ def parse_yaml(raw: str) -> dict:
     return data
 
 
-def parse_card_config(data: dict) -> tuple[CardConfig, list[tuple[str, str]]]:
-    """Read the reserved keys out of `data`.
+def parse_card_config(
+    data: dict, raw: str = ""
+) -> tuple[CardConfig, list[tuple[str, str, tuple[int, int]]]]:
+    """Read the reserved keys out of `data`, parsed from the block `raw`.
 
-    Returns the config plus a list of (rule_id, message) problems, so the caller
-    can attach them to a span. Unrecognized input is reported rather than
+    Returns the config plus a list of (rule_id, message, (line, column))
+    problems, each placed by the frontmatter position rules
+    (`frontmatter_position`). Unrecognized input is reported rather than
     ignored: silently dropping a misspelled `no_autodiscovry` would hand the
     author the default while they believe they configured something else.
     """
-    problems: list[tuple[str, str]] = []
+    found: list[tuple[str, str, Where]] = []
+    locate = Locator(raw)
 
-    tags = _parse_tags(data.get("tags"), problems)
-    use = _parse_use(data.get("use"), problems)
-    imports = _parse_imports(data.get("import"), problems)
-    nav = _parse_nav(data.get("nav"), problems)
+    tags = _parse_tags(data.get("tags"), found)
+    use = _parse_use(data.get("use"), found)
+    imports = tuple(
+        replace(stmt, line=line, column=column)
+        for stmt, (line, column) in (
+            (stmt, locate(where)) for stmt, where in _parse_imports(data.get("import"), found)
+        )
+    )
+    nav = _parse_nav(data.get("nav"), found)
 
+    problems = [(rule, message, locate(where)) for rule, message, where in found]
     return CardConfig(tags=tags, use=use, imports=imports, nav=nav), problems
 
 
@@ -91,12 +104,16 @@ def _parse_nav(value, problems) -> NavConfig:
         return NavConfig()
     if not isinstance(value, dict):
         hint = " — write `nav:` with an `order:` under it" if isinstance(value, int) else ""
-        problems.append(("HMD013", f"`nav` must be a mapping, got {type(value).__name__}{hint}"))
+        problems.append(
+            ("HMD013", f"`nav` must be a mapping, got {type(value).__name__}{hint}", Key("nav"))
+        )
         return NavConfig()
 
     for key in sorted(set(value) - NAV_KEYS):
         known = ", ".join(sorted(NAV_KEYS))
-        problems.append(("HMD013", f"unknown key {key!r} in `nav` (known: {known})"))
+        problems.append(
+            ("HMD013", f"unknown key {key!r} in `nav` (known: {known})", Nested("nav", str(key)))
+        )
 
     return NavConfig(
         order=_parse_nav_order(value.get("order"), problems),
@@ -109,7 +126,9 @@ def _parse_nav_order(value, problems) -> int | None:
         return None
     # `True` is an int in Python, and `order: yes` is a mistake worth naming.
     if isinstance(value, bool) or not isinstance(value, int):
-        problems.append(("HMD013", f"`nav.order` must be an integer, got {value!r}"))
+        problems.append(
+            ("HMD013", f"`nav.order` must be an integer, got {value!r}", Nested("nav", "order"))
+        )
         return None
     return value
 
@@ -125,7 +144,13 @@ def _parse_visibility(value, problems) -> str | None:
     # `visibility: no` is YAML for False, and reads as if it meant something.
     if not isinstance(value, str) or value not in VISIBILITIES:
         known = ", ".join(sorted(VISIBILITIES))
-        problems.append(("HMD013", f"`nav.visibility` must be one of {known}; got {value!r}"))
+        problems.append(
+            (
+                "HMD013",
+                f"`nav.visibility` must be one of {known}; got {value!r}",
+                Nested("nav", "visibility"),
+            )
+        )
         return None
     return value
 
@@ -134,12 +159,18 @@ def _parse_tags(value, problems) -> tuple[str, ...]:
     if value is None:
         return ()
     if not isinstance(value, list):
-        problems.append(("HMD013", f"`tags` must be a list, got {type(value).__name__}"))
+        problems.append(("HMD013", f"`tags` must be a list, got {type(value).__name__}", Key("tags")))
         return ()
     tags = []
-    for item in value:
+    for index, item in enumerate(value):
         if not isinstance(item, str) or not item.strip():
-            problems.append(("HMD013", f"`tags` entries must be non-empty strings, got {item!r}"))
+            problems.append(
+                (
+                    "HMD013",
+                    f"`tags` entries must be non-empty strings, got {item!r}",
+                    Entry("tags", index),
+                )
+            )
             continue
         tags.append(item.strip())
     return tuple(tags)
@@ -148,44 +179,57 @@ def _parse_tags(value, problems) -> tuple[str, ...]:
 def _parse_use(value, problems) -> dict[str, bool]:
     if value is None:
         return {}
-    if isinstance(value, str):
+    # A single string is the key's own value; an entry of a list is its own.
+    scalar = isinstance(value, str)
+    if scalar:
         value = [value]
     if not isinstance(value, list):
-        problems.append(("HMD013", f"`use` must be a string or list, got {type(value).__name__}"))
+        problems.append(
+            ("HMD013", f"`use` must be a string or list, got {type(value).__name__}", Key("use"))
+        )
         return {}
 
     use: dict[str, bool] = {}
-    for item in value:
+    for index, item in enumerate(value):
+        where = Key("use") if scalar else Entry("use", index)
         if not isinstance(item, str):
-            problems.append(("HMD013", f"`use` entries must be strings, got {item!r}"))
+            problems.append(("HMD013", f"`use` entries must be strings, got {item!r}", where))
             continue
         name, enabled = item.strip(), True
         if name.startswith("no_"):
             name, enabled = name[3:], False
         if name not in KNOWN_FEATURES:
             known = ", ".join(sorted(KNOWN_FEATURES))
-            problems.append(("HMD013", f"unknown feature {item.strip()!r} in `use` (known: {known})"))
+            problems.append(
+                ("HMD013", f"unknown feature {item.strip()!r} in `use` (known: {known})", where)
+            )
             continue
         use[name] = enabled
     return use
 
 
-def _parse_imports(value, problems) -> tuple[ImportStmt, ...]:
+def _parse_imports(value, problems) -> list[tuple[ImportStmt, Where]]:
+    """Each statement with where it is written, so a later HMD015 or HMD003
+    about it is reported at the statement too."""
     if value is None:
-        return ()
-    if isinstance(value, str):
+        return []
+    scalar = isinstance(value, str)
+    if scalar:
         value = [value]
     if not isinstance(value, list):
-        problems.append(("HMD014", f"`import` must be a string or list, got {type(value).__name__}"))
-        return ()
+        problems.append(
+            ("HMD014", f"`import` must be a string or list, got {type(value).__name__}", Key("import"))
+        )
+        return []
 
-    stmts: list[ImportStmt] = []
-    for item in value:
+    stmts: list[tuple[ImportStmt, Where]] = []
+    for index, item in enumerate(value):
+        where = Key("import") if scalar else Entry("import", index)
         try:
-            stmts.append(parse_statement(item))
+            stmts.append((parse_statement(item), where))
         except ImportError_ as exc:
-            problems.append(("HMD014", str(exc)))
-    return tuple(stmts)
+            problems.append(("HMD014", str(exc), where))
+    return stmts
 
 
 def _one_line(exc: Exception) -> str:

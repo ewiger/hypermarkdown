@@ -1,16 +1,16 @@
 {
   "diagnostics": [
     {
-      "column": 1,
-      "line": 1,
+      "column": 5,
+      "line": 4,
       "message": "expected '<name>' or '<name> as <alias>', got 'x:y'",
       "path": "colon-in-name.hmd",
       "rule": "HMD014",
       "severity": "error"
     },
     {
-      "column": 1,
-      "line": 1,
+      "column": 5,
+      "line": 4,
       "message": "expected '<name>' or '<name> as <alias>', got 'my card'",
       "path": "space-in-name.hmd",
       "rule": "HMD014",

@@ -102,6 +102,9 @@ class ImportStmt:
     wildcard: bool
     bindings: tuple[tuple[str, str], ...]  # (name, local_name)
     raw: str
+    #: Where the statement is written in the card, for the diagnostics about it.
+    line: int = field(default=1, compare=False)
+    column: int = field(default=1, compare=False)
 
 
 # `nav.visibility` values. Publication is opt-in: a card reaches a built site

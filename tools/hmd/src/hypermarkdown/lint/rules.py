@@ -132,8 +132,8 @@ def _duplicate_headings(workspace: Workspace, document: Document):
 def _import_problems(workspace: Workspace, document: Document):
     """HMD003 and HMD015 raised while building the import table."""
     rel = workspace.rel(document.path)
-    for rule, message in workspace.import_table(document.path).problems:
-        yield _at(document, rel, rule, 1, 1, message)
+    for rule, message, stmt in workspace.import_table(document.path).problems:
+        yield _at(document, rel, rule, stmt.line, stmt.column, message)
 
 
 def _links(workspace: Workspace, document: Document):
