@@ -6,7 +6,8 @@
 [the specification](../wiki/hmd-lang-spec.hmd),
 [HMD-0030](../proposals/HMD-0030/README.md),
 [issue 0014](0014-non-latin-headings-cannot-be-linked.md),
-[issue 0015](0015-commonmark-examples-as-a-test-dataset.md)
+[issue 0015](0015-commonmark-examples-as-a-test-dataset.md),
+[issue 0018](0018-validate-the-grammar.md)
 
 ## What
 
@@ -88,9 +89,14 @@ not yet confirmed one by one:
 3. **Cover the rules with tests:** a corpus case for every diagnostic and
    every resolution phase, non-Latin and duplicate headings, a non-ASCII
    column, and a vault whose `wiki` is not `.`.
-4. **Correct the stale claims.** Each tracker states which specification
+4. **Validate the grammar,** a separate requirement: every production
+   checked against the prose, given positive and negative cases, and run
+   against all three implementations. Recognised syntax, reference
+   components, positions, and diagnostics are compared, independently of
+   rendering [issue 0018].
+5. **Correct the stale claims.** Each tracker states which specification
    version its tool conforms to.
-5. **Release:**
+6. **Release:**
    - date 0.1 in the language's changelog;
    - tag it;
    - give the specification a stable address;
@@ -125,5 +131,7 @@ that tool, listed in the release notes, not a blocker for the specification.
 - The specification carries every decision above, and reads in the plainer
   voice.
 - All three implementations pass the corpus, including the new cases.
+- Every grammar production is validated against the prose and covered by
+  cases that all three implementations pass [issue 0018].
 - The trackers agree with the registries and name the version they conform to.
 - 0.1 is dated, tagged, and linked from the roadmap.
