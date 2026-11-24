@@ -6,26 +6,32 @@ frontmatter keys and three configuration settings that steer resolution, vault
 loading behind a host trait, and the resolver itself. It is a **third
 implementation**, and a narrower one than the other two: it resolves, and it
 neither lints nor renders. It exists so a Rust program can resolve a reference
-exactly as `hmd` does by calling a library, and it is held to the canonical
-implementation by the shared corpus of cases, with every difference written
+exactly as `hmd` does by calling a library, and it is held to the
+specification by the shared corpus of cases, with every difference written
 down.
 
-Beside this file: the format itself in [`lang.md`](lang.md), the canonical
+Beside this file: the format itself in [`lang.md`](lang.md), the reference
 implementation in [`hmd.md`](hmd.md), the TypeScript implementation in
-[`ts-core.md`](ts-core.md), its editor in [`vsc-ext.md`](vsc-ext.md), and the
-website in [`pages.md`](pages.md).
+[`ts-core.md`](ts-core.md), its editor in [`vsc-ext.md`](vsc-ext.md), the
+semantic-index builder in [`semantics.md`](semantics.md), and the website in
+[`pages.md`](pages.md).
 
 ## Status
 
-**Written, passing every corpus case, and published as `hypermarkdown` 0.2.0.** The crate loads a
-vault, finds its references, and resolves them by path, named import, spine,
-imported directory and autodiscovery, with ambiguity and a climb above the root
-as outcomes of their own. All thirteen corpus cases produce the resolutions the
-canonical implementation wrote, and the list of differing cases in the ledger
-is empty. 96 tests.
+**Conforms to HyperMarkDown 0.1.0 as a resolver.** It resolves as the
+specification says and, by design, neither lints nor renders, so the
+diagnostics are ledgered as not emitted. The crate loads a vault, finds its
+references, and resolves them by path, named import, spine, imported directory
+and autodiscovery, with ambiguity, and a path out of the namespace (above the
+root, into a nested vault, or through a symbolic link out of the root), as
+outcomes of their own. All 37 corpus cases produce the resolutions the
+specification states, each unresolved reference has the outcome its HMD001,
+HMD002 or HMD003 diagnostic restates, and the list of differing cases in the
+ledger is empty. 109 tests.
 
-It is on crates.io as `hypermarkdown`, published by hand at 0.1.0. No workflow
-publishes it yet.
+It is on crates.io as `hypermarkdown` 0.2.0; 0.1.0 and 0.2.0 were published by
+hand. `release-rs-core.yml` publishes on an `rs-core-vX.Y.Z` tag and has not
+run yet. The 0.1 rules and the corrected resolution are unreleased.
 
 Its first consumer is HQL, which is required by its own record to resolve
 references through this crate and keep no resolution code of its own.
@@ -34,8 +40,8 @@ references through this crate and keep no resolution code of its own.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **A release workflow.** `0.1.0` was published by hand. A tag of the crate's own, in the style of the other tools' tags, should run the gates and publish through a trusted publisher on crates.io, so that no token is stored | Nothing blocks it: crates.io accepts a trusted publisher now that the crate exists | [[hmd-0027#deployment--activation]] |
-| backlog | **A comparison suite that asks the canonical implementation.** The corpus pins thirteen cases. The TypeScript implementation also compares itself with `hmd` over the wiki and two example vaults; this crate was compared with `hmd` by hand, over those trees and over nine thousand generated ones, with every reference, position and outcome equal, and nothing in the repository repeats that | Needs Python in the crate's CI job, which today installs none | [[hmd-0027#conformance]] |
+| todo | **The first release through `release-rs-core.yml`** — the unreleased 0.1 rules and the corrected resolution, by an `rs-core-vX.Y.Z` tag. Whether the trusted publisher is configured on crates.io is not visible from the repository; the first run shows it | The workflow exists; it has never published | [[hmd-0027#deployment--activation]] |
+| backlog | **A comparison suite that asks the reference implementation.** The corpus pins 37 cases. The TypeScript implementation also compares itself with `hmd` over the wiki and two example vaults; this crate was compared with `hmd` by hand, over those trees and over nine thousand generated ones, with every reference, position and outcome equal, and nothing in the repository repeats that | Needs Python in the crate's CI job, which today installs none | [[hmd-0027#conformance]] |
 
 ## Broken
 
@@ -43,24 +49,32 @@ Nothing known.
 
 ## Limitations (known gaps)
 
-Every lint rule the canonical implementation defines is listed in
+Every lint rule the reference implementation defines is listed in
 `conformance-xfail.json` as not emitted, each with what the crate does in the
-situation the rule reports, and the corpus runner fails when the canonical
+situation the rule reports, and the corpus runner fails when the reference
 implementation gains a rule the ledger does not name.
 
 | Limitation | Why it stands | References |
 | --- | --- | --- |
 | No diagnostics, no rendering, no embed expansion | The crate is a resolver. What a linter would say about a reference is visible in the outcome it returns | [[hmd-0027#non-goals]] |
 | A fragment is parsed and never checked | Headings, their slugs and block anchors are not read, so `[[tokens#Rotation]]` resolves to the card whether or not the heading exists | [[hmd-0027#non-goals]] |
-| What an import statement got wrong is not reported | A malformed statement, a directory that does not exist and a name that binds nothing are skipped, as the canonical resolver skips them; only its linter reports them | [[hmd-0027#what-the-crate-does]] |
-| A relative reference that leaves the root and comes back in through the root directory's own name is `Escapes` | The canonical implementation works on absolute paths, so from a root directory named `wiki` it resolves `[[../wiki/card]]`. A host has no name for its root, and the TypeScript implementation answers as this crate does | [[hmd-0027#the-programming-interface]] |
-| `[[notes.]]`, a name ending in a dot, binds `notes.hmd` | The canonical implementation takes this from `pathlib`, which changed it: Python 3.14 answers `notes.hmd` and Python 3.12 and 3.13 answer `notes..hmd`. The crate follows the newest | [[hmd-0027#what-the-crate-does]] |
-| Frontmatter that defines one YAML anchor twice is read | The canonical YAML reader refuses a repeated anchor, so the card's `use` and `import` keys are dropped there and honored here | [[hmd-0027#what-the-crate-does]] |
-| A symbolic link to a directory is not walked by the `std::fs` host | A link must not make the walk loop or leave the tree. A linked file is a card | [[hmd-0027#security-considerations]] |
-| The corpus does not pin every rule | No case covers an absolute or relative reference, a wildcard import, `recursive` mode, or the `use` key. Those are held by this crate's unit tests, written from the canonical code | [[hmd-0020#10-conformance-canonicity-and-the-drift-ledger]] |
+| What an import statement got wrong is not reported | A malformed statement, a directory that does not exist and a name that binds nothing are skipped, as the reference resolver skips them; only its linter reports them | [[hmd-0027#what-the-crate-does]] |
+| A relative reference that leaves the root and comes back in through the root directory's own name is `Escapes` | The reference implementation works on absolute paths, so from a root directory named `wiki` it resolves `[[../wiki/card]]`. A host has no name for its root, and the TypeScript implementation answers as this crate does | [[hmd-0027#the-programming-interface]] |
+| Frontmatter that defines one YAML anchor twice is read | The reference implementation's YAML reader refuses a repeated anchor, so the card's `use` and `import` keys are dropped there and honored here | [[hmd-0027#what-the-crate-does]] |
+| A symbolic link to a directory inside the root is not walked by the `std::fs` host | A link must not make the walk loop. A link to a file inside the root is a card; a link out of the root is `EntryKind::LeavesRoot`, and a reference through it escapes | [[hmd-0027#security-considerations]] |
+| The corpus does not exercise `wiki`, `Vault::open`, or vault discovery | Every case loads its tree as the root. `tests/fs.rs` holds those three | [[hmd-0027#what-the-crate-does]] |
 
 ## Done
 
+- **Name resolution as the 0.1 specification corrects it** — paths normalised
+  and checked against the namespace in every phase, `EntryKind::LeavesRoot` for
+  a symbolic link out of the root, `[[./]]` and `[[../]]` bound to the folder
+  note only, and a written extension honoured in every phase. Held by the
+  eighteen `resolve-*` cases written from the specification; unreleased
+  [issue 0020].
+- **A release workflow** — `release-rs-core.yml`, on an `rs-core-vX.Y.Z` tag,
+  through a trusted publisher on crates.io, so no token is stored
+  [`tools/hmd-rs-core/DEVELOP.md`].
 - **The HyperMarkDown 0.1 rules a resolver needs** — an undecodable file is
   not loaded and is listed by `Vault::undecodable`, a byte-order mark is
   ignored, lines end only at the three CommonMark endings, and names compare
@@ -70,19 +84,21 @@ implementation gains a rule the ledger does not name.
   shadowed card is named by `Vault::shadowed_by`; released as 0.2.0
   [HMD-0029].
 
-- **Published to crates.io** — `hypermarkdown` 0.1.0, so a consumer that is
+- **Published to crates.io** — `hypermarkdown` 0.1.0 and 0.2.0, by hand, so a
+  consumer that is
   itself on crates.io, HQL among them, can depend on it by version
   [`tools/hmd-rs-core/Cargo.toml`].
 - **The resolver** — by path, named import, spine, imported directory and
-  autodiscovery, with folder notes, ambiguity, and a climb above the root as
-  their own outcomes [[hmd-0027#what-the-crate-does]].
+  autodiscovery, with folder notes, ambiguity, and a path out of the namespace
+  as their own outcomes [[hmd-0027#what-the-crate-does]].
 - **Vault loading behind a host trait**, with a `std::fs` host and an in-memory
-  one, hidden entries skipped and nested vaults left out.
+  one, hidden entries skipped, nested vaults left out, and a symbolic link out
+  of the root reported as `EntryKind::LeavesRoot`.
 - **The scanner and the grammars** — references outside fences, comments and
-  code spans with their lines and columns, the reference grammar, and the import
+  code spans with their lines and columns in code points, the reference grammar, and the import
   statement.
 - **Frontmatter and configuration** — the `use` and `import` keys, and `wiki`,
-  `autodiscovery` and `mode` with the canonical defaults.
+  `autodiscovery` and `mode` with the specification's defaults.
 - **Vault discovery** — the nearest directory at or above a path that holds
   `.hmd/`.
 - **The corpus runner and its ledger** — every case compared exactly on
@@ -106,6 +122,15 @@ None.
 
 ## Changelog
 
+- 2026-11-24: before the 0.1.0 release. The crate conforms to HyperMarkDown
+  0.1.0 as a resolver, held to the specification rather than to the reference
+  implementation. The corpus count is 37 and the test count 109; 0.2.0 was
+  published by hand too, and the release workflow exists, so its Open row
+  became the first release through it. The limitation about `[[notes.]]` was
+  wrong and is dropped: both implementations look for `notes..hmd`. The
+  corpus now covers absolute and relative references, wildcard imports,
+  `recursive` mode, and `use`, so that limitation narrows to `wiki` and vault
+  discovery. A Done row for the corrected resolution.
 - 2026-11-22: the 0.1 rules are implemented, unreleased.
 - 2026-11-22: the released version, `0.2.0`, and the corpus count, thirteen
   cases, match the crate and the corpus.
