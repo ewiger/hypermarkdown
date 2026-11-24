@@ -181,6 +181,13 @@ def _links(workspace: Workspace, document: Document):
                 f"published; it renders as a red link",
             )
 
+        for directory in result.escaped:
+            yield _at(
+                document, rel, "HMD003", span.line, span.column,
+                f"{link.raw} through the imported path '/{workspace.rel(directory)}' "
+                f"resolves outside the namespace root",
+            )
+
         if result.shadowed:
             shadowed = tuple(workspace.rel(p) for p in result.shadowed if p)
             yield _at(
@@ -277,7 +284,7 @@ def _shadowed(workspace: Workspace, targets: list[Path]):
 def _embed_cycles(workspace: Workspace, targets: list[Path]):
     """HMD007 and HMD008 — cycle detection and the depth bound."""
     wanted = set(targets)
-    reported: set[tuple[Path, str | None]] = set()
+    reported: set[tuple[Path, int | None]] = set()
 
     for start in targets:
         if start not in workspace.documents:
@@ -293,8 +300,27 @@ def _walk(workspace: Workspace, path: Path, via: Link | None, stack, reported, w
     region only, so only the embeds inside it can continue the chain; one
     section embedding another section of its own card is not a cycle.
     """
-    fragment = via.fragment if via is not None else None
-    key = (path, fragment)
+    document = workspace.documents.get(path)
+    if document is None:
+        return
+
+    # What is being expanded, identified by what it resolved to rather than
+    # by how the embed was spelled: the whole card, or the section or block,
+    # named by where its region starts. `#Linux`, `#linux`, and an anchor on
+    # the `## Linux` line all name one section, so they are one stack entry.
+    if via is None or via.fragment is None:
+        region = (0, len(document.text))
+        identity = None
+    else:
+        region = target_region(document, via)
+        if region is None:
+            # The fragment matches nothing, so nothing expands; HMD004 or
+            # HMD005 reports the fragment itself.
+            return
+        identity = region[0]
+    start, end = region
+    key = (path, identity)
+
     if key in stack:
         if key not in reported:
             reported.add(key)
@@ -315,17 +341,6 @@ def _walk(workspace: Workspace, path: Path, via: Link | None, stack, reported, w
                 f"embed depth exceeds the limit of {MAX_EMBED_DEPTH}",
             )
         return
-
-    document = workspace.documents.get(path)
-    if document is None:
-        return
-
-    region = target_region(document, via) if via is not None else (0, len(document.text))
-    if region is None:
-        # The fragment matches nothing, so nothing expands; HMD004 or HMD005
-        # reports the fragment itself.
-        return
-    start, end = region
 
     stack.append(key)
     for link in document.links:

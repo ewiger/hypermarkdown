@@ -76,6 +76,10 @@ class Resolution:
     phase: int | None = None
     #: Origins that also held the name but lost on declaration order (HMD016).
     shadowed: tuple[Path, ...] = ()
+    #: Imported search paths, after the one that resolved, through which the
+    #: reference leaves the namespace. Each is HMD003 on its own; none
+    #: changes the result.
+    escaped: tuple[Path, ...] = ()
 
 
 class _Escapes:
@@ -464,15 +468,27 @@ class Workspace:
         # Phase 2 — imported search paths, in declaration order. Every one is
         # probed: the first card wins, and each other distinct card is
         # shadowed (HMD016). One card reached twice is not a collision.
+        # A path that leaves the namespace before anything matched is the
+        # outcome; after a match it is reported on its own and changes nothing.
         found: list[Path] = []
+        escaped: list[Path] = []
         for directory in table.search_paths:
             target = self.bind(directory, parts, suffix)
             if target is ESCAPES:
-                return Resolution(Outcome.ESCAPES)
+                if not found:
+                    return Resolution(Outcome.ESCAPES)
+                escaped.append(directory)
+                continue
             if target is not None and target not in found:
                 found.append(target)
         if found:
-            return Resolution(Outcome.RESOLVED, found[0], phase=2, shadowed=tuple(found[1:]))
+            return Resolution(
+                Outcome.RESOLVED,
+                found[0],
+                phase=2,
+                shadowed=tuple(found[1:]),
+                escaped=tuple(escaped),
+            )
 
         if not self.autodiscovery_enabled(source):
             return Resolution(Outcome.UNRESOLVED)

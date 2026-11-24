@@ -49,6 +49,12 @@ export interface Resolution {
   phase: number | null;
   /** Origins that also held the name but lost on declaration order (HMD016). */
   shadowed: readonly string[];
+  /**
+   * Imported search paths, after the one that resolved, through which the
+   * reference leaves the namespace. Each is HMD003 on its own; none changes
+   * the result.
+   */
+  escaped: readonly string[];
 }
 
 function resolution(partial: Partial<Resolution> & { outcome: Outcome }): Resolution {
@@ -57,6 +63,7 @@ function resolution(partial: Partial<Resolution> & { outcome: Outcome }): Resolu
     candidates: [],
     phase: null,
     shadowed: [],
+    escaped: [],
     ...partial,
   };
 }
@@ -518,14 +525,27 @@ export class Workspace {
     // Phase 2 — imported search paths, in declaration order. Every one is
     // probed: the first card wins, and each other distinct card is shadowed
     // (HMD016). One card reached twice is not a collision.
+    // A path that leaves the namespace before anything matched is the
+    // outcome; after a match it is reported on its own and changes nothing.
     const found: string[] = [];
+    const escaped: string[] = [];
     for (const directory of table.searchPaths) {
       const target = this.bind(directory, parts, suffix);
-      if (target === ESCAPES) return resolution({ outcome: "escapes" });
+      if (target === ESCAPES) {
+        if (found.length === 0) return resolution({ outcome: "escapes" });
+        escaped.push(directory);
+        continue;
+      }
       if (target !== null && !found.includes(target)) found.push(target);
     }
     if (found.length > 0) {
-      return resolution({ outcome: "resolved", path: found[0]!, phase: 2, shadowed: found.slice(1) });
+      return resolution({
+        outcome: "resolved",
+        path: found[0]!,
+        phase: 2,
+        shadowed: found.slice(1),
+        escaped,
+      });
     }
 
     if (!this.autodiscoveryEnabled(source)) return resolution({ outcome: "unresolved" });
