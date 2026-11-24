@@ -319,9 +319,13 @@ def _opens_container(line: str, interrupting: bool) -> bool:
 
 
 def find_anchors(masked: str):
-    """Yield (block_id, span_start, span_end) for each trailing ``^id``."""
+    """Yield (block_id, span_start, span_end) for each trailing ``^id``.
+
+    The span starts at the ``^``: the spaces or tabs before it separate the
+    anchor from its block and are not part of the anchor.
+    """
     for m in _ANCHOR_RE.finditer(masked):
-        yield m.group("id"), m.start(), m.end("id")
+        yield m.group("id"), m.start("id") - 1, m.end("id")
 
 
 def find_links(masked: str):

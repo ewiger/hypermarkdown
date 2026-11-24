@@ -25,11 +25,6 @@ pub(crate) fn strip(text: &str) -> &str {
     text.trim_matches(is_space)
 }
 
-/// The whitespace-separated words of `text`, as Python's `str.split()`.
-pub(crate) fn words(text: &str) -> Vec<&str> {
-    text.split(is_space).filter(|w| !w.is_empty()).collect()
-}
-
 /// Whether `c` ends a line: `\n`, or `\r` alone or before `\n`, as in
 /// CommonMark.
 ///
@@ -123,7 +118,6 @@ mod tests {
     #[test]
     fn the_information_separators_are_whitespace() {
         assert_eq!(strip(" \u{1f}a\u{1c}"), "a");
-        assert_eq!(words("a\u{1c}b  c"), ["a", "b", "c"]);
     }
 
     #[test]

@@ -38,6 +38,9 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **A block anchor's position starts at its `^`**, not at the spaces or
+  tabs before it, so HMD006 points at the `^`. The blanks before the anchor
+  still go with it when a block is embedded or rendered.
 - **Breaking: `wiki` is renamed `location_path`, and its default is `.`**, the
   vault itself, where it was `doc/wiki`. A `.hmd/config.toml` that still sets
   `wiki` is refused: the vault is not loaded, every command exits 2, and the
