@@ -176,7 +176,8 @@ def test_hmd011_is_silenced_by_an_anchor_on_the_repeat(build_workspace):
 
 def test_hmd012_page_beside_folder_note(build_workspace):
     ws = build_workspace({**BASE, "dup.hmd": "# File\n", "dup/index.hmd": "# Note\n"})
-    assert "HMD012" in rules_for(ws)
+    (diag,) = [d for d in check(ws) if d.rule == "HMD012"]
+    assert diag.severity == "warning"  # a shadow, like HMD018, not a content bug
 
 
 def test_hmd013_unknown_use_feature(build_workspace):

@@ -26,6 +26,9 @@ anchors, matching the canonical implementation case for case.
 
 ### Added
 
+- **HMD012 is a warning.** A card beside a module's folder note of the same name
+  shadows the note, which stays reachable by its `index` path; like HMD018,
+  that is a shadow decided by a fixed order, not a content bug.
 - **An anchored repeat heading is not HMD011.** A heading whose key equals an
   earlier one's is reported only when it carries no block anchor, as in the
   canonical implementation.

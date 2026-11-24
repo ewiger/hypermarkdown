@@ -42,7 +42,7 @@ export const SEVERITY: Readonly<Record<string, Severity>> = {
   HMD009: ERROR,
   HMD010: ERROR,
   HMD011: WARNING,
-  HMD012: ERROR,
+  HMD012: WARNING,
   HMD013: ERROR,
   HMD014: ERROR,
   HMD015: ERROR,

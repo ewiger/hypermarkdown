@@ -24,7 +24,7 @@ SEVERITY = {
     "HMD009": ERROR,
     "HMD010": ERROR,
     "HMD011": WARNING,
-    "HMD012": ERROR,
+    "HMD012": WARNING,
     "HMD013": ERROR,
     "HMD014": ERROR,
     "HMD015": ERROR,
@@ -218,7 +218,11 @@ def _fragment(workspace: Workspace, document: Document, link: Link, target: Path
 
 
 def _folder_note_collisions(workspace: Workspace, targets: list[Path]):
-    """HMD012 — `foo.hmd` beside `foo/index.hmd`, of any card extensions."""
+    """HMD012 — `foo.hmd` beside `foo/index.hmd`, of any card extensions.
+
+    A warning, not an error: the card shadows the module's folder note, which
+    stays reachable by its `index` path, as HMD018 does for extensions.
+    """
     wanted = set(targets)
     for page in workspace.pages():
         if page in workspace.shadowed:

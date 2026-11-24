@@ -187,9 +187,10 @@ describe("lint rules", () => {
     expect(check(ws).map((d) => d.rule)).toContain("HMD006");
   });
 
-  it("reports a folder-note collision as HMD012", async () => {
+  it("reports a folder-note collision as HMD012, a warning", async () => {
     const ws = await build({ "foo.hmd": card(), "foo/index.hmd": card() });
-    expect(check(ws).map((d) => d.rule)).toContain("HMD012");
+    const found = check(ws).filter((d) => d.rule === "HMD012");
+    expect(found.map((d) => d.severity)).toEqual(["warning"]);
   });
 
   it("reports an embed cycle as HMD007", async () => {

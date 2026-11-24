@@ -6,7 +6,7 @@
       "message": "foo.hmd and foo/index.hmd both claim the name 'foo'; the file wins",
       "path": "foo.hmd",
       "rule": "HMD012",
-      "severity": "error"
+      "severity": "warning"
     }
   ],
   "resolutions": []

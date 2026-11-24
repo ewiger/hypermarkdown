@@ -38,6 +38,9 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **HMD012 is a warning.** A card beside a module's folder note of the same name
+  shadows the note, which stays reachable by its `index` path; like HMD018,
+  that is a shadow decided by a fixed order, not a content bug.
 - **A heading fragment matches by key, not by slug** — the HyperMarkDown 0.1
   rule. The key is the text in NFC, case-folded, with every character that is
   not a letter, mark, or number turned into a space and the spaces collapsed.
