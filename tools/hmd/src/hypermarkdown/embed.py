@@ -134,8 +134,19 @@ def block_region(document: Document, block_id: str) -> tuple[int, int] | None:
             if previous_start < floor or not text[previous_start:previous_end].strip():
                 break
             start = previous_start
-        return start, anchor.span.index
+        return start, _blanks_before(text, anchor.span.index)
     return None
+
+
+def _blanks_before(text: str, index: int) -> int:
+    """The index of the run of spaces and tabs that ends at `index`.
+
+    An anchor's span starts at its ``^``; the blanks before it are not part of
+    the block's content either, and go with the anchor.
+    """
+    while index > 0 and text[index - 1] in " \t":
+        index -= 1
+    return index
 
 
 def _line_start(text: str, index: int) -> int:
@@ -179,7 +190,8 @@ def _region(
     edits.sort(key=lambda edit: edit.span.index)
     for link in edits:
         if isinstance(link, Anchor):
-            out.append(document.text[cursor : link.span.index])
+            blanks = max(cursor, _blanks_before(document.text, link.span.index))
+            out.append(document.text[cursor:blanks])
             cursor = link.span.index_end
             continue
         if link.is_embed:

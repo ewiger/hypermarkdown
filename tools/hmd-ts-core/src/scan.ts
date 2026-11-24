@@ -385,8 +385,10 @@ export interface RawAnchor {
 export function findAnchors(masked: string): RawAnchor[] {
   const out: RawAnchor[] = [];
   for (const m of masked.matchAll(ANCHOR_RE)) {
-    const end = m.index! + m[0].indexOf("^") + 1 + m[1]!.length;
-    out.push({ blockId: m[1]!, start: m.index!, end });
+    // The span starts at the `^`: the spaces or tabs before it separate the
+    // anchor from its block and are not part of the anchor.
+    const start = m.index! + m[0].indexOf("^");
+    out.push({ blockId: m[1]!, start, end: start + 1 + m[1]!.length });
   }
   return out;
 }

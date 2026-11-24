@@ -1,0 +1,37 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "h.hmd has no heading '#***'",
+      "path": "index.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 2,
+      "message": "h.hmd has no heading '#!!!'",
+      "path": "index.hmd",
+      "rule": "HMD004",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[h#!!!]]",
+      "source": "index.hmd",
+      "target": "h.hmd"
+    },
+    {
+      "raw": "[[h#***]]",
+      "source": "index.hmd",
+      "target": "h.hmd"
+    },
+    {
+      "raw": "[[h#^stars]]",
+      "source": "index.hmd",
+      "target": "h.hmd"
+    }
+  ]
+}
