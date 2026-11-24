@@ -102,6 +102,7 @@ leaks into the contract.
 | `nav-malformed` | A scalar `nav`, an unknown key, a non-integer `order`, and an unknown `visibility` are HMD013 |
 | `import-malformed` | `import tokens from /shared` is HMD014; the well-formed import binds |
 | `import-unresolved` | A missing import directory, a missing card, and one name bound twice are HMD015 |
+| `import-bound-twice-same-card` | One local name bound twice is HMD015, even when both bindings name the same card |
 | `publication-private-link` | A published card linking to and embedding an unpublished one is HMD017, twice; a private card linking to it is not |
 | `cells` | A link inside an `hql#eval` body or a plain `hql` listing yields nothing; a link between the output markers resolves |
 
