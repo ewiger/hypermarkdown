@@ -9,14 +9,6 @@
       "severity": "warning"
     },
     {
-      "column": 8,
-      "line": 9,
-      "message": "unterminated '[[' \u2014 expected ']]'",
-      "path": "cr.hmd",
-      "rule": "HMD010",
-      "severity": "error"
-    },
-    {
       "column": 5,
       "line": 3,
       "message": "[[missing-crlf]] does not resolve to a page",

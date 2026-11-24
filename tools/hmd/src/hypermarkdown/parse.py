@@ -22,7 +22,7 @@ from .model import (
 )
 
 #: Characters that may not appear literally in a link target (HMD-0001 §2).
-RESERVED_CHARS = frozenset("[]|#^\n")
+RESERVED_CHARS = frozenset("[]|#^:\n")
 
 _BLOCK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
@@ -254,10 +254,7 @@ def _links(
             )
         )
 
-    for start in scan.find_unterminated(masked):
-        line, column = positions.line_col(start)
-        diagnostics.append(Diagnostic("HMD010", ERROR, rel, line, column, "unterminated '[[' — expected ']]'"))
-
+    # A `[[` that begins no link candidate is ordinary text, not HMD010.
     return tuple(links), diagnostics
 
 

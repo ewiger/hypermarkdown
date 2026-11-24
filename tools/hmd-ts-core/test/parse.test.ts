@@ -39,10 +39,16 @@ describe("grammar", () => {
     expect(() => parseTarget(`p#^${"a".repeat(65)}`)).toThrow(/invalid block id/);
   });
 
-  it("reports an unterminated link as HMD010", () => {
-    const doc = parse("a.hmd", "see [[tokens\n");
-    expect(doc.diagnostics.map((d) => d.rule)).toEqual(["HMD010"]);
-    expect(doc.diagnostics[0]!.message).toMatch(/unterminated/);
+  it("reads a [[ that begins no link as text", () => {
+    for (const text of ["see [[tokens\n", "[[\n", "$[[1,2],[3,4]]$\n"]) {
+      const doc = parse("a.hmd", text);
+      expect(doc.links).toEqual([]);
+      expect(doc.diagnostics).toEqual([]);
+    }
+  });
+
+  it("reserves ':' in a target", () => {
+    expect(() => parseTarget("ns:article")).toThrow(/reserved character ':'/);
   });
 
   it("never throws on partial input", () => {

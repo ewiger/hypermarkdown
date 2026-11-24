@@ -27,6 +27,10 @@ crates.io. Implementation state is tracked in
 
 ### Changed
 
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. `Reference::parse` returns
+  `ReferenceError::ReservedCharacter` for one, and the link is left out of
+  the card's links.
 - **A leading byte-order mark is ignored**, so frontmatter after one is
   frontmatter, and line 1, column 1 is the character after it.
 - **A line ends at `\n`, `\r\n` or a lone `\r`, and nowhere else.** A form

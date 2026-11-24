@@ -38,7 +38,7 @@ pub enum ReferenceError {
     InvalidBlockId(String),
     /// Nothing names a page, as in `[[#heading]]`.
     NoPage,
-    /// The page reference holds `^`, `[`, `]` or a newline, which are
+    /// The page reference holds `^`, `[`, `]`, `:` or a newline, which are
     /// reserved.
     ReservedCharacter,
 }
@@ -104,7 +104,7 @@ impl Reference {
         if page.is_empty() {
             return Err(ReferenceError::NoPage);
         }
-        if page.contains(['^', '[', ']', '\n']) {
+        if page.contains(['^', '[', ']', ':', '\n']) {
             return Err(ReferenceError::ReservedCharacter);
         }
 

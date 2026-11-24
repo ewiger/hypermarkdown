@@ -59,13 +59,20 @@ def test_trailing_extension_is_kept_verbatim_for_the_resolver():
         "[[P#^bad id]]\n",
         "[[P#^-leading]]\n",
         "[[P#]]\n",
-        "[[unterminated\n",
+        "[[ns:article]]\n",
     ],
     ids=["empty", "empty-display", "tag", "nested-tag", "caret", "space-in-id",
-         "leading-dash", "empty-fragment", "unterminated"],
+         "leading-dash", "empty-fragment", "colon"],
 )
 def test_malformed_links_raise_hmd010(text):
     assert "HMD010" in rules(doc(text))
+
+
+@pytest.mark.parametrize("text", ["[[unclosed\n", "[[\n", "$[[1,2],[3,4]]$\n"])
+def test_a_bracket_pair_that_begins_no_link_is_text(text):
+    document = doc(text)
+    assert document.links == ()
+    assert "HMD010" not in rules(document)
 
 
 def test_block_id_length_boundary():

@@ -38,6 +38,12 @@ only for the Python API.
   `UnicodeDecodeError`. `hmd lint` accepts such a file by path.
 
 ### Changed
+- **An unclosed `[[` is text, not HMD010.** A `[[` with no `]]` after it on
+  its line, or with a `[` or `]` first, begins no link and is ordinary
+  Markdown, so a matrix in maths such as `$[[1,2],[3,4]]$` no longer reports an
+  error. A link that is closed but malformed is still HMD010.
+- **`:` is reserved in a link target**, for namespace-qualified references
+  such as `[[namespace:article]]`. A target containing one is HMD010.
 - **HMD012 is a warning.** A card beside a module's folder note of the same name
   shadows the note, which stays reachable by its `index` path; like HMD018,
   that is a shadow decided by a fixed order, not a content bug.
