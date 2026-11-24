@@ -78,7 +78,7 @@ corrected text. A cross marks the implementations that had it.
 | --- | --- | --- | --- |
 | **Explicit extension in Phase 0.** A named import is returned whatever extension the reference wrote | ✗ | ✗ | ✗ |
 | **Direct directory references.** `[[./]]` binds `<parent>/<dir>.hmd` before the directory's folder note | ✗ | ✗ | ✗ |
-| **Escapes in an absolute path.** `[[/a/../top]]` is not normalised, and `[[/a/../../x]]` reads as unresolved instead of `Escapes` | ✗ | ✗ | ✗ |
+| **`..` in an absolute path.** `[[/a/../top]]` reads as missing. Since decided: `.` and `..` belong to relative references alone, so it is HMD010, and a relative reference whose last component is `.` or `..` names a directory | ✗ | ✗ | ✗ |
 | **An explicit extension in the recursive search.** `[[z.markdown]]` does not reach a shadowed `z.markdown` | ✗ | ✗ | ✗ |
 | **Duplicate search paths.** Importing one directory twice reports its card as shadowed by itself (HMD016) | ✗ | ✗ | |
 | **A folder note in the recursive search.** With `a/foo.hmd` and `a/foo/index.hmd`, `[[foo]]` from a sibling module is HMD002 with both as candidates. The card shadows the note when the note is matched by its directory's name, so the only candidate is `a/foo.hmd`; `[[foo/index]]` still reaches the note | ✗ | ✗ | ✗ |

@@ -299,4 +299,18 @@ def _parse_target(inner: str) -> tuple[str, str | None, str | None, str | None]:
     if bad:
         raise ValueError(f"reserved character {''.join(sorted(bad))!r} in target")
 
+    if dot_segment_outside_relative(page_ref):
+        raise ValueError("'.' or '..' outside an explicit relative reference")
+
     return page_ref, fragment, fragment_kind, display
+
+
+def dot_segment_outside_relative(page_ref: str) -> bool:
+    """Whether an absolute or unqualified `page_ref` has a `.` or `..` segment.
+
+    Only an explicit relative reference, one opening with `./` or `../`, may
+    hold them; anywhere else the reference is malformed (HMD010).
+    """
+    if page_ref.startswith(("./", "../")):
+        return False
+    return any(part in (".", "..") for part in page_ref.split("/"))

@@ -16,7 +16,7 @@ from pathlib import Path
 
 from .config import MARKER_DIR, Config
 from .model import PRIVATE, PUBLIC, Document, ImportStmt
-from .parse import parse, parse_markdown
+from .parse import dot_segment_outside_relative, parse, parse_markdown
 
 SUFFIX = ".hmd"
 #: The card extensions in priority order (HMD-0029): where two files compete for
@@ -422,6 +422,10 @@ class Workspace:
         suffix = card_suffix(page_ref)
         stem = page_ref[: -len(suffix)] if suffix else page_ref
 
+        if dot_segment_outside_relative(stem):
+            # Malformed (HMD010): never a link, so never resolved.
+            return Resolution(Outcome.UNRESOLVED)
+
         if stem.startswith("/"):
             return _bound(self.bind(self.root, _split(stem), suffix))
 
@@ -429,8 +433,9 @@ class Workspace:
             base = _normalize(source.parent.joinpath(stem))
             if self._violates(base):
                 return Resolution(Outcome.ESCAPES)
-            if all(part in (".", "..") for part in _split(stem)):
-                # `[[./]]`, `[[../]]`: the directory itself, so its folder note.
+            if stem.rstrip("/").split("/")[-1] in (".", ".."):
+                # `[[./]]`, `[[../]]`, or a last component of `.` or `..`:
+                # the directory itself, so its folder note.
                 return _bound(self.bind(base, (), suffix, directory_only=True))
             return _bound(self.bind(base.parent, (base.name,), suffix))
 

@@ -66,8 +66,11 @@ anchors, matching the canonical implementation case for case.
   cards differed. The first binding stands.
 - **Resolution follows the HyperMarkDown 0.1 algorithm**, checked by the
   corpus's `resolve-*` cases, which are written from the specification rather
-  than generated. `..` is normalised in every path form, so `[[/a/../b]]`
-  reaches `b`. A path that leaves the namespace is HMD003 in every phase: one
+  than generated. `.` and `..` belong to relative references alone, and are
+  normalised there: in an absolute or unqualified reference, such as
+  `[[/a/../b]]` or `[[a/../b]]`, either one is HMD010 and the reference is not
+  a link. A relative reference whose last component is `.` or `..` names that
+  directory, and reaches only its folder note. A path that leaves the namespace is HMD003 in every phase: one
   that climbs above the root, enters a nested vault, or meets a symbolic link
   out of the root; a path into a nested vault used to be HMD001. `[[./]]` and
   `[[../]]` bind only the directory's folder note, the root's included. A

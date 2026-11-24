@@ -109,7 +109,7 @@ nothing is wrong yet, only unstated.
   than generated, cover every point the validation set out to check,
   path-suffix matching among them, and pass in Python, TypeScript, and Rust. Running them found ten discrepancies, each fixed: among them a written
   extension ignored by a named import and by the recursive search, `[[./]]`
-  binding a sibling card, `..` left in absolute paths, a symbolic link out of
+  binding a sibling card, a symbolic link out of
   the root read as a card, a nested vault reported as missing rather than
   escaping, and candidates sorted by UTF-16 unit in TypeScript. The Rust runner
   now also checks each reference's outcome against HMD001 to HMD003

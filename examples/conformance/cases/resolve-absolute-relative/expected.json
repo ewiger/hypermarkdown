@@ -26,8 +26,24 @@
     },
     {
       "column": 1,
+      "line": 14,
+      "message": "'.' or '..' outside an explicit relative reference in [[/a/../top]]",
+      "path": "a/b/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
       "line": 15,
-      "message": "[[/a/../../x]] resolves outside the namespace root",
+      "message": "'.' or '..' outside an explicit relative reference in [[/a/../../x]]",
+      "path": "a/b/src.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 1,
+      "line": 17,
+      "message": "[[./../../../x]] resolves outside the namespace root",
       "path": "a/b/src.hmd",
       "rule": "HMD003",
       "severity": "error"
@@ -71,9 +87,19 @@
       "target": "a/up.hmd"
     },
     {
+      "raw": "[[./../../../x]]",
+      "source": "a/b/src.hmd",
+      "target": null
+    },
+    {
       "raw": "[[./../up]]",
       "source": "a/b/src.hmd",
       "target": "a/up.hmd"
+    },
+    {
+      "raw": "[[./c/../sib]]",
+      "source": "a/b/src.hmd",
+      "target": "a/b/sib.hmd"
     },
     {
       "raw": "[[./sib]]",
@@ -84,16 +110,6 @@
       "raw": "[[./up]]",
       "source": "a/b/src.hmd",
       "target": null
-    },
-    {
-      "raw": "[[/a/../../x]]",
-      "source": "a/b/src.hmd",
-      "target": null
-    },
-    {
-      "raw": "[[/a/../top]]",
-      "source": "a/b/src.hmd",
-      "target": "top.hmd"
     },
     {
       "raw": "[[/a/b/sib]]",

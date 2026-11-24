@@ -395,6 +395,19 @@ export function parseTarget(inner: string): ParsedTarget {
   if (bad.length > 0) {
     throw new Error(`reserved character '${bad.join("")}' in target`);
   }
+  if (dotSegmentOutsideRelative(pageRef)) {
+    throw new Error("'.' or '..' outside an explicit relative reference");
+  }
 
   return { pageRef, fragment, fragmentKind, display };
+}
+
+/**
+ * Whether an absolute or unqualified `pageRef` has a `.` or `..` segment.
+ * Only an explicit relative reference, one opening with `./` or `../`, may hold
+ * them; anywhere else the reference is malformed (HMD010).
+ */
+export function dotSegmentOutsideRelative(pageRef: string): boolean {
+  if (pageRef.startsWith("./") || pageRef.startsWith("../")) return false;
+  return pageRef.split("/").some((part) => part === "." || part === "..");
 }

@@ -32,8 +32,13 @@ crates.io. Implementation state is tracked in
   anything through it is part of the namespace. `FsHost` reports one instead
   of reading the file it points at, and `Entry::leaves_root` builds one. A
   `match` over `EntryKind` that names every variant no longer compiles.
-- **Resolution follows the specification's corrected algorithm.** `..` is
-  normalised in every path form, so `/a/../b` reaches `b`. A path that leaves
+- **Resolution follows the specification's corrected algorithm.** `.` and
+  `..` belong to relative references alone, and are normalised there. In an
+  absolute or unqualified reference, such as `/a/../b`, `Reference::parse`
+  fails with the new `ReferenceError::DotSegment`, a card leaves such a
+  reference out of its links, and `Vault::resolve` returns `Unresolved` for
+  it. A relative reference whose last component is `.` or `..` names that
+  directory, and binds only its folder note. A path that leaves
   the namespace is `Resolution::Escapes` in every phase: one that climbs above
   the root, enters a nested vault, or meets a symbolic link out of the root.
   It used to be `Unresolved` everywhere but in a relative reference. `./` and

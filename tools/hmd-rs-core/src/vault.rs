@@ -46,7 +46,7 @@ use std::path::Path;
 use crate::config::{Config, MARKER_DIR, Mode};
 use crate::error::Error;
 use crate::host::{EntryKind, FsHost, Host};
-use crate::page::Page;
+use crate::page::{Page, dot_segment_outside_relative};
 use crate::paths::{self, CARD_SUFFIXES, INDEX_STEM, SUFFIX};
 use crate::text::nfc;
 
@@ -380,6 +380,12 @@ impl Vault {
         let ext = paths::card_suffix(reference);
         let stem = &reference[..reference.len() - ext.map_or(0, str::len)];
 
+        // A `.` or `..` outside an explicit relative reference is malformed, and such a
+        // reference is never a link; resolved directly, it names no card.
+        if dot_segment_outside_relative(stem) {
+            return Resolution::Unresolved;
+        }
+
         if stem.starts_with('/') {
             return by_path_rule(self.bind(&[], &paths::split(stem), ext));
         }
@@ -389,10 +395,11 @@ impl Vault {
             let Some(parts) = paths::normalize(from.into_iter().chain(stem.split('/'))) else {
                 return Resolution::Escapes;
             };
-            // `./` and `../` alone name a directory, and bind only its folder
-            // note; so does a path that normalizes to the root itself.
-            let directory_only =
-                parts.is_empty() || stem.split('/').all(|part| matches!(part, "" | "." | ".."));
+            // `./`, `../`, and a last component of `.` or `..` name a
+            // directory, and bind only its folder note; so does a path that
+            // normalizes to the root itself.
+            let last = stem.trim_end_matches('/').rsplit('/').next();
+            let directory_only = parts.is_empty() || matches!(last, Some("." | ".."));
             return by_path_rule(self.bind_path(&parts, ext, directory_only));
         }
 
@@ -789,13 +796,13 @@ mod tests {
         // It is looked up nowhere else: no spine, no sweep.
         assert_eq!(v.resolve(from, "/login"), Resolution::Unresolved);
         assert_eq!(v.resolve(from, "/"), Resolution::Unresolved);
-        // `..` is normalised before binding, and climbing above the root
-        // escapes rather than missing.
+        // `.` and `..` belong to relative references only; an absolute
+        // reference holding one is malformed, and names no card.
+        assert_eq!(v.resolve(from, "/shared/../tokens"), Resolution::Unresolved);
         assert_eq!(
-            v.resolve(from, "/shared/../tokens"),
-            hit("tokens.hmd", Via::Path)
+            v.resolve(from, "/shared/../../tokens"),
+            Resolution::Unresolved
         );
-        assert_eq!(v.resolve(from, "/shared/../../tokens"), Resolution::Escapes);
     }
 
     #[test]

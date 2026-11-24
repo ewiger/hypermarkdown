@@ -13,7 +13,7 @@ import { MARKER_DIR } from "./config.js";
 import { cardText, decodeCard } from "./encoding.js";
 import type { WorkspaceHost } from "./host.js";
 import type { ImportStmt, ParsedDocument } from "./model.js";
-import { parse } from "./parse.js";
+import { dotSegmentOutsideRelative, parse } from "./parse.js";
 import {
   CARD_SUFFIXES,
   INDEX_STEM,
@@ -471,6 +471,9 @@ export class Workspace {
     const suffix = cardSuffix(pageRef);
     const stem = suffix === null ? pageRef : pageRef.slice(0, -suffix.length);
 
+    // Malformed (HMD010): never a link, so never resolved.
+    if (dotSegmentOutsideRelative(stem)) return resolution({ outcome: "unresolved" });
+
     if (stem.startsWith("/")) return bound(this.bind("", split(stem), suffix));
 
     if (stem.startsWith("./") || stem.startsWith("../")) {
@@ -479,8 +482,10 @@ export class Workspace {
         ...stem.split("/"),
       ]);
       if (escapes || this.violates(parts)) return resolution({ outcome: "escapes" });
-      if (parts.length === 0 || stem.split("/").every((p) => p === "." || p === ".." || p === "")) {
-        // `[[./]]`, `[[../]]`: the directory itself, so its folder note.
+      const last = stem.replace(/\/+$/, "").split("/").pop();
+      if (parts.length === 0 || last === "." || last === "..") {
+        // `[[./]]`, `[[../]]`, or a last component of `.` or `..`: the
+        // directory itself, so its folder note.
         return bound(this.bind(parts.join("/"), [], suffix, true));
       }
       return bound(this.bind(parts.slice(0, -1).join("/"), [parts[parts.length - 1]!], suffix));
