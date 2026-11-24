@@ -92,6 +92,11 @@ export class VsCodeHost implements WorkspaceHost {
   }
 }
 
+/** A vault whose `.hmd/config.toml` was refused: none of its cards is opened. */
+export interface RefusedRoot {
+  refused: vscode.Uri;
+}
+
 export interface DiscoveredRoot {
   /** The directory carrying `.hmd/`, or the workspace folder when none does. */
   projectRoot: vscode.Uri;
@@ -123,8 +128,18 @@ function segmentsBetween(folder: vscode.Uri, uri: vscode.Uri): string[] | null {
   return decodeURIComponent(target.slice(base.length + 1)).split("/");
 }
 
-/** Read a project root's `.hmd/config.toml`, reporting a broken one once. */
-async function readConfig(projectRoot: vscode.Uri): Promise<ProjectConfig> {
+/** Config files already reported as refused, so each error is shown once. */
+const reported = new Set<string>();
+
+/**
+ * Read a project root's `.hmd/config.toml`.
+ *
+ * Null when the file is refused — it does not parse, or it sets a key the
+ * format forbids, such as `wiki` — and the error is shown once. A refused vault
+ * is not opened at all: reading it with the defaults would load cards from a
+ * namespace root nobody chose.
+ */
+async function readConfig(projectRoot: vscode.Uri): Promise<ProjectConfig | null> {
   const configUri = vscode.Uri.joinPath(projectRoot, MARKER_DIR, CONFIG_NAME);
   if (!(await exists(configUri))) return { ...DEFAULT_PROJECT_CONFIG };
   try {
@@ -133,10 +148,15 @@ async function readConfig(projectRoot: vscode.Uri): Promise<ProjectConfig> {
       `${MARKER_DIR}/${CONFIG_NAME}`,
     );
   } catch (exc) {
-    void vscode.window.showWarningMessage(
-      `HyperMarkDown: ${exc instanceof Error ? exc.message : String(exc)}`,
-    );
-    return { ...DEFAULT_PROJECT_CONFIG };
+    const key = configUri.toString();
+    if (!reported.has(key)) {
+      reported.add(key);
+      void vscode.window.showErrorMessage(
+        `HyperMarkDown: ${exc instanceof Error ? exc.message : String(exc)}. ` +
+          `The vault at ${projectRoot.fsPath} is not opened.`,
+      );
+    }
+    return null;
   }
 }
 
@@ -158,12 +178,13 @@ function namespaceRoot(projectRoot: vscode.Uri, locationPath: string): vscode.Ur
  *
  * Returns null when nothing above the card carries a marker; the folder's own
  * root (`folderRoot` below) is the fallback, which is what keeps a repository
- * with no `.hmd/` at all working.
+ * with no `.hmd/` at all working. Returns a refusal when the nearest marker's
+ * config is refused: the card is that vault's, and it is not opened anywhere.
  */
 export async function discoverVault(
   card: vscode.Uri,
   folder: vscode.Uri,
-): Promise<DiscoveredRoot | null> {
+): Promise<DiscoveredRoot | RefusedRoot | null> {
   const segments = segmentsBetween(folder, card);
   if (segments === null) return null;
   const directories = segments.slice(0, -1);
@@ -173,6 +194,7 @@ export async function discoverVault(
     if (!(await exists(vscode.Uri.joinPath(projectRoot, MARKER_DIR)))) continue;
 
     const config = await readConfig(projectRoot);
+    if (config === null) return { refused: projectRoot };
     const root = namespaceRoot(projectRoot, config.locationPath);
     if (isUnder(root, card) && (await exists(root))) return { projectRoot, root, config };
   }
@@ -188,9 +210,11 @@ export async function discoverVault(
  * folder itself is used, so that opening a bare directory of cards works with
  * no setup at all (VSX-061). This
  * is the vault of last resort — a card with no `.hmd/` above it belongs to it.
+ * A refusal when the folder's own `.hmd/config.toml` is refused.
  */
-export async function folderRoot(folder: vscode.Uri): Promise<DiscoveredRoot> {
+export async function folderRoot(folder: vscode.Uri): Promise<DiscoveredRoot | RefusedRoot> {
   const config = await readConfig(folder);
+  if (config === null) return { refused: folder };
 
   const override = vscode.workspace.getConfiguration("hyperMarkdown").get<string>("root", "");
   const locationPath = override.trim() === "" ? config.locationPath : override.trim();

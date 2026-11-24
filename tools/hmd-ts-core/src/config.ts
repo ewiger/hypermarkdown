@@ -40,8 +40,15 @@ export function parseConfigToml(text: string, source: string | null = null): Pro
     throw new ConfigError(`cannot read ${source ?? CONFIG_NAME}: ${String(exc)}`);
   }
 
-  // `wiki` was this key's name before 0.1. It is not read: a config that still
-  // says only `wiki` gets the default, as every unknown key does.
+  // `wiki` was this key's name before 0.1. A config that still sets it is
+  // refused rather than read with the default, so a vault never loads from a
+  // namespace root its author did not choose.
+  if ("wiki" in data) {
+    throw new ConfigError(
+      `${source ?? CONFIG_NAME} sets \`wiki\`, which is no longer read: rename it to \`location_path\``,
+    );
+  }
+
   const locationPath = data["location_path"] ?? DEFAULT_LOCATION_PATH;
   if (typeof locationPath !== "string") {
     throw new ConfigError(`\`location_path\` must be a string in ${source ?? CONFIG_NAME}`);

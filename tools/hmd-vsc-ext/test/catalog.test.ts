@@ -12,7 +12,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as vscode from "vscode";
 
@@ -165,5 +165,43 @@ describe("a vault nested inside an indexed one (issue 0009)", () => {
     expect(inner?.rel).toBe("topic.hmd");
     expect(inner?.vault.root.toString()).toBe(uri("doc/wiki/public").toString());
     expect(inner?.vault.diagnostics()).toEqual([]);
+  });
+});
+
+describe("a vault whose config sets `wiki`", () => {
+  async function reopen(): Promise<void> {
+    catalog.dispose();
+    catalog = new VaultCatalog(vscode.Uri.file("/ext"));
+    await catalog.initialize();
+  }
+
+  it("is refused: the error names both keys, and none of its cards opens", async () => {
+    const shown = vi.spyOn(vscode.window, "showErrorMessage");
+    await write("examples/legacy/.hmd/config.toml", 'wiki = "."\n');
+    await write("examples/legacy/old.hmd", "# Old\n");
+    await reopen();
+
+    expect(await catalog.openCard(uri("examples/legacy/old.hmd"))).toBeNull();
+    // Not claimed by the folder's vault either: that would show the card in a
+    // namespace it is not part of.
+    expect(catalog.cardFor(uri("examples/legacy/old.hmd"))).toBeNull();
+    expect(catalog.loaded().map((vault) => vault.root.toString())).not.toContain(
+      uri("examples/legacy").toString(),
+    );
+
+    const messages = shown.mock.calls.map((call) => String(call[0]));
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("`wiki`");
+    expect(messages[0]).toContain("`location_path`");
+    shown.mockRestore();
+  });
+
+  it("refuses the folder's own vault when the folder's config sets it", async () => {
+    await write(".hmd/config.toml", 'location_path = "doc/wiki"\nwiki = "doc/wiki"\n');
+    await reopen();
+
+    expect(await catalog.openCard(uri("doc/wiki/topic.hmd"))).toBeNull();
+    // A vault with a config of its own is unaffected.
+    expect(await catalog.openCard(uri("examples/sorting/complexity.hmd"))).not.toBeNull();
   });
 });

@@ -12,11 +12,15 @@ describe("`.hmd/config.toml`", () => {
     expect(parseConfigToml("").locationPath).toBe(".");
   });
 
-  it("does not read the key's old name, `wiki`", () => {
-    // A config that still says only `wiki` gets the default, as any unknown
-    // key does; one that says both is read by its new name.
-    expect(parseConfigToml('wiki = "doc/wiki"\n').locationPath).toBe(".");
-    expect(parseConfigToml('location_path = "."\nwiki = "doc/wiki"\n').locationPath).toBe(".");
+  it("refuses a config that sets the key's old name, `wiki`", () => {
+    // Refused, not read with the default: alone, beside `location_path`, and
+    // whatever its value. The error names both keys.
+    for (const text of ['wiki = "doc/wiki"\n', 'location_path = "."\nwiki = "."\n']) {
+      expect(() => parseConfigToml(text, ".hmd/config.toml")).toThrow(ConfigError);
+      expect(() => parseConfigToml(text, ".hmd/config.toml")).toThrow(
+        ".hmd/config.toml sets `wiki`, which is no longer read: rename it to `location_path`",
+      );
+    }
   });
 
   it("rejects a `location_path` that is not a string", () => {

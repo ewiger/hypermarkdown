@@ -26,8 +26,11 @@ DEFAULT_INDEX = ".hmd/index.sqlite"
 
 DEFAULT_LOCATION_PATH = "."
 """The namespace root when `location_path` does not say: the vault itself, as
-HyperMarkDown defines it. The key was called `wiki` before 0.1, and that name is
-not read."""
+HyperMarkDown defines it."""
+
+RETIRED_KEYS = {"wiki": "location_path"}
+"""Keys the format renamed, mapped to their names now. A vault that still sets
+one is refused, not read with a default it did not choose."""
 
 LOCAL = "local"
 HTTP = "http"
@@ -134,6 +137,11 @@ def _table(path: Path) -> dict:
         parsed = tomllib.loads(text.decode("utf-8"))
     except (tomllib.TOMLDecodeError, UnicodeDecodeError) as error:
         raise ConfigError(f"{path}: is not readable TOML: {error}") from error
+    # Every reader of the file comes through here, so a retired key refuses
+    # the vault whichever setting was asked for.
+    for old, new in RETIRED_KEYS.items():
+        if old in parsed:
+            raise ConfigError(f"{path}: sets `{old}`, which is no longer read: rename it to `{new}`")
     return parsed
 
 

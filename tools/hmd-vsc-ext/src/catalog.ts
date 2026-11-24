@@ -132,6 +132,9 @@ export class VaultCatalog implements vscode.Disposable {
     if (folder === undefined) return null;
 
     const discovered = await discoverVault(uri, folder.uri);
+    // A refused vault claims its cards and opens none of them; falling back to
+    // the folder's vault would show them in a namespace they are not part of.
+    if (discovered !== null && "refused" in discovered) return null;
     if (discovered !== null) {
       const vault = await this.load(discovered.root, () =>
         Vault.load(discovered.projectRoot, discovered.root, discovered.config, (rel) =>
@@ -142,17 +145,18 @@ export class VaultCatalog implements vscode.Disposable {
       if (rel !== null) return { vault, rel };
     }
 
-    await this.fallbackFor(folder.uri);
+    if ((await this.fallbackFor(folder.uri)) === null) return null;
     return this.cardFor(uri);
   }
 
-  /** The vault a card outside every marked tree belongs to. */
-  private async fallbackFor(folder: vscode.Uri): Promise<Vault> {
+  /** The vault a card outside every marked tree belongs to, unless refused. */
+  private async fallbackFor(folder: vscode.Uri): Promise<Vault | null> {
     const known = this.fallbacks.get(folder.toString());
     const existing = known === undefined ? undefined : this.vaults.get(known);
     if (existing !== undefined) return existing;
 
     const discovered = await folderRoot(folder);
+    if ("refused" in discovered) return null;
     const vault = await this.load(discovered.root, () =>
       Vault.load(discovered.projectRoot, discovered.root, discovered.config, (rel) =>
         this.fire(discovered.root.toString(), rel),

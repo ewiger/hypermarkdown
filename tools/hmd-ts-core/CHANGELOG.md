@@ -61,8 +61,9 @@ anchors, matching the canonical implementation case for case.
 ### Changed
 
 - **`wiki` is renamed `location_path`, and defaults to `.`.** The config field
-  is `locationPath` and the constant `DEFAULT_LOCATION_PATH`; the old key is
-  not read, so a config that says only `wiki` gets the default.
+  is `locationPath` and the constant `DEFAULT_LOCATION_PATH`. A config that
+  still sets `wiki` is refused with a `ConfigError` that names both keys, so a
+  vault never loads from a namespace root nobody chose.
 - **A backslash anywhere in a wikilink is HMD010**: in its path, its
   fragment, or its display. A backslash is never a path separator and
   escapes nothing; one before `[[` is outside the link and changes nothing.
