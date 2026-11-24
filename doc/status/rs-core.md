@@ -62,10 +62,13 @@ implementation gains a rule the ledger does not name.
 | A relative reference that leaves the root and comes back in through the root directory's own name is `Escapes` | The reference implementation works on absolute paths, so from a root directory named `wiki` it resolves `[[../wiki/card]]`. A host has no name for its root, and the TypeScript implementation answers as this crate does | [[hmd-0027#the-programming-interface]] |
 | Frontmatter that defines one YAML anchor twice is read | The reference implementation's YAML reader refuses a repeated anchor, so the card's `use` and `import` keys are dropped there and honored here | [[hmd-0027#what-the-crate-does]] |
 | A symbolic link to a directory inside the root is not walked by the `std::fs` host | A link must not make the walk loop. A link to a file inside the root is a card; a link out of the root is `EntryKind::LeavesRoot`, and a reference through it escapes | [[hmd-0027#security-considerations]] |
-| The corpus does not exercise `wiki`, `Vault::open`, or vault discovery | Every case loads its tree as the root. `tests/fs.rs` holds those three | [[hmd-0027#what-the-crate-does]] |
+| The corpus does not exercise `location_path`, `Vault::open`, or vault discovery | Every case loads its tree as the root. `tests/fs.rs` holds those three | [[hmd-0027#what-the-crate-does]] |
 
 ## Done
 
+- **`location_path` names the namespace root** — `Vault::open` reads the
+  setting formerly called `wiki`, with the default `.`, the vault itself,
+  instead of `doc/wiki`; no alias; unreleased.
 - **Name resolution as the 0.1 specification corrects it** — paths normalised
   and checked against the namespace in every phase, `EntryKind::LeavesRoot` for
   a symbolic link out of the root, `[[./]]` and `[[../]]` bound to the folder
@@ -97,7 +100,7 @@ implementation gains a rule the ledger does not name.
 - **The scanner and the grammars** — references outside fences, comments and
   code spans with their lines and columns in code points, the reference grammar, and the import
   statement.
-- **Frontmatter and configuration** — the `use` and `import` keys, and `wiki`,
+- **Frontmatter and configuration** — the `use` and `import` keys, and `location_path`,
   `autodiscovery` and `mode` with the specification's defaults.
 - **Vault discovery** — the nearest directory at or above a path that holds
   `.hmd/`.
@@ -122,6 +125,7 @@ None.
 
 ## Changelog
 
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-24: before the 0.1.0 release. The crate conforms to HyperMarkDown
   0.1.0 as a resolver, held to the specification rather than to the reference
   implementation. The corpus count is 37 and the test count 109; 0.2.0 was

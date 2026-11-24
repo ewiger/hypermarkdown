@@ -95,6 +95,10 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Done
 
+- **`location_path` names a vault's namespace root** — read through the core,
+  with the default `.`, the folder of `.hmd/` itself, instead of `doc/wiki`.
+  `hyperMarkdown.root` keeps its name; left empty, it now falls back to
+  `location_path`; unreleased.
 - **The 0.1 rules from the core** — following a heading link matches by key,
   so underlined headings and headings in every script are reached, diagnostics
   convert code-point columns to the editor's UTF-16 ones, an undecodable card
@@ -198,6 +202,7 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-24: before the 0.1.0 release. Status names `0.5.2`, the version on
   both galleries, and says the extension conforms to HyperMarkDown 0.1.0
   through its core, but for publication. The Open row for unpublished links

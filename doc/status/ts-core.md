@@ -73,6 +73,9 @@ canonical side warns and this one stays silent.
 
 ## Done
 
+- **`location_path` names the namespace root** — the setting formerly called
+  `wiki`, read relative to the vault with the default `.`, the vault itself,
+  instead of `doc/wiki`; no alias; unreleased.
 - **The HMD007 check follows only the embedded region** — it walks the
   region a fragment expands to, using the core's own expansion, instead of
   every embed in the target card, so embeds of different sections of one card
@@ -154,6 +157,7 @@ environment variable is set, which CI does.
 
 ## Changelog
 
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-24: before the 0.1.0 release. The tool conforms to HyperMarkDown
   0.1.0 except the publication model, a listed limitation and not a blocker,
   and is held to the specification rather than to the reference
