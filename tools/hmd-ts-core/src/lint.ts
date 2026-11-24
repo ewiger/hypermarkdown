@@ -222,6 +222,18 @@ function linkRules(workspace: Workspace, document: ParsedDocument): Diagnostic[]
 
     out.push(...fragmentRules(workspace, document, link, result.path!));
 
+    for (const directory of result.escaped) {
+      out.push(
+        at(
+          "HMD003",
+          document.path,
+          span.line,
+          span.column,
+          `${link.raw} through the imported path '/${directory}' resolves outside the namespace root`,
+        ),
+      );
+    }
+
     if (result.shadowed.length > 0) {
       out.push(
         at(
@@ -349,13 +361,31 @@ function walk(
   workspace: Workspace,
   path: string,
   via: Link | null,
-  stack: Array<[string, string | null]>,
+  stack: Array<[string, number | null]>,
   reported: Set<string>,
   out: Diagnostic[],
 ): void {
-  const fragment = via?.fragment ?? null;
-  const key = `${path} ${fragment ?? ""}`;
-  const onStack = stack.findIndex(([p, f]) => p === path && f === fragment);
+  const document = workspace.documents.get(path);
+  if (document === undefined) return;
+
+  // What is being expanded, identified by what it resolved to rather than by
+  // how the embed was spelled: the whole card, or the section or block, named
+  // by the line its region starts on. `#Linux`, `#linux`, and an anchor on the
+  // `## Linux` line all name one section, so they are one stack entry.
+  let identity: number | null = null;
+  let firstLine = 1;
+  let lastLine = Number.POSITIVE_INFINITY;
+  if (via !== null && via.fragment !== null) {
+    const slice = expand(document, via.fragment, via.fragmentKind);
+    // The fragment matches nothing, so nothing expands; HMD004 or HMD005
+    // reports the fragment itself.
+    if (isFailure(slice)) return;
+    firstLine = slice.startLine;
+    lastLine = slice.startLine + slice.text.split(/\r\n|\r|\n/).length - 1;
+    identity = firstLine;
+  }
+  const key = `${path} ${identity ?? ""}`;
+  const onStack = stack.findIndex(([p, i]) => p === path && i === identity);
 
   if (onStack !== -1) {
     if (!reported.has(key)) {
@@ -391,21 +421,7 @@ function walk(
     return;
   }
 
-  const document = workspace.documents.get(path);
-  if (document === undefined) return;
-
-  let firstLine = 1;
-  let lastLine = Number.POSITIVE_INFINITY;
-  if (via !== null) {
-    const slice = expand(document, via.fragment, via.fragmentKind);
-    // The fragment matches nothing, so nothing expands; HMD004 or HMD005
-    // reports the fragment itself.
-    if (isFailure(slice)) return;
-    firstLine = slice.startLine;
-    lastLine = slice.startLine + slice.text.split(/\r\n|\r|\n/).length - 1;
-  }
-
-  stack.push([path, fragment]);
+  stack.push([path, identity]);
   for (const link of document.links) {
     if (!link.isEmbed || link.span.line < firstLine || link.span.line > lastLine) continue;
     const result = workspace.resolve(path, link.pageRef);

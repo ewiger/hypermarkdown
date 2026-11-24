@@ -1,0 +1,9 @@
+---
+import:
+  - from /b import *
+  - from /a import *
+---
+
+# First
+
+[[x]]

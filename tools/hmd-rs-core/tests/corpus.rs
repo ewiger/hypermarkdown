@@ -12,7 +12,7 @@
 //! case that matches fails the run, because an expected failure that starts
 //! succeeding and is not removed is a ledger that no longer tells the truth.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -102,15 +102,39 @@ fn outcome_of(rule: &str) -> Option<&'static str> {
     }
 }
 
+/// Where each reference of a case sits: `(source, line, column)` to its raw
+/// text. Positions are the grammar's, shared by every implementation.
+type Positions = BTreeMap<(String, u64, u64), String>;
+
 /// The outcomes a case's expected diagnostics restate, keyed by where the
 /// reference is: `{source, line, column, outcome, candidates?}`, sorted.
-fn expected_outcomes(expected: &Value) -> Value {
+///
+/// A diagnostic restates an outcome only for a reference the case expects to
+/// resolve to nothing. An HMD003 at a reference that resolves is about a
+/// later imported search path that leaves the namespace, which the
+/// specification reports without changing the result.
+fn expected_outcomes(expected: &Value, positions: &Positions) -> Value {
+    let resolves = |source: &str, raw: &str| {
+        expected["resolutions"].as_array().is_some_and(|rows| {
+            rows.iter()
+                .any(|r| r["source"] == source && r["raw"] == raw && !r["target"].is_null())
+        })
+    };
     let mut rows: Vec<Value> = expected["diagnostics"]
         .as_array()
         .expect("expected.json has diagnostics")
         .iter()
         .filter_map(|d| {
             let outcome = outcome_of(d["rule"].as_str()?)?;
+            let source = d["path"].as_str()?;
+            let at = (
+                source.to_owned(),
+                d["line"].as_u64()?,
+                d["column"].as_u64()?,
+            );
+            if positions.get(&at).is_some_and(|raw| resolves(source, raw)) {
+                return None;
+            }
             let mut row = json!({
                 "source": d["path"], "line": d["line"], "column": d["column"], "outcome": outcome,
             });
@@ -125,9 +149,9 @@ fn expected_outcomes(expected: &Value) -> Value {
 }
 
 /// Resolves every reference of one case: its `resolutions`, in the shape and
-/// order of `expected.json`'s, and the outcome of every reference that did not
-/// resolve, in the shape of [`expected_outcomes`].
-fn observed(case: &Path) -> (Value, Value) {
+/// order of `expected.json`'s, the outcome of every reference that did not
+/// resolve, in the shape of [`expected_outcomes`], and where each reference is.
+fn observed(case: &Path) -> (Value, Value, Positions) {
     // A case's `config.toml` sits beside its tree and is the tree's
     // `.hmd/config.toml`; without one the defaults are the case.
     let config = match fs::read_to_string(case.join(CONFIG_NAME)) {
@@ -141,8 +165,13 @@ fn observed(case: &Path) -> (Value, Value) {
 
     let mut rows: Vec<(String, String, Option<String>)> = Vec::new();
     let mut outcomes: Vec<Value> = Vec::new();
+    let mut positions = Positions::new();
     for page in vault.pages() {
         for link in &page.links {
+            positions.insert(
+                (page.path.clone(), link.line as u64, link.column as u64),
+                link.raw.clone(),
+            );
             let resolution = vault.resolve(&page.path, &link.page);
             let outcome = match &resolution {
                 Resolution::Resolved { .. } => None,
@@ -178,7 +207,7 @@ fn observed(case: &Path) -> (Value, Value) {
         .into_iter()
         .map(|(source, raw, target)| json!({ "raw": raw, "source": source, "target": target }))
         .collect();
-    (resolutions, Value::Array(outcomes))
+    (resolutions, Value::Array(outcomes), positions)
 }
 
 #[test]
@@ -207,8 +236,9 @@ fn every_case_resolves_as_the_specification_says() {
             expected.is_array(),
             "{name}: expected.json has no resolutions"
         );
-        let expected = (expected, expected_outcomes(&expected_json));
-        let actual = observed(&case);
+        let (resolutions, outcomes, positions) = observed(&case);
+        let expected = (expected, expected_outcomes(&expected_json, &positions));
+        let actual = (resolutions, outcomes);
         let matches = actual == expected;
 
         if expected_to_fail.contains(name) {
