@@ -1,0 +1,13 @@
+# Notebook
+
+```hql#eval
+[[inside-cell]]
+```
+
+<!-- hql:output abc123 -->
+See [[target]].
+<!-- /hql:output -->
+
+```hql
+[[inside-listing]]
+```

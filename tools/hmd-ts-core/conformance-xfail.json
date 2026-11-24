@@ -1,6 +1,25 @@
 {
   "$comment": "Known divergences from the canonical implementation (HMD-0020 \u00a710). Each entry names something this implementation is expected to get wrong, and why: `cases` are conformance cases, `rules` are lint rules it does not emit at all, `rendering` is HTML that differs. An entry that stops diverging fails the build \u2014 a ledgered case that PASSES, or a ledgered rule this implementation actually emits \u2014 because an expected failure that starts succeeding and is not removed is how a ledger rots into a lie.",
-  "cases": [],
+  "cases": [
+    {
+      "id": "frontmatter-invalid-yaml",
+      "reason": "The HMD009 message quotes the YAML parser's own error text, and js-yaml words its errors differently from PyYAML. The rule, path, line, column, and severity agree; only the message differs, and the specification does not define it.",
+      "deliberate": true,
+      "spec": "hmd-lang-spec, Frontmatter block"
+    },
+    {
+      "id": "nav-malformed",
+      "reason": "This implementation does not read `nav` at all, so a scalar `nav`, an unknown key, a non-integer `order`, or an unknown `visibility` raises no HMD013. It goes with the unported publication model; see HMD017 under `rules`.",
+      "deliberate": false,
+      "spec": "hmd-lang-spec, nav: placement and publication"
+    },
+    {
+      "id": "publication-private-link",
+      "reason": "The publication model is unported, so a published card linking to or embedding an unpublished one raises no HMD017; see HMD017 under `rules`. The case's resolutions agree.",
+      "deliberate": false,
+      "spec": "hmd-lang-spec, nav: placement and publication"
+    }
+  ],
   "rules": [
     {
       "id": "HMD017",

@@ -9,6 +9,7 @@
 import { load as yamlLoad, JSON_SCHEMA, YAMLException } from "js-yaml";
 
 import { ImportSyntaxError, parseStatement } from "./imports.js";
+import { pyRepr } from "./pyrepr.js";
 import type { CardConfig, ImportStmt } from "./model.js";
 import { splitLines, stripEol } from "./scan.js";
 
@@ -174,6 +175,4 @@ function typeName(value: unknown): string {
   return typeof value;
 }
 
-function repr(value: unknown): string {
-  return typeof value === "string" ? `'${value}'` : String(value);
-}
+const repr = pyRepr;

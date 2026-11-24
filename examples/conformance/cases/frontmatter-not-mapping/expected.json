@@ -1,0 +1,13 @@
+{
+  "diagnostics": [
+    {
+      "column": 1,
+      "line": 1,
+      "message": "frontmatter must be a mapping, got list",
+      "path": "listed.hmd",
+      "rule": "HMD009",
+      "severity": "error"
+    }
+  ],
+  "resolutions": []
+}
