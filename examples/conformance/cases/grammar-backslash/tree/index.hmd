@@ -1,0 +1,7 @@
+- [[a\b]]
+- [[\a]]
+- [[a#x\y]]
+- [[a#^x\y]]
+- [[a|x\y]]
+- ![[a\b]]
+- \[[a]] is a link: the backslash is outside it.

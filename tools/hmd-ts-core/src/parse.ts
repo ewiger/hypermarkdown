@@ -344,6 +344,9 @@ interface ParsedTarget {
  * Split a link body into its parts, throwing for anything malformed (HMD010).
  */
 export function parseTarget(inner: string): ParsedTarget {
+  // A backslash is never a path separator and escapes nothing, so it may
+  // stand nowhere in a wikilink: not in the path, the fragment, or the display.
+  if (inner.includes("\\")) throw new Error("backslash in wikilink");
   if (inner.trim() === "") throw new Error("empty link target");
 
   // Display text comes last and may itself contain '|', so split once only.

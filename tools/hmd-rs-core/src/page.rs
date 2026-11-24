@@ -44,6 +44,9 @@ pub enum ReferenceError {
     /// An absolute or unqualified page reference has a `.` or `..` segment,
     /// which only a relative reference, opening with `./` or `../`, may hold.
     DotSegment,
+    /// A `\` stands somewhere in the reference: in the page, the fragment, or
+    /// the display. A backslash is never a path separator and escapes nothing.
+    Backslash,
 }
 
 impl fmt::Display for ReferenceError {
@@ -58,6 +61,7 @@ impl fmt::Display for ReferenceError {
             ReferenceError::DotSegment => {
                 f.write_str("'.' or '..' outside an explicit relative reference")
             }
+            ReferenceError::Backslash => f.write_str("backslash in wikilink"),
         }
     }
 }
@@ -80,6 +84,9 @@ impl Reference {
     /// Splits the text between `[[` and `]]` into page reference, fragment
     /// and display text.
     pub fn parse(inner: &str) -> Result<Reference, ReferenceError> {
+        if inner.contains('\\') {
+            return Err(ReferenceError::Backslash);
+        }
         if text::strip(inner).is_empty() {
             return Err(ReferenceError::Empty);
         }

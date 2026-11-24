@@ -1,0 +1,59 @@
+{
+  "diagnostics": [
+    {
+      "column": 3,
+      "line": 1,
+      "message": "backslash in wikilink in [[a\\b]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 2,
+      "message": "backslash in wikilink in [[\\a]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 3,
+      "message": "backslash in wikilink in [[a#x\\y]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 4,
+      "message": "backslash in wikilink in [[a#^x\\y]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 5,
+      "message": "backslash in wikilink in [[a|x\\y]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    },
+    {
+      "column": 3,
+      "line": 6,
+      "message": "backslash in wikilink in ![[a\\b]]",
+      "path": "index.hmd",
+      "rule": "HMD010",
+      "severity": "error"
+    }
+  ],
+  "resolutions": [
+    {
+      "raw": "[[a]]",
+      "source": "index.hmd",
+      "target": "a.hmd"
+    }
+  ]
+}

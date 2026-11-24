@@ -60,9 +60,13 @@ def test_trailing_extension_is_kept_verbatim_for_the_resolver():
         "[[P#^-leading]]\n",
         "[[P#]]\n",
         "[[ns:article]]\n",
+        "[[a\\b]]\n",
+        "[[a#x\\y]]\n",
+        "[[a|x\\y]]\n",
     ],
     ids=["empty", "empty-display", "tag", "nested-tag", "caret", "space-in-id",
-         "leading-dash", "empty-fragment", "colon"],
+         "leading-dash", "empty-fragment", "colon", "backslash-path",
+         "backslash-fragment", "backslash-display"],
 )
 def test_malformed_links_raise_hmd010(text):
     assert "HMD010" in rules(doc(text))

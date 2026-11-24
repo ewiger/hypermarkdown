@@ -51,6 +51,12 @@ describe("grammar", () => {
     expect(() => parseTarget("ns:article")).toThrow(/reserved character ':'/);
   });
 
+  it("refuses a backslash anywhere in a wikilink", () => {
+    for (const inner of ["a\\b", "\\a", "a#x\\y", "a#^x\\y", "a|x\\y"]) {
+      expect(() => parseTarget(inner), inner).toThrow(/backslash in wikilink/);
+    }
+  });
+
   it("never throws on partial input", () => {
     // Every truncation of a card is a state the author types through.
     const source = "---\ntags: [a]\n---\n\n# H\n\nsee [[tokens#^id|x]] and ![[other]]\n";
