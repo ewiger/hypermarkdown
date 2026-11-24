@@ -218,9 +218,11 @@ describe("embeds", () => {
       if (embed === undefined) break;
       failure = embed.failure;
       node = embed.document;
-      depth += 1;
+      if (embed.document !== null) depth += 1;
     }
-    expect(depth).toBeLessThanOrEqual(16);
+    // The entry card is depth zero: sixteen nested embeds expand, and the
+    // seventeenth, which would exceed the limit, fails in place.
+    expect(depth).toBe(16);
     expect(failure).toMatch(/depth/);
   });
 

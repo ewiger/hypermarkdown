@@ -141,6 +141,11 @@ anchors, matching the canonical implementation case for case.
 
 ### Fixed
 
+- **The embed depth limit counts from zero, and HMD008 is reported at the
+  embed.** The starting card is depth zero and the limit is 16, so a chain of
+  exactly sixteen nested embeds is fine; it used to be reported. HMD008 is now
+  reported once, at the embed that would exceed the limit, where it used to
+  sit at line 1, column 1 of the card past it, once per chain.
 - **Diagnostic messages quote values as the canonical implementation does.** A
   malformed `tags` entry read `got [object Object]`, and a malformed import
   statement was quoted with double quotes. Both now use Python's `repr`

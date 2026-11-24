@@ -124,6 +124,11 @@ only for the Python API.
   `--root`, where it used to load the repository root as a project.
 
 ### Fixed
+- **The embed depth limit counts from zero, and HMD008 is reported at the
+  embed.** The starting card is depth zero and the limit is 16, so a chain of
+  exactly sixteen nested embeds is fine; it used to be reported. HMD008 is now
+  reported once, at the embed that would exceed the limit, where it used to
+  sit at line 1, column 1 of the card past it, once per chain.
 - **An embed of a section no longer reports a false cycle.** The HMD007 check
   followed every embed in the embedded card, where an embed of a heading or a
   block expands that region only. One section of a card embedding another

@@ -151,3 +151,13 @@ def test_a_crlf_card_embeds_its_anchored_block(tmp_path):
     out = expand(ws, page(ws, "a.hmd")).text
     assert "first line\r\nsecond line" in out
     assert "# B" not in out and "^here" not in out
+
+
+def test_expansion_allows_sixteen_nested_embeds_and_stops_at_the_seventeenth(build_workspace):
+    for embeds, expected in ((16, []), (17, [("p16.hmd", 3, 1)])):
+        tree = {f"p{i}.hmd": f"# P{i}\n\n![[p{i + 1}]]\n" for i in range(embeds)}
+        tree[f"p{embeds}.hmd"] = "# End\n"
+        ws = build_workspace(tree)
+        result = expand(ws, page(ws, "p0.hmd"))
+        found = [(d.path, d.line, d.column) for d in result.diagnostics if d.rule == "HMD008"]
+        assert found == expected, embeds

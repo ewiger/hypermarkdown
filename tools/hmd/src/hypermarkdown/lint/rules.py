@@ -306,12 +306,18 @@ def _walk(workspace: Workspace, path: Path, via: Link | None, stack, reported, w
             )
         return
 
-    if len(stack) >= MAX_EMBED_DEPTH:
-        rel = workspace.rel(path)
-        if key not in reported:
-            reported.add(key)
+    # The starting card has depth zero and each nested embed adds one, so this
+    # card's depth is the number of cards above it. An embed that would exceed
+    # the limit is reported where it is written, in the card that embeds this
+    # one, once however many chains reach it.
+    if len(stack) > MAX_EMBED_DEPTH:
+        parent = stack[-1][0]
+        where = ("HMD008", parent, via.span.line, via.span.column)
+        if where not in reported:
+            reported.add(where)
             yield Diagnostic(
-                "HMD008", SEVERITY["HMD008"], rel, 1, 1,
+                "HMD008", SEVERITY["HMD008"], workspace.rel(parent),
+                via.span.line, via.span.column,
                 f"embed depth exceeds the limit of {MAX_EMBED_DEPTH}",
             )
         return

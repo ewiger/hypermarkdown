@@ -328,3 +328,23 @@ def test_hmd017_is_silent_when_both_are_published(build_workspace):
         }
     )
     assert "HMD017" not in rules_for(ws)
+
+
+def _chain(embeds: int) -> dict[str, str]:
+    """`p0` embeds `p1`, and so on: `embeds` nested embeds below `p0`."""
+    tree = {f"p{i}.hmd": f"# P{i}\n\n![[p{i + 1}]]\n" for i in range(embeds)}
+    tree[f"p{embeds}.hmd"] = "# End\n"
+    return tree
+
+
+def test_hmd008_allows_a_depth_of_exactly_sixteen(build_workspace):
+    # The starting card is depth zero, so sixteen nested embeds reach depth 16.
+    ws = build_workspace(_chain(16))
+    assert "HMD008" not in rules_for(ws)
+
+
+def test_hmd008_is_reported_once_at_the_embed_that_exceeds_the_limit(build_workspace):
+    ws = build_workspace(_chain(17))
+    found = [d for d in check(ws) if d.rule == "HMD008"]
+    # p16's `![[p17]]` would put p17 at depth 17; `p1` starts a chain of only 16.
+    assert [(d.path, d.line, d.column) for d in found] == [("p16.hmd", 3, 1)]

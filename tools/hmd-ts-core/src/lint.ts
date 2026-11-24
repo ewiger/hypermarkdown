@@ -369,10 +369,24 @@ function walk(
     return;
   }
 
-  if (stack.length >= MAX_EMBED_DEPTH) {
-    if (!reported.has(key)) {
-      reported.add(key);
-      out.push(at("HMD008", path, 1, 1, `embed depth exceeds the limit of ${MAX_EMBED_DEPTH}`));
+  // The starting card has depth zero and each nested embed adds one, so this
+  // card's depth is the number of cards above it. An embed that would exceed
+  // the limit is reported where it is written, in the card that embeds this
+  // one, once however many chains reach it.
+  if (stack.length > MAX_EMBED_DEPTH && via !== null) {
+    const parent = stack[stack.length - 1]![0];
+    const where = `HMD008 ${parent} ${via.span.line} ${via.span.column}`;
+    if (!reported.has(where)) {
+      reported.add(where);
+      out.push(
+        at(
+          "HMD008",
+          parent,
+          via.span.line,
+          via.span.column,
+          `embed depth exceeds the limit of ${MAX_EMBED_DEPTH}`,
+        ),
+      );
     }
     return;
   }

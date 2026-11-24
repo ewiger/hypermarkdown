@@ -233,7 +233,9 @@ def _embed(
         )
         return link.raw
 
-    if len(stack) >= MAX_EMBED_DEPTH:
+    # The stack holds the starting card, at depth zero, and every card embedded
+    # since, so the target would sit at depth len(stack).
+    if len(stack) > MAX_EMBED_DEPTH:
         diagnostics.append(
             _at(workspace, document, link, "HMD008", f"embed depth exceeds the limit of {MAX_EMBED_DEPTH}")
         )

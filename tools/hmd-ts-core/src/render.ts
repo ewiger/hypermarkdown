@@ -418,7 +418,8 @@ export class Renderer {
     if (stack.includes(frame)) {
       return { ...base, document: null, failure: `embed cycle (HMD007): ${link.raw}` };
     }
-    if (depth + 1 >= this.options.maxDepth) {
+    // The entry card is depth zero, so the target would sit at depth + 1.
+    if (depth + 1 > this.options.maxDepth) {
       return {
         ...base,
         document: null,
