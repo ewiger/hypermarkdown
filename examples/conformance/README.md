@@ -92,6 +92,15 @@ leaks into the contract.
 | `grammar-code-spans-and-comments` | A double-backtick code span holding a backtick, a multi-line HTML comment, and an unmatched backtick that stays literal |
 | `grammar-line-endings` | `\r\n` and a lone `\r` count as line endings in diagnostics and headings; `.gitattributes` keeps the bytes as written |
 | `grammar-frontmatter-position` | `---` at byte 0 opens frontmatter; after a blank line or a space it does not |
+| `frontmatter-not-mapping` | A list as frontmatter is HMD009; a `.md` card's broken frontmatter is body text, not HMD009 |
+| `frontmatter-invalid-yaml` | Frontmatter that is not valid YAML is HMD009 |
+| `tags-malformed` | A scalar `tags`, and a non-string entry, are HMD013 |
+| `use-unknown-feature` | `use: [no_discovery]` is HMD013; `no_autodiscovery` is not |
+| `nav-malformed` | A scalar `nav`, an unknown key, a non-integer `order`, and an unknown `visibility` are HMD013 |
+| `import-malformed` | `import tokens from /shared` is HMD014; the well-formed import binds |
+| `import-unresolved` | A missing import directory, a missing card, and one name bound twice are HMD015 |
+| `publication-private-link` | A published card linking to and embedding an unpublished one is HMD017, twice; a private card linking to it is not |
+| `cells` | A link inside an `hql#eval` body or a plain `hql` listing yields nothing; a link between the output markers resolves |
 
 ## Runners
 
