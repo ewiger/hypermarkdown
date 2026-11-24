@@ -66,18 +66,14 @@ rather than defining it.
 | **Markdown card** | A card with the extension `.md` or `.markdown`: a link and embed target, never scanned |
 | **vault** | The directory that contains a `.hmd/` directory; it holds the configuration |
 | **namespace root** | The directory inside the vault where the cards start, named by the `wiki` setting |
-| **namespace** | Every card below the namespace root: the tree a reference resolves in |
-| **module** | A directory inside the namespace; the unit that scopes a name |
+| **namespace** | A logical collection of cards and modules that together form a knowledge base with a shared naming and addressing space. |
+| **module** | A directory within a namespace that groups cards and provides a naming scope. |
 | **folder note** | A card named `index`, standing for its directory |
-| **construct** | A syntactic element defined by the HyperMarkDown language standard |
 | **wikilink** | A link in double square brackets, such as `[[setup]]`, optionally with display text after a pipe |
 | **embed** | A wikilink with `!` in front, expanded in place |
 | **block anchor** | A trailing `^id` that names a block |
 | **fragment** | What follows `#` in a target: a heading's text, or `^` and a block anchor's identifier |
 | **unqualified reference** | A target with no leading `/`, `./`, or `../`, which is searched for |
-| **spine** | The card's own directory and every directory above it, up to the namespace root |
-| **sweep** | The search of the whole namespace that runs when nothing nearer matched; also called autodiscovery |
-| **key** | The normalised form of a heading's text, used to match a fragment |
 | **cell** | A fenced block that a tool runs or draws |
 
 ## The example vault
@@ -122,14 +118,15 @@ How each of its references resolves:
 
 | Reference | Result | Why |
 | --- | --- | --- |
-| `[[setup#linux]]` | `setup.hmd`, the heading `Linux` | Found on the spine, at the root; the fragment matches by key |
+| `[[setup#linux]]` | `setup.hmd`, the heading `Linux` | Found at the namespace root, the last parent directory searched; the fragment matches the heading's normalised identifier |
 | `![[setup#^setup-linux]]` | the `Linux` section of `setup.hmd` | An anchor on a heading line embeds that heading's section |
-| `[[tokens]]` | `guides/tokens.hmd` | The nearest directory on the spine wins |
+| `[[tokens]]` | `guides/tokens.hmd` | Found in the card's own directory, which is searched before its parents |
 | `[[api]]` | `reference/api.md` | A named import binds the name |
 | `[[deploy]]` | unresolved: a warning | A forward reference, not a failure |
 
-`setup.hmd` also links `[[tokens]]`. Its spine is the root alone, which holds no
-`tokens`, so the sweep runs and finds two cards. `hmd lint` reports:
+`setup.hmd` also links `[[tokens]]`. That card sits at the namespace root, which
+has no parent to search and holds no `tokens`, so the recursive search runs and
+finds two cards. `hmd lint` reports:
 
 ```text
 guides/install.hmd:13:27: warning[HMD001] [[deploy]] does not resolve to a page
@@ -371,10 +368,11 @@ or punctuation.
 - A heading's **text** is its content as a reader sees it, with inline markup
   removed: `# The *fast* path` has the text `The fast path`. A closing run of
   `#` and a trailing block anchor are not part of it.
-- The **key** of a text, a heading's or a fragment's, is computed in four steps:
+- The **normalised heading identifier** of a text, a heading's or a
+  fragment's, is computed in four steps:
 
 ```text
-key(text):
+heading_identifier(text):
   1. normalise to Unicode NFC
   2. apply Unicode full case folding
   3. replace every character that is not a letter, a mark, or a number
@@ -383,16 +381,17 @@ key(text):
 ```
 
 - A `heading_text` fragment MUST match the first heading, in document order,
-  whose key equals the fragment's key. A fragment that matches no heading is an
-  error ([HMD004](#diagnostics)).
+  whose normalised identifier equals the fragment's. A fragment that matches no
+  heading is an error ([HMD004](#diagnostics)).
 - Letters and digits of every script are kept. `Ошибка 404`, `Café`, and `数据`
-  each have a key of their own, and accents are significant.
-- A heading whose key equals that of an earlier heading in the same card MUST
-  be reported as a warning, unless it carries a block anchor
+  each have an identifier of their own, and accents are significant.
+- A heading whose normalised identifier equals that of an earlier heading in
+  the same card MUST be reported as a warning, unless it carries a block anchor
   ([HMD011](#diagnostics)). A fragment reaches the first of them; the anchor,
   `## Linux ^setup-linux`, linked as `#^setup-linux`, reaches the later one.
   Adding the anchor is the remedy, so it ends the warning.
-- A heading whose key is empty, such as one made only of symbols, cannot be
+- A heading whose normalised identifier is empty, such as one made only of
+  symbols, cannot be
   reached by its text. It can be reached by an anchor.
 - How a renderer turns a heading into an HTML `id`, or a fragment into a URL, is
   not part of the language. Whatever it chooses, it MUST rewrite each heading
@@ -404,7 +403,7 @@ In the example vault, `[[setup#linux]]`, `[[setup#Linux]]`, and
 **Why.** Link by heading text where the link should read naturally; anchor a
 heading whose links must survive a rename, or whose text is awkward to type.
 The matching agrees with Obsidian's, which also ignores case and punctuation.
-The specification states the key itself rather than naming a library, so no
+The specification states the normalisation itself rather than naming a library, so no
 implementation has to copy another's behaviour.
 
 ## The namespace
@@ -448,17 +447,30 @@ vault until it says so.
 
 ## Name resolution
 
-A `page_ref` is a local card reference. An absolute or relative path is followed
-directly. An unqualified reference is searched for, and resolves to exactly one
-card or to a failure that can be diagnosed.
+Name resolution is the process of locating a card referenced by a wikilink or
+an embed.
 
-The search for an unqualified reference checks named imports first, then walks
-the **spine** from the card outward to the root, then probes imported search
-paths, and only if all of those find nothing runs one **sweep** of the tree.
+HyperMarkDown uses Unix-style paths with forward slashes (`/`) as directory
+separators, regardless of the underlying operating system.
 
-**Why.** The spine answers *what does this reference mean here*, which must be
-predictable enough to hold in your head. The sweep answers *does this reference
-exist anywhere*, which is a convenience and is allowed to fail loudly.
+Relative paths are resolved from the directory containing the referring
+document, not from the working directory of the application.
+
+Absolute paths begin at the namespace root. Explicit relative paths begin with
+`./` or `../`. References without these prefixes are unqualified and are
+resolved according to the search rules defined below.
+
+An absolute or explicit relative path is followed directly. An unqualified
+reference is searched for, and resolves to exactly one card or to a failure
+that can be diagnosed. The search checks named imports first. It then looks in
+the referring card's own directory and in each parent directory up to the
+namespace root, then in the directories imported as search paths. Only if all
+of those find nothing does it run one recursive search of the namespace.
+
+**Why.** Searching the card's own directory and its parents answers *what does
+this reference mean here*, which must be predictable enough to hold in your
+head. The recursive search answers *does this reference exist anywhere*, which
+is a convenience and is allowed to fail loudly.
 
 ### Binding an unqualified reference in one directory
 
@@ -485,7 +497,7 @@ bind(dir, parts, ext?) -> Resolved(path) | NotFound
   claim one name. The one with the earliest extension is the card at that name;
   every other is **shadowed**: still a card, never bound by a reference that
   writes no extension, bound by one that writes its extension, and never a
-  sweep candidate. Each shadowed file MUST be reported once, as a
+  candidate in the recursive search. Each shadowed file MUST be reported once, as a
   warning at its line 1, column 1 ([HMD018](#diagnostics)). Folder notes shadow one another the same
   way.
 - If a card and a folder note claim the same name as siblings, the pair MUST be
@@ -503,7 +515,8 @@ resolve(target, source, root) -> Resolved(path) | Unresolved | Ambiguous(paths) 
   parts := stem split on "/"
   bindings := named_imports(source)                      # name -> card
   paths    := wildcard_imports(source)                   # ordered dirs
-  mode     := discovery_mode(source)                     # spine | both | recursive
+  enabled  := autodiscovery(source)                      # on | off
+  mode     := the project's mode                         # both | recursive
 
   1. ABSOLUTE — stem starts with "/"
        return bind(root, parts) or Unresolved
@@ -519,9 +532,10 @@ resolve(target, source, root) -> Resolved(path) | Unresolved | Ambiguous(paths) 
        if size(parts) == 1 and parts[0] in bindings:
            return Resolved(bindings[parts[0]])
 
-       # Phase 1 — spine walk. Non-recursive, nearest first.
-       spine := [dirname(source), parent(dirname(source)), ..., root]
-       for dir in spine:
+       # Phase 1 — the card's own directory, then each parent up to the
+       # namespace root. Non-recursive, nearest first.
+       dirs := [dirname(source), parent(dirname(source)), ..., root]
+       for dir in dirs:
            r := bind(dir, parts)
            if r is Resolved: return r
 
@@ -530,9 +544,9 @@ resolve(target, source, root) -> Resolved(path) | Unresolved | Ambiguous(paths) 
            r := bind(dir, parts)
            if r is Resolved: return r
 
-       if mode == "spine": return Unresolved      # autodiscovery off
+       if enabled == off: return Unresolved
 
-       # Phase 3 — autodiscovery. Runs at most once.
+       # Phase 3 — recursive search. Runs at most once.
        # Every card, less shadowed files; only `ext` when one was written.
        if mode == "recursive":
            candidates := cards_below(dirname(source), ext)
@@ -545,11 +559,13 @@ resolve(target, source, root) -> Resolved(path) | Unresolved | Ambiguous(paths) 
        return Unresolved
 ```
 
-`discovery_mode(source)` is `spine` when autodiscovery is off for the source
-card, by its effective `use` toggle, and otherwise the project's `mode`.
-`addressable_parts(p)` is `p`'s root-relative parts without its card extension,
-plus — when `p` is a folder note — the parts of its directory, so that an
-unqualified reference means the same thing in the sweep as on the spine.
+`autodiscovery(source)` is the source card's effective `use` toggle for
+`autodiscovery`, and the project's `mode` is the setting of that name under
+[Project configuration](#project-configuration). `addressable_parts(p)` is
+`p`'s root-relative parts without its card extension, plus — when `p` is a
+folder note — the parts of its directory, so that an unqualified reference
+means the same thing in the recursive search as in the card's own directory
+and its parents.
 
 In the example vault, `[[tokens]]` in `guides/install.hmd` stops at Phase 1 in
 `guides/`. The same reference in `setup.hmd` reaches Phase 3 and is ambiguous.
@@ -557,33 +573,68 @@ In the example vault, `[[tokens]]` in `guides/install.hmd` stops at Phase 1 in
 ### Rules the algorithm must satisfy
 
 - Resolution MUST follow the phase order above. A named import MAY shadow a
-  local card. A wildcard import MUST NOT override a named import or a spine
-  match, but adding one MAY change a reference that previously resolved through
-  the sweep.
-- The spine MUST run from the card's own directory outward to the namespace
-  root, inclusive of both ends, and each directory MUST be probed
-  **non-recursively**. The spine never searches sideways into a sibling module.
+  local card. A wildcard import MUST NOT override a named import or a match in
+  the card's own directory or its parents, but adding one MAY change a
+  reference that previously resolved through the recursive search.
+- The search of the card's own directory and its parents MUST run from that
+  directory outward to the namespace root, inclusive of both ends, and each
+  directory MUST be probed **non-recursively**. It never searches sideways into
+  a sibling module.
 - Imported search paths MUST be probed in declaration order, non-recursively.
   Where two of them hold the name, the earlier declaration wins, and the
   shadowed candidate MUST be reported as a warning ([HMD016](#diagnostics)).
-- The sweep MUST run only when the earlier phases found nothing, and MUST run at
-  most once. When autodiscovery is on, it MAY resolve a unique match in a
-  sibling module or anywhere else in its scope.
-- The sweep MUST address folder notes by their directory name, exactly as
-  binding does.
-- In the sweep **all matches rank equally**. A shallower match MUST NOT beat a
+- The recursive search MUST run only when the earlier phases found nothing, and
+  MUST run at most once. When autodiscovery is on, it MAY resolve a unique match
+  in a sibling module or anywhere else in its scope.
+- The recursive search MUST address folder notes by their directory name,
+  exactly as binding does.
+- In the recursive search **all matches rank equally**. A shallower match MUST NOT beat a
   deeper one, and more than one match MUST be reported as an error rather than
   resolved ([HMD002](#diagnostics)).
 - Candidate lists MUST be sorted by root-relative POSIX path.
 - An unresolved target is **not** a failure. It is a forward reference, reported
   as a warning ([HMD001](#diagnostics)).
 
-**Why.** Every match the sweep produces is off-spine and off-path by
-construction, so the phases can never disagree. The remedy for an ambiguity is
-to qualify the link, not to memorise a tie-break. An earlier import silently
-winning is easy to write by accident, hence the warning. Sorted candidates make a
-diagnostic byte-identical across platforms. Writing forward is how a knowledge
-base grows.
+**Why.** The recursive search runs only after the card's own directory, its
+parents, and the imported search paths have found nothing, so every match it
+produces lies outside all of them and the phases can never disagree. The remedy
+for an ambiguity is to qualify the link, not to memorise a tie-break. An
+earlier import silently winning is easy to write by accident, hence the
+warning. Sorted candidates make a diagnostic byte-identical across platforms.
+Writing forward is how a knowledge base grows.
+
+### Path-suffix resolution
+
+An unqualified reference may consist of a single name or a sequence of path
+components.
+
+During recursive search, the reference is matched against the ending path
+components of candidate cards. This allows a card to be referenced without
+specifying its complete path within the namespace.
+
+For example, consider a namespace containing the card
+`science/physics/thermodynamics.hmd`.
+
+| Reference | Interpretation |
+| --- | --- |
+| `[[/science/physics/thermodynamics]]` | Absolute path from the namespace root |
+| `[[./physics/thermodynamics]]` | Explicit relative path, from a card in `science/` |
+| `[[physics/thermodynamics]]` | Unqualified path |
+| `[[thermodynamics]]` | Unqualified name |
+
+During recursive search, both unqualified references can resolve to the same
+card. From a card outside `science/`, where neither the card's own directory nor
+its parents hold them, they both reach `science/physics/thermodynamics.hmd`
+when the project's `mode` is `both`, the default, provided no other card in the
+namespace ends in the same path components.
+
+Matching operates on complete path components rather than arbitrary string
+suffixes: `[[dynamics]]` does not reach `thermodynamics.hmd`, and
+`[[sics/thermodynamics]]` does not reach `physics/thermodynamics.hmd`. The
+existing search scope, resolution precedence, and ambiguity rules apply.
+
+This subsection explains existing semantics rather than introducing a separate
+resolution mechanism.
 
 ### Fragments
 
@@ -599,7 +650,8 @@ Once a card is resolved, its fragment is matched against that card.
 
 Configuration has two levels. A card says **whether** a feature applies to it;
 project configuration says **how** that feature behaves. The order of the
-resolution phases is the same everywhere; a card may only turn the sweep off.
+resolution phases is the same everywhere; a card may only turn the recursive
+search off.
 
 ```yaml
 ---
@@ -634,14 +686,14 @@ tag against a stable shape now.
   prefixing `no_` disables it. A feature not mentioned takes its project
   default.
 - The only feature this version defines is **`autodiscovery`**: whether the
-  sweep runs at all.
+  recursive search runs at all.
 - **`use` inherits.** A `use` list in a folder note applies to that directory's
   whole subtree; the nearest declaration wins, and a card overrides its
   directory.
 - An unrecognised feature name MUST be reported as an error, not ignored
   ([HMD013](#diagnostics)).
 
-**Why.** With the sweep off, every dependency a card has is visible in its
+**Why.** With the recursive search off, every dependency a card has is visible in its
 header or in the link itself. A dropped misspelling would hand the author the
 default while they believe they configured something else.
 
@@ -662,7 +714,8 @@ alias       := segment
   imported name, resolves to that one card and to nothing else. It applies only
   to bare names, so a multi-segment target falls through it.
 - **A wildcard** adds a search origin: the directory joins the paths an
-  unqualified reference is probed against, after the spine. It does not bind the
+  unqualified reference is probed against, after the card's own directory and
+  its parents. It does not bind the
   directory's contents eagerly, so a card added there later is reachable without
   editing the importing card.
 - A `ref` MUST be absolute or relative, never unqualified.
@@ -733,18 +786,19 @@ and `mode` — and MUST ignore the rest of the file.
 wiki = "doc/wiki"        # the namespace root, relative to the vault
 
 [discovery]
-autodiscovery = true     # whether the sweep runs at all
-mode = "both"            # both (default) | recursive — how the sweep searches
+autodiscovery = true     # whether the recursive search runs at all
+mode = "both"            # both (default) | recursive — where it searches
 ```
 
 - **`wiki`** names the namespace root, relative to the vault. It moves where the
   cards start and nothing else: `.hmd/` stays in the vault.
 - **`autodiscovery`** is the project default for the `use` feature of the same
   name. A card overrides it in either direction.
-- **`mode`** decides how the sweep searches: `both` sweeps the whole namespace;
-  `recursive` sweeps only the source card's own subtree.
+- **`mode`** decides where the recursive search looks: `both` searches the
+  whole namespace; `recursive` searches only the directory of the source card
+  and the directories below it.
 - `mode` MUST NOT be settable per card. A card MAY turn autodiscovery off, but
-  MUST NOT change the scope or ranking of the sweep.
+  MUST NOT change the scope or ranking of the recursive search.
 - Without `.hmd/config.toml`, the namespace root is `doc/wiki`, autodiscovery is
   on, and the mode is `both`.
 
@@ -802,7 +856,7 @@ version has no way to silence a diagnostic.
 | ID | Severity | Condition | Defined in |
 | --- | --- | --- | --- |
 | HMD001 | warning | Link target does not resolve | [Rules](#rules-the-algorithm-must-satisfy) |
-| HMD002 | error | An unqualified reference matches more than one card in the sweep | [Rules](#rules-the-algorithm-must-satisfy) |
+| HMD002 | error | An unqualified reference matches more than one card in the recursive search | [Rules](#rules-the-algorithm-must-satisfy) |
 | HMD003 | error | A target resolves outside the namespace root | [The namespace](#the-namespace) |
 | HMD004 | error | A heading fragment is not present in the resolved card | [Heading anchors](#heading-anchors) |
 | HMD005 | error | A block identifier is not present in the resolved card | [Fragments](#fragments) |
@@ -811,7 +865,7 @@ version has no way to silence a diagnostic.
 | HMD008 | error | Embed depth limit (16) exceeded | [Embed expansion](#embed-expansion) |
 | HMD009 | error | Frontmatter is not valid YAML, or not a top-level mapping | [Frontmatter block](#frontmatter-block) |
 | HMD010 | error | Malformed wikilink or embed syntax | [Grammar](#grammar) |
-| HMD011 | warning | A heading has the same key as an earlier one in the card, and no block anchor | [Heading anchors](#heading-anchors) |
+| HMD011 | warning | A heading has the same normalised identifier as an earlier one in the card, and no block anchor | [Heading anchors](#heading-anchors) |
 | HMD012 | error | A card and a folder note claim the same name | [Binding](#binding-an-unqualified-reference-in-one-directory) |
 | HMD013 | error | Unrecognised `use` feature, or a malformed `tags` or `nav` value | [`tags`](#tags-what-a-card-is-about), [`use`](#use-per-card-feature-toggles), [`nav`](#nav-placement-and-publication) |
 | HMD014 | error | Malformed `import` statement | [`import`](#import-explicit-name-binding) |
@@ -834,8 +888,8 @@ version has no way to silence a diagnostic.
 
 **Why.** CI configuration and documentation cite rule identifiers, so they never
 move. An unresolved reference is a warning because writing forward is
-permitted, and the report is a to-do list. Several sweep matches are an error
-because the sweep has no ranking rule; imported search paths do have an order,
+permitted, and the report is a to-do list. Several matches in the recursive
+search are an error because that search has no ranking rule; imported search paths do have an order,
 so a shadowed match there is only a warning. A strict run and an ordinary run
 over the same tree contain the same diagnostics and differ only in their summary
 and outcome.

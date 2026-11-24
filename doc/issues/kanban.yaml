@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0017, the editor line's is 0116.
-  last_id: 115 # highest assigned overall; per stream — Python 16, editor 115
+  # the Python line's next issue is 0018, the editor line's is 0116.
+  last_id: 115 # highest assigned overall; per stream — Python 17, editor 115
   items:
     backlog:
       - id: "0008"
@@ -46,6 +46,9 @@ board:
       - id: "0016"
         title: "Prepare the 0.1 specification release"
         file: "0016-prepare-the-0-1-specification-release.md"
+      - id: "0017"
+        title: "Verify path-suffix resolution"
+        file: "0017-verify-path-suffix-resolution.md"
       - id: "0014"
         title: "A heading in a non-Latin script cannot be linked"
         file: "0014-non-latin-headings-cannot-be-linked.md"

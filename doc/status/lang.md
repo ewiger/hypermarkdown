@@ -42,8 +42,12 @@ kept until its replacement is agreed. The same day the language adopted
 Semantic Versioning, under *Versioning and Authority*. A card is now defined
 first as a unit of knowledge, with the file rules kept under *Documents*. The
 split between the language and its extras is gone: what *Extras* listed is now
-*Extended Markdown syntax*, part of the standard. Proofreading resumes at the
-definition of a namespace, and continues with each
+*Extended Markdown syntax*, part of the standard. Also that day, the
+terminology review finished: the terms table defines a namespace and a module
+by what they are for, and drops four terms of the specification's own
+(*spine*, *sweep*, *key*, and *construct*) in favour of plain language. Name
+resolution now opens with its principles, and explains path-suffix matching.
+Proofreading continues with the next section, and continues with each
 construct described at three levels: a conceptual definition (what it is and
 what it is for), a formal definition (syntax, semantics, behaviour, and edge
 cases), and executable examples (inputs and expected outputs a test can run).
@@ -65,6 +69,7 @@ cases), and executable examples (inputs and expected outputs a test can run).
 | parked | **A Lean model of resolution and embed expansion.** Nice to have. It would turn claims the specification only asserts — the result does not depend on file order, a wildcard import never changes a name the spine resolved, a resolved path stays inside the root, expansion terminates — into theorems, and as executable code it could serve as an oracle for the three implementations on generated trees | Unparked if a property-based test finds a counterexample to one of those claims, or a fourth implementation needs a reference the existing three cannot settle between them | [[hmd-lang-spec#name-resolution]], [[hmd-lang-spec#embed-expansion]] |
 | doing | **Replace the rest of *Conformance to the Standard*.** The section's title and its opening paragraph are new. The rest is the previous normative text, kept as it is until a replacement is agreed. That text covers the RFC 2119 key words, the conforming implementation, CommonMark compatibility, extras, determinism, and arbitration by the corpus. The new opening paragraph uses a lowercase "must" just above the line that gives **MUST** its RFC 2119 meaning; the replacement should settle which one is meant | The opening paragraph was agreed on 2026-11-24; the rest of the wording was not | [[hmd-lang-spec#conformance-to-the-standard]] |
 | todo | **Specify the Extended Markdown syntax.** On 2026-11-24 the constructs *Extras* listed became part of the language: tables, task lists, strikethrough, subscript, footnotes, callouts, collapsible callouts, maths, attribute lists, Markdown inside HTML, and drawn diagrams. Renaming the section did not standardise them. Each row needs a pinned reference specification and the exact syntax and semantics it takes from that reference. Some references are implementations rather than specifications: Python-Markdown and PyMdown Extensions. The standard also has to say what a conforming implementation owes these constructs, since rendering is outside conformance in 0.1. The introduction promises charts and graphs, and no cell kind or row covers them | The section is normative now but specifies little more than a list | [[hmd-lang-spec#extended-markdown-syntax]], [[hmd-lang-spec#cells]] |
+| todo | **Verify path-suffix resolution in every implementation.** The standard now explains that an unqualified reference with several path components matches the ending components of a candidate card in the recursive search, never a string suffix. No conformance case uses such a reference yet. Check the three implementations, add the cases, and fix any discrepancy; the standard is the source of truth | Kept apart from the specification, which is settled | [the card](../issues/0017-verify-path-suffix-resolution.md), [[hmd-lang-spec#path-suffix-resolution]] |
 | backlog | **Derive a test dataset from the standard.** Each construct, each interaction between constructs, and each corner case the formal definitions state becomes an executable example with its expected output. The aim is that every rule in the standard has a case and every case cites the rule it tests. Outside the scope of the 2026-11-24 revision | Follows the proofreading at three levels of specificity; extends the shared corpus rather than replacing it | [[hmd-lang-spec]], `examples/conformance/cases/` |
 | todo | **Accept Mermaid as a diagram language on par with D2.** The format rejected it as superseded by D2 when it was first sketched, and the MVP grammar, the D2 proposal's non-goals, and the feature list still say so, while HQL's `mermaid` step already writes Mermaid fences that every tool then shows as code. Reverse the rejection in all four places in one pass. The specification's line rejecting a second diagram notation is already gone. The format's half is answered by diagram cells: a `mermaid#show` fence is a diagram whose body is opaque to the resolver, exactly as a `d2#show` fence is | The renderer choice comes first: Mermaid is a JavaScript library, not a single binary like `d2` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.md), [[hmd-0022]], [[hmd-0030]] |
 
@@ -186,6 +191,18 @@ withdrew two dozen claims.
 
 ## Changelog
 
+- 2026-11-24: the terms table defines a namespace as the collection of cards
+  and modules that share one naming and addressing space, and a module as a
+  directory that groups cards and scopes names. *Spine*, *sweep*, *key*, and
+  *construct* are no longer terms. The specification says "the card's own
+  directory and its parents", "the recursive search", and "the normalised
+  heading identifier" instead, and "construct" is ordinary vocabulary. The
+  resolution algorithm, its search boundaries, precedence, and ambiguity
+  handling are unchanged. *Name resolution* opens with its principles: `/` as
+  the separator everywhere, relative paths from the referring card's directory,
+  and the three kinds of reference. A new subsection, *Path-suffix resolution*,
+  explains matching by ending path components. Issue 0017 verifies that the
+  implementations do the same.
 - 2026-11-24: *Status of this document* is now *Versioning and Authority*. The
   language follows Semantic Versioning, and the specification is the
   authoritative definition. A card is defined as the unit of knowledge, and a
