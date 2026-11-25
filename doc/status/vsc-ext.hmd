@@ -73,8 +73,7 @@ picks and re-indexes without a reload, since `0.6.1` [issue 0116].
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **Check the language client in a running editor.** The decisions the client makes are unit-tested, and the server is tested over the protocol, but the two have not been run together in an editor. Walk the list in the extension's `DEVELOP.md`: the error colour on a link that names no card, hover, Go to Definition, one diagnostic and not two, an unsaved card, and the notice when the program is absent [issue 0117] | The parked integration suite is where this would be automated | [[hmd-0033#the-vs-code-extension-is-a-client]] |
-| blocked | **Carry `hmd-lsp` in the build.** No VSIX holds the program, so a user gets the server only from `PATH` or from the setting. Unblocks when the pinned toolchain carries it; the client already looks in `toolchain/bin/` first | The release workflow checks which binaries a VSIX holds, and that list gains `hmd-lsp` | [[hmd-0033#distribution]] |
+| blocked | **Carry `hmd-lsp` in the build.** No VSIX holds the program, so a user gets the server only from `PATH` or from the setting. The server is released as 0.1.0. Unblocks when the pinned toolchain carries it; the client already looks in `toolchain/bin/` first | The release workflow checks which binaries a VSIX holds, and that list gains `hmd-lsp` | [[hmd-0033#distribution]] |
 | todo | **Colour the listings in the preview.** A fenced block in Python, C, or any other language shows in one colour, because neither the extension nor the core has a highlighter. Colour it as the editor does [issue 0118] | Shiki reads the same TextMate grammars the editor uses, this extension's own among them, so a listing would look the same on both sides. It must run in the extension host and send coloured HTML, because the webview's content policy allows no script from outside | [[hmd-0021#11-webview-hardening]] |
 | todo | **Colour a listing whose fence names a cell.** The editor colours a `python` fence through the Markdown grammar it includes. Check a fence with a cell suffix, such as `python#eval`, and fix the grammar when the suffix stops the Markdown grammar from recognising the language. `hql` and `d2` bodies have no grammar at all, and each needs one [issue 0118] | Not yet checked in a running editor | [[hmd-0026]] |
 | todo | **Confirm the grammar colours a link inside a paragraph.** The grammar lists its link rules beside the Markdown grammar's. A paragraph is the Markdown grammar's rule, and once it is open only its own inline rules apply, so a link in the middle of a sentence may get no HyperMarkDown scope. Inspect the scopes in a running editor, and move the rules into an injection when they are missing [issue 0118] | A suspicion from reading the grammar, not a reproduced defect. The language server's tokens cover the same links, but only when the server is present | — |
@@ -125,7 +124,8 @@ about 300 MB on first run, which is why it is not in the default test command.
   and gives an unresolved, an ambiguous and an escaping link the scope themes
   colour as an error. With no program it says so once and changes nothing
   else, and it never starts the server in an untrusted or a virtual
-  workspace; unreleased [[hmd-0033#the-vs-code-extension-is-a-client]].
+  workspace. Checked by hand in a development host against the server's
+  build; unreleased [[hmd-0033#the-vs-code-extension-is-a-client]].
 - **Vault not found, and Initialize Vault** — a card with no `.hmd/` above it,
   up to the workspace folder, is not read unless `hyperMarkdown.root` names an
   explicit root, as the specification requires. The preview, an opened card,
@@ -243,6 +243,8 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-25: the client was checked by hand in a running editor, so that
+  row is gone, and the server it starts is released as 0.1.0.
 - 2026-11-25: the client of the language server is written, so its Open row
   becomes a Done row, a row for checking it in a running editor, and a blocked
   row for carrying the program in the build.

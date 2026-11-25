@@ -34,9 +34,10 @@ specification states, each unresolved reference has the outcome its HMD001,
 HMD002 or HMD003 diagnostic restates, and the list of differing cases in the
 ledger is empty. 109 tests.
 
-It is on crates.io as `hypermarkdown` 0.3.0, released on 2026-11-25 by
-`release-rs-core.yml` on the `rs-core-v0.3.0` tag through a trusted publisher,
-and carrying the 0.1 rules and the corrected resolution. 0.1.0 and 0.2.0 were
+It is on crates.io as `hypermarkdown` 0.4.0, released on 2026-11-25 by
+`release-rs-core.yml` on the `rs-core-v0.4.0` tag through a trusted publisher.
+0.4.0 adds `Vault::open_with` for the language server; 0.3.0, the same day,
+carries the 0.1 rules and the corrected resolution. 0.1.0 and 0.2.0 were
 published by hand.
 
 Its first consumer is HQL, which is required by its own record to resolve

@@ -103,8 +103,10 @@ saved outputs needs nothing.
 The extension is a client of `hmd-lsp`, the HyperMarkDown language server, when
 that program is on your machine. With it, a link that names no card is coloured
 as broken, hover on a link says what it resolves to, and **Go to Definition**
-opens the card. No build carries the program yet: put `hmd-lsp` on `PATH` or
-set `hyperMarkdown.languageServer.path`. Everything else works the same without
+opens the card. No build carries the program yet: download `hmd-lsp` from
+[its release](https://github.com/ewiger/hypermarkdown/releases), or run
+`cargo install hypermarkdown-lsp`, and put it on `PATH` or set
+`hyperMarkdown.languageServer.path`. Everything else works the same without
 it. Completion and rename are not written yet.
 
 ## Settings
