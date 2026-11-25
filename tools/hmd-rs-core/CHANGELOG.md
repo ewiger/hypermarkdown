@@ -16,6 +16,13 @@ crates.io. Implementation state is tracked in
 
 ## [Unreleased]
 
+### Added
+
+- **`Vault::open_with`** loads a vault from disk through a host the caller
+  builds over the namespace root. A caller that holds documents in memory, as
+  an editor holds unsaved buffers, puts them in front of the files and keeps
+  the configuration and the namespace root that `Vault::open` finds.
+
 ## [0.3.0] — 2026-11-25
 
 ### Added

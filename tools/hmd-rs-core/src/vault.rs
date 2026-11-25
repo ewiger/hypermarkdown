@@ -209,6 +209,23 @@ impl Vault {
     /// when it has none, and the namespace root is the directory its
     /// `location_path` setting names.
     pub fn open(vault_root: &Path) -> Result<Vault, Error> {
+        Vault::open_with(vault_root, |disk| disk)
+    }
+
+    /// Loads the vault rooted at the directory `vault_root`, reading its
+    /// cards through the host that `host` builds over the namespace root on
+    /// disk.
+    ///
+    /// The configuration and the namespace root are found as
+    /// [`Vault::open`] finds them. `host` receives the [`FsHost`] of the
+    /// namespace root and returns the host the cards are read through, so a
+    /// caller can put documents it holds in memory in front of the files: an
+    /// editor's unsaved buffers are the case this is for.
+    pub fn open_with<H, F>(vault_root: &Path, host: F) -> Result<Vault, Error>
+    where
+        H: Host,
+        F: FnOnce(FsHost) -> H,
+    {
         let config = Config::read(vault_root)?;
         // The namespace root has to lie in this vault. A directory between the
         // vault and the root that carries its own `.hmd` is another vault, and
@@ -240,7 +257,7 @@ impl Vault {
                 root.display()
             )));
         }
-        Vault::load(&FsHost::new(root), config)
+        Vault::load(&host(FsHost::new(root)), config)
     }
 
     /// Builds the lookup tables over already parsed cards.
