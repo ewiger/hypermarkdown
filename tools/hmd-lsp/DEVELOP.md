@@ -106,11 +106,14 @@ program have different names. A release is:
    on a path;
 3. a run of the workflow by hand (`workflow_dispatch`), which runs every gate
    and builds all five archives, and cuts no release;
-4. the tag `lsp-vX.Y.Z` pushed, which builds the archives again and cuts the
-   GitHub release;
-5. `cargo publish --locked` from this directory. It is run by hand: crates.io
-   lets a workflow publish through a trusted publisher only for a crate that
-   exists, and no trusted publisher is configured for this one yet.
+4. the tag `lsp-vX.Y.Z` pushed, which builds the archives again, publishes
+   the package to crates.io, and cuts the GitHub release.
+
+The package's trusted publisher on crates.io names repository
+`ewiger/hypermarkdown`, workflow `release-lsp.yml` and environment
+`crates-io`; renaming any of the three breaks publication. 0.1.0 was
+published by hand, because crates.io allows a trusted publisher only on a
+crate that exists.
 
 The platforms are the five the pinned toolchain serves, and a test in
 `tests/test_release.py` holds the two lists together:
