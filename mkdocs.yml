@@ -123,21 +123,23 @@ nav:
   # Two subjects rather than seven pages. A flat nav made every chapter its own
   # tab, so the top bar was a table of contents and said nothing about which
   # pages belong together — a visitor had to read all seven titles to find the
-  # one they wanted. `Learn` is the prose you read cold, in the order you read
-  # it; `Language` is what you consult afterwards, led by the normative text.
+  # one they wanted. `Language` comes first and is led by the normative text:
+  # since the 0.1 release the specification reads well cold, so it is the
+  # first thing the site offers after the cover. `Learn` follows, as the guided
+  # route through the same ground.
   #
-  # A section tab links to the first page beneath it, so these open on
-  # `Introduction` and on the specification respectively.
+  # A section tab links to the first page beneath it, so these open on the
+  # specification and on `Introduction` respectively.
+  - Language:
+      - Language Specification: wiki/hmd-lang-spec.md
+      - Namespaces: public/namespaces.md
+      - Vision: public/vision.md
   - Learn:
       - Introduction: public/introduction.md
       - Tutorial: wiki/hmd-tutorial.md
       - Features: public/features.md
       - Presentation: public/presentation.md
       - Cell output: public/cell-output.md
-  - Language:
-      - Language Specification: wiki/hmd-lang-spec.md
-      - Namespaces: public/namespaces.md
-      - Vision: public/vision.md
   - Wiki:
       - Overview: wiki/README.md
       - hmd://wiki

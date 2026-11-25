@@ -738,14 +738,14 @@ summary of each card beside it is planned and not built.
 
 <div class="hmd-parts" markdown>
 
+- [**Language Specification**](wiki/hmd-lang-spec.hmd) <span>The normative text: grammar, resolution, diagnostics.</span>
+- [**Namespaces**](public/namespaces.md) <span>How a name becomes a card: folders, imports, and what is planned across repositories.</span>
+- [**Vision**](public/vision.md) <span>Independently served cards that link to each other, and how much of that is unbuilt.</span>
 - [**Introduction**](public/introduction.md) <span>The format at a glance, and how to adopt it one file at a time.</span>
 - [**Tutorial**](wiki/hmd-tutorial.hmd) <span>Every construct of the language, with its source beside what it renders.</span>
 - [**Features**](public/features.md) <span>What a card can carry, shown working.</span>
-- [**Language Specification**](wiki/hmd-lang-spec.hmd) <span>The normative text: grammar, resolution, diagnostics.</span>
-- [**Namespaces**](public/namespaces.md) <span>How a name becomes a card: folders, imports, and what is planned across repositories.</span>
-- [**Cell output**](public/cell-output.md) <span>What each kind of value is written as, and how to choose a format.</span>
 - [**Presentation**](public/presentation.md) <span>Editor, site and plain text: what each one shows.</span>
-- [**Vision**](public/vision.md) <span>Independently served cards that link to each other, and how much of that is unbuilt.</span>
+- [**Cell output**](public/cell-output.md) <span>What each kind of value is written as, and how to choose a format.</span>
 - [**Roadmap**](public/roadmap.md) <span>Released versions, what works today, and what is coming.</span>
 - [**The wiki**](wiki/README.md) <span>This project's own cards, built into this site.</span>
 
