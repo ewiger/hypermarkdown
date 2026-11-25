@@ -86,7 +86,6 @@ picks and re-indexes without a reload, since `0.6.1` [issue 0116].
 | blocked | **Drop the mask.** Before handing a card to HQL the extension renames a bare `hql` fence to `txt` and marks an `hql#query` fence `hidden`, because `hql render` runs bare `hql` fences as cells and writes outputs for queries, and this format says they are a listing and a hidden cell. Unblocks when HQL adopts both rules | One function and its call [`src/hql/engine.ts`, `maskForHql`] | [[hmd-0026#the-divergence-with]] |
 | blocked | **Name the HQL project and import `hmd` on the command line.** HQL's record of projects and vaults has a host pass the project it resolved, `--project <dir>`, and inject `--import hmd`. The extension passes neither: `hql render` imports `hmd` and selects the project itself, and the HQL the toolchain pins predates both flags and refuses an option it does not know. Unblocks when the toolchain pins an HQL release that has them | One argument list [`src/hql/engine.ts`, `run`] | [[hmd-0026#running-a-cell]] |
 | parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
-| blocked | **Carry `merman-cli` in the build.** The preview draws a `mermaid#show` cell with `merman-cli` from the `hyperMarkdown.diagram.mermaidPath` setting or from `PATH`. No platform build carries the binary yet, so a fresh install shows a Mermaid cell as its source with the reason | Unblocked by a toolchain release that pins `merman-cli`. Then move the pin in `toolchain.json`, check each VSIX for `toolchain/bin/merman-cli` in the release workflow, and set `MERMAN_BIN` in CI so the tests against the real binary run. Each platform build grows by 16 MB to 26 MB | [[hmd-0034#where-the-renderer-comes-from]] |
 | todo | **Turn a plain `d2` fence into code in the preview.** It still draws, without the cell layout, beside the `d2#show` cell | Lands together with the core's change and the rewrite of this repository's `d2` fences, or the book loses its diagrams | [[hmd-0030#deployment-activation]] |
 | backlog | **Show All Diagrams**, for a card, the way Run has Run All | An open question of the record, not yet asked for | [[hmd-0030#open-questions]] |
 
@@ -121,6 +120,12 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Done
 
+- **The build carries the Mermaid renderer** — every platform build holds
+  `merman-cli` 0.11.0 in `toolchain/bin/`, from toolchain 0.7.0, so a Mermaid
+  cell draws on a fresh install. The release workflow checks each VSIX for it,
+  and CI sets `MERMAN_BIN` so the engine's tests run against the real binary.
+  Each platform build grows by about 26 MiB; unreleased
+  [[hmd-0034#where-the-renderer-comes-from]].
 - **Diagram cells in the preview** — a `d2#show` or `mermaid#show` fence is
   drawn like an `hql#eval` cell: the drawing first, the source behind Code,
   Edit beside it, and Show in place of Run. The drawing follows the source as
@@ -289,6 +294,9 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-25: toolchain 0.7.0 carries `merman-cli`, so the blocked row for
+  carrying the renderer in the build is done. Done rows for zoom on a diagram
+  and for the diagrams example vault.
 - 2026-11-25: Done rows for diagram cells in the preview and for Mermaid
   drawn by `merman-cli`. The Open row for cells becomes the smaller row for a
   plain `d2` fence, and the Open row for Mermaid becomes a blocked row for

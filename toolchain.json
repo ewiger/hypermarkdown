@@ -1,27 +1,27 @@
 {
-  "$comment": "The one pin for every native binary HyperMarkDown runs — d2, hmd-lsp, and hql where HQL publishes the platform. See doc/issues/0107, 0111 and 0117. Bumping d2, hql or hmd-lsp happens in the toolchain repository; here only `version` and the digests move, together, in one commit.",
+  "$comment": "The one pin for every native binary HyperMarkDown runs — d2, merman-cli, hmd-lsp, and hql where HQL publishes the platform. See doc/issues/0107, 0111, 0115 and 0117. Bumping d2, merman-cli, hql or hmd-lsp happens in the toolchain repository; here only `version` and the digests move, together, in one commit.",
   "repo": "ewiger/hypermarkdown-toolchain",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "archives": {
     "linux-x86_64": {
-      "name": "hypermarkdown-toolchain-0.6.0-linux-x86_64.tar.gz",
-      "sha256": "6ee19ddc6b94c653b0df6680dcf18b75a1f3948af74f9cd04ac623b9fc5f4c58"
+      "name": "hypermarkdown-toolchain-0.7.0-linux-x86_64.tar.gz",
+      "sha256": "46761f10030ccfa760120f470d5d172e8b12b5bb2ffbf4da6c01b4a6741aedd6"
     },
     "linux-arm64": {
-      "name": "hypermarkdown-toolchain-0.6.0-linux-arm64.tar.gz",
-      "sha256": "130633611559839f36580396be00b368d27d8414560259e229426748a9c0e8f1"
+      "name": "hypermarkdown-toolchain-0.7.0-linux-arm64.tar.gz",
+      "sha256": "c532bc91cf6541e118d03d84f311fd4c49f4fce507e5c15b9ddd632b046518ab"
     },
     "macos-x86_64": {
-      "name": "hypermarkdown-toolchain-0.6.0-macos-x86_64.tar.gz",
-      "sha256": "1e6b8e51d1205d207148f831f7a434189b5bc71f320e591737fe92104ca1b5a5"
+      "name": "hypermarkdown-toolchain-0.7.0-macos-x86_64.tar.gz",
+      "sha256": "545a91dcdb9a99521adc4577009ba6cb53aa288451db750feb305637c0c5da1b"
     },
     "macos-arm64": {
-      "name": "hypermarkdown-toolchain-0.6.0-macos-arm64.tar.gz",
-      "sha256": "86890780b6f41ed03fc1128fb18c5d07b5111aacd5354a03b41b15cb4d8124cf"
+      "name": "hypermarkdown-toolchain-0.7.0-macos-arm64.tar.gz",
+      "sha256": "ec140f0558d9ca8f42e03b3cca552a675b407fa47c6f4cb5e2f240bbf5424238"
     },
     "windows-x86_64": {
-      "name": "hypermarkdown-toolchain-0.6.0-windows-x86_64.zip",
-      "sha256": "877ffc1dd34f6eaa5a26502df38390e30edbfa8957f9b5ff7a58b9475f7d0bcc"
+      "name": "hypermarkdown-toolchain-0.7.0-windows-x86_64.zip",
+      "sha256": "fc77e0e02a6bd9df354947a7892a3f097c51ac3775c0f7ab51ab4450502341b1"
     }
   }
 }

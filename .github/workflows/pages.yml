@@ -55,6 +55,9 @@ jobs:
       - name: Check d2
         run: d2 --version
 
+      - name: Check merman-cli
+        run: merman-cli --version
+
       # The cover's live editor is the TypeScript implementation, bundled. It
       # is build output, so it is built here, from the lockfile, and never
       # committed. A site built without it still works: the editor's tab says

@@ -85,5 +85,5 @@ cards
 | [HMD-0031](../proposals/HMD-0031/index.hmd) | Freeze                                                                            | drafted    | —                                                                                                            |
 | [HMD-0032](../proposals/HMD-0032/index.hmd) | HQL path — addressing inside a card with `@[[…]]`                                 | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [rs-core](rs-core.hmd), [ts-core](ts-core.hmd)                             |
 | [HMD-0033](../proposals/HMD-0033/index.hmd) | `hmd-lsp` — the language server, written in Rust                                  | drafted    | [hmd](hmd.hmd), [lsp](lsp.hmd), [vsc-ext](vsc-ext.hmd)                                                       |
-| [HMD-0034](../proposals/HMD-0034/index.hmd) | Mermaid, drawn by a native renderer                                               | accepted   | [hmd](hmd.hmd), [lang](lang.hmd), [pages](pages.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)         |
+| [HMD-0034](../proposals/HMD-0034/index.hmd) | Mermaid, drawn by a native renderer                                               | accepted   | [hmd](hmd.hmd), [lang](lang.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                             |
 <!-- /hql:output -->

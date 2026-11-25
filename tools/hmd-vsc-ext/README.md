@@ -74,6 +74,18 @@ Requires VS Code 1.90 or newer.
   release, the same binary the documentation site is built with, so a `d2` fence
   draws on a fresh install with nothing to configure and nothing downloaded at
   run time. Set `hyperMarkdown.diagram.d2Path` to use a different `d2`.
+- **Mermaid diagrams.** A `mermaid#show` fence is drawn by
+  [`merman-cli`](https://github.com/latias94/merman), a native Mermaid renderer
+  that starts no browser. It ships in the same pinned toolchain as `d2`, so
+  Mermaid draws on a fresh install too. A plain `mermaid` fence is a listing
+  and is shown as code. Set `hyperMarkdown.diagram.mermaidPath` to use a
+  different `merman-cli`.
+- **Diagram cells.** A `d2#show` or `mermaid#show` fence is a cell: the preview
+  shows the drawing, with its source behind **Code**, plus **Edit** and
+  **Show**. The drawing follows the source as you type. When an edit leaves
+  source that does not draw, the cell keeps its last drawing, marked stale,
+  with the reason under it. Three small buttons at the edge of every drawing
+  zoom out, reset, and zoom in.
 - **HQL cells, as a notebook.** A `hql#eval` or `hql#query` fence is a cell. The
   preview shows the output saved in the card — a table of contents reads as a
   table of contents — with the query behind **Code**, plus **Edit** and **Run**.
@@ -121,6 +133,7 @@ not written yet.
 | `hyperMarkdown.preview.embeds` | `expanded` | Whether embed cards start expanded. |
 | `hyperMarkdown.diagnostics.scope` | `workspace` | Publish diagnostics for every indexed card — in every vault opened this session — or only for open ones. |
 | `hyperMarkdown.diagram.d2Path` | `""` | A `d2` to draw diagrams with instead of the bundled one. |
+| `hyperMarkdown.diagram.mermaidPath` | `""` | A `merman-cli` to draw Mermaid diagrams with instead of the bundled one. Empty uses the bundled `merman-cli`, falling back to `merman-cli` on `PATH`. |
 | `hyperMarkdown.languageServer.enabled` | `true` | Start `hmd-lsp` for `.hmd` files. It never starts in an untrusted or a virtual workspace. |
 | `hyperMarkdown.languageServer.path` | `""` | An `hmd-lsp` to start instead of the default. Empty uses the bundled one, falling back to `hmd-lsp` on `PATH`. |
 | `hyperMarkdown.hql.path` | `""` | An `hql` to run cells with instead of the bundled one. Empty uses the bundled `hql`, falling back to `hql` on `PATH`. A shell alias is not on `PATH`. |

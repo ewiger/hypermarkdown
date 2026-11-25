@@ -35,9 +35,10 @@ against
   source, 2 seconds for a render, and a drawing delivered as an image, so
   nothing in a diagram can run. The renderer is found by the new setting
   `hyperMarkdown.diagram.mermaidPath`, then in the build's toolchain
-  directory, then on `PATH`. This build does not carry it yet: install
-  `merman-cli` on `PATH`, or point the setting at it. Without it a Mermaid
-  cell shows its source and says why.
+  directory, then on `PATH`. Every platform build carries `merman-cli` 0.11.0,
+  from toolchain 0.7.0, so Mermaid draws on a fresh install. Each build is
+  about 26 MiB larger for it. On Linux the bundled renderer needs glibc 2.35
+  or later. Without a renderer a Mermaid cell shows its source and says why.
 - **Zoom on a diagram.** Every drawing, in D2 and in Mermaid, has three small
   buttons at its top right edge: smaller, the current size, and larger. The
   middle one puts the drawing back at its own size. A zoomed drawing scrolls

@@ -77,7 +77,7 @@ the board, in the order this view lists them.
 | ------- | ---- |
 | doing   | 2    |
 | todo    | 29   |
-| blocked | 6    |
+| blocked | 3    |
 | backlog | 16   |
 | parked  | 3    |
 <!-- /hql:output -->
@@ -129,11 +129,8 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Create the card a relative link points at.                                                         | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Turn a plain `d2` fence into code in the preview.                                                  | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Redirect the retired domain                                                                        | [hmd](hmd.hmd)             |
-| blocked | Install `merman-cli` where the site is built.                                                      | [hmd](hmd.hmd)             |
-| blocked | Show Mermaid beside D2 on the public pages                                                         | [pages](pages.hmd)         |
 | blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.hmd)     |
-| blocked | Carry `merman-cli` in the build.                                                                   | [vsc-ext](vsc-ext.hmd)     |
 | backlog | Lint text, not just files.                                                                         | [hmd](hmd.hmd)             |
 | backlog | Invalidate one card at a time                                                                      | [hmd](hmd.hmd)             |
 | backlog | HQL path, for HyperMarkDown 0.2.0.                                                                 | [lang](lang.hmd)           |

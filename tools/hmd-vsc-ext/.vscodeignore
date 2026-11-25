@@ -1,5 +1,5 @@
 # The VSIX ships two bundles, the static assets they need, and — in a
-# platform-specific build — `toolchain/bin/d2`, `toolchain/bin/hmd-lsp`, and
+# platform-specific build — `toolchain/bin/d2`, `toolchain/bin/merman-cli`, `toolchain/bin/hmd-lsp`, and
 # `toolchain/bin/hql` where HQL publishes the platform, from the pinned
 # toolchain release (issue 0107), nothing else (HMD-0021, Packaging). README.md, CHANGELOG.md, and LICENSE stay: the marketplace
 # renders the first two as its Details and Changelog tabs.
