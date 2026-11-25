@@ -34,7 +34,7 @@ const target = name === "repo" || name === "wiki" ? repoRoot : join(repoRoot, "e
 if (!existsSync(target)) {
   console.error(`launch-example: no such example: ${name}`);
   console.error(`  looked for ${target}`);
-  console.error("  try one of: cs-alg-sorting, small, repo");
+  console.error("  try one of: cs-alg-sorting, small, notebook, highlighting, repo");
   process.exit(2);
 }
 

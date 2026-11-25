@@ -9,6 +9,9 @@ test/**
 media/*.ts
 node_modules/**
 esbuild.mjs
+syntaxes/*.mjs
+syntaxes/*.py
+syntaxes/languages.json
 tsconfig.json
 vitest.config.ts
 **/*.map

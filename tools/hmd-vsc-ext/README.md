@@ -83,7 +83,11 @@ Requires VS Code 1.90 or newer.
   opens, and nothing runs in an untrusted workspace. An `hql#query` cell is
   `hql#eval hidden`: it computes a value other cells read, and shows nothing. A
   plain `hql` fence is a listing: shown as code, never run.
-- **Syntax highlighting** for `.hmd` as its own language.
+- **Syntax highlighting** for `.hmd` as its own language, and for HQL: in a
+  `.hql` file and in the body of an `hql` cell. A cell in another language,
+  such as `python#eval`, is coloured as that language. A fence may name any
+  language GitHub knows; the body is coloured when an extension for that
+  language is installed.
 
 ## What it needs
 

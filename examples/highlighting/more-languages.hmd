@@ -1,0 +1,100 @@
+---
+tags: [fences]
+---
+# Languages that need an extension
+
+The editor ships no grammar for the languages on this card. The extension
+knows each name, from the language list of GitHub, and names the grammar the
+body needs. In a window with no other extension, only the line that opens the
+fence is coloured. Install an extension for the language, and the body is
+coloured too.
+
+## By name
+
+```kotlin
+data class Language(val name: String, val year: Int) { val age get() = 2026 - year }
+```
+
+```zig
+const Language = struct { name: []const u8, year: u16 };
+```
+
+```haskell
+data Language = Language { name :: String, year :: Int } deriving Show
+```
+
+```toml
+[language]
+name = "HQL"
+year = 2026
+```
+
+```graphql
+query { languages(typing: STATIC) { name year } }
+```
+
+```elixir
+defmodule Language do
+  defstruct [:name, :year]
+end
+```
+
+```ocaml
+type language = { name : string; year : int }
+```
+
+```nix
+{ pkgs ? import <nixpkgs> {} }: pkgs.mkShell { buildInputs = [ pkgs.cargo ]; }
+```
+
+```terraform
+resource "null_resource" "language" { triggers = { year = "2026" } }
+```
+
+```protobuf
+message Language { string name = 1; int32 year = 2; }
+```
+
+## By alias and by file extension
+
+`kt` is a file extension only Kotlin uses, so it names Kotlin. `hs`, `ex` and
+`tf` work the same way.
+
+```kt#eval id=age
+println(Language("Kotlin", 2011).age)
+```
+
+```hs#eval
+main = print (2026 - 1990)
+```
+
+```ex#eval hidden
+IO.puts(2026 - 2012)
+```
+
+```tf
+variable "year" { default = 2026 }
+```
+
+## Diagrams
+
+```mermaid
+graph LR
+  card --> cell --> output
+```
+
+```d2
+card -> cell -> output
+```
+
+## No language at all
+
+No language has this name. The extension still reads the line as a cell.
+
+```nosuchlang#eval id=nothing
+this body stays in one colour
+```
+
+```nosuchlang
+and so does this one
+```

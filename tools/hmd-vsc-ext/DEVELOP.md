@@ -36,6 +36,25 @@ extension host, and `media/webview.js` for the sandboxed webview. They are
 separate contexts and neither can reach the other's globals — the message
 protocol between them is the whole interface.
 
+## The grammars
+
+`syntaxes/hmd-fences.tmLanguage.json` is generated, by `npm run grammar`, from
+two tables. Commit the generated file with any change to either. `npm test`
+fails when it is out of date.
+
+- The built-in table in `syntaxes/fences.mjs` holds the languages VS Code
+  ships a grammar for, with the scope VS Code uses and the editor's language
+  id. A language with an id also needs its line in the `embeddedLanguages` of
+  the card grammar in `package.json`.
+- `syntaxes/languages.json` holds every language of GitHub Linguist that has
+  a TextMate scope. To move it to a newer release, download
+  `lib/linguist/languages.yml` at the release tag and run
+  `uv run python tools/hmd-vsc-ext/syntaxes/linguist.py languages.yml vX.Y.Z`
+  from the repository root.
+
+Neither table nor the two scripts ship in the VSIX; the generated grammar
+does.
+
 ## Test
 
 ```bash
@@ -52,6 +71,7 @@ window is the integration suite, which is parked — see the bottom of this file
 ```bash
 npm run example            # examples/cs-alg-sorting — callouts, math, diagrams
 npm run example:small      # examples/small — namespaces, imports, a red link
+npm run example:highlighting  # examples/highlighting — HQL, cells, fences in many languages
 npm run example:repo       # this whole repository — several vaults at once
 npm run example:wiki       # the same target, under its older name
 ```
@@ -199,6 +219,18 @@ engine's tests run against a real binary when `HQL_BIN` names one:
 ```bash
 HQL_BIN=/path/to/hql npm test
 ```
+
+**Highlighting.** `npm run example:highlighting` opens
+`examples/highlighting/`, whose `index.hmd` lists what each card shows. Look
+at `queries/catalog.hql` for HQL as a file, `cells.hmd` for HQL cells and
+their output markers, and `languages.hmd` for cells in the languages the
+editor ships. The launcher disables every other extension, so the bodies in
+`more-languages.hmd` stay in one colour and only their opening lines are
+coloured. To see those bodies coloured, print the command with
+`npm run example:highlighting -- --print`, and run it without
+`--disable-extensions` in an editor that has an extension for the language.
+**Developer: Inspect Editor Tokens and Scopes** names the scopes under the
+cursor.
 
 **The language server.** Build it with `cargo build` in `tools/hmd-lsp`, and
 set `hyperMarkdown.languageServer.path` to `tools/hmd-lsp/target/debug/hmd-lsp`

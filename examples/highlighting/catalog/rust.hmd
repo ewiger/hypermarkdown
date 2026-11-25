@@ -1,0 +1,10 @@
+---
+title: Rust
+metadata:
+  year: 2015
+  typing: static
+  grammar: built-in
+---
+# Rust
+
+A fence named `rust` or `rs` is coloured by the grammar the editor ships.

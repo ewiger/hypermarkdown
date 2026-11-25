@@ -23,6 +23,20 @@ against
 
 ### Added
 
+- **Syntax highlighting for HQL.** A `.hql` file is coloured, and so is the
+  body of an `hql` fence in a card: `hql`, `hql#eval`, `hql#query`. Comment
+  toggling and bracket matching inside a cell are those of HQL.
+- **A cell in any language is coloured as that language.** A fence with a
+  cell suffix, such as `python#eval id=plot`, was shown in one colour, because
+  the Markdown grammar does not read a language name followed by `#`. The
+  mode and the attributes of a cell, and the `hql:output` markers, have their
+  own colours.
+- **Fences know the languages GitHub knows.** A fence may name any of the 770
+  languages of GitHub Linguist 9.7.0 that have a grammar, by name, by alias,
+  or by a file extension only one language uses: `kotlin`, `kt`, `toml`,
+  `c#`. The body is coloured when an installed extension provides the
+  grammar of that language. Without one, the fence line is coloured and the
+  body is not.
 - **A client of the language server.** The extension starts `hmd-lsp` for
   `.hmd` files when it finds one: at the path in
   `hyperMarkdown.languageServer.path`, then in the build's `toolchain/bin/`,

@@ -1,0 +1,139 @@
+---
+tags: [cells]
+---
+# Cells
+
+Every kind of HQL fence. The body of each is coloured as HQL, and the line
+that opens it has four parts with a colour each: the language, the `#`, the
+mode, and the attributes.
+
+## A cell that shows its value
+
+```hql#eval id=languages
+/// The `metadata` block in the header of a catalog card.
+type Meta { year : Int, typing : String, grammar : String }
+type Header : Data { metadata? : Meta }
+
+type Language { name : String, year : Int, typing : String, grammar : String }
+
+cards
+| filter(c => c.path.starts_with("catalog/") and c.name != "index")
+| flat_map(c => match (c.header | Header).metadata {
+    some(m) => [Language(name = c.title, year = m.year, typing = m.typing, grammar = m.grammar)],
+    _ => []
+})
+| sort(by = l => l.year)
+```
+<!-- hql:output id=languages hash=2cd4baa0a239 status=ok -->
+- Language(name = "Python", year = 1991, typing = "dynamic", grammar = "built-in")
+- Language(name = "Kotlin", year = 2011, typing = "static", grammar = "install")
+- Language(name = "TypeScript", year = 2012, typing = "static", grammar = "built-in")
+- Language(name = "Rust", year = 2015, typing = "static", grammar = "built-in")
+- Language(name = "Zig", year = 2016, typing = "static", grammar = "install")
+- Language(name = "HQL", year = 2026, typing = "static", grammar = "extension")
+<!-- /hql:output -->
+
+## A cell other cells read
+
+`hql#query` is `hql#eval hidden`: it computes a value and shows nothing.
+
+```hql#query id=installable
+languages | filter(l => l.grammar == "install")
+```
+
+```hql#eval id=static hidden
+languages | filter(l => l.typing == "static" and not (l.grammar == "install"))
+```
+
+## A table
+
+```hql#eval
+// Where the grammar of each language comes from.
+fn source(grammar: String) : String = match grammar {
+    "built-in" => "the editor",
+    "extension" => "this extension",
+    _ => "an extension to install"
+}
+
+languages
+| map(l => { "Language": l.name, "Since": l.year, "Grammar from": source(l.grammar) })
+| Table(columns = ["Language", "Since", "Grammar from"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=09a58d02dd9c status=ok -->
+| Language   | Since | Grammar from            |
+| ---------- | ----- | ----------------------- |
+| Python     | 1991  | the editor              |
+| Kotlin     | 2011  | an extension to install |
+| TypeScript | 2012  | the editor              |
+| Rust       | 2015  | the editor              |
+| Zig        | 2016  | an extension to install |
+| HQL        | 2026  | this extension          |
+<!-- /hql:output -->
+
+## A record
+
+```hql#eval
+{
+    languages: languages | size,
+    to_install: installable | size,
+    static_and_ready: static | size,
+    oldest: languages | map(l => l.year) | min | unwrap_or(0)
+}
+```
+<!-- hql:output hash=a99ab0cad2b7 status=ok -->
+| key              | value |
+| ---------------- | ----- |
+| languages        | 6     |
+| oldest           | 1991  |
+| static_and_ready | 3     |
+| to_install       | 2     |
+<!-- /hql:output -->
+
+## Literals and operators
+
+```hql#eval
+// A string with escapes, an Int, a Decimal, a Float, and a comparison chain.
+{
+    text: "tab\there, quote \"here\", slash \\ here",
+    whole: 10 % 3 - -4,
+    exact: 1.5 * 2.25,
+    rough: 1.5f * 2.0e3f,
+    truth: true and not false or 1 <= 2,
+    choice: "few" given (languages | size) < 3 otherwise "many"
+}
+```
+<!-- hql:output hash=7f736bc41d11 status=ok -->
+| key    | value                                      |
+| ------ | ------------------------------------------ |
+| choice | "many"                                     |
+| exact  | 3.375                                      |
+| rough  | 3000.0                                     |
+| text   | "tab\there, quote \"here\", slash \\ here" |
+| truth  | true                                       |
+| whole  | 5                                          |
+<!-- /hql:output -->
+
+## A document reference
+
+```hql#eval
+@[[catalog]].title
+```
+<!-- hql:output hash=48e5ae338462 status=ok -->
+Catalog
+<!-- /hql:output -->
+
+## A listing is not a cell
+
+A fence marked plain `hql` is shown as code and never runs. It is coloured the
+same way.
+
+```hql
+cards | filter(c => c.title == "HQL") | map(c => c.path) | first
+```
+
+## Tildes
+
+~~~hql#eval id=names
+languages | map(l => l.name)
+~~~

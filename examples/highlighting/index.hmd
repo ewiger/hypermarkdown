@@ -1,0 +1,34 @@
+---
+tags: [meta]
+---
+# Highlighting
+
+A vault to look at in the editor, and not a vault to read. Each card holds one
+kind of thing the extension colours, so that a colour that is missing or wrong
+is easy to find.
+
+## Map
+
+- [[cells]]: HQL cells of every kind, with their saved output
+- [[languages]]: fences in the languages the editor ships a grammar for
+- [[more-languages]]: fences in languages that need an extension, and in none
+- [[fence-forms]]: every way to write a fence, and the forms that stay with Markdown
+- [[links]]: links, embeds and anchors, alone on a line and inside a sentence
+- [[catalog]]: the cards the cells read
+
+## Files that are not cards
+
+- `queries/catalog.hql`: a standalone HQL program that reads this vault
+- `queries/shapes.hql`: HQL declarations only, a trait and its implementations
+- `src/`: the same small program in Python, Rust and TypeScript
+
+## What to look at
+
+| Where | What should be coloured |
+| --- | --- |
+| A `.hql` file | Keywords, types, function names, strings, numbers, comments |
+| An `hql` fence | The same, inside the card |
+| The line that opens a cell | The language, the `#`, the mode, and each attribute |
+| A `python#eval` fence | The body, as Python |
+| A `kotlin` fence | The opening line only, until an extension for Kotlin is installed |
+| An `hql:output` marker | The marker and its attributes |

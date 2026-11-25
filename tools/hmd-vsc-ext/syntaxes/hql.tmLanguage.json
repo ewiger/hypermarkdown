@@ -1,0 +1,290 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "HQL",
+  "scopeName": "source.hql",
+  "patterns": [
+    { "include": "#shebang" },
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#docref" },
+    { "include": "#module" },
+    { "include": "#import" },
+    { "include": "#declaration" },
+    { "include": "#number" },
+    { "include": "#constant" },
+    { "include": "#keyword" },
+    { "include": "#lambda" },
+    { "include": "#named-argument" },
+    { "include": "#field" },
+    { "include": "#pipe-step" },
+    { "include": "#member" },
+    { "include": "#call" },
+    { "include": "#host-binding" },
+    { "include": "#type" },
+    { "include": "#operator" },
+    { "include": "#punctuation" }
+  ],
+  "repository": {
+    "shebang": {
+      "comment": "The scanner skips a first line that opens with #!.",
+      "match": "\\A#!.*$",
+      "name": "comment.line.shebang.hql"
+    },
+    "comment": {
+      "patterns": [
+        {
+          "comment": "A doc string: three slashes, and not four.",
+          "match": "(///)(?!/).*$",
+          "name": "comment.line.documentation.hql",
+          "captures": {
+            "1": { "name": "punctuation.definition.comment.hql" }
+          }
+        },
+        {
+          "match": "(//).*$",
+          "name": "comment.line.double-slash.hql",
+          "captures": {
+            "1": { "name": "punctuation.definition.comment.hql" }
+          }
+        }
+      ]
+    },
+    "string": {
+      "comment": "A string literal may not span lines, so the rule closes at the end of the line.",
+      "begin": "\"",
+      "end": "\"|$",
+      "name": "string.quoted.double.hql",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.hql" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.hql" }
+      },
+      "patterns": [
+        {
+          "match": "\\\\[nt\\\\\"]",
+          "name": "constant.character.escape.hql"
+        },
+        {
+          "match": "\\\\.",
+          "name": "invalid.illegal.unknown-escape.hql"
+        }
+      ]
+    },
+    "docref": {
+      "comment": "@[[name]], a document reference.",
+      "name": "meta.link.wiki.hql",
+      "match": "(@\\[\\[)([^\\]\\n]*)(\\]\\])",
+      "captures": {
+        "1": { "name": "punctuation.definition.link.wiki.hql" },
+        "2": { "name": "entity.name.reference.hql" },
+        "3": { "name": "punctuation.definition.link.wiki.hql" }
+      }
+    },
+    "module": {
+      "comment": "module io.transaction for Transaction",
+      "match": "^\\s*(module)\\s+([A-Za-z_][\\w.]*)(?:\\s+(for)\\b)?",
+      "captures": {
+        "1": { "name": "keyword.other.module.hql" },
+        "2": { "name": "entity.name.namespace.hql" },
+        "3": { "name": "keyword.other.for.hql" }
+      }
+    },
+    "import": {
+      "patterns": [
+        {
+          "comment": "from io import *",
+          "match": "^\\s*(from)\\s+([A-Za-z_][\\w.]*)\\s+(import)\\b",
+          "captures": {
+            "1": { "name": "keyword.control.import.hql" },
+            "2": { "name": "entity.name.namespace.hql" },
+            "3": { "name": "keyword.control.import.hql" }
+          }
+        },
+        {
+          "comment": "import io.transaction",
+          "match": "^\\s*(import)\\s+([A-Za-z_][\\w.]*)",
+          "captures": {
+            "1": { "name": "keyword.control.import.hql" },
+            "2": { "name": "entity.name.namespace.hql" }
+          }
+        }
+      ]
+    },
+    "declaration": {
+      "comment": "A declaration opens a line. Words before the keyword are its modifiers: abstract, effectful, elementwise, reduction, internal, private.",
+      "patterns": [
+        {
+          "match": "^\\s*((?:[a-z_]+\\s+)*)(fn)\\s+([A-Za-z_]\\w*)",
+          "captures": {
+            "1": { "name": "storage.modifier.hql" },
+            "2": { "name": "storage.type.function.hql" },
+            "3": { "name": "entity.name.function.hql" }
+          }
+        },
+        {
+          "match": "^\\s*((?:[a-z_]+\\s+)*)(type|trait)\\s+([A-Za-z_]\\w*)",
+          "captures": {
+            "1": { "name": "storage.modifier.hql" },
+            "2": { "name": "storage.type.hql" },
+            "3": { "name": "entity.name.type.hql" }
+          }
+        },
+        {
+          "match": "^\\s*(impl)\\b",
+          "captures": {
+            "1": { "name": "storage.type.impl.hql" }
+          }
+        }
+      ]
+    },
+    "number": {
+      "patterns": [
+        {
+          "comment": "A fraction makes a Decimal, and a trailing f makes a Float.",
+          "match": "\\b\\d+\\.\\d+(?:[eE][+-]?\\d+)?f?\\b",
+          "name": "constant.numeric.decimal.hql"
+        },
+        {
+          "match": "\\b\\d+f\\b",
+          "name": "constant.numeric.float.hql"
+        },
+        {
+          "match": "\\b\\d+\\b",
+          "name": "constant.numeric.integer.hql"
+        }
+      ]
+    },
+    "constant": {
+      "patterns": [
+        {
+          "match": "(?<![.\\w])(true|false)\\b",
+          "name": "constant.language.boolean.hql"
+        },
+        {
+          "match": "(?<![.\\w])none\\b(?!\\s*[:=(])",
+          "name": "constant.language.none.hql"
+        }
+      ]
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "comment": "Reserved by the scanner.",
+          "match": "(?<![.\\w])(match|given|otherwise)\\b",
+          "name": "keyword.control.hql"
+        },
+        {
+          "comment": "Reserved by the scanner.",
+          "match": "(?<![.\\w])(and|or|not)\\b",
+          "name": "keyword.operator.logical.hql"
+        },
+        {
+          "comment": "Words the parser reads by position. Each is an ordinary name elsewhere, so a field, a named argument, and a call keep their own colour.",
+          "match": "(?<![.\\w])(for|where|union|yield|in|with|as)\\b(?!\\s*[:=(])",
+          "name": "keyword.other.hql"
+        },
+        {
+          "match": "(?<![.\\w])self\\b(?!\\s*\\()",
+          "name": "variable.language.self.hql"
+        }
+      ]
+    },
+    "lambda": {
+      "comment": "r => r.kind",
+      "match": "\\b([a-z_]\\w*)\\s*(=>)",
+      "captures": {
+        "1": { "name": "variable.parameter.hql" },
+        "2": { "name": "storage.type.function.arrow.hql" }
+      }
+    },
+    "named-argument": {
+      "comment": "format(as = Markdown)",
+      "match": "\\b([a-z_]\\w*)\\s*(=)(?![=>])",
+      "captures": {
+        "1": { "name": "variable.parameter.hql" },
+        "2": { "name": "keyword.operator.assignment.hql" }
+      }
+    },
+    "field": {
+      "patterns": [
+        {
+          "comment": "state? : String, in a type, a parameter list, or a record.",
+          "match": "\\b([a-z_]\\w*)(\\?)?\\s*(:)",
+          "captures": {
+            "1": { "name": "variable.other.property.hql" },
+            "2": { "name": "keyword.operator.optional.hql" },
+            "3": { "name": "punctuation.separator.annotation.hql" }
+          }
+        },
+        {
+          "comment": "A capitalised record key, Shipped: r.text. A type bound has a space before its colon, K : Orderable, and stays a type.",
+          "match": "\\b([A-Z]\\w*)(:)",
+          "captures": {
+            "1": { "name": "variable.other.property.hql" },
+            "2": { "name": "punctuation.separator.annotation.hql" }
+          }
+        }
+      ]
+    },
+    "pipe-step": {
+      "comment": "| size, a step named without arguments.",
+      "match": "(\\|)\\s*([a-z_]\\w*)\\b(?!\\s*(?:=>|[.:]))",
+      "captures": {
+        "1": { "name": "keyword.operator.pipe.hql" },
+        "2": { "name": "entity.name.function.hql" }
+      }
+    },
+    "member": {
+      "patterns": [
+        {
+          "match": "(\\.)([a-z_]\\w*)(?=\\()",
+          "captures": {
+            "1": { "name": "punctuation.accessor.hql" },
+            "2": { "name": "entity.name.function.hql" }
+          }
+        },
+        {
+          "match": "(\\.)([A-Za-z_]\\w*)",
+          "captures": {
+            "1": { "name": "punctuation.accessor.hql" },
+            "2": { "name": "variable.other.property.hql" }
+          }
+        }
+      ]
+    },
+    "call": {
+      "match": "\\b([a-z_]\\w*)(?=\\()",
+      "captures": {
+        "1": { "name": "entity.name.function.hql" }
+      }
+    },
+    "host-binding": {
+      "comment": "The names a run with a vault binds.",
+      "match": "(?<![.\\w])(vault|cards|graph)\\b(?!\\s*[:=(])",
+      "name": "support.variable.hql"
+    },
+    "type": {
+      "match": "\\b[A-Z]\\w*\\b",
+      "name": "entity.name.type.hql"
+    },
+    "operator": {
+      "patterns": [
+        { "match": "=>", "name": "storage.type.function.arrow.hql" },
+        { "match": "->", "name": "keyword.operator.arrow.hql" },
+        { "match": "==|!=|<=|>=", "name": "keyword.operator.comparison.hql" },
+        { "match": "=", "name": "keyword.operator.assignment.hql" },
+        { "match": "\\|", "name": "keyword.operator.pipe.hql" },
+        { "match": "[+\\-*/%]", "name": "keyword.operator.arithmetic.hql" },
+        { "match": "\\?", "name": "keyword.operator.optional.hql" }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        { "match": ",", "name": "punctuation.separator.comma.hql" },
+        { "match": ":", "name": "punctuation.separator.annotation.hql" },
+        { "match": "\\.", "name": "punctuation.accessor.hql" }
+      ]
+    }
+  }
+}

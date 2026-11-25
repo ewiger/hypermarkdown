@@ -1,0 +1,102 @@
+---
+tags: [fences]
+---
+# The forms of a fence
+
+## Backticks and tildes
+
+```python#eval
+x = 1
+```
+
+~~~python#eval
+x = 2
+~~~
+
+## A longer fence holds a shorter one
+
+````python#eval id=outer
+text = """
+```
+not the end of the cell
+```
+"""
+````
+
+## Attributes
+
+A value and a bare word, then a quoted value. HQL reads `id` and `hidden`
+and no other attribute, so the quoted one is on a Python cell.
+
+```hql#eval id=a hidden
+cards | size
+```
+
+```python#eval id=b title="Two words" timeout=30 cache
+print("attributes")
+```
+
+## Upper case
+
+```Python#eval
+x = 3
+```
+
+```HQL
+cards | size
+```
+
+## Indented by up to three spaces
+
+   ```hql#eval
+   cards | size
+   ```
+
+## No blank line between a paragraph and a fence
+```hql
+cards | size
+```
+The paragraph continues here, and `[[links]]` still reads as a link: [[links]].
+
+## Forms that stay with the Markdown grammar
+
+A colon, a comma or a brace after the name is a form of the Markdown grammar,
+which reads these two fences.
+
+```python:example.py
+x = 4
+```
+
+```{.python}
+x = 5
+```
+
+## Fences the extension does not reach yet
+
+A fence inside a list item or a block quote is read by the Markdown grammar.
+A plain `python` fence is coloured there. A cell is not, and an `hql` fence is
+not.
+
+- A plain fence in a list:
+
+  ```python
+  x = 6
+  ```
+
+- A cell in a list:
+
+  ```python#eval
+  x = 7
+  ```
+
+- An HQL fence in a list:
+
+  ```hql
+  cards | size
+  ```
+
+> A cell in a quote:
+>
+> ```hql#eval
+> cards | size
+> ```

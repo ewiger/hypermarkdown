@@ -77,6 +77,17 @@
           ".hmd"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "hql",
+        "aliases": [
+          "HQL",
+          "hql"
+        ],
+        "extensions": [
+          ".hql"
+        ],
+        "configuration": "./hql.language-configuration.json"
       }
     ],
     "grammars": [
@@ -85,8 +96,68 @@
         "scopeName": "source.hmd",
         "path": "./syntaxes/hmd.tmLanguage.json",
         "embeddedLanguages": {
-          "meta.embedded.block.yaml": "yaml"
+          "meta.embedded.block.hql": "hql",
+          "meta.embedded.block.css": "css",
+          "meta.embedded.block.html": "html",
+          "meta.embedded.block.ini": "ini",
+          "meta.embedded.block.java": "java",
+          "meta.embedded.block.lua": "lua",
+          "meta.embedded.block.makefile": "makefile",
+          "meta.embedded.block.perl": "perl",
+          "meta.embedded.block.r": "r",
+          "meta.embedded.block.ruby": "ruby",
+          "meta.embedded.block.php": "php",
+          "meta.embedded.block.sql": "sql",
+          "meta.embedded.block.vs_net": "vb",
+          "meta.embedded.block.xml": "xml",
+          "meta.embedded.block.xsl": "xsl",
+          "meta.embedded.block.yaml": "yaml",
+          "meta.embedded.block.dosbatch": "bat",
+          "meta.embedded.block.clojure": "clojure",
+          "meta.embedded.block.coffee": "coffeescript",
+          "meta.embedded.block.c": "c",
+          "meta.embedded.block.cpp": "cpp",
+          "meta.embedded.block.diff": "diff",
+          "meta.embedded.block.dockerfile": "dockerfile",
+          "meta.embedded.block.go": "go",
+          "meta.embedded.block.groovy": "groovy",
+          "meta.embedded.block.pug": "jade",
+          "meta.embedded.block.ignore": "ignore",
+          "meta.embedded.block.javascript": "javascript",
+          "meta.embedded.block.json": "json",
+          "meta.embedded.block.jsonc": "jsonc",
+          "meta.embedded.block.jsonl": "jsonl",
+          "meta.embedded.block.less": "less",
+          "meta.embedded.block.objc": "objective-c",
+          "meta.embedded.block.swift": "swift",
+          "meta.embedded.block.scss": "scss",
+          "meta.embedded.block.perl6": "perl6",
+          "meta.embedded.block.powershell": "powershell",
+          "meta.embedded.block.python": "python",
+          "meta.embedded.block.julia": "julia",
+          "meta.embedded.block.rust": "rust",
+          "meta.embedded.block.shellscript": "shellscript",
+          "meta.embedded.block.typescript": "typescript",
+          "meta.embedded.block.typescriptreact": "typescriptreact",
+          "meta.embedded.block.csharp": "csharp",
+          "meta.embedded.block.fsharp": "fsharp",
+          "meta.embedded.block.dart": "dart",
+          "meta.embedded.block.handlebars": "handlebars",
+          "meta.embedded.block.markdown": "markdown",
+          "meta.embedded.block.log": "log",
+          "meta.embedded.block.latex": "latex",
+          "meta.embedded.block.bibtex": "bibtex",
+          "meta.embedded.block.restructuredtext": "restructuredtext"
         }
+      },
+      {
+        "scopeName": "source.hmd.fences",
+        "path": "./syntaxes/hmd-fences.tmLanguage.json"
+      },
+      {
+        "language": "hql",
+        "scopeName": "source.hql",
+        "path": "./syntaxes/hql.tmLanguage.json"
       }
     ],
     "commands": [
@@ -295,9 +366,11 @@
     "example:sorting": "node ../../scripts/launch-example.mjs cs-alg-sorting",
     "example:small": "node ../../scripts/launch-example.mjs small",
     "example:notebook": "node ../../scripts/launch-example.mjs notebook",
+    "example:highlighting": "node ../../scripts/launch-example.mjs highlighting",
     "example:repo": "node ../../scripts/launch-example.mjs repo",
     "example:wiki": "node ../../scripts/launch-example.mjs wiki",
-    "package": "npm run build && node ../../scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain && vsce package --no-dependencies"
+    "package": "npm run build && node ../../scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain && vsce package --no-dependencies",
+    "grammar": "node syntaxes/fences.mjs"
   },
   "dependencies": {
     "@hypermarkdown/core": "^0.4.0",

@@ -1,0 +1,181 @@
+---
+tags: [fences]
+---
+# Languages the editor ships
+
+The editor carries a grammar for each language on this card, so every body
+here is coloured in a window with no other extension. Each language appears
+as a plain fence and as a cell.
+
+## Python
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Language:
+    name: str
+    year: int
+
+def age(language: Language, in_year: int = 2026) -> int:
+    """The age of a language in a given year."""
+    return in_year - language.year
+```
+
+```python#eval id=ages
+ages = {l.name: age(l) for l in [Language("Python", 1991), Language("Rust", 2015)]}
+print(f"{len(ages)} languages, oldest {max(ages.values())} years")
+```
+
+## TypeScript
+
+```ts
+interface Language { name: string; year: number }
+
+export const age = (l: Language, inYear = 2026): number => inYear - l.year;
+```
+
+```typescript#eval hidden
+const oldest = [{ name: "Python", year: 1991 }].map((l) => age(l)).sort()[0];
+```
+
+## Rust
+
+```rust
+#[derive(Debug)]
+struct Language<'a> { name: &'a str, year: u16 }
+
+impl Language<'_> {
+    fn age(&self, in_year: u16) -> u16 { in_year - self.year }
+}
+```
+
+```rs#check id=borrow
+let python = Language { name: "Python", year: 1991 };
+println!("{python:?} is {} years old", python.age(2026));
+```
+
+## Go
+
+```go#eval
+package main
+
+import "fmt"
+
+func main() { fmt.Printf("%d years\n", 2026-1991) }
+```
+
+## C and C++
+
+```c#eval
+#include <stdio.h>
+int main(void) { printf("%d years\n", 2026 - 1991); return 0; }
+```
+
+```c++#eval
+#include <iostream>
+template <typename T> T age(T year) { return 2026 - year; }
+int main() { std::cout << age(1991) << " years\n"; }
+```
+
+## C#
+
+`c#` with nothing after it is the language C#. `c#eval` is a cell in C.
+
+```c#
+record Language(string Name, int Year) { public int Age => 2026 - Year; }
+```
+
+## Java
+
+```java#eval
+record Language(String name, int year) { int age() { return 2026 - year; } }
+```
+
+## Shell
+
+```bash#eval id=count
+for f in catalog/*.hmd; do echo "${f%.hmd}"; done | wc -l
+```
+
+```sh
+grep -l "grammar: install" catalog/*.hmd
+```
+
+## SQL
+
+```sql#eval
+SELECT name, 2026 - year AS age FROM languages WHERE typing = 'static' ORDER BY age DESC;
+```
+
+## Data
+
+```json#eval
+{ "name": "HQL", "year": 2026, "typed": true, "aliases": ["hql"], "note": null }
+```
+
+```yaml#eval id=header
+title: HQL
+metadata: { year: 2026, typing: static }
+tags: [language, typed]
+```
+
+```xml
+<language name="HQL" year="2026"><alias>hql</alias></language>
+```
+
+## The web
+
+```html#eval
+<table class="catalog"><tr><th>Language</th><td data-year="2026">HQL</td></tr></table>
+```
+
+```css
+.catalog td[data-year="2026"] { color: #0a7; font-weight: 600; }
+```
+
+```javascript#eval
+document.querySelectorAll(".catalog td").forEach((td) => console.log(td.dataset.year));
+```
+
+## Other built-in grammars
+
+```diff
+-  "meta.embedded.block.yaml": "yaml"
++  "meta.embedded.block.hql": "hql",
+```
+
+```dockerfile
+FROM rust:1.83 AS build
+RUN cargo install hql --locked
+```
+
+```makefile
+grammar: syntaxes/fences.mjs
+	node syntaxes/fences.mjs
+```
+
+```lua#eval
+local year = 1993; print(2026 - year)
+```
+
+```ruby#eval
+puts %w[python rust].map(&:capitalize).join(", ")
+```
+
+```php
+<?php echo 2026 - 1995, " years\n";
+```
+
+```swift
+struct Language { let name: String; let year: Int }
+```
+
+```powershell
+Get-ChildItem catalog -Filter *.hmd | Measure-Object
+```
+
+```ini
+[discovery]
+autodiscovery = true
+```
