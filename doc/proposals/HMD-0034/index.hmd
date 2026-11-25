@@ -5,7 +5,7 @@ nav:
 
 # HMD-0034: Mermaid, drawn by a native renderer
 
-**Status**: drafted
+**Status**: accepted
 **Created**: 2026-11-25
 **Source**: [the board card that opened the work](../../issues/0115-mermaid-diagrams-on-par-with-d2.hmd)
 
@@ -290,6 +290,7 @@ Integration tests MUST include:
 ## Changelog
 
 - 2026-11-25: drafted, with the renderer chosen and measured.
+- 2026-11-25: accepted.
 
 ## See also
 

@@ -129,6 +129,14 @@ about 300 MB on first run, which is why it is not in the default test command.
   offered inside an embed, and nothing is written into the card. A **Show
   diagram** code lens sits above each cell, and the command *Show Diagram*
   draws the cell under the cursor; unreleased [[hmd-0030]].
+- **Zoom on a diagram** — every drawing, in D2 and in Mermaid, has three
+  small buttons at its top right edge: smaller, the current size, which
+  resets it, and larger. Zoom moves in steps of 1.25 between 25% and 800%, a
+  zoomed drawing scrolls inside its own box, and a cell keeps its zoom when
+  its source is edited; unreleased.
+- **A diagrams example vault** — `examples/diagrams`, opened with
+  `npm run example:diagrams`: the same picture in both languages, a listing, a
+  Mermaid gallery, and a cell in each state; unreleased.
 - **Mermaid diagrams in the preview** — a `mermaid#show` cell is drawn by
   `merman-cli`, a native renderer with no browser, found by the
   `hyperMarkdown.diagram.mermaidPath` setting, then in the build's toolchain

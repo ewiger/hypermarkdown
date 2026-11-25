@@ -85,10 +85,10 @@ board:
       - id: "0118"
         title: "Listings in a fenced block are not coloured in the preview"
         file: 0118-colour-the-listings-in-a-fenced-block.hmd
+    doing:
       - id: "0115"
         title: "Mermaid diagrams, on par with D2"
         file: 0115-mermaid-diagrams-on-par-with-d2.hmd
-    doing: []
     done:
       - id: "0117"
         title: "A language server, written in Rust"

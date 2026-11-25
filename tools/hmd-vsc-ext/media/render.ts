@@ -91,16 +91,13 @@ function renderDiagram(element: HTMLElement, block: DiagramBlock): void {
     return;
   }
   const rendered = block.dataUri !== null;
+  const zoom = zoomOf(element);
   element.className = rendered ? "hmd-diagram" : "hmd-diagram is-unrendered";
   element.dataset["line"] = String(block.span.line);
   element.textContent = "";
 
   if (rendered) {
-    const image = document.createElement("img");
-    image.className = "hmd-diagram-image";
-    image.src = block.dataUri!;
-    image.alt = `${block.language} diagram`;
-    element.append(image);
+    element.append(diagramView(block.dataUri!, `${block.language} diagram`, zoom));
     return;
   }
 
@@ -177,16 +174,11 @@ function renderDiagramCell(element: HTMLElement, block: DiagramBlock): void {
   source.append(code);
   source.hidden = !codeShown;
 
+  const zoom = zoomOf(body);
   body.textContent = "";
   body.classList.remove("is-empty");
   if (block.dataUri !== null) {
-    // An `<img>` with a `data:` URI executes no script, so diagram source from
-    // a cloned repository cannot run code in the webview.
-    const image = document.createElement("img");
-    image.className = "hmd-diagram-image";
-    image.src = block.dataUri;
-    image.alt = `${block.language} diagram`;
-    body.append(image);
+    body.append(diagramView(block.dataUri, `${block.language} diagram`, zoom));
   }
   if (!block.current) {
     const notice = document.createElement("div");
@@ -204,6 +196,99 @@ function renderDiagramCell(element: HTMLElement, block: DiagramBlock): void {
       body.append(pre);
     }
   }
+}
+
+// -- diagram zoom --------------------------------------------------------
+
+/** The zoom steps a reader moves through, and the bounds they stop at. */
+const ZOOM_STEP = 1.25;
+const ZOOM_MIN = 0.25;
+const ZOOM_MAX = 8;
+
+export type ZoomAction = "in" | "out" | "reset";
+
+/**
+ * A drawing with its zoom buttons.
+ *
+ * A drawing is an SVG, so it stays sharp at any size, and a diagram of any
+ * size has labels too small to read at the width of a preview. The drawing
+ * sits in a box that scrolls, with three small buttons at its edge: smaller,
+ * the current size (which resets it), and larger.
+ *
+ * The drawing arrives as a `data:` URI on an `<img>`, which executes no
+ * script — so diagram source from a cloned repository cannot run code in the
+ * webview. Zoom changes the size of that image and nothing inside it.
+ */
+function diagramView(dataUri: string, alt: string, zoom: number): HTMLElement {
+  const view = document.createElement("div");
+  view.className = "hmd-diagram-view";
+
+  const scroll = document.createElement("div");
+  scroll.className = "hmd-diagram-scroll";
+  const image = document.createElement("img");
+  image.className = "hmd-diagram-image";
+  image.src = dataUri;
+  image.alt = alt;
+  scroll.append(image);
+
+  const controls = document.createElement("div");
+  controls.className = "hmd-diagram-zoom";
+  controls.append(
+    zoomButton("out", "−", "Zoom out"),
+    zoomButton("reset", "100%", "Reset zoom"),
+    zoomButton("in", "+", "Zoom in"),
+  );
+
+  view.append(scroll, controls);
+  applyZoom(view, zoom);
+  return view;
+}
+
+function zoomButton(action: ZoomAction, label: string, title: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `hmd-diagram-zoom-button hmd-diagram-zoom-${action}`;
+  button.dataset["zoom"] = action;
+  button.textContent = label;
+  button.title = title;
+  button.setAttribute("aria-label", title);
+  return button;
+}
+
+/**
+ * The zoom of the drawing inside `element`, or 1 when it shows none.
+ *
+ * Read before a block is rebuilt, as the Code choice is: the size a reader
+ * chose survives a new drawing of the same cell.
+ */
+function zoomOf(element: HTMLElement): number {
+  const zoom = Number(element.querySelector<HTMLElement>(".hmd-diagram-view")?.dataset["zoom"]);
+  return Number.isFinite(zoom) && zoom > 0 ? zoom : 1;
+}
+
+function applyZoom(view: HTMLElement, zoom: number): void {
+  const image = view.querySelector<HTMLImageElement>(".hmd-diagram-image");
+  const reset = view.querySelector<HTMLElement>(".hmd-diagram-zoom-reset");
+  view.dataset["zoom"] = String(zoom);
+  view.classList.toggle("is-zoomed", zoom !== 1);
+  if (image !== null) {
+    // At 1 the stylesheet sizes the image: as wide as the preview, at most.
+    image.style.width = zoom === 1 ? "" : `${Math.round(zoom * 100)}%`;
+    image.style.maxWidth = zoom === 1 ? "" : "none";
+  }
+  if (reset !== null) reset.textContent = `${Math.round(zoom * 100)}%`;
+}
+
+/** Make the drawing in `view` larger or smaller, or put it back. */
+export function zoomDiagram(view: HTMLElement, action: ZoomAction): number {
+  const current = Number(view.dataset["zoom"]) || 1;
+  const wanted =
+    action === "reset" ? 1 : action === "in" ? current * ZOOM_STEP : current / ZOOM_STEP;
+  // Snap to 1 when a step lands beside it, so in-then-out is exactly a reset.
+  const snapped = Math.abs(wanted - 1) < 0.01 ? 1 : wanted;
+  const zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, snapped));
+  applyZoom(view, zoom);
+  return zoom;
 }
 
 interface DiagramState {

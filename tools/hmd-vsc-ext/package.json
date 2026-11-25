@@ -382,6 +382,7 @@
     "example:small": "node ../../scripts/launch-example.mjs small",
     "example:notebook": "node ../../scripts/launch-example.mjs notebook",
     "example:highlighting": "node ../../scripts/launch-example.mjs highlighting",
+    "example:diagrams": "node ../../scripts/launch-example.mjs diagrams",
     "example:repo": "node ../../scripts/launch-example.mjs repo",
     "example:wiki": "node ../../scripts/launch-example.mjs wiki",
     "package": "npm run build && node ../../scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain && vsce package --no-dependencies",

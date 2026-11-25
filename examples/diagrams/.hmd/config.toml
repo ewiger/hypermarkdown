@@ -1,0 +1,9 @@
+# Project config for the diagrams example: a vault to look at in the editor,
+# with diagram cells in D2 and in Mermaid. Open it with
+#   npm run example:diagrams        (in tools/hmd-vsc-ext)
+# and lint it with
+#   hmd lint --root examples/diagrams
+
+[discovery]
+autodiscovery = true
+mode = "both"

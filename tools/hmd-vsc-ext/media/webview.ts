@@ -16,6 +16,7 @@ import {
   offsetForLine,
   patchBlocks,
   renderBreadcrumb,
+  zoomDiagram,
   type Anchor,
   type RenderSettings,
 } from "./render.js";
@@ -184,6 +185,19 @@ content.addEventListener("click", (event) => {
       anchors = collectAnchors(content);
     }
     event.preventDefault();
+    return;
+  }
+
+  const zoomButton = target.closest<HTMLElement>(".hmd-diagram-zoom-button");
+  if (zoomButton !== null) {
+    event.preventDefault();
+    const view = zoomButton.closest<HTMLElement>(".hmd-diagram-view");
+    const action = zoomButton.dataset["zoom"];
+    if (view !== null && (action === "in" || action === "out" || action === "reset")) {
+      zoomDiagram(view, action);
+      // A drawing that changed height moved everything below it.
+      anchors = collectAnchors(content);
+    }
     return;
   }
 

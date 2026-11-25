@@ -38,6 +38,12 @@ against
   directory, then on `PATH`. This build does not carry it yet: install
   `merman-cli` on `PATH`, or point the setting at it. Without it a Mermaid
   cell shows its source and says why.
+- **Zoom on a diagram.** Every drawing, in D2 and in Mermaid, has three small
+  buttons at its top right edge: smaller, the current size, and larger. The
+  middle one puts the drawing back at its own size. A zoomed drawing scrolls
+  inside its own box, and a cell keeps its zoom while you edit it.
+- **A diagrams example.** `npm run example:diagrams` opens a vault of diagram
+  cells in both languages, with a Mermaid gallery and each state of a cell.
 - **Show Diagram.** A **Show diagram** code lens above every diagram cell, and
   the command *HyperMarkDown: Show Diagram* for the cell under the cursor.
   Show draws the cell again, and it is how to retry after a timeout or after

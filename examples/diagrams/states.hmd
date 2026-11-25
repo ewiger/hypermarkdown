@@ -1,0 +1,45 @@
+# The states of a diagram cell
+
+A cell's bar names its state: **drawn**, **stale**, or **not drawn**. Back to
+[[index]].
+
+## A cell that draws
+
+```mermaid#show
+stateDiagram-v2
+  [*] --> NotDrawn
+  NotDrawn --> Drawn: the source draws
+  Drawn --> Stale: an edit that does not draw
+  Stale --> Drawn: the source draws again
+  Drawn --> Drawn: an edit that draws
+```
+
+To see **stale**, break the cell above while the preview is open: delete the
+`>` of one arrow. The drawing stays, dimmed, with the renderer's message under
+it. Put the character back and the cell is drawn again.
+
+## A cell that never drew
+
+This source has a syntax error, so there is no drawing to keep. The cell shows
+its source and the reason.
+
+```mermaid#show
+flowchart TD
+  A --> --> [
+```
+
+## A cell in D2 that never drew
+
+```d2#show
+a -> {
+```
+
+## Configuration inside the fence
+
+A diagram can configure itself. This one asks for Mermaid's dark theme.
+
+```mermaid#show
+%%{init: {"theme": "dark"}}%%
+flowchart LR
+  light --> dark
+```

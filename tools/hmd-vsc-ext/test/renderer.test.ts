@@ -18,6 +18,7 @@ import {
   offsetForLine,
   patchBlocks,
   renderBreadcrumb,
+  zoomDiagram,
   type Anchor,
 } from "../media/render.js";
 
@@ -303,6 +304,88 @@ describe("diagram cells", () => {
     markRunning(container, [-1]);
     expect(cell().classList.contains("is-running")).toBe(false);
     expect(container.querySelector(".hmd-cell[data-kind='cell']")!.classList.contains("is-running")).toBe(true);
+  });
+});
+
+describe("diagram zoom", () => {
+  const drawing = `data:image/svg+xml;base64,${btoa("<svg/>")}`;
+  const drawn = async (card: string): Promise<DocumentIR["blocks"]> =>
+    (await ir_(card)).blocks.map((b) =>
+      b.kind === "diagram" ? { ...b, dataUri: drawing, current: true } : b,
+    );
+  const view = (): HTMLElement => container.querySelector<HTMLElement>(".hmd-diagram-view")!;
+  const image = (): HTMLImageElement => view().querySelector<HTMLImageElement>("img")!;
+  const label = (): string => view().querySelector(".hmd-diagram-zoom-reset")!.textContent!;
+
+  for (const [name, card] of [
+    ["a Mermaid cell", "```mermaid#show\nflowchart LR\n```\n"],
+    ["a D2 cell", "```d2#show\na -> b\n```\n"],
+    ["a plain `d2` fence", "```d2\na -> b\n```\n"],
+  ] as const) {
+    it(`gives ${name} three zoom buttons`, async () => {
+      patchBlocks(container, await drawn(card), settings);
+      const buttons = Array.from(view().querySelectorAll<HTMLElement>(".hmd-diagram-zoom-button"));
+      expect(buttons.map((b) => b.dataset["zoom"])).toEqual(["out", "reset", "in"]);
+      expect(buttons.map((b) => b.textContent)).toEqual(["−", "100%", "+"]);
+    });
+  }
+
+  it("starts at the drawing's own size, with no size of its own", async () => {
+    patchBlocks(container, await drawn("```mermaid#show\nflowchart LR\n```\n"), settings);
+    expect(view().dataset["zoom"]).toBe("1");
+    expect(view().classList.contains("is-zoomed")).toBe(false);
+    expect(image().style.width).toBe("");
+  });
+
+  it("makes the drawing larger and smaller, and says by how much", async () => {
+    patchBlocks(container, await drawn("```mermaid#show\nflowchart LR\n```\n"), settings);
+    expect(zoomDiagram(view(), "in")).toBe(1.25);
+    expect(image().style.width).toBe("125%");
+    expect(image().style.maxWidth).toBe("none");
+    expect(label()).toBe("125%");
+    expect(view().classList.contains("is-zoomed")).toBe(true);
+
+    zoomDiagram(view(), "out");
+    zoomDiagram(view(), "out");
+    expect(image().style.width).toBe("80%");
+    expect(label()).toBe("80%");
+  });
+
+  it("is back at its own size after in then out, and after reset", async () => {
+    patchBlocks(container, await drawn("```d2#show\na -> b\n```\n"), settings);
+    zoomDiagram(view(), "in");
+    expect(zoomDiagram(view(), "out")).toBe(1);
+    expect(image().style.width).toBe("");
+
+    zoomDiagram(view(), "in");
+    zoomDiagram(view(), "in");
+    expect(zoomDiagram(view(), "reset")).toBe(1);
+    expect(image().style.width).toBe("");
+    expect(image().style.maxWidth).toBe("");
+    expect(label()).toBe("100%");
+  });
+
+  it("stops at its bounds", async () => {
+    patchBlocks(container, await drawn("```d2#show\na -> b\n```\n"), settings);
+    for (let i = 0; i < 40; i += 1) zoomDiagram(view(), "in");
+    expect(view().dataset["zoom"]).toBe("8");
+    for (let i = 0; i < 80; i += 1) zoomDiagram(view(), "out");
+    expect(view().dataset["zoom"]).toBe("0.25");
+  });
+
+  it("keeps a cell's zoom when its source is edited and drawn again", async () => {
+    patchBlocks(container, await drawn("```mermaid#show\nflowchart LR\n```\n"), settings);
+    zoomDiagram(view(), "in");
+    zoomDiagram(view(), "in");
+
+    patchBlocks(container, await drawn("```mermaid#show\nflowchart TD\n```\n"), settings);
+    expect(Number(view().dataset["zoom"])).toBeCloseTo(1.5625);
+    expect(image().style.width).toBe("156%");
+  });
+
+  it("offers no zoom where nothing is drawn", async () => {
+    patchBlocks(container, (await ir_("```mermaid#show\nflowchart LR\n```\n")).blocks, settings);
+    expect(container.querySelector(".hmd-diagram-zoom")).toBeNull();
   });
 });
 
