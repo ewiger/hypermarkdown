@@ -1,8 +1,8 @@
 # 2026-08-06 — the TypeScript editor line
 
 Real-time decisions taken while drafting
-[HMD-0020](../proposals/HMD-0020/index.hmd) and
-[HMD-0021](../proposals/HMD-0021/index.hmd). Recorded here because none of them
+[HMD-0020](../../proposals/HMD-0020/index.hmd) and
+[HMD-0021](../../proposals/HMD-0021/index.hmd). Recorded here because none of them
 are derivable from the code or the git history.
 
 ## Numbering is split by stream
@@ -64,7 +64,7 @@ The language is now decided, and it is neither candidate. The server will be
 Python on `pygls`, living with the canonical implementation, because a language
 server is a semantics server and the semantics are already there — a third
 place where resolution behaviour lives is a third thing that can disagree with
-the arbiter. See [HMD-0024](../proposals/HMD-0024/index.hmd).
+the arbiter. See [HMD-0024](../../proposals/HMD-0024/index.hmd).
 
 That record originally added "the extension is unaffected and still requires no
 Python", and **that half was revised on 2026-08-08**. The two lines of work
@@ -80,4 +80,4 @@ survived, and it is now load-bearing: an unsaved buffer is a language server's
 ordinary input, so text ingestion is not a nicety. On the Python side it holds
 everywhere except the workspace index, which is the one layer that reads from
 disk — recorded as a limitation in
-[the HMD-0024 tracker](../proposals/HMD-0024/STATUS.md#limitations).
+[the HMD-0024 tracker](../../proposals/HMD-0024/STATUS.md#limitations).

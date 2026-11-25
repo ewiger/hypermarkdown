@@ -373,7 +373,7 @@ buster before concluding anything is missing. Trust either gallery's API over
 `vsce`'s own output.
 
 The fuller account, including what it cost to find each of these, is
-[`doc/memory/2026-09-14-marketplace-federated-publishing.hmd`](../../doc/memory/2026-09-14-marketplace-federated-publishing.hmd).
+[`doc/archive/memory/2026-09-14-marketplace-federated-publishing.hmd`](../../doc/archive/memory/2026-09-14-marketplace-federated-publishing.hmd).
 
 ### What has to exist first, once
 

@@ -403,7 +403,7 @@ holds the only copy.
 
 ## See also
 
-- [`doc/memory/decisions.hmd`](../../memory/decisions.hmd) — the four-versions
+- [`doc/archive/memory/decisions.hmd`](../../archive/memory/decisions.hmd) — the four-versions
   rule, the tag prefixes, and why the packaging symlinks were reversed.
 - [HMD-0024](../HMD-0024/index.hmd) — the `tools/` layout whose directory names
   this record leaves alone.

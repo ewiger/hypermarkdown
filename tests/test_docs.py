@@ -727,9 +727,9 @@ RETIRED_NAME_ALLOWED = {
     "tools/hmd/CHANGELOG.md",
     "tools/hmd-vsc-ext/CHANGELOG.md",
     ".github/workflows/release-vsc-ext.yml",
-    "doc/memory/decisions.hmd",
-    "doc/memory/2026-08-06-typescript-editor-line.hmd",
-    "doc/memory/2026-08-10-hypermarkdown-identity.hmd",
+    "doc/archive/memory/decisions.hmd",
+    "doc/archive/memory/2026-08-06-typescript-editor-line.hmd",
+    "doc/archive/memory/2026-08-10-hypermarkdown-identity.hmd",
     # The release rules, which title the first two Python releases by the name
     # they shipped under on PyPI, and the test that pins it.
     "scripts/release.py",

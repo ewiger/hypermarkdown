@@ -60,7 +60,7 @@ It is also the only target that is *purely* one-directional. `md → hmd`
 conversion can read plain markdown or GFM back; nothing reads HTML back into
 HyperMarkDown, and nothing should try. That asymmetry is a feature — it makes
 HTML unambiguously a build product, which is the same argument
-[the memory note](../memory/decisions.hmd) makes for erasure generally.
+[the memory note](../archive/memory/decisions.hmd) makes for erasure generally.
 
 ## Open
 

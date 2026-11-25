@@ -33,6 +33,7 @@ Treat `doc/` as a modular knowledge base:
 - `doc/status/` holds the trackers, one per tool plus the language and the site.
 - `doc/proposals/` holds numbered ADR/RFC-style technical specifications.
 - `doc/memory/` holds small real-time decisions.
+- `doc/archive/` holds retired records, read on demand.
 - `.grem/` contains dormant grem control data and copyable prompts.
 
 Keep L0, L1, and L2 lens files directly under `doc/models/`.
@@ -66,18 +67,16 @@ Do not type into a table that an HQL cell wrote, which is any table between
 `hql:output` markers. Change the data the cell reads, run `hql render`, and
 commit both. `doc/status/hmd.hmd` keeps its rows in the `work` list of its
 frontmatter, and the other trackers will follow. The steps are in
-`doc/memory/2026-11-25-status-tables-are-written-by-hql.hmd`.
+`doc/status/index.hmd`.
 
 At the start of every agent invocation, read every file under `doc/memory/` and
-include that context in the work. The notes are included here, so that they
-load with these instructions. Add a line for each new note:
+include that context in the work. The folder is included here, so that it
+loads with these instructions:
 
 @doc/memory/decisions.hmd
-@doc/memory/2026-08-06-typescript-editor-line.hmd
-@doc/memory/2026-08-10-hypermarkdown-identity.hmd
-@doc/memory/2026-08-11-two-licenses-and-a-contributors-file.hmd
-@doc/memory/2026-09-14-marketplace-federated-publishing.hmd
-@doc/memory/2026-11-25-status-tables-are-written-by-hql.hmd
+
+Keep `doc/memory/` short: one sentence for each decision. A longer account of
+a decision goes to `doc/archive/memory/`, which is read only on demand.
 
 Ignore `.grem/**` during ordinary work. Do not inspect, summarize, follow, or
 modify its contents unless the user explicitly asks to execute a grem workflow
