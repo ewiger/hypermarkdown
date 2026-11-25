@@ -50,6 +50,7 @@ function fakeCatalog(): VaultCatalog {
     cells: { onDidChange: () => ({ dispose: () => undefined }), runningIn: () => [] },
     cardFor,
     openCard: async (uri: unknown) => cardFor(uri),
+    explain: async () => "missing",
     vaultAt: (key: string) => (key === vault.key ? vault : undefined),
   } as unknown as VaultCatalog;
 }
@@ -67,7 +68,7 @@ async function settle(): Promise<void> {
 }
 
 function editorFor(rel: string | null): { document: { uri: unknown } } {
-  return { document: { uri: { rel } } };
+  return { document: { uri: { rel, path: rel === null ? "/elsewhere/notes.txt" : `/vault/${rel}` } } };
 }
 
 function openPanels(): { showOptions: { viewColumn: number }; panel: { dispose(): void } }[] {
@@ -293,5 +294,39 @@ describe("full screen", () => {
     // A closed preview that kept the window would leave an editor with no tabs
     // and nothing on screen explaining why.
     expect(stub.commands.executed).toContain("workbench.action.toggleZenMode");
+  });
+});
+
+describe("a card no vault claims (issue 0116)", () => {
+  function posted(): unknown[] {
+    return (openPanels()[0]?.panel as unknown as { posted: unknown[] }).posted;
+  }
+
+  it("says vault not found, with the button that initializes one", async () => {
+    const catalog = fakeCatalog();
+    // A card, by its suffix, that the catalog does not claim.
+    stub.window.activeTextEditor = { document: { uri: { rel: null, path: "/repo/stray.hmd" } } };
+
+    PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
+    await settle();
+    await settle();
+
+    // Said even though no vault is indexed: that is the window where it matters.
+    expect(posted()).toContainEqual({
+      type: "error",
+      message: expect.stringContaining("Vault not found for stray.hmd"),
+      action: "initVault",
+    });
+  });
+
+  it("says nothing about vaults for a file that is not a card", async () => {
+    const catalog = fakeCatalog();
+    stub.window.activeTextEditor = editorFor(null);
+
+    PreviewPanel.open(catalog, extensionUri, { column: vscode.ViewColumn.Active });
+    await settle();
+    await settle();
+
+    expect(JSON.stringify(posted())).not.toContain("Vault not found");
   });
 });

@@ -7,6 +7,14 @@ nav:
 
 ## News and updates
 
+**2026-11-25 — VS Code extension 0.6.1, `hmd` 0.5.1.** A card is read only
+inside a vault, a directory that holds `.hmd/`. When no `.hmd/` is above a
+card, the extension says **vault not found** and offers **Initialize Vault…**,
+which creates an empty `.hmd/` where you choose and shows the card without a
+reload. A `.hmd/` you create by hand is picked up the same way. `hmd` says
+"vault not found" and points at `hmd init`. The extension now brings `hql`
+0.8.0, so cells run in a vault that is only an empty `.hmd/`.
+
 **2026-11-25 — HyperMarkDown 0.1.1.** A patch to the
 [specification](../wiki/hmd-lang-spec.hmd): it now says what a vault is, the
 directory where a namespace is stored. No construct changes.
@@ -63,11 +71,11 @@ type; the preview needs no Python.
 | | Version | Install from |
 | --- | --- | --- |
 | **HyperMarkDown**, the language | 0.1.1 | [specification](../wiki/hmd-lang-spec.hmd) |
-| **`hmd`** — CLI, library, MkDocs plugin | 0.5.0 | [PyPI](https://pypi.org/project/hypermarkdown/) |
+| **`hmd`** — CLI, library, MkDocs plugin | 0.5.1 | [PyPI](https://pypi.org/project/hypermarkdown/) |
 | **`@hypermarkdown/core`** — TypeScript | 0.4.0 | [npm](https://www.npmjs.com/package/@hypermarkdown/core) |
 | **`hypermarkdown`** — Rust resolver | 0.3.0 | [crates.io](https://crates.io/crates/hypermarkdown) |
 | **`hmd-semantics`** — semantic index | 0.2.0 | [PyPI](https://pypi.org/project/hypermarkdown-semantics/) |
-| **`hmd-vsc-ext`** — VS Code | 0.6.0 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
+| **`hmd-vsc-ext`** — VS Code | 0.6.1 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
 | **`hql`** — the Hyper Query Language | 0.8.0 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
 
 The **HMD language specification** versions independently of the tools, and

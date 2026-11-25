@@ -53,8 +53,9 @@ fn main() -> Result<(), hypermarkdown::Error> {
 ```
 
 A vault on disk is opened by its root, the directory that holds `.hmd/`. Its
-cards are read from the cards location, the `wiki` setting of its
-`.hmd/config.toml`: where inside the vault the cards start.
+cards are read from the cards location, the `location_path` setting of its
+`.hmd/config.toml`: where inside the vault the cards start. It defaults to `.`,
+the vault itself.
 
 ```rust
 use std::path::Path;
@@ -82,7 +83,7 @@ fn open(card: &Path) -> Option<Vault> {
 | Folder notes | a directory's name binds its folder note, `index` with a card extension; a card of the same name wins |
 | Nested vaults | a directory below the root that holds its own `.hmd/` is another vault, and none of its cards load |
 | Fragments | a heading (`#Heading`), a block (`#^block`) and the display text after a bar are split off a reference and reported with it |
-| Configuration | `wiki`, `[discovery] autodiscovery` and `[discovery] mode` of `.hmd/config.toml` |
+| Configuration | `location_path`, `[discovery] autodiscovery` and `[discovery] mode` of `.hmd/config.toml`; a config that sets the retired `wiki` is refused (`Error::Config`) |
 | Encoding | a card is UTF-8, and a file with a card extension that is not is no card (`Vault::undecodable`); one leading byte-order mark is ignored; a line ends at `\n`, `\r\n` or a lone `\r`; names compare in NFC |
 
 A fragment is parsed and not checked: the crate does not read headings or block

@@ -2,7 +2,7 @@
   "name": "hmd",
   "displayName": "HyperMarkDown",
   "description": "An editor for HyperMarkDown (.hmd) knowledge bases: real-time preview, embeds, a graph of the vault, HQL cells, and diagnostics.",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "license": "MIT",
   "icon": "media/logo.png",
   "publisher": "hypermarkdown",
@@ -53,7 +53,7 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": "limited",
-      "description": "Indexing and preview are read-only and run in untrusted workspaces, and a card's saved HQL outputs are shown there. Running an HQL cell and creating a missing card require trust."
+      "description": "Indexing and preview are read-only and run in untrusted workspaces, and a card's saved HQL outputs are shown there. Running an HQL cell, creating a missing card, and initializing a vault require trust."
     },
     "virtualWorkspaces": {
       "supported": "limited",
@@ -114,6 +114,12 @@
         "category": "HyperMarkDown"
       },
       {
+        "command": "hyperMarkdown.initVault",
+        "title": "Initialize Vault",
+        "category": "HyperMarkDown",
+        "icon": "$(new-folder)"
+      },
+      {
         "command": "hyperMarkdown.refreshIndex",
         "title": "Rebuild Index",
         "category": "HyperMarkDown",
@@ -136,7 +142,7 @@
       "editor/title": [
         {
           "command": "hyperMarkdown.openPreview",
-          "when": "hyperMarkdown.hasRoot",
+          "when": "hyperMarkdown.hasRoot || editorLangId == hmd",
           "group": "navigation@1"
         },
         {
@@ -148,11 +154,15 @@
       "commandPalette": [
         {
           "command": "hyperMarkdown.openPreview",
-          "when": "hyperMarkdown.hasRoot"
+          "when": "hyperMarkdown.hasRoot || editorLangId == hmd"
         },
         {
           "command": "hyperMarkdown.openPreviewToSide",
-          "when": "hyperMarkdown.hasRoot"
+          "when": "hyperMarkdown.hasRoot || editorLangId == hmd"
+        },
+        {
+          "command": "hyperMarkdown.initVault",
+          "when": "workspaceFolderCount > 0 && isWorkspaceTrusted"
         },
         {
           "command": "hyperMarkdown.togglePin",
@@ -178,7 +188,7 @@
         "hyperMarkdown.root": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Namespace root for the workspace folder itself, relative to it. Vaults are otherwise discovered from the card, by walking up to the nearest `.hmd/` directory; this setting names the root for cards no vault claims, and wins for the folder it is set in. Empty means read `location_path` from the folder's `.hmd/config.toml`, which defaults to the folder itself."
+          "markdownDescription": "An explicit namespace root for the workspace folder, relative to it. Vaults are discovered from the card, by walking up to the nearest `.hmd/` directory, and a card with no `.hmd/` above it is not read. Set this to read such cards anyway, from the directory it names; it also wins over the folder's own `.hmd/config.toml`. Empty means no explicit root: run **HyperMarkDown: Initialize Vault** to make the folder a vault instead."
         },
         "hyperMarkdown.preview.scrollSync": {
           "type": "boolean",

@@ -139,6 +139,8 @@ export const workspace = {
   workspaceFolders: undefined as WorkspaceFolderStub[] | undefined,
   applyEdit: async () => true,
   openTextDocument: async () => ({}),
+  /** No file search in a unit test: an empty answer unless a suite sets one. */
+  findFiles: async (_include: unknown, _exclude?: unknown, _max?: number): Promise<unknown[]> => [],
   fs: undefined as unknown,
   getWorkspaceFolder: (uri: { toString(): string }): WorkspaceFolderStub | undefined =>
     workspace.workspaceFolders?.find((folder) =>
@@ -215,7 +217,10 @@ export class WebviewPanelStub {
 
 export const window = {
   showWarningMessage: () => undefined,
-  showErrorMessage: () => undefined,
+  showErrorMessage: async (..._args: unknown[]): Promise<string | undefined> => undefined,
+  showInformationMessage: async (..._args: unknown[]): Promise<string | undefined> => undefined,
+  showQuickPick: async <T>(_items: T[], _options?: unknown): Promise<T | undefined> => undefined,
+  showWorkspaceFolderPick: async (_options?: unknown): Promise<unknown> => undefined,
   showTextDocument: async () => ({}),
   setStatusBarMessage: () => undefined,
   visibleTextEditors: [] as unknown[],

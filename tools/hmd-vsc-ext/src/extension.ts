@@ -11,12 +11,17 @@ import * as vscode from "vscode";
 
 import { VaultCatalog } from "./catalog.js";
 import { createCard } from "./commands/createCard.js";
+import { initializeVault, reportMissingVault } from "./commands/initVault.js";
+import { debounce } from "./debounce.js";
 import { DiagnosticPublisher } from "./diagnostics.js";
 import { CellLensProvider, cellAtCursor } from "./hql/runner.js";
 import { PreviewPanel, VIEW_TYPE, type PanelState } from "./preview/panel.js";
 
 /** Gates the editor title-bar button: this window holds at least one vault. */
 const HAS_ROOT = "hyperMarkdown.hasRoot";
+
+/** How long `.hmd/` events settle before the catalog is rebuilt. */
+const MARKER_SETTLE_MS = 300;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const catalog = new VaultCatalog(context.extensionUri);
@@ -62,6 +67,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         preview.togglePin() ? "HyperMarkDown: preview pinned" : "HyperMarkDown: preview following",
         2000,
       );
+    }),
+    vscode.commands.registerCommand("hyperMarkdown.initVault", async (uri?: vscode.Uri) => {
+      const editor = vscode.window.activeTextEditor;
+      const card = uri ?? (editor?.document.languageId === "hmd" ? editor.document.uri : null);
+      if ((await initializeVault(catalog, card)) !== null) diagnostics.refresh();
     }),
     vscode.commands.registerCommand("hyperMarkdown.refreshIndex", async () => {
       await catalog.rebuild();
@@ -111,6 +121,32 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.workspace.onDidChangeWorkspaceFolders(() => void catalog.rebuild()),
   );
 
+  // A `.hmd/` created or removed outside the extension — by hand, by `hmd
+  // init`, by a checkout — changes which vault claims which card, and the
+  // catalog caches that answer. Rebuild once the burst of events settles.
+  const markers = vscode.workspace.createFileSystemWatcher("**/.hmd");
+  const rebuildForMarker = debounce(MARKER_SETTLE_MS, () => {
+    void catalog.rebuild().then(() => diagnostics.refresh());
+  });
+  context.subscriptions.push(
+    markers,
+    markers.onDidCreate(() => rebuildForMarker()),
+    markers.onDidDelete(() => rebuildForMarker()),
+    { dispose: () => rebuildForMarker.cancel() },
+  );
+
+  // A card opened where no vault claims it gets an error with the fix, at most
+  // once per workspace folder in a session (issue 0116).
+  const checkCard = async (editor: vscode.TextEditor | undefined): Promise<void> => {
+    if (editor === undefined || editor.document.languageId !== "hmd") return;
+    const uri = editor.document.uri;
+    if (uri.scheme !== "file") return;
+    if ((await catalog.openCard(uri)) === null) await reportMissingVault(catalog, uri);
+  };
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor((editor) => void checkCard(editor)),
+  );
+
   try {
     await catalog.initialize();
   } catch (exc) {
@@ -121,6 +157,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
   }
   publishHasRoot();
+  void checkCard(vscode.window.activeTextEditor);
 }
 
 /**

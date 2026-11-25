@@ -1,27 +1,27 @@
 {
   "$comment": "The one pin for every native binary HyperMarkDown runs — d2, and hql where HQL publishes the platform. See doc/issues/0107 and 0111. Bumping d2 or hql happens in the toolchain repository; here only `version` and the digests move, together, in one commit.",
   "repo": "ewiger/hypermarkdown-toolchain",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "archives": {
     "linux-x86_64": {
-      "name": "hypermarkdown-toolchain-0.5.2-linux-x86_64.tar.gz",
-      "sha256": "81e955d9d4509766f77b135fddc4f3959736c4dd3adc254b3f4d3d7954e78d0a"
+      "name": "hypermarkdown-toolchain-0.5.3-linux-x86_64.tar.gz",
+      "sha256": "dfeb1d140130c4c7bdbfd8f7a088a2f37ee52b24b1bdf5a4039b8a16b49ef1fd"
     },
     "linux-arm64": {
-      "name": "hypermarkdown-toolchain-0.5.2-linux-arm64.tar.gz",
-      "sha256": "af4b662efbbe149a68561f23a3708c9c2f9259b786c8a1f83ead6e3be919120d"
+      "name": "hypermarkdown-toolchain-0.5.3-linux-arm64.tar.gz",
+      "sha256": "b9910774eba8ad8a1e0866aaa9deae1444376cc22525f4eb459f797725db0285"
     },
     "macos-x86_64": {
-      "name": "hypermarkdown-toolchain-0.5.2-macos-x86_64.tar.gz",
-      "sha256": "c63662a4a8fa41ed5bfb699b95571aab7140b85742c4f0a37beec8f9396f528b"
+      "name": "hypermarkdown-toolchain-0.5.3-macos-x86_64.tar.gz",
+      "sha256": "b581e014b84bb30008f5a8faef3ae330abd9b46ea244ffe5089c705ccbf8bab2"
     },
     "macos-arm64": {
-      "name": "hypermarkdown-toolchain-0.5.2-macos-arm64.tar.gz",
-      "sha256": "cf3df77cfefc6caec1d65c0041f5179ef74fe633d72c2a2e720496640da354d2"
+      "name": "hypermarkdown-toolchain-0.5.3-macos-arm64.tar.gz",
+      "sha256": "fa157213f0bf50049a5c2e73ac3f59e3fa39e2891e1cc0defa4702f70eabe988"
     },
     "windows-x86_64": {
-      "name": "hypermarkdown-toolchain-0.5.2-windows-x86_64.zip",
-      "sha256": "b7bb478cb437837311faa976ad96a270f3685b36d516a97c15d6c1d03204b57e"
+      "name": "hypermarkdown-toolchain-0.5.3-windows-x86_64.zip",
+      "sha256": "56a5c9488c819a0b36480303a534556f7258c6dee7afa24e8942f2e5a7127267"
     }
   }
 }

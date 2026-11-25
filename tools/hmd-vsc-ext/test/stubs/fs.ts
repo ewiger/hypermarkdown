@@ -5,7 +5,7 @@
  * directory tree, so the tree is the one thing a test of it must not fake.
  */
 
-import { readFile, readdir, stat } from "node:fs/promises";
+import { mkdir, readFile, readdir, stat } from "node:fs/promises";
 
 import { FileType } from "./vscode.js";
 
@@ -17,6 +17,10 @@ export const nodeFileSystem = {
 
   async readFile(uri: { fsPath: string }): Promise<Uint8Array> {
     return new Uint8Array(await readFile(uri.fsPath));
+  },
+
+  async createDirectory(uri: { fsPath: string }): Promise<void> {
+    await mkdir(uri.fsPath, { recursive: true });
   },
 
   async readDirectory(uri: { fsPath: string }): Promise<[string, number][]> {

@@ -72,7 +72,11 @@ export type HostMessage =
   /** The card's cells being run now; `-1` stands for every cell (HMD-0026). */
   | { type: "running"; cells: number[] }
   | { type: "setMode"; mode: PreviewMode }
-  | { type: "error"; message: string };
+  /**
+   * Nothing to draw, and why. `action` puts a button under the message: for a
+   * card no vault claims, the button initializes one (issue 0116).
+   */
+  | { type: "error"; message: string; action?: "initVault" };
 
 export type WebviewMessage =
   | { type: "ready" }
@@ -86,7 +90,9 @@ export type WebviewMessage =
   | { type: "graphView"; view: GraphView }
   | { type: "fullScreen"; on: boolean }
   | { type: "runCell"; index: number }
-  | { type: "runAllCells" };
+  | { type: "runAllCells" }
+  /** The button under a "vault not found" message (issue 0116). */
+  | { type: "initVault" };
 
 const MODES: readonly PreviewMode[] = ["rendered", "graph"];
 const SCOPES: readonly GraphScope[] = ["network", "card"];
@@ -157,6 +163,8 @@ export function parseWebviewMessage(raw: unknown): WebviewMessage | null {
         : null;
     case "runAllCells":
       return { type: "runAllCells" };
+    case "initVault":
+      return { type: "initVault" };
     case "fullScreen":
       return typeof message["on"] === "boolean"
         ? { type: "fullScreen", on: message["on"] }

@@ -11,6 +11,7 @@ import { suggestedPath } from "../src/commands/createCard.js";
 describe("inbound messages", () => {
   it("accepts the shapes the webview sends", () => {
     expect(parseWebviewMessage({ type: "ready" })).toEqual({ type: "ready" });
+    expect(parseWebviewMessage({ type: "initVault" })).toEqual({ type: "initVault" });
     expect(parseWebviewMessage({ type: "scrolled", line: 12 })).toEqual({
       type: "scrolled",
       line: 12,

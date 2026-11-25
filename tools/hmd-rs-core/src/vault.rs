@@ -159,7 +159,7 @@ impl Vault {
     ///
     /// The walk skips every entry whose name starts with `.`, and does not
     /// enter a directory below the root that holds a `.hmd` directory. The
-    /// `wiki` setting of `config` is not consulted: the host already is the
+    /// `location_path` setting of `config` is not consulted: the host already is the
     /// namespace root.
     ///
     /// A file the host reports as not valid UTF-8, with
@@ -206,8 +206,8 @@ impl Vault {
     /// Loads the vault rooted at the directory `vault_root` from disk.
     ///
     /// The configuration is the vault's `.hmd/config.toml`, or the defaults
-    /// when it has none, and the namespace root is the directory its `wiki`
-    /// setting names.
+    /// when it has none, and the namespace root is the directory its
+    /// `location_path` setting names.
     pub fn open(vault_root: &Path) -> Result<Vault, Error> {
         let config = Config::read(vault_root)?;
         // The namespace root has to lie in this vault. A directory between the

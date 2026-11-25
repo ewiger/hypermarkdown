@@ -27,10 +27,11 @@ embeds in [`ts-core.hmd`](ts-core.hmd), the Rust resolver in
 
 ## Status
 
-**`0.6.0` is released to both galleries, and cards are notebooks.** The
+**`0.6.1` is released to both galleries, and cards are notebooks.** The
 extension reads cards through the core it embeds, so it conforms to
 HyperMarkDown 0.1.0 as far as that core does — every rule but the publication
-model. 0.6.0, released on 2026-11-25, carries the 0.1 rules.
+model. 0.6.0, released on 2026-11-25, carries the 0.1 rules, and 0.6.1, the
+same day, reads no card without a vault and offers to initialize one.
 Everything the extension claims to do works and is gated by tests: the rendered
 tab, wiki links and plain Markdown links that open what they name, embeds as collapsible cards, scroll sync both ways, red links with a
 create-the-card action, the graph, diagnostics identical to the linter's except
@@ -55,14 +56,17 @@ runs in an untrusted workspace. A plain `hql` fence is a listing and never runs
 [[hmd-0026]]. Tested against the real binary and checked by hand in a running
 editor [issue 0110]. Since `0.4.1` the `hql` comes with the extension, from the
 pinned toolchain beside `d2`, on Linux x64 and macOS, and on Windows since
-`0.5.2` — `hql` 0.7.2 as of `0.5.2`; `hyperMarkdown.hql.path`
+`0.5.2` — `hql` 0.8.0 as of `0.6.1`; `hyperMarkdown.hql.path`
 overrides it, and Linux ARM64 uses `hql` on `PATH` [issue 0111].
 
 **Vaults are now discovered from the card.** A window holds a catalog of
 vaults rather than one project, so a repository carrying several — this one
 carries `doc/wiki` plus a vault per example tree — previews a card in any of
 them. A vault nested inside another is its own vault on every path, not only
-on discovery, since `0.4.4` [issue 0009].
+on discovery, since `0.4.4` [issue 0009]. A card with no `.hmd/` above it is
+no longer read: the preview and the cell runner say **vault not found** and
+offer **Initialize Vault…**, which creates an empty `.hmd/` where the user
+picks and re-indexes without a reload, since `0.6.1` [issue 0116].
 
 ## Open
 
@@ -71,7 +75,6 @@ on discovery, since `0.4.4` [issue 0009].
 | todo | **Automate the by-hand checks.** The list in the extension's `DEVELOP.md` — the graph's legibility on a real vault, live editing, scroll sync — is read by hand before a release, and nothing stands in for it. The parked integration suite is where this would live [issue 0101] | Not a gate on shipping; it is the reason a release still costs an afternoon | [[hmd-0025]] |
 | backlog | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | Waits on the open question below: what a filter does to the node cap | [[hmd-0025]] |
 | todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
-| todo | **Offer to make a vault for a card no vault claims.** The preview and the cell runner report the missing `.hmd/` and stop, and the README sends users to `hmd init`, which the extension does not ship. Since the specification makes an empty `.hmd/` a complete vault, an **Initialize Vault…** button and command can offer every directory from the workspace folder down to the card, write an empty `.hmd/`, and re-index without a reload. The same pass rewrites the README's fallback-root text, which still names the `wiki` key the rename replaced | Reported on 0.5.2 for Windows: a `.hmd/` created by hand is ignored until **Rebuild Index**, and a cell run first fails with `hql: … not a vault: it holds no .hmd/` | [the issue card](../issues/0116-initialize-a-vault-from-the-editor.hmd), [[hmd-lang-spec#the-namespace]] |
 | blocked | **Drop the mask.** Before handing a card to HQL the extension renames a bare `hql` fence to `txt` and marks an `hql#query` fence `hidden`, because `hql render` runs bare `hql` fences as cells and writes outputs for queries, and this format says they are a listing and a hidden cell. Unblocks when HQL adopts both rules | One function and its call [`src/hql/engine.ts`, `maskForHql`] | [[hmd-0026#the-divergence-with]] |
 | blocked | **Name the HQL project and import `hmd` on the command line.** HQL's record of projects and vaults has a host pass the project it resolved, `--project <dir>`, and inject `--import hmd`. The extension passes neither: `hql render` imports `hmd` and selects the project itself, and the HQL the toolchain pins predates both flags and refuses an option it does not know. Unblocks when the toolchain pins an HQL release that has them | One argument list [`src/hql/engine.ts`, `run`] | [[hmd-0026#running-a-cell]] |
 | parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
@@ -96,7 +99,7 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 | Limitation | Why it stands | References |
 | --- | --- | --- |
-| Run needs `hql` on `PATH` on Linux ARM64 | HQL 0.7.2 publishes no binary for it, so the toolchain archive for it carries `d2` only. A toolchain release picks it up when HQL publishes it | [[hmd-0026#running-a-cell]] |
+| Run needs `hql` on `PATH` on Linux ARM64 | HQL 0.8.0 publishes no binary for it, so the toolchain archive for it carries `d2` only. A toolchain release picks it up when HQL publishes it | [[hmd-0026#running-a-cell]] |
 | Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it | [[hmd-0021#11-webview-hardening]] |
 | A published card linking to a private one is never flagged | The publication model is unported in the core, so nothing here knows whether a card is published at all (rule HMD017). A listed limitation of the core's conformance to 0.1.0; it arrives here with the core's port | [[hmd-0002#3-expansion]] |
 | Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core | [[hmd-0020#3-3-free-syntax]] |
@@ -109,6 +112,13 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Done
 
+- **Vault not found, and Initialize Vault** — a card with no `.hmd/` above it,
+  up to the workspace folder, is not read unless `hyperMarkdown.root` names an
+  explicit root, as the specification requires. The preview, an opened card,
+  and a cell run say so and offer **Initialize Vault…**, which lists the
+  workspace folder and every directory down to the card, creates an empty
+  `.hmd/`, and re-indexes. A `.hmd/` made by hand is picked up by a watcher;
+  released in 0.6.1 [issue 0116].
 - **`location_path` names a vault's namespace root** — read through the core,
   with the default `.`, the folder of `.hmd/` itself, instead of `doc/wiki`.
   `hyperMarkdown.root` keeps its name; left empty, it now falls back to
@@ -138,6 +148,9 @@ about 300 MB on first run, which is why it is not in the default test command.
   file it names, resolved from the card's folder: a card in the preview, any
   other file in the editor. Web and mail links open outside the editor, and
   every other scheme is refused [issue 0112].
+- **`hql` 0.8.0** — toolchain 0.5.3 carries it. It reads `location_path`, so a
+  cell runs in a vault that is only an empty `.hmd/`, the one Initialize Vault
+  creates; 0.7.2 looked for `doc/wiki` there and failed; released in 0.6.1.
 - **`hql` on Windows, and 0.7.2** — toolchain 0.5.2 carries `hql.exe` in
   the Windows archive, and the release gate requires it in both Windows
   VSIXes. A card's path is written with `/` on every host [HQL issue 0082].
@@ -216,6 +229,8 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-25: the Broken row for cards read with no vault becomes a Done row,
+  released in 0.6.1, and Status names 0.6.1.
 - 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-24: before the 0.1.0 release. Status names `0.5.2`, the version on
   both galleries, and says the extension conforms to HyperMarkDown 0.1.0

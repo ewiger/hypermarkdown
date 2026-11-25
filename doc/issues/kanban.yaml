@@ -55,9 +55,6 @@ board:
         title: "There is no way to search the wiki from the preview"
         file: 0106-search-the-wiki-from-the-preview.hmd
     todo:
-      - id: "0116"
-        title: "A card no vault claims should offer to make one"
-        file: 0116-initialize-a-vault-from-the-editor.hmd
       - id: "0019"
         title: "Review lexical compatibility with CommonMark"
         file: "0019-lexical-compatibility-with-commonmark.hmd"
@@ -90,6 +87,9 @@ board:
         file: 0115-mermaid-diagrams-on-par-with-d2.hmd
     doing: []
     done:
+      - id: "0116"
+        title: "Vault not found: the extension should say so and offer to initialize one"
+        file: "archive/0116-initialize-a-vault-from-the-editor.hmd"
       - id: "0016"
         title: "Prepare the 0.1 specification release"
         file: "archive/0016-prepare-the-0-1-specification-release.hmd"

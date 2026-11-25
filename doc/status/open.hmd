@@ -76,7 +76,7 @@ the board, in the order this view lists them.
 | state   | rows |
 | ------- | ---- |
 | doing   | 2    |
-| todo    | 27   |
+| todo    | 26   |
 | blocked | 4    |
 | backlog | 10   |
 | parked  | 3    |
@@ -123,7 +123,6 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Recognise a `mermaid#show` fence as a diagram.                                                     | [ts-core](ts-core.hmd)     |
 | todo    | Automate the by-hand checks.                                                                       | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Create the card a relative link points at.                                                         | [vsc-ext](vsc-ext.hmd)     |
-| todo    | Offer to make a vault for a card no vault claims.                                                  | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Diagram cells in the preview.                                                                      | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Draw Mermaid diagrams in the preview                                                               | [vsc-ext](vsc-ext.hmd)     |
 | blocked | The language server itself.                                                                        | [hmd](hmd.hmd)             |
