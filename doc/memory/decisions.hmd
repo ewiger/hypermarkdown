@@ -34,7 +34,7 @@ read only when a reason is needed.
 - A name on PyPI, npm, or a marketplace cannot be changed, so a retired name
   is kept registered and never deleted.
 - A release tag carries the tool's prefix: `v` for Python, then `ts-core-v`,
-  `rs-core-v`, `vsc-ext-v`, and `semantics-v`.
+  `rs-core-v`, `vsc-ext-v`, `semantics-v`, and `lsp-v`.
 - Each tool owns its `README.md`, `CHANGELOG.md`, `LICENSE`, and `DEVELOP.md`.
   They are never links to, or copies of, the files at the root.
 - `pyproject.toml` keeps version ranges for consumers, and CI installs from
@@ -70,7 +70,8 @@ read only when a reason is needed.
   preview, because it loses the boundary of an embed.
 - The preview renders while the author types: the parser never throws on
   partial input, and each block keeps a stable key.
-- The language server will be Python on `pygls`, beside the canonical
-  implementation. Only the preview must work without Python.
+- The language server is `hmd-lsp`, a Rust program on the resolver crate, in
+  `tools/hmd-lsp/`. It resolves and does not lint. The extension is its
+  client and must work without it.
 - The extension keeps one index for each vault and resolves nothing across a
   vault boundary.

@@ -75,6 +75,11 @@ like the rest; what stays true, and is now stated that way everywhere, is that
 the *preview* renders without Python. Anything claiming the extension needs no
 Python at all is stale text from before this date.
 
+**Reversed again on 2026-11-25.** The server is a Rust program, `hmd-lsp`, on
+the resolver crate: see [HMD-0033](../../proposals/HMD-0033/index.hmd). Rust
+was one of the two candidates the first note named. What stays true is that
+the extension is a client and works without the server.
+
 The constraint the old note kept alive as a precaution is the part that
 survived, and it is now load-bearing: an unsaved buffer is a language server's
 ordinary input, so text ingestion is not a nicety. On the Python side it holds

@@ -6,9 +6,10 @@ thing you care about; this page is the one-line version of each.
 | Tool | Covers | Where it stands | Next |
 | --- | --- | --- | --- |
 | [**language**](lang.hmd) | The format itself — grammar, resolution, frontmatter, diagnostics, publication | Specified and implemented twice, with the specification a single normative text | Decide whether headings written with an underline are addressable, since the tools and the website currently disagree |
-| [**hmd**](hmd.hmd) | The canonical implementation: the CLI, the core, the site plugin, the package | Complete and released; everything the format specifies is implemented | The language server, and the two index changes it needs |
+| [**hmd**](hmd.hmd) | The canonical implementation: the CLI, the core, the site plugin, the package | Complete and released; everything the format specifies is implemented | Property-based tests of the resolver, over generated vaults |
 | [**@hypermarkdown/core**](ts-core.hmd) | The format in TypeScript, held to the canonical implementation by a shared corpus | `0.1.1` on npm; complete except the card publication *model*, and byte-identical to the canonical linter on everything it implements | Port the publication model, once the specification says which proposal owns it here |
 | [**hypermarkdown (Rust)**](rs-core.hmd) | The resolver as a Rust library crate, held to the canonical implementation by the shared corpus | Written, passing every corpus case, and published to crates.io at 0.1.0 | A release workflow, and HQL taking it as its resolver |
+| [**hmd-lsp**](lsp.hmd) | The language server, as a Rust program on the resolver crate: tokens, definition, hover, and three diagnostics | Written and tested, with no release and no editor using it yet | A release workflow, and the extension as its client |
 | [**hmd-semantics**](semantics.hmd) | The builder of a vault's semantic index: card text embedded into an SQLite file in the vault's `.hmd/` | Moved here from HQL and passing its tests; builds the card itself at one depth, and not published | The two summary depths and the schema version that carries them |
 | [**VS Code extension**](vsc-ext.hmd) | The hmd preview, diagnostics, and the graph, inside the editor | `0.3.0` live on both galleries, and the preview label is off | Automate the by-hand release checks |
 | [**website**](pages.hmd) | <https://hypermarkdown.org> — the book, the prose, the branding, the deploy | Live and building clean | The roadmap page, and the stale state claims the audit for it turned up |
@@ -43,7 +44,7 @@ directory), and an `hql` installed with `cargo install hql` works too.
 ## Rows as data
 
 [`hmd.hmd`](hmd.hmd) keeps its rows as data, and HQL cells write its tables.
-It is the first tracker to do so; the other six still write their tables by
+It is the first tracker to do so; the other seven still write their tables by
 hand.
 
 The rows are a list named `work` in the card's frontmatter. Each row has

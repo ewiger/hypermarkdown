@@ -101,9 +101,8 @@ ARM64, where HQL publishes no binary yet, put `hql` on `PATH`. Set
 saved outputs needs nothing.
 
 Completion and the other language-server features are not here yet. They arrive
-with the Python language server, which lives with the canonical implementation
-— so a later version will want Python for those, while the preview keeps
-rendering without it.
+with the language server, a native program that a later version will carry.
+The preview keeps rendering without it.
 
 ## Settings
 

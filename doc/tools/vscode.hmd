@@ -55,8 +55,8 @@ The [`hmd` CLI](https://pypi.org/project/hypermarkdown/) stays canonical. Where
 the two could disagree they are checked against a shared conformance corpus on
 every push, so the preview and the published site are the same reading of the
 same file. Completion and the rest of the language-server features are not in
-the extension yet; they arrive with the Python language server, and the preview
-will keep rendering without it.
+the extension yet; they arrive with the language server, a native program the
+extension will carry, and the preview will keep rendering without it.
 
 Diagrams are no exception. The build for your platform carries a pinned
 [`d2`](https://d2lang.com) inside it, so a `d2` fence draws on a fresh install
@@ -66,7 +66,7 @@ with nothing on your `PATH` and nothing downloaded at run time.
 
 `HMD017` — the rule about a published card linking to a private one — is not
 ported yet, so the extension never reports it. Completion, rename, and hover
-arrive with the language server, which lives with the command-line tool. Raw
+arrive with the language server. Raw
 HTML in a card is escaped rather than rendered, deliberately: a webview that
 renders HTML out of a cloned repository is a script-injection surface.
 

@@ -10,25 +10,27 @@ import:
   - from /proposals/HMD-0030 import index as hmd-0030
 work:
   - kind: open
-    state: todo
-    tags: [index, lsp]
+    state: backlog
+    tags: [index]
     text: >-
       **Lint text, not just files.** Let a caller hand the workspace index the
       current contents of a card, consulted ahead of any read. Every layer below
       already takes text — the gap is exactly the one class that walks the tree
       and reads each card
     notes: >-
-      First half of what the language server needs
+      Was the first blocker of a Python language server. The server is now a
+      Rust program, so nothing waits on this. It is still what a caller needs
+      to lint a card that is not saved
     refs: >-
       [[hmd-0024#text-not-paths]]
   - kind: open
-    state: todo
-    tags: [index, lsp]
+    state: backlog
+    tags: [index]
     text: >-
       **Invalidate one card at a time**, instead of loading the whole tree once
       when the index is built
     notes: >-
-      Second half. Follows the change above
+      Follows the change above, and waits on nothing else
     refs: >-
       [[hmd-0024#text-not-paths]]
   - kind: open
@@ -51,18 +53,6 @@ work:
     refs: >-
       [[hmd-lang-spec#resolution-rules]], [[hmd-lang-spec#embed-expansion]],
       [the format's tracker](lang.hmd)
-  - kind: open
-    state: blocked
-    tags: [lsp]
-    text: >-
-      **The language server itself.** A `pygls` server, so completion, rename,
-      and hover exist for any editor rather than only the one embedding the
-      TypeScript implementation
-    notes: >-
-      Waits on the two index changes above, and on whether it is a subcommand or
-      its own script
-    refs: >-
-      [[hmd-0024#the-language-server-is-python-on-pygls]]
   - kind: open
     state: blocked
     tags: [domain]
@@ -382,29 +372,6 @@ work:
       ledger, and its expected results are written from the specification, not
       generated from this code.
   - kind: question
-    tags: [lsp]
-    text: >-
-      Is the language server a subcommand of the existing command, or its own
-      script?
-    refs: >-
-      [[hmd-0024#the-language-server-is-python-on-pygls]]
-  - kind: question
-    tags: [lsp]
-    text: >-
-      Is its library a base dependency or an optional extra? An extra keeps the
-      plain install small; a base dependency means the server exists wherever
-      the command does
-    refs: >-
-      [[hmd-0024#the-language-server-is-python-on-pygls]]
-  - kind: question
-    tags: [lsp]
-    text: >-
-      Which language features move to the server first, and how does an editor
-      report an absent server without implying the preview failed? That the
-      extension becomes a client of it was settled; the sequencing was not
-    refs: >-
-      [[hmd-0024#the-language-server-is-python-on-pygls]]
-  - kind: question
     tags: [cli, resolver]
     text: >-
       Should `hmd graph` record each card's resolved search path, so a consumer
@@ -479,8 +446,7 @@ implementations is settled by the specification, not by this code.
 It is Python because the format is read and written alongside a documentation
 build, and that is where the ecosystem it has to live in already is: MkDocs and
 Python-Markdown render the site, the site's heading ids come from
-Python-Markdown's table-of-contents extension, and a language server has a
-mature library waiting for it. A knowledge base is also edited by people who are
+Python-Markdown's table-of-contents extension. A knowledge base is also edited by people who are
 not programmers, and `pip install HyperMarkDown` is a lower step than a
 toolchain.
 
@@ -492,14 +458,14 @@ What the package holds:
 - **The MkDocs plugin** — the same core wired into a site build, so a tree of
   cards becomes a book.
 - **The distribution**, published to PyPI as `HyperMarkDown`.
-- **The language server, in future** — so language features live in one place
-  and every editor can have them, instead of only the one that embeds the
-  TypeScript implementation.
+
+The language server is not in this package. It is a Rust program on the Rust
+resolver crate, tracked in [`lsp.hmd`](lsp.hmd).
 
 Beside this file: the format itself in [`lang.hmd`](lang.hmd), the second
 implementation in [`ts-core.hmd`](ts-core.hmd), its editor in
 [`vsc-ext.hmd`](vsc-ext.hmd), the Rust resolver in [`rs-core.hmd`](rs-core.hmd),
-the semantic-index builder in [`semantics.hmd`](semantics.hmd), and the website
+the language server in [`lsp.hmd`](lsp.hmd), the semantic-index builder in [`semantics.hmd`](semantics.hmd), and the website
 in [`pages.hmd`](pages.hmd).
 
 ## Status
@@ -516,10 +482,11 @@ that. `hypermarkdown` is on PyPI through a trusted publisher, each tool owns
 its own README, changelog, licence, and guide, and the repository root is a
 workspace rather than a package.
 
-**The next piece of work is the language server**, and it is unblocked: the one
-thing it needs is the ability to lint text an editor holds in memory rather than
-what is on disk, and that turns out to be a patch to a single class, because
-every layer beneath it already takes text rather than a path.
+**The language server is no longer this tool's work.** It was decided as a
+Python server here and never built; it is now a Rust program on the resolver
+crate, with its own tracker. The two changes to the workspace index that it
+waited on are in the backlog, because linting text an editor holds in memory
+is still worth having and is a patch to a single class.
 
 Outside the repository, one thing remains broken and cannot be fixed by a
 commit: the retired domain does not redirect.
@@ -544,16 +511,15 @@ work
 | format(as = Markdown)
 ```
 <!-- hql:output hash=d77e7095d7eb status=ok -->
-| Status  | Work                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Notes                                                                                                                                        | Tags            | References                                                                                              |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------- |
-| todo    | **Lint text, not just files.** Let a caller hand the workspace index the current contents of a card, consulted ahead of any read. Every layer below already takes text — the gap is exactly the one class that walks the tree and reads each card                                                                                                                                                                                                                                                                                                                                                                                                                            | First half of what the language server needs                                                                                                 | index, lsp      | [[hmd-0024#text-not-paths]]                                                                             |
-| todo    | **Invalidate one card at a time**, instead of loading the whole tree once when the index is built                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Second half. Follows the change above                                                                                                        | index, lsp      | [[hmd-0024#text-not-paths]]                                                                             |
-| todo    | **Property-based tests of the resolver's claims, over generated vaults.** The specification asserts properties that no test states for every tree: a wildcard import never changes a name the spine already resolved, a resolved path never lies outside the namespace root, embed expansion always terminates, and the sweep returns one match, an ambiguity, or nothing, never a silent pick. Generate random trees, cards, imports and embeds, and check each claim; a shrunk counterexample is either a resolver bug or a sentence the specification has to withdraw. The existing determinism test could take its trees from the same generator [`test_determinism.py`] | The cheap form of the parked Lean model in the format's tracker, and the condition for unparking it. Needs `hypothesis` as a test dependency | resolver, tests | [[hmd-lang-spec#resolution-rules]], [[hmd-lang-spec#embed-expansion]], [the format's tracker](lang.hmd) |
-| blocked | **The language server itself.** A `pygls` server, so completion, rename, and hover exist for any editor rather than only the one embedding the TypeScript implementation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Waits on the two index changes above, and on whether it is a subcommand or its own script                                                    | lsp             | [[hmd-0024#the-language-server-is-python-on-pygls]]                                                     |
-| blocked | **Redirect the retired domain** to the current one, preserving paths                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Registrar configuration, not a commit. See Broken                                                                                            | domain          | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]                                          |
-| parked  | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Waits on that branch being picked up                                                                                                         | rename          | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]]                                               |
-| todo    | **Draw only diagram cells in the site build.** A `d2#show` fence is drawn as a `d2` fence is today, and a plain `d2` fence becomes a code block                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Lands in the same release as the TypeScript implementation's change and the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`]  | site, cells     | [[hmd-0030#the-site-build]]                                                                             |
-| todo    | **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells, through the same module and the same bounds as D2, with the same labelled placeholder when no renderer is installed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains `mermaid#show`                                                         | site, cells     | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd)                                  |
+| Status  | Work                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Notes                                                                                                                                                                           | Tags            | References                                                                                              |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------- |
+| backlog | **Lint text, not just files.** Let a caller hand the workspace index the current contents of a card, consulted ahead of any read. Every layer below already takes text — the gap is exactly the one class that walks the tree and reads each card                                                                                                                                                                                                                                                                                                                                                                                                                            | Was the first blocker of a Python language server. The server is now a Rust program, so nothing waits on this. It is still what a caller needs to lint a card that is not saved | index           | [[hmd-0024#text-not-paths]]                                                                             |
+| backlog | **Invalidate one card at a time**, instead of loading the whole tree once when the index is built                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Follows the change above, and waits on nothing else                                                                                                                             | index           | [[hmd-0024#text-not-paths]]                                                                             |
+| todo    | **Property-based tests of the resolver's claims, over generated vaults.** The specification asserts properties that no test states for every tree: a wildcard import never changes a name the spine already resolved, a resolved path never lies outside the namespace root, embed expansion always terminates, and the sweep returns one match, an ambiguity, or nothing, never a silent pick. Generate random trees, cards, imports and embeds, and check each claim; a shrunk counterexample is either a resolver bug or a sentence the specification has to withdraw. The existing determinism test could take its trees from the same generator [`test_determinism.py`] | The cheap form of the parked Lean model in the format's tracker, and the condition for unparking it. Needs `hypothesis` as a test dependency                                    | resolver, tests | [[hmd-lang-spec#resolution-rules]], [[hmd-lang-spec#embed-expansion]], [the format's tracker](lang.hmd) |
+| blocked | **Redirect the retired domain** to the current one, preserving paths                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Registrar configuration, not a commit. See Broken                                                                                                                               | domain          | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]                                          |
+| parked  | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Waits on that branch being picked up                                                                                                                                            | rename          | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]]                                               |
+| todo    | **Draw only diagram cells in the site build.** A `d2#show` fence is drawn as a `d2` fence is today, and a plain `d2` fence becomes a code block                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Lands in the same release as the TypeScript implementation's change and the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`]                                     | site, cells     | [[hmd-0030#the-site-build]]                                                                             |
+| todo    | **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells, through the same module and the same bounds as D2, with the same labelled placeholder when no renderer is installed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains `mermaid#show`                                                                                            | site, cells     | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd)                                  |
 <!-- /hql:output -->
 
 ## Broken
@@ -664,7 +630,6 @@ work
 | index    | 2    | 0      | 2           | 0    | 0         |
 | language | 0    | 0      | 0           | 3    | 1         |
 | linter   | 0    | 2      | 0           | 2    | 1         |
-| lsp      | 3    | 0      | 0           | 0    | 3         |
 | package  | 0    | 0      | 2           | 2    | 1         |
 | rename   | 1    | 0      | 3           | 1    | 2         |
 | resolver | 1    | 0      | 0           | 2    | 1         |
@@ -699,23 +664,21 @@ work
 | format(as = Markdown)
 ```
 <!-- hql:output hash=e86cf4b95f10 status=ok -->
-| Question                                                                                                                                                                                                            | Tags            | References                                                                   |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------- |
-| Is the language server a subcommand of the existing command, or its own script?                                                                                                                                     | lsp             | [[hmd-0024#the-language-server-is-python-on-pygls]]                          |
-| Is its library a base dependency or an optional extra? An extra keeps the plain install small; a base dependency means the server exists wherever the command does                                                  | lsp             | [[hmd-0024#the-language-server-is-python-on-pygls]]                          |
-| Which language features move to the server first, and how does an editor report an absent server without implying the preview failed? That the extension becomes a client of it was settled; the sequencing was not | lsp             | [[hmd-0024#the-language-server-is-python-on-pygls]]                          |
-| Should `hmd graph` record each card's resolved search path, so a consumer can see what a card reaches without replaying the algorithm?                                                                              | cli, resolver   | [[hmd-0001#5-link-resolution]]                                               |
-| When is the retired plugin alias withdrawn, and what announces it — a major version, a warning at build time, or nothing?                                                                                           | site, rename    | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
-| Does pruning the abandoned PyPI project mean yanking its releases or deleting it? Deletion frees the name for anyone to register and serve to a stale pin                                                           | package, rename | [[hmd-0005#the-python-distribution-its-module-and-the-project-left-behind]]  |
-| Does the retired domain redirect permanently, or for a fixed window after which the registration is allowed to lapse? A lapsed domain that once served documentation is one someone else can serve anything from    | domain          | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]               |
-| Should `hmd init` write a starter card in the root it creates? It creates an empty directory today, which lints clean and shows an author nothing — but a card written by a tool is a card somebody has to delete   | cli             | [[hmd-0001#7-hmd-cli]]                                                       |
-| Should `init` grow flags for the settings it writes, or is editing the file it just wrote the right affordance?                                                                                                     | cli, config     | [[hmd-0001#7-hmd-cli]]                                                       |
-| Should the linter check a namespace name that does not match the address form? Nothing reads that key yet, and the first thing to read it would be the first thing to break                                         | linter, config  | [[hmd-0004#the-address-form]]                                                |
-| Should the specification's version sentence stop being what the repository guard parses, now that a rename has shown the sentence can move?                                                                         | tests, language | [[hmd-0005#the-wiki-card-that-carries-the-project-s-name]]                   |
+| Question                                                                                                                                                                                                          | Tags            | References                                                                   |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------- |
+| Should `hmd graph` record each card's resolved search path, so a consumer can see what a card reaches without replaying the algorithm?                                                                            | cli, resolver   | [[hmd-0001#5-link-resolution]]                                               |
+| When is the retired plugin alias withdrawn, and what announces it — a major version, a warning at build time, or nothing?                                                                                         | site, rename    | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
+| Does pruning the abandoned PyPI project mean yanking its releases or deleting it? Deletion frees the name for anyone to register and serve to a stale pin                                                         | package, rename | [[hmd-0005#the-python-distribution-its-module-and-the-project-left-behind]]  |
+| Does the retired domain redirect permanently, or for a fixed window after which the registration is allowed to lapse? A lapsed domain that once served documentation is one someone else can serve anything from  | domain          | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]               |
+| Should `hmd init` write a starter card in the root it creates? It creates an empty directory today, which lints clean and shows an author nothing — but a card written by a tool is a card somebody has to delete | cli             | [[hmd-0001#7-hmd-cli]]                                                       |
+| Should `init` grow flags for the settings it writes, or is editing the file it just wrote the right affordance?                                                                                                   | cli, config     | [[hmd-0001#7-hmd-cli]]                                                       |
+| Should the linter check a namespace name that does not match the address form? Nothing reads that key yet, and the first thing to read it would be the first thing to break                                       | linter, config  | [[hmd-0004#the-address-form]]                                                |
+| Should the specification's version sentence stop being what the repository guard parses, now that a rename has shown the sentence can move?                                                                       | tests, language | [[hmd-0005#the-wiki-card-that-carries-the-project-s-name]]                   |
 <!-- /hql:output -->
 
 ## Changelog
 
+- 2026-11-25: the language server leaves this tracker. It is a Rust program, `hmd-lsp`, tracked in `lsp.hmd` [HMD-0033]. Its blocked row and its three questions are gone, and the two index rows move to the backlog without the `lsp` tag.
 - 2026-11-25: the HQL path row is withdrawn. HMD-0032 is a design draft and is not ready to implement; the row returns when the record is accepted.
 - 2026-11-25: a backlog row for HQL path, HMD-0032, the construct `@[[…]]` that HyperMarkDown 0.2.0 would add; it replaces the in-card address of HMD-0006, which is archived as deferred.
 - 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.

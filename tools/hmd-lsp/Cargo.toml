@@ -1,0 +1,32 @@
+[package]
+name = "hmd-lsp"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+description = "The HyperMarkDown language server."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ewiger/hypermarkdown"
+homepage = "https://hypermarkdown.org/"
+keywords = ["hypermarkdown", "hmd", "lsp", "language-server", "markdown"]
+categories = ["text-editors", "development-tools"]
+include = ["src/**", "tests/**", "README.md", "CHANGELOG.md", "LICENSE"]
+
+[lib]
+name = "hmd_lsp"
+
+[[bin]]
+name = "hmd-lsp"
+path = "src/main.rs"
+
+[dependencies]
+# The resolver. The server asks it which card a reference names and keeps no
+# resolution code of its own. The path is the crate in this repository, and
+# the version is the one a published `hmd-lsp` would take from crates.io.
+hypermarkdown = { path = "../hmd-rs-core", version = "0.3.0" }
+# The protocol: `lsp-server` is the transport and the message loop, with no
+# async runtime, and `lsp-types` is the shape of every request and answer.
+lsp-server = "0.10"
+lsp-types = "0.97"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

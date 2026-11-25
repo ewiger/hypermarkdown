@@ -7,9 +7,20 @@ nav:
 
 **Status**: drafted
 **Created**: 2026-08-08
+**Superseded in part**: the decision that the language server is Python on
+`pygls` is superseded by [HMD-0033](../HMD-0033/index.hmd), which makes it a
+Rust program. The `tools/` layout decided here stays in force.
 **Source**: [Developer guide](../../DEVELOPER.hmd)
 
 ## Abstract
+
+> **Superseded in part, 2026-11-25.** The language server is not Python. It is
+> a Rust program, `hmd-lsp`, in its own directory `tools/hmd-lsp/`, recorded in
+> [HMD-0033](../HMD-0033/index.hmd). Every sentence below that places the
+> language server in Python or in `tools/hmd/` is kept as the record of what
+> was decided on 2026-08-08, and is no longer the decision. The layout, the
+> packaging rules and the requirement that every entry point accepts text are
+> unchanged.
 
 This proposal fixes the repository as a monorepo of tools, one directory each
 under `tools/`, and decides that the language server will be written in Python
@@ -213,6 +224,17 @@ wants to run it clones the repository.
 
 ### The language server is Python on pygls
 
+> **Superseded 2026-11-25** by [HMD-0033](../HMD-0033/index.hmd). The server
+> is a Rust program on the `hypermarkdown` crate. The reason given below for
+> Python was that a server written elsewhere would be a third place where
+> resolution behaviour lives. That third place came to exist for another
+> reason, as the Rust crate that HQL needed, and it passes the conformance
+> corpus with no known difference. The crate also already loads a vault from
+> text held in memory, which this implementation does not. Two rules of this
+> section survive in the new record: the extension is a client of the server,
+> and the preview keeps rendering without it. Python stays canonical. The
+> heading keeps its words because other cards link to it.
+
 - The language server MUST be written in Python against `pygls`, and MUST live
   in `tools/hmd` alongside the implementation it serves.
 - It is placed there because the semantics are already there. The Python
@@ -350,19 +372,21 @@ uv build --package HyperMarkDown
 
 ## Open Questions
 
-- Does the language server share a process with anything, or is `hmd lsp` a
-  subcommand of the existing CLI?
-- Is `pygls` added to the base dependencies or to an `lsp` extra? An extra
-  keeps `pip install HyperMarkDown` small; a base dependency means the server
-  is always there when the CLI is.
-- What is the ordering and the fallback when the extension becomes a client of
-  the Python server — which features move first, and how does the UI say "the
-  server is not here" without implying the preview is broken? The direction is
-  settled (it becomes a client; the preview stays independent); the sequencing
-  is not.
+- ~~Does the language server share a process with anything, or is `hmd lsp` a
+  subcommand of the existing CLI?~~ **Withdrawn 2026-11-25.** The server is
+  its own program, `hmd-lsp`, written in Rust.
+- ~~Is `pygls` added to the base dependencies or to an `lsp` extra?~~
+  **Withdrawn 2026-11-25.** The server does not use `pygls`.
+- ~~What is the ordering and the fallback when the extension becomes a client
+  of the Python server?~~ **Answered 2026-11-25** in
+  [HMD-0033](../HMD-0033/index.hmd): semantic tokens, definition, hover and
+  diagnostics come first, and the extension says once that the server is
+  absent while everything else keeps working.
 - Does canonicity move if a Rust implementation ever appears, and what is the
-  procedure for moving it? This is inherited unresolved and the `tools/` layout
-  does not settle it.
+  procedure for moving it? A Rust implementation has appeared, as a resolver
+  and as the language server, and canonicity has not moved: Python stays the
+  arbiter and the only complete linter. The procedure for moving it is still
+  not written.
 - ~~Should the editor line's shared tracker be split into per-proposal
   trackers?~~ **Answered 2026-09-14: neither.** Tracking moved per tool, to
   `doc/status/`, with one file for the language and one for the site beside the
@@ -381,6 +405,7 @@ uv build --package HyperMarkDown
 
 ## Changelog
 
+- 2026-11-25: the language-server decision is superseded by HMD-0033. The server is a Rust program on the resolver crate, in `tools/hmd-lsp/`. The layout and the text-ingestion requirement stand.
 - 2026-08-08: drafted
 - 2026-08-08: the conformance corpus moved from `conformance/` to
   `examples/conformance/`. It is a fixture tree like the ones beside it, and

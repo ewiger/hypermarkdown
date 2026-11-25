@@ -203,6 +203,43 @@ jobs:
       - name: Check the minimum supported Rust version
         run: cargo +1.95 check --locked --all-targets
 
+  # The language server (HMD-0033). It is its own Cargo package, like the
+  # resolver crate it depends on by path, so it gets a job of its own. It runs
+  # on all three systems because the server turns `file:` URIs into paths and
+  # back, and a drive letter and a backslash exist on one of them only. One
+  # test starts the built program and speaks the protocol to it.
+  lsp:
+    name: lsp (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    defaults:
+      run:
+        working-directory: tools/hmd-lsp
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup toolchain install 1.95 --profile minimal
+          rustup default stable
+
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Check the minimum supported Rust version
+        run: cargo +1.95 check --locked --all-targets
+
   # The semantic index builder (HMD-0028). It is its own Python project with
   # its own `uv.lock`, outside the uv workspace at the root: a workspace lock
   # records every extra of every member, and this tool's `local` extra is

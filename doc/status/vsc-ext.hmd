@@ -9,6 +9,7 @@ import:
   - from /proposals/HMD-0025 import index as hmd-0025
   - from /proposals/HMD-0026 import index as hmd-0026
   - from /proposals/HMD-0030 import index as hmd-0030
+  - from /proposals/HMD-0033 import index as hmd-0033
 ---
 
 # STATUS — the VS Code extension
@@ -72,6 +73,10 @@ picks and re-indexes without a reload, since `0.6.1` [issue 0116].
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
+| todo | **Become a client of the language server.** Start `hmd-lsp` for `.hmd` documents, found by a setting, then in the bundled toolchain directory, then on `PATH`, with its diagnostics turned off because the core already reports them. Contribute a colour for each of its token modifiers, so a link that names no card stands out in any theme. When no program is found, say so once and change nothing else; never start it in a virtual or an untrusted workspace [issue 0117] | Adds `vscode-languageclient`, and the first child process the extension keeps running. The server is written and tested; until the toolchain carries it, a developer points the setting at a build | [[hmd-0033#the-vs-code-extension-is-a-client]] |
+| todo | **Colour the listings in the preview.** A fenced block in Python, C, or any other language shows in one colour, because neither the extension nor the core has a highlighter. Colour it as the editor does [issue 0118] | Shiki reads the same TextMate grammars the editor uses, this extension's own among them, so a listing would look the same on both sides. It must run in the extension host and send coloured HTML, because the webview's content policy allows no script from outside | [[hmd-0021#11-webview-hardening]] |
+| todo | **Colour a listing whose fence names a cell.** The editor colours a `python` fence through the Markdown grammar it includes. Check a fence with a cell suffix, such as `python#eval`, and fix the grammar when the suffix stops the Markdown grammar from recognising the language. `hql` and `d2` bodies have no grammar at all, and each needs one [issue 0118] | Not yet checked in a running editor | [[hmd-0026]] |
+| todo | **Confirm the grammar colours a link inside a paragraph.** The grammar lists its link rules beside the Markdown grammar's. A paragraph is the Markdown grammar's rule, and once it is open only its own inline rules apply, so a link in the middle of a sentence may get no HyperMarkDown scope. Inspect the scopes in a running editor, and move the rules into an injection when they are missing [issue 0118] | A suspicion from reading the grammar, not a reproduced defect. The language server's tokens cover the same links, but only when the server is present | — |
 | todo | **Automate the by-hand checks.** The list in the extension's `DEVELOP.md` — the graph's legibility on a real vault, live editing, scroll sync — is read by hand before a release, and nothing stands in for it. The parked integration suite is where this would live [issue 0101] | Not a gate on shipping; it is the reason a release still costs an afternoon | [[hmd-0025]] |
 | backlog | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | Waits on the open question below: what a filter does to the node cap | [[hmd-0025]] |
 | todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
@@ -103,7 +108,7 @@ about 300 MB on first run, which is why it is not in the default test command.
 | Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it | [[hmd-0021#11-webview-hardening]] |
 | A published card linking to a private one is never flagged | The publication model is unported in the core, so nothing here knows whether a card is published at all (rule HMD017). A listed limitation of the core's conformance to 0.1.0; it arrives here with the core's port | [[hmd-0002#3-expansion]] |
 | Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core | [[hmd-0020#3-3-free-syntax]] |
-| Completion, rename, and hover are absent | They arrive with the language server, which lives with the reference implementation. The preview keeps rendering without it either way | [[hmd-0024#the-language-server-is-python-on-pygls]] |
+| Completion, rename, and hover are absent | Hover arrives when the extension becomes a client of the language server, a Rust program; completion and rename are not written in the server yet. The preview keeps rendering without it either way | [[hmd-0033#the-vs-code-extension-is-a-client]] |
 | The integration suite is not in the default test command | Its harness downloads about 300 MB on first run | [[hmd-0021#12-packaging-and-ci]] |
 | The graph draws only what resolved, and stops at 400 cards | A red link has no card at the other end to draw it to, and is reported in the rendered tab and the Problems panel instead. Past the cap the view keeps the cards nearest the one being read and says how many it dropped: a hairball is not a more honest picture than a bounded one that names what is missing | [[hmd-0025]] |
 | Full screen can fall one press out of step | Zen mode and the rest are toggles the editor does not let an extension read back, so the tab tracks what it performed. Leave zen mode by hand and the button's next press puts it back in step | [[hmd-0025]] |
@@ -229,6 +234,10 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-25: an Open row for becoming a client of the language server, which
+  is now a Rust program [HMD-0033], and three for colouring: listings in the
+  preview, a fence that names a cell, and a link inside a paragraph. The
+  limitation about completion, rename, and hover cites the new record.
 - 2026-11-25: the Broken row for cards read with no vault becomes a Done row,
   released in 0.6.1, and Status names 0.6.1.
 - 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.

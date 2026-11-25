@@ -1,0 +1,114 @@
+---
+import:
+  - from /proposals/HMD-0033 import index as hmd-0033
+  - from /proposals/HMD-0027 import index as hmd-0027
+---
+
+# STATUS — `hmd-lsp`, the language server
+
+`tools/hmd-lsp` — the language server, as a Rust program. It tells an editor
+what each reference in an open card resolves to, over the Language Server
+Protocol. It resolves through the Rust crate in `tools/hmd-rs-core`, and it
+keeps no resolution code of its own. It resolves and does not lint.
+
+Beside this file: the format itself in [`lang.hmd`](lang.hmd), the reference
+implementation in [`hmd.hmd`](hmd.hmd), the TypeScript implementation in
+[`ts-core.hmd`](ts-core.hmd), its editor in [`vsc-ext.hmd`](vsc-ext.hmd), the
+Rust resolver crate in [`rs-core.hmd`](rs-core.hmd), the semantic-index builder
+in [`semantics.hmd`](semantics.hmd), and the website in
+[`pages.hmd`](pages.hmd).
+
+## Status
+
+**Written, tested, and not released.** The program builds, and it answers
+semantic tokens, go to definition, hover, and diagnostics for the three ways a
+reference fails to resolve. It reads the text in the editor in front of the
+text on disk, so a reference to a card that is not saved yet resolves. 51
+tests: the unit tests, 26 tests that speak the protocol to a server on a
+thread, and 4 that run the built program.
+
+No editor uses it yet. The VS Code extension is not a client of it, there is
+no release, and the pinned toolchain does not carry it. A developer builds it
+with Cargo and points Neovim or Helix at the binary.
+
+The server replaces the Python language server that was decided earlier and
+never built. Python stays the canonical implementation and the only complete
+linter.
+
+## Open
+
+| Status | Work | Notes | References |
+| --- | --- | --- | --- |
+| todo | **A release workflow.** Build one binary for each of the five platforms the toolchain serves, on an `lsp-vX.Y.Z` tag, and attach them to the GitHub release | The resolver crate's release workflow is the model for the gates, and the toolchain's archive names are the model for the platforms | [[hmd-0033#distribution]] |
+| blocked | **The toolchain carries the binary** beside `d2` and `hql`, so the extension bundles it and a user installs nothing. Unblocks when the release workflow has cut a first release | Decide first whether the toolchain repository builds the binary or takes it from this repository's release | [[hmd-0033#distribution]] |
+| todo | **Go to a heading or a block.** A reference with a fragment leads to the top of the card today. It should lead to the heading or the block the fragment names | The resolver crate reads no heading and no block anchor. The rule that turns a heading's text into the name a fragment matches is the language's, so the code belongs in the crate | [[hmd-0033#go-to-definition]] |
+| todo | **Tokens for block anchors and frontmatter.** A trailing `^block-id` and the frontmatter block get no token | The crate reports neither position today | [[hmd-0033#semantic-tokens]] |
+| todo | **Completion** of card names, headings, and block anchors after `[[` | Needs the list of names a card can write for another card, which is the resolver's knowledge and belongs in the crate | [[hmd-0033#deployment-activation]] |
+| todo | **Rename a card**, with every reference to it rewritten | Follows completion | [[hmd-0033#deployment-activation]] |
+| backlog | **Update one card without loading the vault again.** Every change to a document drops every loaded vault, and the next request reads the whole tree from disk | Correct, and slow on a large vault. Needs a way to replace one card in a loaded `Vault`, which the crate does not offer | [[hmd-0033#documents-and-vaults]] |
+| backlog | **Semantic tokens for a range, and as a delta.** The server answers for the whole document only | Matters for a long card; no card in the repository is long enough to show it | [[hmd-0033#semantic-tokens]] |
+| backlog | **Tell the client when a vault does not load.** A vault with a broken configuration resolves nothing, and the server says nothing about why | A `window/logMessage` or a diagnostic on the configuration file | [[hmd-0033#documents-and-vaults]] |
+
+## Broken
+
+Nothing known.
+
+## Limitations (known gaps)
+
+| Limitation | Why it stands | References |
+| --- | --- | --- |
+| Three diagnostics, and none of the linter's other rules | The server resolves and does not lint. An editor other than VS Code sees an unresolved, an ambiguous, and an escaping reference, and no missing heading, repeated anchor, or malformed import. `hmd lint` reports those | [[hmd-0033#non-goals]] |
+| A fragment is never checked | `[[tokens#Rotation]]` is coloured as resolved whether or not the heading exists, because the resolver crate reads no heading | [[hmd-0027#non-goals]] |
+| A document under a scheme other than `file` resolves nothing | An untitled buffer and a file in a virtual workspace have no path, so they belong to no vault. They still get tokens | [[hmd-0033#documents-and-vaults]] |
+| Positions are UTF-16 only | The server does not negotiate another position encoding. Every client supports UTF-16, and the conversion is tested | [[hmd-0033#positions]] |
+| The inside of a fenced block is not coloured | A language server does not colour embedded languages. The grammar in the editor does | [[hmd-0033#non-goals]] |
+
+## Done
+
+- **The server** — one binary, `hmd-lsp`, over standard input and output, with
+  `--version` and `--help`; a request it does not know and a request with
+  broken parameters get an error and do not end it
+  [[hmd-0033#the-transport-and-the-program]].
+- **Semantic tokens** — the page, the fragment, and the display text of each
+  reference, with `unresolved`, `ambiguous`, `outside`, and `embed` as
+  modifiers [[hmd-0033#semantic-tokens]].
+- **Go to definition** — the card a reference names, and every candidate of
+  an ambiguous one [[hmd-0033#go-to-definition]].
+- **Hover** — the card a reference names and the rule that found it
+  [[hmd-0033#hover]].
+- **Diagnostics** — HMD001, HMD002, and HMD003 with the canonical linter's
+  severities and messages, republished for every open document after a
+  change, and turned off by an initialization option
+  [[hmd-0033#diagnostics]].
+- **Unsaved documents** — a vault loads from disk with the open documents in
+  front of the files, through `Vault::open_with` in the resolver crate
+  [[hmd-0033#documents-and-vaults]].
+- **Changes on disk** — the server asks a willing client to watch cards and
+  vault configurations.
+- **Positions converted** between code points and UTF-16 units, with a
+  byte-order mark and all three line endings [[hmd-0033#positions]].
+- **A CI job** — format, lints as errors, the tests against the committed
+  lockfile on Linux, macOS, and Windows, and a build on the minimum supported
+  Rust version.
+
+## Gates
+
+```bash
+cd tools/hmd-lsp
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test --locked
+```
+
+## Open questions
+
+| Question | References |
+| --- | --- |
+| Does the server report the linter's other rules to an editor other than VS Code, by a port of the rules to Rust or by calling `hmd lint` when it is installed? | [[hmd-0033#open-questions]] |
+| Does the toolchain repository build the server's binaries, or take them from this repository's release as it takes `hql` from HQL's? | [[hmd-0033#open-questions]] |
+| Is the server published to crates.io, so that `cargo install hmd-lsp` works? That needs the resolver crate released first with `Vault::open_with` | [[hmd-0033#open-questions]] |
+
+## Changelog
+
+- 2026-11-25: the tracker opens. The server is written and tested, with a CI
+  job; the release, the toolchain, and the extension's client are open.

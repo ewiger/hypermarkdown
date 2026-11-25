@@ -1,0 +1,62 @@
+# 0118 — Listings in a fenced block are not coloured in the preview
+
+**Column**: todo
+**Opened**: 2026-11-25
+**Related**: [the extension's tracker](../status/vsc-ext.hmd), [the language server card](0117-a-language-server-in-rust.hmd), [HMD-0021](../proposals/HMD-0021/index.hmd), [HMD-0026](../proposals/HMD-0026/index.hmd)
+
+## What
+
+A card can hold a listing in any language, in a fenced block:
+
+````markdown
+```python
+def rotate(key): ...
+```
+````
+
+The listing should be coloured as its language wherever the card is read. It
+is coloured in two of the three places today:
+
+| Place | A `python` or `c` listing |
+| --- | --- |
+| The published site | Coloured, by Pygments |
+| The editor in VS Code | Coloured, by the Markdown grammar that the HyperMarkDown grammar includes. Not yet confirmed in a running editor |
+| The preview in VS Code | One colour. Neither the extension nor `@hypermarkdown/core` contains a highlighter |
+
+This card is about the colours of listings and of the card's own syntax in
+the grammar. The colours that say whether a link resolves come from the
+language server, which is [another card](0117-a-language-server-in-rust.hmd).
+
+## The three parts
+
+1. **Colour the listings in the preview.** Shiki is the candidate. It reads
+   TextMate grammars, which are what the editor uses, so a listing would look
+   the same in the editor and in the preview. It can also load this
+   extension's own grammar, so a listing marked `hmd` would be coloured as a
+   card. The highlighter must run in the extension host and send coloured
+   HTML to the webview, because the webview's content policy allows no script
+   from outside.
+2. **Colour a listing whose fence names a cell.** A cell is a fence whose
+   info word carries a suffix, such as `python#eval` or `hql#query`. Check
+   whether the Markdown grammar still recognises `python` when the suffix
+   follows it. If it does not, the HyperMarkDown grammar needs its own rule
+   for a fence with a suffix. `hql` and `d2` have no grammar in the editor at
+   all, so their bodies are one colour everywhere; each needs a grammar, and
+   HQL's belongs to HQL.
+3. **Confirm the grammar colours a link inside a paragraph.** The grammar
+   lists its link rules beside the Markdown grammar's rules. A paragraph is
+   the Markdown grammar's rule, and once a paragraph is open only its own
+   inline rules apply. A link in the middle of a sentence may therefore get
+   no HyperMarkDown scope. This is a suspicion from reading the grammar and
+   is not reproduced. The check is **Developer: Inspect Editor Tokens and
+   Scopes** on such a link. The fix, when the scope is missing, is to move
+   the link, embed and anchor rules into an injection that applies inside
+   Markdown's paragraphs and stays out of code spans and fences.
+
+## Done when
+
+- A `python` and a `c` listing are coloured in the preview, in the light and
+  the dark theme, with nothing fetched at run time.
+- A listing in a cell fence is coloured in the editor as its language.
+- A link in the middle of a sentence carries a HyperMarkDown scope in the
+  editor, with a test that tokenizes a card with the grammar.

@@ -1,8 +1,8 @@
 # 0117 — A language server, written in Rust
 
-**Column**: todo
+**Column**: doing
 **Opened**: 2026-11-25
-**Related**: [HMD-0024](../proposals/HMD-0024/index.hmd), [HMD-0027](../proposals/HMD-0027/index.hmd), [the Rust crate's tracker](../status/rs-core.hmd), [the extension's tracker](../status/vsc-ext.hmd), [the toolchain card](archive/0107-toolchain-repository-for-native-binaries.hmd)
+**Related**: [HMD-0033](../proposals/HMD-0033/index.hmd), [HMD-0024](../proposals/HMD-0024/index.hmd), [HMD-0027](../proposals/HMD-0027/index.hmd), [the server's tracker](../status/lsp.hmd), [the Rust crate's tracker](../status/rs-core.hmd), [the extension's tracker](../status/vsc-ext.hmd), [the toolchain card](archive/0107-toolchain-repository-for-native-binaries.hmd)
 
 ## What
 
