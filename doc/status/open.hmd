@@ -53,10 +53,10 @@ the board, in the order this view lists them.
 | state   | rows |
 | ------- | ---- |
 | doing   | 2    |
-| todo    | 28   |
-| blocked | 5    |
-| backlog | 11   |
-| parked  | 3    |
+| todo    | 27   |
+| blocked | 4    |
+| backlog | 13   |
+| parked  | 4    |
 <!-- /hql:output -->
 
 ## Rows
@@ -81,10 +81,9 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Property-based tests of the resolver's claims, over generated vaults.                              | [hmd](hmd.hmd)             |
 | todo    | Draw only diagram cells in the site build.                                                         | [hmd](hmd.hmd)             |
 | todo    | Draw Mermaid diagrams in the site build                                                            | [hmd](hmd.hmd)             |
-| todo    | Settle the address grammar before it is built.                                                     | [lang](lang.hmd)           |
+| todo    | Answer the open questions of HQL path before it is built.                                          | [lang](lang.hmd)           |
 | todo    | Clear numeric section references from the documentation.                                           | [lang](lang.hmd)           |
 | todo    | Finish unifying what a vault and a namespace are across the specification, the HMD tools, and HQL. | [lang](lang.hmd)           |
-| todo    | Ask HQL to read `location_path`.                                                                   | [lang](lang.hmd)           |
 | todo    | Test the scanner against CommonMark's own examples.                                                | [lang](lang.hmd)           |
 | todo    | Specify the Extended Markdown syntax.                                                              | [lang](lang.hmd)           |
 | todo    | Validate the grammar, a release requirement for 0.1.                                               | [lang](lang.hmd)           |
@@ -106,10 +105,10 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Draw Mermaid diagrams in the preview                                                               | [vsc-ext](vsc-ext.hmd)     |
 | blocked | The language server itself.                                                                        | [hmd](hmd.hmd)             |
 | blocked | Redirect the retired domain                                                                        | [hmd](hmd.hmd)             |
-| blocked | Re-render the generated status views.                                                              | [lang](lang.hmd)           |
 | blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.hmd)     |
-| backlog | Address and quote inside a card.                                                                   | [lang](lang.hmd)           |
+| backlog | Resolve HQL paths, the canonical implementation.                                                   | [hmd](hmd.hmd)             |
+| backlog | HQL path, for HyperMarkDown 0.2.0.                                                                 | [lang](lang.hmd)           |
 | backlog | Carry an integrity digest on a quotation                                                           | [lang](lang.hmd)           |
 | backlog | Cross-project namespaces.                                                                          | [lang](lang.hmd)           |
 | backlog | Grow the CommonMark examples into a differential dataset.                                          | [lang](lang.hmd)           |
@@ -117,10 +116,12 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | backlog | Derive a test dataset from the standard.                                                           | [lang](lang.hmd)           |
 | backlog | Self-host the maths typesetter                                                                     | [pages](pages.hmd)         |
 | backlog | A comparison suite that asks the reference implementation.                                         | [rs-core](rs-core.hmd)     |
+| backlog | Resolve HQL paths.                                                                                 | [rs-core](rs-core.hmd)     |
 | backlog | Say when `--vault` is not a vault.                                                                 | [semantics](semantics.hmd) |
-| backlog | Parse the in-card address.                                                                         | [ts-core](ts-core.hmd)     |
+| backlog | Resolve HQL paths.                                                                                 | [ts-core](ts-core.hmd)     |
 | backlog | Filter the graph by namespace and tag                                                              | [vsc-ext](vsc-ext.hmd)     |
 | parked  | Rename the package inside the parked integration suite                                             | [hmd](hmd.hmd)             |
+| parked  | The branch `feat/in-card-address`.                                                                 | [lang](lang.hmd)           |
 | parked  | A Lean model of resolution and embed expansion.                                                    | [lang](lang.hmd)           |
 | parked  | The integration suite                                                                              | [vsc-ext](vsc-ext.hmd)     |
 <!-- /hql:output -->
