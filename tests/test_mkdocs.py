@@ -759,3 +759,103 @@ def test_a_heading_link_names_the_id_toc_gave_the_matched_heading(tmp_path):
     # card's own one — the one `[[card#setup]]` matched — is `setup_1`.
     assert card == ["card", "setup", "setup_1", "404", "_1", "usage", "the-fast-path"]
     assert hrefs == ["#setup_1", "#404", "#_1", "#usage", "#the-fast-path", ""]
+
+
+# -- diagram cells and Mermaid (HMD-0030, HMD-0034) -----------------------
+
+
+def _fake_renderer(tmp_path: Path, monkeypatch, program: str) -> None:
+    """Put a stand-in for a diagram renderer on PATH: an SVG holding its input."""
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(exist_ok=True)
+    script = bin_dir / program
+    script.write_text(f"#!/bin/sh\nprintf '<svg data-by=\"{program}\">'\ncat\nprintf '</svg>'\n")
+    script.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{bin_dir}:/usr/bin:/bin")
+
+
+def _images(html: str) -> list[str]:
+    import base64
+
+    payloads = re.findall(r'src="data:image/svg\+xml;base64,([^"]+)"', html)
+    return [base64.b64decode(payload).decode() for payload in payloads]
+
+
+def test_a_mermaid_cell_is_drawn_and_a_plain_mermaid_fence_is_a_listing(tmp_path, monkeypatch):
+    _fake_renderer(tmp_path, monkeypatch, "merman-cli")
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.hmd").write_text(
+        PUBLIC + "# Home\n\n"
+        "```mermaid#show\nflowchart LR\n  drawn --> yes\n```\n\n"
+        "```mermaid\nflowchart LR\n  listed --> only\n```\n",
+        encoding="utf-8",
+    )
+
+    html = (build(tmp_path, docs, markdown_extensions=_rich_extensions()) / "index.html").read_text()
+    images = _images(html)
+    assert len(images) == 1
+    assert 'data-by="merman-cli"' in images[0] and "drawn --> yes" in images[0]
+    assert 'alt="mermaid diagram"' in html
+    # The listing reaches the page as code, and no renderer saw it.
+    assert "listed" in html and "<pre" in html
+    assert not any("listed" in image for image in images)
+
+
+def test_a_d2_cell_and_a_plain_d2_fence_are_both_drawn(tmp_path, monkeypatch):
+    _fake_renderer(tmp_path, monkeypatch, "d2")
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.hmd").write_text(
+        PUBLIC + "# Home\n\n```d2#show\ncell -> one\n```\n\n```d2\nplain -> two\n```\n",
+        encoding="utf-8",
+    )
+
+    html = (build(tmp_path, docs, markdown_extensions=_rich_extensions()) / "index.html").read_text()
+    images = _images(html)
+    assert len(images) == 2
+    assert "cell -> one" in images[0] and "plain -> two" in images[1]
+
+
+def test_an_embedded_mermaid_cell_renders_in_the_host_page(tmp_path, monkeypatch):
+    _fake_renderer(tmp_path, monkeypatch, "merman-cli")
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.hmd").write_text(PUBLIC + "# Home\n\n![[chart]]\n", encoding="utf-8")
+    (docs / "chart.hmd").write_text(
+        "# Chart\n\n```mermaid#show\nflowchart LR\n  a --> b\n```\n", encoding="utf-8"
+    )
+
+    html = (build(tmp_path, docs, markdown_extensions=_rich_extensions()) / "index.html").read_text()
+    assert any("a --> b" in image for image in _images(html))
+
+
+def test_a_mermaid_cell_with_no_renderer_shows_its_source_and_says_why(tmp_path, monkeypatch):
+    """A site builds without the renderer: the cell degrades, the build is green."""
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    monkeypatch.setenv("PATH", str(empty))
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.hmd").write_text(
+        PUBLIC + "# Home\n\n```mermaid#show\nflowchart LR\n  a --> b\n```\n", encoding="utf-8"
+    )
+
+    html = (build(tmp_path, docs, markdown_extensions=_rich_extensions()) / "index.html").read_text()
+    assert "hmd-diagram--placeholder" in html
+    assert "mermaid diagram — no mermaid engine is installed" in html
+    assert "a --&gt; b" in html
+
+
+def test_a_diagram_cell_body_yields_no_link(tmp_path, monkeypatch):
+    """A wikilink inside a diagram is diagram text, not a link to resolve."""
+    _fake_renderer(tmp_path, monkeypatch, "merman-cli")
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "index.hmd").write_text(
+        PUBLIC + '# Home\n\n```mermaid#show\nflowchart LR\n  a["[[nowhere]]"] --> b\n```\n',
+        encoding="utf-8",
+    )
+
+    html = (build(tmp_path, docs, markdown_extensions=_rich_extensions()) / "index.html").read_text()
+    assert any("[[nowhere]]" in image for image in _images(html))

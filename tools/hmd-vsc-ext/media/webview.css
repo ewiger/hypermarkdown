@@ -573,3 +573,21 @@ body.is-graph-fullscreen .hmd-graph {
 .hmd-cell.is-running > .hmd-cell-output {
   opacity: 0.55;
 }
+
+/* -- diagram cells (HMD-0030) ------------------------------------------- */
+
+/* The layout is the HQL cell's. A cell with no drawing has nothing else to
+   look at, so its bar says why without waiting to be hovered. */
+.hmd-diagram-cell.is-none > .hmd-cell-bar,
+.hmd-diagram-cell.is-drawing > .hmd-cell-bar {
+  opacity: 1;
+}
+
+.hmd-diagram-cell.is-none {
+  border-left-color: var(--vscode-panel-border);
+}
+
+.hmd-diagram-cell.is-drawing > .hmd-cell-output,
+.hmd-diagram-cell.is-stale > .hmd-cell-output > .hmd-diagram-image {
+  opacity: 0.55;
+}

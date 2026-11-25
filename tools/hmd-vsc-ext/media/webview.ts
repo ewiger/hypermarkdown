@@ -201,8 +201,24 @@ content.addEventListener("click", (event) => {
       anchors = collectAnchors(content);
     } else if (cellButton.classList.contains("hmd-cell-edit")) {
       // The first line of the code, which is where an edit starts.
+      // A cell inside an embed is in the embedded card, whose path the embed's
+      // header carries; an empty path means the card on screen.
       const line = Number(cell.dataset["line"]) + 1;
-      if (Number.isFinite(line)) vscode.postMessage({ type: "openSource", path: "", line });
+      const embedded = cell
+        .closest<HTMLElement>(".hmd-embed")
+        ?.querySelector<HTMLElement>(":scope > .hmd-embed-header > .hmd-embed-source");
+      const path = embedded?.dataset["hmdPath"] ?? "";
+      if (Number.isFinite(line)) vscode.postMessage({ type: "openSource", path, line });
+    } else if (cellButton.classList.contains("hmd-cell-show")) {
+      const language = cell.dataset["language"];
+      const source = cell.querySelector<HTMLElement>(":scope > .hmd-cell-source > code");
+      if (language !== undefined && source !== null) {
+        // Until the host answers with a render, which rebuilds the bar.
+        cell.classList.add("is-drawing");
+        (cellButton as HTMLButtonElement).disabled = true;
+        cellButton.textContent = "Drawing…";
+        vscode.postMessage({ type: "showDiagram", language, source: source.textContent ?? "" });
+      }
     } else if (cellButton.classList.contains("hmd-cell-run")) {
       const index = Number(cell.dataset["index"]);
       if (Number.isInteger(index)) vscode.postMessage({ type: "runCell", index });

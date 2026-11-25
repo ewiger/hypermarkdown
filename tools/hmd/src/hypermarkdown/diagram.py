@@ -1,13 +1,17 @@
-"""D2 diagrams for the Python implementation (HMD-0022 §5-§7).
+"""Diagrams for the Python implementation (HMD-0022, HMD-0030, HMD-0034).
 
 HMD-0022 is a proposal of the TypeScript implementation and does not change this one: a
-site build has a build step and no webview, so the no-subprocess rule of its §1
-does not apply here and the `d2` binary stays the engine. What this module
-takes from it is the part that *is* shared — the semantics.
+site build has a build step and no webview, so its rule against starting a
+process does not apply here and a binary stays the engine: `d2` for D2, and
+`merman-cli` for Mermaid. What this module takes from it is the part that *is*
+shared — the semantics.
 
-- A ```` ```d2 ```` fence is a diagram. Its body is opaque to the resolver, and
-  produces no links and no graph edges (§7). The scanner already guarantees
-  this by masking fences.
+- A fence whose info string opens `d2#show` or `mermaid#show` is a diagram
+  cell, and is drawn. A plain `mermaid` fence is a listing. A plain `d2` fence
+  still draws, as it did before diagram cells: it becomes a listing in the
+  release that turns the listing rule on.
+- A diagram's body is opaque to the resolver, and produces no links and no
+  graph edges. The scanner already guarantees this by masking fences.
 - A missing engine degrades to a labelled placeholder showing the source, never
   to a blank and never to a build failure (§5). A diagram that is merely not
   drawn is not a defect in the card and must not look like one.
@@ -27,8 +31,16 @@ import subprocess
 from collections import OrderedDict
 from dataclasses import dataclass
 
-#: The fence info strings this module claims.
-LANGUAGES = frozenset({"d2"})
+#: Fence kinds that are diagram cells, and the engine each one is drawn by.
+#: Matched exactly, as an HQL cell is: `D2#show` is a listing.
+CELL_KINDS = {"d2#show": "d2", "mermaid#show": "mermaid"}
+
+#: Plain fence languages that still draw, matched without regard to case. Only
+#: `d2`, which drew before diagram cells existed.
+PLAIN_LANGUAGES = frozenset({"d2"})
+
+#: Every fence kind this module claims, as `engine_name` reads them.
+LANGUAGES = frozenset(CELL_KINDS) | PLAIN_LANGUAGES
 
 #: Bounds on a single render (HMD-0022 §4). Shared with the TypeScript implementation so
 #: that a diagram refused there is refused here.
@@ -36,8 +48,19 @@ TIMEOUT_SECONDS = 2
 MAX_SOURCE_BYTES = 64 * 1024
 CACHE_ENTRIES = 64
 
-#: Default for `D2Engine(executable=…)`, distinguishing "find one" from "none".
+#: Default for `Engine(executable=…)`, distinguishing "find one" from "none".
 DISCOVER = "\0discover"
+
+
+def engine_name(info: str) -> str | None:
+    """The engine that draws a fence with this info string, or None for a listing."""
+    words = info.split()
+    if not words:
+        return None
+    kind = words[0]
+    if kind in CELL_KINDS:
+        return CELL_KINDS[kind]
+    return kind.lower() if kind.lower() in PLAIN_LANGUAGES else None
 
 
 @dataclass(frozen=True)
@@ -48,20 +71,27 @@ class Result:
     failure: str | None = None
 
 
-class D2Engine:
-    """Renders through the `d2` binary, if one is on PATH.
+class Engine:
+    """Renders through one binary, if it is on PATH.
 
     The engine is content-addressed and bounded rather than clever: the same
     source and version produce the same bytes (P1), and a hostile diagram fails
     instead of hanging.
     """
 
-    id = "d2-binary"
+    #: What a diagram of this engine is called on the page.
+    name = ""
+    #: Identifies the engine in the cache key.
+    id = ""
+    #: The program looked up on PATH.
+    program = ""
+    #: Arguments that make it read source on stdin and write SVG on stdout.
+    args: tuple[str, ...] = ()
 
     def __init__(self, executable: str | None = DISCOVER):
         # `None` means "no engine" and must stay expressible; discovery is what
         # the default argument asks for, not what an explicit None asks for.
-        self.executable = shutil.which("d2") if executable is DISCOVER else executable
+        self.executable = shutil.which(self.program) if executable is DISCOVER else executable
         self._cache: OrderedDict[str, Result] = OrderedDict()
         self._version: str | None = None
 
@@ -86,7 +116,7 @@ class D2Engine:
 
     def render(self, source: str) -> Result:
         if not self.available:
-            return Result(failure="no d2 engine is installed")
+            return Result(failure=f"no {self.name} engine is installed")
 
         encoded = source.encode("utf-8")
         if len(encoded) > MAX_SOURCE_BYTES:
@@ -102,7 +132,7 @@ class D2Engine:
     def _run(self, encoded: bytes) -> Result:
         try:
             done = subprocess.run(
-                [self.executable, "-", "-"],
+                [self.executable, *self.args],
                 input=encoded,
                 capture_output=True,
                 timeout=TIMEOUT_SECONDS,
@@ -110,11 +140,11 @@ class D2Engine:
         except subprocess.TimeoutExpired:
             return Result(failure=f"diagram render exceeded {TIMEOUT_SECONDS}s")
         except OSError as exc:
-            return Result(failure=f"cannot run d2: {exc}")
+            return Result(failure=f"cannot run {self.program}: {exc}")
 
         if done.returncode != 0:
             detail = done.stderr.decode("utf-8", "replace").strip().splitlines()
-            return Result(failure=detail[-1] if detail else "d2 exited non-zero")
+            return Result(failure=detail[-1] if detail else f"{self.program} exited non-zero")
         return Result(svg=done.stdout.decode("utf-8", "replace"))
 
     def _key(self, source: str) -> str:
@@ -134,8 +164,53 @@ class D2Engine:
         return result
 
 
-def to_html(language: str, source: str, engine: D2Engine) -> str:
-    """Render one diagram fence to HTML, degrading rather than failing."""
+class D2Engine(Engine):
+    """Draws D2 through the `d2` binary."""
+
+    name = "d2"
+    id = "d2-binary"
+    program = "d2"
+    args = ("-", "-")
+
+
+class MermaidEngine(Engine):
+    """Draws Mermaid through `merman-cli`, which needs no browser.
+
+    Three flags say what `d2` needs no flag for. `resvg-safe` draws labels as
+    SVG text: Mermaid's default is HTML inside `foreignObject`, which an
+    `<img>` does not show. `constrained` is the renderer's resource policy for
+    input nobody vetted. The operation timeout is its own deadline, set to the
+    bound the process is killed at anyway.
+    """
+
+    name = "mermaid"
+    id = "merman-cli"
+    program = "merman-cli"
+    args = (
+        "render",
+        "-",
+        "--format",
+        "svg",
+        "--svg-pipeline",
+        "resvg-safe",
+        "--resource-profile",
+        "constrained",
+        "--operation-timeout-ms",
+        str(TIMEOUT_SECONDS * 1000),
+        "--quiet",
+    )
+
+
+def engines() -> dict[str, Engine]:
+    """One engine for each diagram language, each finding its binary on PATH."""
+    return {"d2": D2Engine(), "mermaid": MermaidEngine()}
+
+
+def to_html(language: str, source: str, engine: Engine) -> str:
+    """Render one diagram fence to HTML, degrading rather than failing.
+
+    `language` is the name the page gives the diagram: `d2` or `mermaid`.
+    """
     result = engine.render(source)
     if result.svg:
         return _image(result.svg, language)

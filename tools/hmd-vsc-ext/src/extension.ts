@@ -14,6 +14,7 @@ import { createCard } from "./commands/createCard.js";
 import { initializeVault, reportMissingVault } from "./commands/initVault.js";
 import { debounce } from "./debounce.js";
 import { DiagnosticPublisher } from "./diagnostics.js";
+import { DiagramLensProvider, diagramCellIn } from "./diagram/lens.js";
 import { CellLensProvider, cellAtCursor } from "./hql/runner.js";
 import { LanguageServer } from "./lsp/client.js";
 import { PreviewPanel, VIEW_TYPE, type PanelState } from "./preview/panel.js";
@@ -99,6 +100,40 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       { language: "hmd" },
       new CellLensProvider(catalog.cells),
     ),
+    vscode.commands.registerCommand(
+      "hyperMarkdown.showDiagram",
+      async (uri?: vscode.Uri, index?: number) => {
+        const editor = vscode.window.activeTextEditor;
+        const document =
+          uri === undefined
+            ? editor?.document
+            : vscode.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString());
+        const cell =
+          document === undefined
+            ? null
+            : index !== undefined
+              ? diagramCellIn(document.getText(), { index })
+              : editor === undefined
+                ? null
+                : diagramCellIn(document.getText(), { line: editor.selection.active.line });
+        if (cell === null) {
+          void vscode.window.setStatusBarMessage(
+            "HyperMarkDown: the cursor is not in a diagram cell",
+            2000,
+          );
+          return;
+        }
+        // The drawing lives in the preview, so asking for one opens it.
+        if (!PreviewPanel.isOpen) {
+          PreviewPanel.open(catalog, context.extensionUri, {
+            column: vscode.ViewColumn.Beside,
+            preserveFocus: true,
+          });
+        }
+        await catalog.showDiagram(cell.language, cell.source);
+      },
+    ),
+    vscode.languages.registerCodeLensProvider({ language: "hmd" }, new DiagramLensProvider()),
     vscode.commands.registerCommand("hyperMarkdown.createCardFromLink", async () => {
       const editor = vscode.window.activeTextEditor;
       if (editor === undefined) return;
@@ -113,7 +148,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("hyperMarkdown.root")) void catalog.rebuild();
-      else if (event.affectsConfiguration("hyperMarkdown.diagram.d2Path")) {
+      else if (
+        event.affectsConfiguration("hyperMarkdown.diagram.d2Path") ||
+        event.affectsConfiguration("hyperMarkdown.diagram.mermaidPath")
+      ) {
         catalog.refreshDiagramEngine();
       } else if (event.affectsConfiguration("hyperMarkdown.hql.path")) {
         catalog.cells.refresh();

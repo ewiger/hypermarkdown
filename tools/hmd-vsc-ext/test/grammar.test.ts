@@ -100,6 +100,17 @@ describe("the cell fence grammar", () => {
     expect(fence("python").test("```python title=x")).toBe(true);
   });
 
+  it("reads a diagram cell as its language with the mode `show`", () => {
+    // `d2#show` and `mermaid#show` (HMD-0030) need no rule of their own: the
+    // body is coloured by a D2 or Mermaid grammar when one is installed, and
+    // is left in one colour when none is.
+    const d2 = fence("d2").exec("```d2#show")!;
+    expect(d2.slice(4, 7)).toEqual(["d2", "#", "show"]);
+    const mermaid = fence("mermaid").exec("```mermaid#show")!;
+    expect(mermaid.slice(4, 7)).toEqual(["mermaid", "#", "show"]);
+    expect(fence("mermaid").test("```mermaid")).toBe(true);
+  });
+
   it("leaves a fence with a Markdown separator to the Markdown grammar", () => {
     for (const line of ["```python:x", "```python,x", "```{.python}", "```"]) {
       expect(fence("python").test(line), line).toBe(false);

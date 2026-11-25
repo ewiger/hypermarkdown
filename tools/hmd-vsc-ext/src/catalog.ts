@@ -16,8 +16,9 @@
 
 import * as vscode from "vscode";
 
-import { SUFFIX, type DocumentIR } from "@hypermarkdown/core";
+import { SUFFIX, diagramEngine, isDiagramCell, type DocumentIR } from "@hypermarkdown/core";
 
+import { attachDiagrams, type DiagramDrawings } from "./diagram/attach.js";
 import { DiagramEngine } from "./diagram/engine.js";
 import { diagramOptions } from "./diagram/options.js";
 import { CellRunner } from "./hql/runner.js";
@@ -48,7 +49,7 @@ export class VaultCatalog implements vscode.Disposable {
 
   /**
    * @param extensionUri the installed extension's root, which is where the
-   *   bundled `d2` lives in a platform-specific VSIX (issue 0107).
+   *   bundled renderers live in a platform-specific VSIX (issue 0107).
    */
   constructor(private readonly extensionUri: vscode.Uri) {
     this.diagrams = new DiagramEngine(diagramOptions(extensionUri));
@@ -198,7 +199,7 @@ export class VaultCatalog implements vscode.Disposable {
   // -- diagrams --------------------------------------------------------
 
   /**
-   * Re-resolve `d2` and drop every rendered diagram.
+   * Re-resolve `d2` and `merman-cli`, and drop every rendered diagram.
    *
    * The cache is keyed by source alone, so a diagram rendered by the old binary
    * would otherwise survive a change of binary and the setting would look like
@@ -211,28 +212,29 @@ export class VaultCatalog implements vscode.Disposable {
   }
 
   /**
-   * Render every diagram in an IR (HMD-0022).
-   *
-   * Done here rather than in the core because rendering needs a subprocess,
-   * which the core cannot run.
+   * Draw every diagram in an IR, keeping in `drawings` what each diagram cell
+   * of one preview last showed.
    */
-  async attachDiagrams(ir: DocumentIR): Promise<DocumentIR> {
-    const blocks = await Promise.all(
-      ir.blocks.map(async (block) => {
-        if (block.kind === "embed" && block.document !== null) {
-          return { ...block, document: await this.attachDiagrams(block.document) };
-        }
-        // A cell's output can carry a diagram — HQL writes a graph as a `d2`
-        // fence — and it is drawn like one written by hand.
-        if (block.kind === "cell" && block.output !== null) {
-          const inner = await this.attachDiagrams({ ...ir, blocks: block.output.blocks });
-          return { ...block, output: { ...block.output, blocks: inner.blocks } };
-        }
-        if (block.kind !== "diagram") return block;
-        const { dataUri, failure } = await this.diagrams.render(block.source);
-        return { ...block, dataUri, failure };
-      }),
-    );
-    return { ...ir, blocks };
+  attachDiagrams(ir: DocumentIR, drawings?: DiagramDrawings): Promise<DocumentIR> {
+    return attachDiagrams(ir, this.diagrams, drawings);
+  }
+
+  /**
+   * Draw one diagram cell because a reader asked (HMD-0030).
+   *
+   * A failure is not answered from the cache, and a renderer that was missing
+   * is looked for again, so Show is also how a reader retries. Returns false
+   * for a language that is not a diagram cell.
+   */
+  async showDiagram(language: string, source: string): Promise<boolean> {
+    const engine = isDiagramCell(language) ? diagramEngine(language) : null;
+    if (engine === null) return false;
+    await this.diagrams.render(source, engine, { retry: true });
+    // Every preview showing this source takes the new answer, not only the
+    // one whose button was pressed.
+    this.changed.fire(null);
+    return true;
   }
 }
+
+export type { DiagramDrawings };

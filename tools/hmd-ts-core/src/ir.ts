@@ -15,8 +15,9 @@ import type { Span } from "./model.js";
  *
  * 2 — `DiagramBlock` joins the union (HMD-0022).
  * 3 — `CellBlock` joins the union (HMD-0026).
- * 4 — headings and heading fragments carry a `key` in place of a `slug`. */
-export const IR_VERSION = 4;
+ * 4 — headings and heading fragments carry a `key` in place of a `slug`.
+ * 5 — `DiagramBlock` carries the state of its drawing (HMD-0030). */
+export const IR_VERSION = 5;
 
 export type ResolutionState = "resolved" | "unresolved" | "ambiguous" | "escapes";
 
@@ -71,7 +72,10 @@ export interface EmbedBlock {
 export interface DiagramBlock {
   kind: "diagram";
   key: string;
-  /** The fence info string's first word, lowercased. */
+  /**
+   * `d2#show` or `mermaid#show` for a diagram cell, as written. `d2` for a
+   * plain `d2` fence, which still draws.
+   */
   language: string;
   /** The fence body, verbatim — carried whether or not it rendered. */
   source: string;
@@ -80,7 +84,11 @@ export interface DiagramBlock {
    * renderer. The core runs no processes and performs no I/O.
    */
   dataUri: string | null;
-  /** Why there is no diagram: a missing engine, or a failed render. */
+  /** `diagramKey` of the source `dataUri` was drawn from; null with no drawing. */
+  drawnFrom: string | null;
+  /** True when the drawing on screen was drawn from `source` as it stands. */
+  current: boolean;
+  /** Why `source` is not drawn: a missing engine, or a failed render. */
   failure: string | null;
   span: Span;
 }

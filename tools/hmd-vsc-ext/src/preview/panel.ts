@@ -133,6 +133,11 @@ export class PreviewPanel implements vscode.Disposable {
   }
 
   /** Tear down every live preview, for the extension's own disposal. */
+  /** True while at least one preview tab exists. */
+  static get isOpen(): boolean {
+    return PreviewPanel.panels.size > 0;
+  }
+
   static disposeAll(): void {
     for (const preview of [...PreviewPanel.panels]) preview.dispose();
   }

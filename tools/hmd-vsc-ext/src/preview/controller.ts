@@ -15,7 +15,7 @@ import * as vscode from "vscode";
 
 import { IR_VERSION, SUFFIX, cardSuffix, headingKey } from "@hypermarkdown/core";
 
-import { sameCard, type CardRef, type VaultCatalog } from "../catalog.js";
+import { sameCard, type CardRef, type DiagramDrawings, type VaultCatalog } from "../catalog.js";
 import { createCard } from "../commands/createCard.js";
 import { initializeVault } from "../commands/initVault.js";
 import { REPARSE_DEBOUNCE_MS, debounce } from "../debounce.js";
@@ -51,6 +51,10 @@ export class PreviewController implements vscode.Disposable {
   private maximised = false;
   private current: CardRef | null = null;
   private lastAppliedScroll = 0;
+  /** What each diagram cell of the card on screen last showed (HMD-0030). */
+  private readonly drawings: DiagramDrawings = new Map();
+  /** Counts renders sent for drawing, so a slow one cannot overwrite a newer one. */
+  private renderSerial = 0;
   /**
    * An open `.hmd` file no vault claims, and why, so the empty state can say
    * which card and offer the fix.
@@ -245,6 +249,8 @@ export class PreviewController implements vscode.Disposable {
   private setCard(card: CardRef | null): void {
     if (sameCard(this.current, card)) return;
     this.current = card;
+    // A drawing kept for one card's cell must not show under another card's.
+    this.drawings.clear();
     this.cardChanged.fire(card?.rel ?? null);
   }
 
@@ -303,6 +309,12 @@ export class PreviewController implements vscode.Disposable {
         return;
       case "initVault":
         void initializeVault(this.catalog, this.unclaimed?.uri ?? null);
+        return;
+      case "showDiagram":
+        // Show writes nothing and runs the renderer the preview already runs,
+        // on source the preview already holds, so it needs no trust check and
+        // is offered inside an embed as well (HMD-0030).
+        void this.catalog.showDiagram(message.language, message.source);
         return;
       case "runCell":
       case "runAllCells": {
@@ -574,10 +586,13 @@ export class PreviewController implements vscode.Disposable {
     const pinned = this.pinned;
     const card = this.current;
 
-    // Reading diagram artifacts is the one asynchronous step; the guard below
-    // drops the result if the preview moved on while it was in flight.
-    void this.catalog.attachDiagrams(document).then((withDiagrams) => {
-      if (!sameCard(this.current, card)) return;
+    // Drawing diagrams is the one asynchronous step; the guard below drops the
+    // result if the preview moved on, or sent newer text, while it was in
+    // flight. Diagrams are drawn on every edit, so two renders of one card are
+    // often in flight together.
+    const serial = (this.renderSerial += 1);
+    void this.catalog.attachDiagrams(document, this.drawings).then((withDiagrams) => {
+      if (!sameCard(this.current, card) || serial !== this.renderSerial) return;
       this.post({
         type: "render",
         irVersion: IR_VERSION,

@@ -6,12 +6,13 @@
  * that an editor exists.
  */
 
-import type {
-  Block,
-  CellBlock,
-  DiagramBlock,
-  DocumentIR,
-  EmbedBlock,
+import {
+  isDiagramCell,
+  type Block,
+  type CellBlock,
+  type DiagramBlock,
+  type DocumentIR,
+  type EmbedBlock,
 } from "@hypermarkdown/core";
 
 export interface RenderSettings {
@@ -85,6 +86,10 @@ function createBlock(block: Block, settings: RenderSettings): HTMLElement {
  * diagram source from a cloned repository cannot run code in the webview.
  */
 function renderDiagram(element: HTMLElement, block: DiagramBlock): void {
+  if (isDiagramCell(block.language)) {
+    renderDiagramCell(element, block);
+    return;
+  }
   const rendered = block.dataUri !== null;
   element.className = rendered ? "hmd-diagram" : "hmd-diagram is-unrendered";
   element.dataset["line"] = String(block.span.line);
@@ -112,6 +117,113 @@ function renderDiagram(element: HTMLElement, block: DiagramBlock): void {
   code.textContent = block.source;
   pre.append(code);
   element.append(pre);
+}
+
+/**
+ * A diagram cell (HMD-0030): the drawing, with its source one click away.
+ *
+ * Laid out as an HQL cell is, with Show where that has Run. The drawing is what
+ * a reader opened the card for, so it is shown and the source is not, until the
+ * reader asks. That choice is the reader's and survives a new drawing: it is
+ * read off the element before anything is rebuilt.
+ *
+ * The drawing follows the source as it is typed. When the source stops
+ * drawing — a syntax error in the middle of an edit — the last drawing stays,
+ * marked stale, with the reason under it.
+ */
+function renderDiagramCell(element: HTMLElement, block: DiagramBlock): void {
+  const codeShown = element.classList.contains("is-code-shown");
+  const state = diagramState(block);
+
+  element.className = `hmd-cell hmd-diagram-cell is-${state.kind}`;
+  element.classList.toggle("is-code-shown", codeShown);
+  element.dataset["line"] = String(block.span.line);
+  element.dataset["language"] = block.language;
+
+  let bar = element.querySelector<HTMLElement>(":scope > .hmd-cell-bar");
+  let source = element.querySelector<HTMLElement>(":scope > .hmd-cell-source");
+  let body = element.querySelector<HTMLElement>(":scope > .hmd-cell-output");
+  if (bar === null || source === null || body === null) {
+    element.textContent = "";
+    bar = document.createElement("div");
+    bar.className = "hmd-cell-bar";
+    source = document.createElement("pre");
+    source.className = "hmd-cell-source";
+    body = document.createElement("div");
+    body.className = "hmd-cell-output";
+    element.append(bar, source, body);
+  }
+
+  bar.textContent = "";
+  const kind = document.createElement("span");
+  kind.className = "hmd-cell-kind";
+  kind.textContent = block.language;
+  const badge = document.createElement("span");
+  badge.className = "hmd-cell-state";
+  badge.textContent = state.label;
+  badge.title = state.title;
+  const spacer = document.createElement("span");
+  spacer.className = "hmd-cell-spacer";
+  bar.append(kind, badge, spacer);
+  bar.append(cellButton("hmd-cell-code", codeShown ? "Hide code" : "Code", "Show or hide this diagram's source", codeShown));
+  bar.append(cellButton("hmd-cell-edit", "Edit", "Edit this diagram in the source"));
+  // Offered inside an embed too: Show writes nothing, so drawing another
+  // card's diagram touches no file.
+  bar.append(cellButton("hmd-cell-show", "Show", "Draw this diagram again"));
+
+  const code = document.createElement("code");
+  code.textContent = block.source;
+  source.textContent = "";
+  source.append(code);
+  source.hidden = !codeShown;
+
+  body.textContent = "";
+  body.classList.remove("is-empty");
+  if (block.dataUri !== null) {
+    // An `<img>` with a `data:` URI executes no script, so diagram source from
+    // a cloned repository cannot run code in the webview.
+    const image = document.createElement("img");
+    image.className = "hmd-diagram-image";
+    image.src = block.dataUri;
+    image.alt = `${block.language} diagram`;
+    body.append(image);
+  }
+  if (!block.current) {
+    const notice = document.createElement("div");
+    notice.className = "hmd-diagram-notice";
+    notice.textContent = block.failure ?? `${block.language} diagram not drawn`;
+    body.append(notice);
+    if (block.dataUri === null && !codeShown) {
+      // Nothing is drawn, so the source is what there is to read: a cell that
+      // shows only a reason would hide what the author has to fix.
+      const pre = document.createElement("pre");
+      pre.className = "hmd-diagram-source";
+      const shown = document.createElement("code");
+      shown.textContent = block.source;
+      pre.append(shown);
+      body.append(pre);
+    }
+  }
+}
+
+interface DiagramState {
+  kind: "current" | "stale" | "none";
+  label: string;
+  title: string;
+}
+
+function diagramState(block: DiagramBlock): DiagramState {
+  if (block.current) {
+    return { kind: "current", label: "drawn", title: "This drawing came from the source as it stands" };
+  }
+  if (block.dataUri !== null) {
+    return {
+      kind: "stale",
+      label: "stale",
+      title: "The source changed and no longer draws. This is the last drawing.",
+    };
+  }
+  return { kind: "none", label: "not drawn", title: "There is no drawing of this source" };
 }
 
 function updateBlock(
@@ -332,7 +444,9 @@ function cellState(block: CellBlock): CellState {
 /** Mark the cells being run, by index; `-1` marks every cell of the card. */
 export function markRunning(container: HTMLElement, cells: readonly number[]): void {
   const all = cells.includes(-1);
-  for (const element of Array.from(container.querySelectorAll<HTMLElement>(":scope > .hmd-cell"))) {
+  // A diagram cell shares the layout and has nothing to run.
+  const hqlCells = container.querySelectorAll<HTMLElement>(":scope > .hmd-cell[data-kind='cell']");
+  for (const element of Array.from(hqlCells)) {
     const running = all || cells.includes(Number(element.dataset["index"]));
     element.classList.toggle("is-running", running);
     const run = element.querySelector<HTMLButtonElement>(":scope > .hmd-cell-bar > .hmd-cell-run");

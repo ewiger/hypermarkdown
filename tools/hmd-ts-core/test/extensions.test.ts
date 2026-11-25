@@ -4,7 +4,16 @@
 
 import { describe, expect, it } from "vitest";
 
-import { diagramKey, fenceLanguage, isDiagramFence, sha256 } from "../src/diagram/fence.js";
+import {
+  diagramEngine,
+  diagramKey,
+  diagramLanguage,
+  fenceLanguage,
+  isDiagramCell,
+  isDiagramFence,
+  scanDiagramCells,
+  sha256,
+} from "../src/diagram/fence.js";
 import { MemoryHost } from "../src/host.js";
 import type { DiagramBlock, DocumentIR } from "../src/ir.js";
 import { Renderer } from "../src/render.js";
@@ -151,6 +160,94 @@ describe("diagram fences", () => {
     });
     expect(both).toHaveLength(2);
     expect(both[0]!.key).not.toBe(both[1]!.key);
+  });
+});
+
+describe("diagram cells", () => {
+  const cell = (info: string, body: string): string => `# T\n\n\`\`\`${info}\n${body}\n\`\`\`\n`;
+
+  it("makes `d2#show` and `mermaid#show` diagram cells", async () => {
+    const [d2] = await diagrams({ "a.hmd": cell("d2#show", "a -> b") });
+    expect(d2).toMatchObject({ kind: "diagram", language: "d2#show", source: "a -> b\n" });
+
+    const [mermaid] = await diagrams({ "a.hmd": cell("mermaid#show", "flowchart LR\n  a --> b") });
+    expect(mermaid).toMatchObject({ kind: "diagram", language: "mermaid#show" });
+    expect(mermaid!.source).toBe("flowchart LR\n  a --> b\n");
+  });
+
+  it("matches a cell kind exactly, and ignores the words after it", () => {
+    expect(diagramLanguage("d2#show")).toBe("d2#show");
+    expect(diagramLanguage("mermaid#show")).toBe("mermaid#show");
+    expect(diagramLanguage("mermaid#show wide")).toBe("mermaid#show");
+    expect(diagramLanguage("D2#show")).toBeNull();
+    expect(diagramLanguage("Mermaid#show")).toBeNull();
+    expect(diagramLanguage("mermaid#Show")).toBeNull();
+    expect(diagramLanguage("d2#eval")).toBeNull();
+    expect(diagramLanguage("hql#eval")).toBeNull();
+    expect(isDiagramCell("d2#show")).toBe(true);
+    expect(isDiagramCell("d2")).toBe(false);
+  });
+
+  it("shows a plain `mermaid` fence as a listing", async () => {
+    const body = cell("mermaid", "flowchart LR\n  a --> b");
+    expect(await diagrams({ "a.hmd": body })).toHaveLength(0);
+    expect(await html(body)).toContain("<code");
+    expect(isDiagramFence("mermaid")).toBe(false);
+    expect(isDiagramFence("Mermaid")).toBe(false);
+  });
+
+  it("names the engine that draws each language", () => {
+    expect(diagramEngine("d2#show")).toBe("d2");
+    expect(diagramEngine("mermaid#show")).toBe("mermaid");
+    expect(diagramEngine("d2")).toBe("d2");
+    expect(diagramEngine("mermaid")).toBeNull();
+    expect(diagramEngine("python")).toBeNull();
+  });
+
+  it("carries a cell with no drawing and no drawing state", async () => {
+    const [diagram] = await diagrams({ "a.hmd": cell("mermaid#show", "flowchart LR\n  a --> b") });
+    expect(diagram).toMatchObject({
+      dataUri: null,
+      drawnFrom: null,
+      current: false,
+      failure: null,
+    });
+  });
+
+  it("keeps a cell's key when its source changes", async () => {
+    const [before] = await diagrams({ "a.hmd": cell("mermaid#show", "flowchart LR\n  a --> b") });
+    const [after] = await diagrams({ "a.hmd": cell("mermaid#show", "flowchart LR\n  a --> c") });
+    expect(after!.key).toBe(before!.key);
+  });
+
+  it("gives two cells with the same source distinct keys", async () => {
+    const both = await diagrams({
+      "a.hmd": "```d2#show\na -> b\n```\n\ntext\n\n```d2#show\na -> b\n```\n",
+    });
+    expect(both).toHaveLength(2);
+    expect(both[0]!.key).not.toBe(both[1]!.key);
+  });
+
+  it("finds the cells of a card with the source a block carries", async () => {
+    const text =
+      "# T\n\n```d2#show\na -> b\n```\n\n```mermaid\nlisting\n```\n\n```mermaid#show\nflowchart LR\n  a --> b\n```\n";
+    const cells = scanDiagramCells(text);
+    expect(cells.map((c) => [c.index, c.language, c.openLine, c.closeLine])).toEqual([
+      [0, "d2#show", 2, 4],
+      [1, "mermaid#show", 10, 13],
+    ]);
+    const blocks = await diagrams({ "a.hmd": text });
+    expect(cells.map((c) => c.source)).toEqual(blocks.map((b) => b.source));
+  });
+
+  it("yields no link and no embed from a cell's body", async () => {
+    const ir = await render({
+      "a.hmd": cell("mermaid#show", "flowchart LR\n  a[\"[[b]]\"] --> c[\"![[b]]\"]"),
+      "b.hmd": "# B\n",
+    });
+    expect(ir.blocks.filter((b) => b.kind === "embed")).toHaveLength(0);
+    const [diagram] = ir.blocks.filter((b): b is DiagramBlock => b.kind === "diagram");
+    expect(diagram!.source).toContain("[[b]]");
   });
 });
 

@@ -13,7 +13,7 @@ import footnote from "markdown-it-footnote";
 import taskLists from "markdown-it-task-lists";
 
 import { scanCells, type Cell, type CellScan } from "./cell/cells.js";
-import { DIAGRAM_LANGUAGES, fenceLanguage } from "./diagram/fence.js";
+import { diagramLanguage, isDiagramCell } from "./diagram/fence.js";
 import { bodySlice, expand, isFailure, type Slice } from "./expand.js";
 import {
   IR_VERSION,
@@ -297,8 +297,8 @@ export class Renderer {
       // and can be absent or stale, none of which survives an HTML string.
       const only = current.length === 1 ? current[0] : undefined;
       if (only !== undefined && only.type === "fence") {
-        const language = fenceLanguage(only.info);
-        if (DIAGRAM_LANGUAGES.has(language)) {
+        const language = diagramLanguage(only.info);
+        if (language !== null) {
           out.push(diagramBlock(only.content, language, at));
           return;
         }
@@ -467,7 +467,7 @@ export class Renderer {
 
 // -- helpers -------------------------------------------------------------
 
-/** A diagram fence, carried unrendered; the consumer runs `d2`. */
+/** A diagram fence, carried unrendered; the consumer runs the renderer. */
 function diagramBlock(source: string, language: string, line: number): DiagramBlock {
   return {
     kind: "diagram",
@@ -475,6 +475,8 @@ function diagramBlock(source: string, language: string, line: number): DiagramBl
     language,
     source,
     dataUri: null,
+    drawnFrom: null,
+    current: false,
     failure: null,
     span: { start: 0, end: 0, line, column: 1 },
   };
@@ -556,6 +558,7 @@ export function escapeAttr(value: string): string {
  */
 function assignKeys(blocks: Block[]): Block[] {
   const seen = new Map<string, number>();
+  let diagramCells = 0;
   return blocks.map((block) => {
     const content =
       block.kind === "html"
@@ -563,8 +566,14 @@ function assignKeys(blocks: Block[]): Block[] {
         : block.kind === "embed"
           ? `embed:${block.target.raw}`
           : block.kind === "diagram"
-            ? `diagram:${block.source}`
-            : // By name, not content: running a cell changes its output, and
+            ? // A diagram cell by position, not content: an edit would give it
+              // a new key, and the reader's Code toggle and the last drawing
+              // would be lost with it (HMD-0030). A plain `d2` fence has
+              // neither, and keeps its key by source.
+              isDiagramCell(block.language)
+              ? `diagram:#${diagramCells++}`
+              : `diagram:${block.source}`
+            :// By name, not content: running a cell changes its output, and
               // the element — with the reader's choice to show the code — should
               // survive that.
               `cell:${block.id ?? `#${block.index}`}`;

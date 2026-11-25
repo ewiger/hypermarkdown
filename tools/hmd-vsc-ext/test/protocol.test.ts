@@ -60,6 +60,26 @@ describe("inbound messages", () => {
       expect(parseWebviewMessage(bad)).toBeNull();
     }
   });
+
+  it("accepts Show for a diagram cell, and for nothing else", () => {
+    const show = { type: "showDiagram", language: "mermaid#show", source: "flowchart LR\n" };
+    expect(parseWebviewMessage(show)).toEqual(show);
+    expect(parseWebviewMessage({ ...show, language: "d2#show" })).not.toBeNull();
+
+    for (const bad of [
+      { ...show, language: "mermaid" },
+      { ...show, language: "d2" },
+      { ...show, language: "hql#eval" },
+      { ...show, language: "Mermaid#show" },
+      { ...show, language: 7 },
+      { ...show, source: 7 },
+      { type: "showDiagram", language: "d2#show" },
+      // Over the size bound of a render: a card's own fence would be refused.
+      { ...show, source: "x".repeat(64 * 1024 + 1) },
+    ]) {
+      expect(parseWebviewMessage(bad)).toBeNull();
+    }
+  });
 });
 
 describe("path safety", () => {
