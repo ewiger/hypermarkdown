@@ -11,7 +11,7 @@
  * mock that records a command string would pass whether or not it could.
  */
 
-import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -116,6 +116,164 @@ describe("a renderer that exits without reading stdin", () => {
     const { dataUri, failure } = await engine.render("a -> b\n".repeat(20_000));
     expect(dataUri).toBeNull();
     expect(failure).not.toBeNull();
+  });
+});
+
+describe("the Mermaid renderer", () => {
+  /** A stand-in for `merman-cli`: an SVG that names itself and its arguments. */
+  function fakeMerman(name: string): string {
+    const path = join(dir, name);
+    writeFileSync(path, `#!/bin/sh\ncat >/dev/null\nprintf '<svg id="${name}" data-args="%s"/>' "$*"\n`);
+    chmodSync(path, 0o755);
+    return path;
+  }
+
+  it("draws a Mermaid diagram with its own binary, not with d2", async () => {
+    const engine = new DiagramEngine({
+      bundledPath: bundled,
+      mermaid: { bundledPath: fakeMerman("merman-bundled") },
+    });
+    const mermaid = await engine.render("flowchart LR\n  a --> b\n", "mermaid");
+    expect(mermaid.failure).toBeNull();
+    expect(decode(mermaid.dataUri)).toContain('id="merman-bundled"');
+    expect(decode((await engine.render("a -> b", "d2")).dataUri)).toContain('id="bundled"');
+  });
+
+  it("reads stdin, asks for SVG text labels, and bounds the render", async () => {
+    const engine = new DiagramEngine({ mermaid: { configuredPath: fakeMerman("merman-args") } });
+    const svg = decode((await engine.render("flowchart LR\n  a --> b\n", "mermaid")).dataUri);
+    expect(svg).toContain("render - --format svg");
+    // HTML labels in `foreignObject` do not show inside an `<img>`.
+    expect(svg).toContain("--svg-pipeline resvg-safe");
+    expect(svg).toContain("--resource-profile constrained");
+    expect(svg).toContain("--operation-timeout-ms 2000");
+  });
+
+  it("prefers the configured path, then the bundled binary, then PATH", async () => {
+    const both = new DiagramEngine({
+      mermaid: { configuredPath: fakeMerman("merman-configured"), bundledPath: fakeMerman("merman-b") },
+    });
+    expect(decode((await both.render("x", "mermaid")).dataUri)).toContain('id="merman-configured"');
+
+    fakeMerman("merman-cli");
+    process.env.PATH = `${dir}:/bin:/usr/bin`;
+    const onPath = new DiagramEngine({ mermaid: { bundledPath: null } });
+    expect(decode((await onPath.render("x", "mermaid")).dataUri)).toContain('id="merman-cli"');
+  });
+
+  it("keeps the two languages apart in the cache", async () => {
+    const engine = new DiagramEngine({
+      bundledPath: bundled,
+      mermaid: { bundledPath: fakeMerman("merman-cache") },
+    });
+    const source = "a --> b";
+    expect(decode((await engine.render(source, "d2")).dataUri)).toContain('id="bundled"');
+    expect(decode((await engine.render(source, "mermaid")).dataUri)).toContain('id="merman-cache"');
+    expect(decode((await engine.render(source, "d2")).dataUri)).toContain('id="bundled"');
+  });
+
+  it("reports a configured path that is not an executable, by its setting", async () => {
+    const engine = new DiagramEngine({
+      mermaid: { configuredPath: join(dir, "no-merman"), bundledPath: fakeMerman("merman-unused") },
+    });
+    const { dataUri, failure } = await engine.render("x", "mermaid");
+    expect(dataUri).toBeNull();
+    expect(failure).toContain("hyperMarkdown.diagram.mermaidPath");
+  });
+
+  it("says which program is missing when there is none", async () => {
+    process.env.PATH = join(dir, "empty");
+    const engine = new DiagramEngine({ bundledPath: bundled });
+    const { dataUri, failure } = await engine.render("x", "mermaid");
+    expect(dataUri).toBeNull();
+    expect(failure).toContain("merman-cli");
+    expect(failure).toMatch(/PATH/);
+    // A missing Mermaid renderer does not take D2 down with it.
+    process.env.PATH = realPath;
+    expect((await engine.render("a -> b", "d2")).failure).toBeNull();
+  });
+
+  it("refuses a source over the size bound without starting a renderer", async () => {
+    const engine = new DiagramEngine({ mermaid: { configuredPath: join(dir, "never-run") } });
+    const { dataUri, failure } = await engine.render("x".repeat(64 * 1024 + 1), "mermaid");
+    expect(dataUri).toBeNull();
+    expect(failure).toContain("64 KiB");
+  });
+});
+
+describe("Show", () => {
+  it("answers a repeated failure from the cache, and tries again when asked", async () => {
+    // Fails its first two runs and draws from then on: a renderer that timed
+    // out under load. Two, because finding the renderer is a run of its own.
+    const runs = join(dir, "flaky-runs");
+    const flaky = join(dir, "flaky");
+    writeFileSync(
+      flaky,
+      `#!/bin/sh\ncat >/dev/null\necho run >> '${runs}'\nif [ "$(wc -l < '${runs}')" -gt 2 ]; then printf '<svg id="second"/>'; else echo 'first time' >&2; exit 1; fi\n`,
+    );
+    chmodSync(flaky, 0o755);
+
+    const engine = new DiagramEngine({ mermaid: { configuredPath: flaky } });
+    expect((await engine.render("x", "mermaid")).failure).toContain("first time");
+    // Answered from the cache: the renderer would have drawn it this time.
+    expect((await engine.render("x", "mermaid")).failure).toContain("first time");
+    const retried = await engine.render("x", "mermaid", { retry: true });
+    expect(decode(retried.dataUri)).toContain('id="second"');
+  });
+
+  it("looks again for a renderer that was missing", async () => {
+    const engine = new DiagramEngine({ mermaid: { bundledPath: null } });
+    process.env.PATH = join(dir, "empty");
+    expect((await engine.render("x", "mermaid")).failure).toContain("merman-cli");
+
+    const bin = join(dir, "late");
+    mkdirSync(bin, { recursive: true });
+    writeFileSync(join(bin, "merman-cli"), `#!/bin/sh\ncat >/dev/null\nprintf '<svg id="late"/>'\n`);
+    chmodSync(join(bin, "merman-cli"), 0o755);
+    process.env.PATH = `${bin}:/bin:/usr/bin`;
+    expect((await engine.render("x", "mermaid")).failure).toContain("merman-cli");
+    expect(decode((await engine.render("x", "mermaid", { retry: true })).dataUri)).toContain('id="late"');
+  });
+});
+
+/**
+ * The real renderer, when `MERMAN_BIN` names one. The fakes above cannot say
+ * whether the flags this engine passes are flags `merman-cli` accepts, or
+ * whether what comes back survives being shown as an image.
+ */
+const MERMAN_BIN = process.env["MERMAN_BIN"];
+
+describe.skipIf(MERMAN_BIN === undefined)("against the real merman-cli", () => {
+  const real = (): DiagramEngine => new DiagramEngine({ mermaid: { configuredPath: MERMAN_BIN! } });
+
+  it("draws a flowchart whose labels are SVG text, with nothing that runs", async () => {
+    const { dataUri, failure } = await real().render(
+      "flowchart TD\n  A[Card on disk] -->|parse| B{Has cells?}\n",
+      "mermaid",
+    );
+    expect(failure).toBeNull();
+    const svg = decode(dataUri);
+    expect(svg.startsWith("<svg")).toBe(true);
+    // An `<img>` shows neither of these: the label would be a blank box.
+    expect(svg).not.toContain("<foreignObject");
+    expect(svg).not.toContain("<script");
+    expect(svg).toMatch(/<text[^>]*>Card on disk<\/text>/);
+    expect(svg).toMatch(/<text[^>]*>parse<\/text>/);
+  });
+
+  it("draws the same bytes for the same source", async () => {
+    const source = "sequenceDiagram\n  A->>B: hello\n";
+    const first = await real().render(source, "mermaid");
+    const second = await real().render(source, "mermaid");
+    expect(first.dataUri).not.toBeNull();
+    expect(second.dataUri).toBe(first.dataUri);
+  });
+
+  it("reports a syntax error as the reason, in one line", async () => {
+    const { dataUri, failure } = await real().render("flowchart TD\n  A --> --> [\n", "mermaid");
+    expect(dataUri).toBeNull();
+    expect(failure).toContain("parse error");
+    expect(failure!.split("\n")).toHaveLength(1);
   });
 });
 

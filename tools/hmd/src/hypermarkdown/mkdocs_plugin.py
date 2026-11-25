@@ -58,8 +58,9 @@ class PluginConfig(BaseConfig):
     #: `doc/wiki`, so a book and its wiki live in one build.
     root = config_options.Optional(config_options.Dir(exists=True))
     build_nav = config_options.Type(bool, default=True)
-    #: Render `d2` fences. With no `d2` binary on PATH they degrade to a
-    #: labelled placeholder rather than failing the build (HMD-0022 §5).
+    #: Draw diagram fences: D2 through `d2`, Mermaid through `merman-cli`. With
+    #: a binary missing from PATH its diagrams degrade to a labelled
+    #: placeholder rather than failing the build (HMD-0022, on degradation).
     diagrams = config_options.Type(bool, default=True)
 
 
@@ -75,7 +76,8 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         #: Where the namespace root sits inside `docs_dir`, as a URL prefix.
         self.prefix = ""
         self.docs_dir: Path | None = None
-        self.engine = diagram.D2Engine()
+        #: The engine for each diagram language: `d2` and `mermaid`.
+        self.engines = diagram.engines()
         #: Card -> the `toc` id of each of its headings on its built page.
         self._ids: dict[Path, list[str]] = {}
         #: How `toc` is configured for this site: slugify, separator, and
@@ -310,7 +312,10 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         return "" if directory == "." else directory
 
     def _diagrams(self, markdown: str) -> str:
-        """Render `d2` fences to images, or to a labelled placeholder.
+        """Render diagram fences to images, or to a labelled placeholder.
+
+        A `d2#show` or `mermaid#show` cell is drawn, and so is a plain `d2`
+        fence. A plain `mermaid` fence is a listing and stays a code block.
 
         Runs after expansion, so a diagram embedded from another card renders
         like one written here.
@@ -321,11 +326,11 @@ class HyperMarkDownPlugin(BasePlugin[PluginConfig]):
         out: list[str] = []
         cursor = 0
         for info, body, start, end in scan.find_fences(markdown):
-            language = info.split()[0].lower() if info.split() else ""
-            if language not in diagram.LANGUAGES:
+            name = diagram.engine_name(info)
+            if name is None:
                 continue
             out.append(markdown[cursor:start])
-            out.append(diagram.to_html(language, body, self.engine) + "\n")
+            out.append(diagram.to_html(name, body, self.engines[name]) + "\n")
             cursor = end
 
         out.append(markdown[cursor:])

@@ -5,6 +5,7 @@ import:
   - from /proposals/HMD-0005 import index as hmd-0005
   - from /proposals/HMD-0022 import index as hmd-0022
   - from /proposals/HMD-0030 import index as hmd-0030
+  - from /proposals/HMD-0034 import index as hmd-0034
 ---
 
 # STATUS — the website
@@ -92,6 +93,11 @@ revisiting is that maths loads from a CDN at view time.
 
 ## Done
 
+- **Mermaid is shown beside D2 on the public pages** — the Features page
+  lists both and draws the same picture in each, as a `mermaid#show` cell
+  next to the D2 one. The README and the tools pages name Mermaid and its
+  renderer. The Pages build installs toolchain 0.7.0, which carries
+  `merman-cli`, so the example is drawn on the published site.
 - **The cover names the released language** — it says the tools implement
   HyperMarkDown 0.1, links the specification, and no longer calls it a draft.
   The cover names the release line and not the patch, so a patch release
@@ -215,6 +221,10 @@ run permanently.
 
 ## Changelog
 
+- 2026-11-25: the blocked row for showing Mermaid beside D2 is done: the
+  Pages build installs toolchain 0.7.0, which carries the Mermaid renderer.
+- 2026-11-25: a blocked Open row for showing Mermaid beside D2 on the public
+  pages, which waits on the Pages build carrying the Mermaid renderer.
 - 2026-11-25: the cover stops calling the specification a draft and names
   HyperMarkDown 0.1, checked against the Version callout.
 - 2026-11-25: the feature list and the interop sketch removed, and every

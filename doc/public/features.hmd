@@ -27,7 +27,7 @@ nav:
 * **Metadata.** YAML frontmatter carries tags, imports, navigation hints, and
   anything your own tooling needs.
 
-* **Rich content.** TeX mathematics, D2 diagrams, callouts, collapsible
+* **Rich content.** TeX mathematics, D2 and Mermaid diagrams, callouts, collapsible
   sections, footnotes, heading permalinks, tables, code blocks.
 
 * **Validation.** `hmd lint` checks a tree. Unwritten pages are warnings;
@@ -119,9 +119,20 @@ auth -> edge: token
 edge -> client: token + rotation window
 ```
 
+The same picture in Mermaid, as a `mermaid#show` fence:
+
+```mermaid#show
+flowchart LR
+  client -->|credentials| edge
+  edge -->|verify| auth
+  auth -->|token| edge
+  edge -->|token + rotation window| client
+```
+
 The diagram is text in the file, in version control, in a diff you can read.
-Where no `d2` renderer is available it degrades to its own labelled source, not
-to a blank space or a failed build.
+Where no renderer is available it degrades to its own labelled source, not
+to a blank space or a failed build. A fence marked only `mermaid` is a listing:
+it shows the source as code.
 
 ## Mathematics
 

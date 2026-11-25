@@ -62,13 +62,21 @@ export { calloutPlugin } from "./parse/callout.js";
 export { mathPlugin, renderMath } from "./parse/math.js";
 export {
   CACHE_ENTRIES,
+  DIAGRAM_CELL_KINDS,
   DIAGRAM_LANGUAGES,
   MAX_SOURCE_BYTES,
   RENDER_TIMEOUT_MS,
+  diagramEngine,
   diagramKey,
+  diagramLanguage,
+  fenceKind,
   fenceLanguage,
+  isDiagramCell,
   isDiagramFence,
+  scanDiagramCells,
   sha256,
+  type DiagramCell,
+  type DiagramEngineName,
 } from "./diagram/fence.js";
 export {
   CELL_KINDS,

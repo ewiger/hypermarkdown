@@ -1,0 +1,60 @@
+# Diagrams
+
+A fence that opens `d2#show` or `mermaid#show` is a **diagram cell**. The
+preview draws it, and keeps its source one click away behind **Code**. Edit a
+cell and the drawing follows as you type.
+
+Each drawing has three small buttons at its top right edge: smaller, the
+current size, and larger. The middle one puts the drawing back at its own
+size.
+
+More diagram types are on [[mermaid-gallery]], and the states a cell can be in
+are on [[states]].
+
+## The same picture in both languages
+
+In Mermaid:
+
+```mermaid#show
+flowchart LR
+  client -->|credentials| edge
+  edge -->|verify| auth
+  auth -->|token| edge
+  edge -->|token + rotation window| client
+```
+
+In D2:
+
+```d2#show
+direction: right
+
+client -> edge: credentials
+edge -> auth: verify
+auth -> edge: token
+edge -> client: token + rotation window
+```
+
+## A listing is not drawn
+
+A plain `mermaid` fence shows Mermaid source as text. It is how a card
+explains the notation without turning the example into a picture.
+
+```mermaid
+flowchart LR
+  shown --> as-code
+```
+
+## A plain `d2` fence still draws
+
+It has no cell layout, only the drawing and its zoom buttons.
+
+```d2
+before -> cells
+```
+
+## An embedded card
+
+The card below is embedded. Its diagram cell is drawn here, and its **Show**
+and **Edit** buttons work from here.
+
+![[states#a-cell-that-draws]]

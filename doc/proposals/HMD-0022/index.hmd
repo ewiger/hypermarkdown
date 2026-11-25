@@ -73,7 +73,10 @@ and never as a defect in the card.
 - **Changing the Python implementation**, which renders through the same binary at build
   time.
 - **The interactive graph view.** HMD-0021 §10 owns it; §5 fixes the boundary.
-- **Mermaid**, rejected by the source sketch as superseded by D2.
+- **Choosing a renderer for Mermaid.** Mermaid was rejected here as superseded
+  by D2. HMD-0034 reverses that: Mermaid is a diagram language with the same
+  standing as D2, drawn by its own native renderer under the bounds, the
+  cache, and the image delivery of this record.
 
 ## Specification
 
@@ -285,8 +288,8 @@ npm run -w tools/hmd-vsc-ext test
 - Should a failed diagram raise a diagnostic? It is visible in the preview, and
   a new rule ID would have to be allocated by the canonical implementation
   (HMD-0020 §9).
-- Should `DiagramBlock` generalise to other fence languages now, given
-  `language` is already a field, or stay D2-only until a second one is real?
+- Answered by HMD-0034: `DiagramBlock` carries Mermaid as well as D2. Its
+  `language` field already existed, and a second language is now real.
 - Does the preview honour `rsvg-convert` for a PNG fallback, as the slides style
   does, or is SVG sufficient inside an editor?
 
@@ -300,3 +303,6 @@ npm run -w tools/hmd-vsc-ext test
 - 2026-11-22: amended by HMD-0030. A diagram is a `d2#show` or
   `mermaid#show` fence, matched exactly; a plain `d2` fence is a listing. The
   renderer, bounds, cache, and image delivery here are unchanged.
+- 2026-11-25: amended by HMD-0034. Mermaid is no longer a non-goal: it is
+  drawn by `merman-cli` under the bounds here, and the cache key gains the
+  diagram language.

@@ -21,6 +21,44 @@ against
 
 ## [Unreleased]
 
+### Added
+
+- **Diagram cells.** A fence that opens `d2#show` or `mermaid#show` is a
+  diagram cell. The preview draws it the way it draws an HQL cell: the drawing
+  first, the source behind **Code**, **Edit** beside it, and **Show** in place
+  of Run. The drawing follows the source as you type. When an edit leaves
+  source that does not draw, the cell keeps its last drawing, marked stale,
+  with the reason under it. Nothing is written into the card.
+- **Mermaid diagrams.** A `mermaid#show` cell is drawn by
+  [`merman-cli`](https://github.com/latias94/merman), a native Mermaid
+  renderer that needs no browser. It shares the bounds of D2: 64 KiB of
+  source, 2 seconds for a render, and a drawing delivered as an image, so
+  nothing in a diagram can run. The renderer is found by the new setting
+  `hyperMarkdown.diagram.mermaidPath`, then in the build's toolchain
+  directory, then on `PATH`. Every platform build carries `merman-cli` 0.11.0,
+  from toolchain 0.7.0, so Mermaid draws on a fresh install. Each build is
+  about 26 MiB larger for it. On Linux the bundled renderer needs glibc 2.35
+  or later. Without a renderer a Mermaid cell shows its source and says why.
+- **Zoom on a diagram.** Every drawing, in D2 and in Mermaid, has three small
+  buttons at its top right edge: smaller, the current size, and larger. The
+  middle one puts the drawing back at its own size. A zoomed drawing scrolls
+  inside its own box, and a cell keeps its zoom while you edit it.
+- **A diagrams example.** `npm run example:diagrams` opens a vault of diagram
+  cells in both languages, with a Mermaid gallery and each state of a cell.
+- **Show Diagram.** A **Show diagram** code lens above every diagram cell, and
+  the command *HyperMarkDown: Show Diagram* for the cell under the cursor.
+  Show draws the cell again, and it is how to retry after a timeout or after
+  installing a renderer.
+
+### Changed
+
+- **A plain `mermaid` fence is a listing.** It is shown as code, as it always
+  was, and only `mermaid#show` is drawn. A Mermaid block written for GitHub or
+  Obsidian draws here once its fence is renamed. A plain `d2` fence still
+  draws; `d2#show` is the form that will keep drawing.
+- **The Edit button of a cell inside an embed** opens the embedded card, at
+  the cell. It opened the card on screen at the wrong line.
+
 ## [0.7.0] — 2026-11-25
 
 ### Added

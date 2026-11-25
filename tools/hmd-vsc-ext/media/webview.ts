@@ -16,6 +16,7 @@ import {
   offsetForLine,
   patchBlocks,
   renderBreadcrumb,
+  zoomDiagram,
   type Anchor,
   type RenderSettings,
 } from "./render.js";
@@ -187,6 +188,19 @@ content.addEventListener("click", (event) => {
     return;
   }
 
+  const zoomButton = target.closest<HTMLElement>(".hmd-diagram-zoom-button");
+  if (zoomButton !== null) {
+    event.preventDefault();
+    const view = zoomButton.closest<HTMLElement>(".hmd-diagram-view");
+    const action = zoomButton.dataset["zoom"];
+    if (view !== null && (action === "in" || action === "out" || action === "reset")) {
+      zoomDiagram(view, action);
+      // A drawing that changed height moved everything below it.
+      anchors = collectAnchors(content);
+    }
+    return;
+  }
+
   const cellButton = target.closest<HTMLElement>(".hmd-cell-button");
   if (cellButton !== null) {
     event.preventDefault();
@@ -201,8 +215,24 @@ content.addEventListener("click", (event) => {
       anchors = collectAnchors(content);
     } else if (cellButton.classList.contains("hmd-cell-edit")) {
       // The first line of the code, which is where an edit starts.
+      // A cell inside an embed is in the embedded card, whose path the embed's
+      // header carries; an empty path means the card on screen.
       const line = Number(cell.dataset["line"]) + 1;
-      if (Number.isFinite(line)) vscode.postMessage({ type: "openSource", path: "", line });
+      const embedded = cell
+        .closest<HTMLElement>(".hmd-embed")
+        ?.querySelector<HTMLElement>(":scope > .hmd-embed-header > .hmd-embed-source");
+      const path = embedded?.dataset["hmdPath"] ?? "";
+      if (Number.isFinite(line)) vscode.postMessage({ type: "openSource", path, line });
+    } else if (cellButton.classList.contains("hmd-cell-show")) {
+      const language = cell.dataset["language"];
+      const source = cell.querySelector<HTMLElement>(":scope > .hmd-cell-source > code");
+      if (language !== undefined && source !== null) {
+        // Until the host answers with a render, which rebuilds the bar.
+        cell.classList.add("is-drawing");
+        (cellButton as HTMLButtonElement).disabled = true;
+        cellButton.textContent = "Drawing…";
+        vscode.postMessage({ type: "showDiagram", language, source: source.textContent ?? "" });
+      }
     } else if (cellButton.classList.contains("hmd-cell-run")) {
       const index = Number(cell.dataset["index"]);
       if (Number.isInteger(index)) vscode.postMessage({ type: "runCell", index });

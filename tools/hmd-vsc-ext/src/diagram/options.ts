@@ -1,38 +1,45 @@
 /**
- * Where this installation's `d2` may be found (issue 0107).
+ * Where this installation's diagram renderers may be found (issue 0107).
  *
  * Split from `engine.ts` so the engine stays free of the `vscode` API: it is
- * given two paths and knows the order to try them in, and this file is the only
- * place that knows those paths come from a setting and from the VSIX layout.
+ * given two paths for each renderer and knows the order to try them in, and
+ * this file is the only place that knows those paths come from a setting and
+ * from the VSIX layout.
  */
 
 import { accessSync, chmodSync, constants, existsSync } from "node:fs";
 
 import * as vscode from "vscode";
 
-import type { DiagramEngineOptions } from "./engine.js";
+import type { DiagramEngineOptions, RendererPaths } from "./engine.js";
 
 /**
- * The bundled binary's path inside the extension, as the release workflow
- * writes it. `d2.exe` on Windows; the platform-specific VSIX for a Windows
- * target is the only one that carries it.
+ * One renderer's paths: its setting, and the binary inside the extension as
+ * the release workflow writes it. The binary has `.exe` on Windows; the
+ * platform-specific VSIX for a target is the only one that carries it.
  */
-const BUNDLED = ["toolchain", "bin", process.platform === "win32" ? "d2.exe" : "d2"];
-
-export function diagramOptions(extensionUri: vscode.Uri): DiagramEngineOptions {
+function rendererPaths(extensionUri: vscode.Uri, setting: string, program: string): RendererPaths {
   const configured = vscode.workspace
     .getConfiguration("hyperMarkdown")
-    .get<string>("diagram.d2Path", "")
+    .get<string>(setting, "")
     .trim();
 
   // A platform-neutral VSIX has no `toolchain/`, and neither does a source
   // checkout running under the Extension Development Host. Both are supported:
   // the engine falls through to `PATH`.
-  const bundled = vscode.Uri.joinPath(extensionUri, ...BUNDLED).fsPath;
+  const name = process.platform === "win32" ? `${program}.exe` : program;
+  const bundled = vscode.Uri.joinPath(extensionUri, "toolchain", "bin", name).fsPath;
 
   return {
     configuredPath: configured === "" ? null : configured,
     bundledPath: existsSync(bundled) && executable(bundled) ? bundled : null,
+  };
+}
+
+export function diagramOptions(extensionUri: vscode.Uri): DiagramEngineOptions {
+  return {
+    ...rendererPaths(extensionUri, "diagram.d2Path", "d2"),
+    mermaid: rendererPaths(extensionUri, "diagram.mermaidPath", "merman-cli"),
   };
 }
 

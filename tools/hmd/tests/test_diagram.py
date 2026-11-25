@@ -137,3 +137,149 @@ def test_the_real_engine_renders_deterministically():
     assert first.svg and "<svg" in first.svg
     # A second, uncached engine must produce the same bytes (P1).
     assert diagram.D2Engine().render("a -> b").svg == first.svg
+
+
+# -- diagram cells: which fences are drawn, and by which engine -----------
+
+
+@pytest.mark.parametrize(
+    ("info", "engine"),
+    [
+        ("d2#show", "d2"),
+        ("mermaid#show", "mermaid"),
+        ("mermaid#show wide", "mermaid"),
+        # A plain `d2` fence still draws, without regard to case.
+        ("d2", "d2"),
+        ("D2 something", "d2"),
+    ],
+)
+def test_a_diagram_fence_names_its_engine(info, engine):
+    assert diagram.engine_name(info) == engine
+
+
+@pytest.mark.parametrize(
+    "info",
+    ["mermaid", "Mermaid", "D2#show", "Mermaid#show", "mermaid#Show", "d2#eval", "hql#eval", "python", ""],
+)
+def test_every_other_fence_is_a_listing(info):
+    """A cell kind is matched exactly, and a plain `mermaid` fence is how a
+    card shows Mermaid source as text."""
+    assert diagram.engine_name(info) is None
+
+
+def test_there_is_one_engine_for_each_language():
+    engines = diagram.engines()
+    assert sorted(engines) == ["d2", "mermaid"]
+    assert set(diagram.CELL_KINDS.values()) == set(engines)
+    assert isinstance(engines["mermaid"], diagram.MermaidEngine)
+
+
+# -- the Mermaid engine ---------------------------------------------------
+
+
+class FakeMermaid(diagram.MermaidEngine):
+    """A Mermaid engine that renders without a binary, counting its invocations."""
+
+    def __init__(self, svg: str = "<svg><text>ok</text></svg>", fail: str | None = None):
+        super().__init__(executable="/nonexistent/merman-cli")
+        self._version = "test-1"
+        self.svg, self.fail, self.calls = svg, fail, 0
+
+    def _run(self, encoded: bytes) -> diagram.Result:
+        self.calls += 1
+        return diagram.Result(failure=self.fail) if self.fail else diagram.Result(svg=self.svg)
+
+
+def test_a_rendered_mermaid_diagram_is_a_data_uri_image():
+    html = diagram.to_html("mermaid", "flowchart LR\n  a --> b", FakeMermaid())
+    assert "data:image/svg+xml;base64," in html
+    assert 'alt="mermaid diagram"' in html
+    assert "<svg" not in html, "SVG must not be inserted as markup"
+
+
+def test_hostile_mermaid_svg_cannot_execute():
+    hostile = '<svg onload="alert(1)"><script>alert(2)</script></svg>'
+    html = diagram.to_html("mermaid", "flowchart LR", FakeMermaid(svg=hostile))
+    assert "onload" not in html and "<script" not in html
+    payload = html.split("base64,")[1].split('"')[0]
+    assert base64.b64decode(payload).decode() == hostile  # carried, not executed
+
+
+def test_a_missing_mermaid_engine_degrades_to_the_labelled_source():
+    """The same placeholder D2 gets, naming its own engine."""
+    html = diagram.to_html("mermaid", "a --> b", diagram.MermaidEngine(executable=None))
+    assert "hmd-diagram--placeholder" in html
+    assert "a --&gt; b" in html
+    assert "mermaid diagram — no mermaid engine is installed" in html
+
+
+def test_a_mermaid_failure_is_shown_with_the_source():
+    html = diagram.to_html("mermaid", "flowchart TD\n  A --> -->", FakeMermaid(fail="Diagram parse error"))
+    assert "A --&gt; --&gt;" in html
+    assert "Diagram parse error" in html
+
+
+def test_mermaid_shares_the_bounds_of_d2():
+    engine = FakeMermaid()
+    result = engine.render("a" * (diagram.MAX_SOURCE_BYTES + 1))
+    assert result.svg is None and "64 KiB" in result.failure
+    assert engine.calls == 0, "the engine must not be handed oversized input"
+
+    engine.render("flowchart LR")
+    engine.render("flowchart LR")
+    assert engine.calls == 1, "an identical source renders once"
+
+    for index in range(diagram.CACHE_ENTRIES + 1):
+        engine.render(f"flowchart LR\n  n{index}")
+    assert len(engine._cache) == diagram.CACHE_ENTRIES
+
+
+def test_the_two_engines_do_not_share_a_cache_key():
+    """The same text is one diagram in D2 and another in Mermaid."""
+    assert FakeEngine()._key("a --> b") != FakeMermaid()._key("a --> b")
+
+
+def test_mermaid_is_asked_for_svg_text_on_stdin_within_the_bound():
+    args = diagram.MermaidEngine.args
+    assert args[:2] == ("render", "-")
+    # HTML labels in `foreignObject` do not show inside an `<img>`.
+    assert args[args.index("--svg-pipeline") + 1] == "resvg-safe"
+    assert args[args.index("--resource-profile") + 1] == "constrained"
+    assert args[args.index("--operation-timeout-ms") + 1] == str(diagram.TIMEOUT_SECONDS * 1000)
+
+
+def test_the_engine_runs_the_binary_it_was_given_with_its_arguments(tmp_path):
+    """A stand-in for `merman-cli`: an SVG that carries its arguments and its input."""
+    script = tmp_path / "merman-cli"
+    script.write_text('#!/bin/sh\nprintf \'<svg data-args="%s">\' "$*"\ncat\nprintf \'</svg>\'\n')
+    script.chmod(0o755)
+    svg = diagram.MermaidEngine(executable=str(script)).render("flowchart LR").svg
+    assert svg is not None
+    assert "render - --format svg --svg-pipeline resvg-safe" in svg
+    assert "flowchart LR" in svg
+
+
+def test_a_renderer_that_fails_gives_its_last_line_as_the_reason(tmp_path):
+    script = tmp_path / "merman-cli"
+    script.write_text("#!/bin/sh\ncat >/dev/null\necho 'noise' >&2\necho 'Diagram parse error' >&2\nexit 1\n")
+    script.chmod(0o755)
+    result = diagram.MermaidEngine(executable=str(script)).render("flowchart TD")
+    assert result.svg is None and result.failure == "Diagram parse error"
+
+
+@pytest.mark.skipif(not diagram.MermaidEngine().available, reason="no merman-cli binary on PATH")
+def test_the_real_mermaid_engine_draws_text_labels_deterministically():
+    source = "flowchart TD\n  A[Card on disk] -->|parse| B{Has cells?}\n"
+    first = diagram.MermaidEngine().render(source)
+    assert first.svg and first.svg.startswith("<svg")
+    # An `<img>` shows neither of these: the label would be a blank box.
+    assert "<foreignObject" not in first.svg and "<script" not in first.svg
+    assert ">Card on disk</text>" in first.svg
+    # A second, uncached engine must produce the same bytes (P1).
+    assert diagram.MermaidEngine().render(source).svg == first.svg
+
+
+@pytest.mark.skipif(not diagram.MermaidEngine().available, reason="no merman-cli binary on PATH")
+def test_the_real_mermaid_engine_reports_a_syntax_error():
+    result = diagram.MermaidEngine().render("flowchart TD\n  A --> --> [\n")
+    assert result.svg is None and "parse error" in result.failure

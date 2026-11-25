@@ -6,7 +6,7 @@
  * the extension's own code, but the message boundary is still a trust boundary.
  */
 
-import type { DocumentIR } from "@hypermarkdown/core";
+import { MAX_SOURCE_BYTES, isDiagramCell, type DocumentIR } from "@hypermarkdown/core";
 
 export type PreviewMode = "rendered" | "graph";
 
@@ -91,6 +91,8 @@ export type WebviewMessage =
   | { type: "fullScreen"; on: boolean }
   | { type: "runCell"; index: number }
   | { type: "runAllCells" }
+  /** Show on a diagram cell: draw this source again (HMD-0030). */
+  | { type: "showDiagram"; language: string; source: string }
   /** The button under a "vault not found" message (issue 0116). */
   | { type: "initVault" };
 
@@ -163,6 +165,18 @@ export function parseWebviewMessage(raw: unknown): WebviewMessage | null {
         : null;
     case "runAllCells":
       return { type: "runAllCells" };
+    case "showDiagram": {
+      // The source is drawn, so it is held to what a card's own fence is held
+      // to: a diagram cell's kind, and the size bound of a render.
+      const language = message["language"];
+      const source = message["source"];
+      return typeof language === "string" &&
+        isDiagramCell(language) &&
+        typeof source === "string" &&
+        new TextEncoder().encode(source).length <= MAX_SOURCE_BYTES
+        ? { type: "showDiagram", language, source }
+        : null;
+    }
     case "initVault":
       return { type: "initVault" };
     case "fullScreen":

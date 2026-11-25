@@ -142,8 +142,10 @@ the tree of cards.
   cards below it. A card without it is left out of the build, and the build
   warns when a published card links to one that is left out.
 - **Diagrams draw.** A `d2` fence is drawn when [`d2`](https://d2lang.com) is on
-  your `PATH` or Docker is available. Otherwise the page shows the diagram's
-  labelled source, and the build still passes.
+  your `PATH` or Docker is available. A `mermaid#show` fence is drawn when
+  [`merman-cli`](https://github.com/latias94/merman) is on your `PATH`.
+  Otherwise the page shows the diagram's labelled source, and the build still
+  passes.
 
 MkDocs 2.0 removes plugins, so the extra pins MkDocs below 2.0. The plugin's
 full documentation is in the

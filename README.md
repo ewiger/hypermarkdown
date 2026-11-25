@@ -131,7 +131,7 @@ an error. Your prose is left alone.
 
 ### Math, diagrams, and metadata
 
-TeX mathematics, D2 diagrams, callouts, collapsible sections, footnotes, task
+TeX mathematics, D2 and Mermaid diagrams, callouts, collapsible sections, footnotes, task
 lists, and tables are part of the format. A diagram is text in the file, so it
 lives in version control and shows up in a diff you can read:
 

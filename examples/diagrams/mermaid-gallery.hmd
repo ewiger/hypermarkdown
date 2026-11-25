@@ -1,0 +1,103 @@
+# A Mermaid gallery
+
+One cell for each of the diagram types a documentation card uses most. Back to
+[[index]].
+
+## Sequence
+
+```mermaid#show
+sequenceDiagram
+  participant U as Author
+  participant P as Preview
+  participant R as Renderer
+  U->>P: edits a cell
+  loop each diagram cell
+    P->>R: source on stdin
+    alt the source draws
+      R-->>P: SVG
+    else it does not
+      R-->>P: the reason
+    end
+  end
+  Note over P,R: bounded to 2 s
+```
+
+## Class
+
+```mermaid#show
+classDiagram
+  class Engine {
+    +String name
+    +render(source) Result
+  }
+  class D2Engine
+  class MermaidEngine
+  Engine <|-- D2Engine
+  Engine <|-- MermaidEngine
+  Engine "1" o-- "64" Result : caches
+```
+
+## Entity relationship
+
+```mermaid#show
+erDiagram
+  VAULT ||--o{ CARD : holds
+  CARD ||--o{ CELL : contains
+  CARD {
+    string path PK
+    string title
+  }
+  CELL {
+    int index
+    string kind
+  }
+```
+
+## Gantt
+
+```mermaid#show
+gantt
+  title Mermaid on par with D2
+  dateFormat YYYY-MM-DD
+  section Tools
+  Fence kinds :a1, 2026-11-25, 1d
+  Engines :a2, after a1, 1d
+  section Ship
+  Toolchain :b1, after a2, 2d
+```
+
+## Pie
+
+```mermaid#show
+pie title Fences in a vault
+  "hql" : 40
+  "d2" : 18
+  "mermaid" : 7
+```
+
+## Mindmap
+
+```mermaid#show
+mindmap
+  root((HyperMarkDown))
+    Tools
+      hmd
+      core
+      extension
+    Cards
+      wiki
+      proposals
+```
+
+## Git graph
+
+```mermaid#show
+gitGraph
+  commit
+  branch feature
+  checkout feature
+  commit
+  commit
+  checkout main
+  merge feature
+```

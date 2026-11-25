@@ -37,6 +37,7 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0031](HMD-0031/index.hmd) | drafted | Freeze — every open finding against 0.1, consolidated before fixing | [lang](../status/lang.hmd) |
 | [HMD-0032](HMD-0032/index.hmd) | drafted | HQL path — addressing inside a card with `@[[…]]`, for HyperMarkDown 0.2.0; a design draft, not ready to implement | [lang](../status/lang.hmd) |
 | [HMD-0033](HMD-0033/index.hmd) | drafted | `hmd-lsp` — the language server, written in Rust | [lsp](../status/lsp.hmd), [vsc-ext](../status/vsc-ext.hmd), [rs-core](../status/rs-core.hmd) |
+| [HMD-0034](HMD-0034/index.hmd) | accepted | Mermaid, drawn by a native renderer — `mermaid#show` on par with `d2#show`, through `merman-cli` | [lang](../status/lang.hmd), [hmd](../status/hmd.hmd), [ts-core](../status/ts-core.hmd), [vsc-ext](../status/vsc-ext.hmd), [pages](../status/pages.hmd) |
 
 ## Archived
 

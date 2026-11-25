@@ -573,3 +573,86 @@ body.is-graph-fullscreen .hmd-graph {
 .hmd-cell.is-running > .hmd-cell-output {
   opacity: 0.55;
 }
+
+/* -- diagram cells (HMD-0030) ------------------------------------------- */
+
+/* The layout is the HQL cell's. A cell with no drawing has nothing else to
+   look at, so its bar says why without waiting to be hovered. */
+.hmd-diagram-cell.is-none > .hmd-cell-bar,
+.hmd-diagram-cell.is-drawing > .hmd-cell-bar {
+  opacity: 1;
+}
+
+.hmd-diagram-cell.is-none {
+  border-left-color: var(--vscode-panel-border);
+}
+
+.hmd-diagram-cell.is-drawing > .hmd-cell-output,
+.hmd-diagram-cell.is-stale > .hmd-cell-output .hmd-diagram-image {
+  opacity: 0.55;
+}
+
+/* -- diagram zoom ------------------------------------------------------- */
+
+/* The drawing scrolls inside its own box once it is larger than the preview,
+   so a zoomed diagram does not push the page sideways. */
+.hmd-diagram-view {
+  position: relative;
+}
+
+.hmd-diagram-scroll {
+  overflow: auto;
+  max-height: 85vh;
+  border-radius: var(--hmd-radius);
+}
+
+.hmd-diagram-scroll > .hmd-diagram-image {
+  display: block;
+}
+
+/* Three small buttons at the top right edge, quiet until the pointer is over
+   the drawing or the drawing is not at its own size. */
+.hmd-diagram-zoom {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  display: flex;
+  gap: 1px;
+  opacity: 0;
+  transition: opacity 120ms ease-in-out;
+}
+
+.hmd-diagram-view:hover > .hmd-diagram-zoom,
+.hmd-diagram-view:focus-within > .hmd-diagram-zoom {
+  opacity: 1;
+}
+
+.hmd-diagram-view.is-zoomed > .hmd-diagram-zoom {
+  opacity: 0.85;
+}
+
+.hmd-diagram-zoom-button {
+  appearance: none;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  color: var(--vscode-foreground);
+  font: inherit;
+  font-size: 0.75em;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hmd-diagram-zoom-button:first-child {
+  border-radius: var(--hmd-radius) 0 0 var(--hmd-radius);
+}
+
+.hmd-diagram-zoom-button:last-child {
+  border-radius: 0 var(--hmd-radius) var(--hmd-radius) 0;
+}
+
+.hmd-diagram-zoom-button:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}

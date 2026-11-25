@@ -224,7 +224,7 @@ repository's own `doc/` tree.
 
 ## Math, diagrams, callouts
 
-TeX mathematics, D2 diagrams, callouts, tables, task lists, footnotes,
+TeX mathematics, D2 and Mermaid diagrams, callouts, tables, task lists, footnotes,
 strikethrough. None of these are HyperMarkDown's own — they are the tier the
 wider markdown world settled on, and both `hmd render --to html` and the site
 build assume them present.
@@ -232,6 +232,12 @@ build assume them present.
 Diagrams go through the [`d2`](https://d2lang.com) binary, which is deliberately
 *not* a Python dependency: without it a diagram degrades to its own labelled
 source rather than failing the build.
+
+A `mermaid#show` fence is a Mermaid diagram. It goes through
+[`merman-cli`](https://github.com/latias94/merman), a native Mermaid renderer
+that starts no browser, found on `PATH`, and it degrades the same way without
+it. A `d2#show` fence is drawn as a `d2` fence is. A plain `mermaid` fence is a
+listing and stays a code block.
 
 ## The library
 

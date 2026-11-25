@@ -81,6 +81,12 @@ jobs:
       - name: Check d2
         run: d2 --version
 
+      # Mermaid is drawn by `merman-cli`, from the same toolchain release since
+      # 0.7.0 (issue 0115). With it on PATH the tests against the real renderer
+      # run instead of skipping, and the site build below draws Mermaid cells.
+      - name: Check merman-cli
+        run: merman-cli --version
+
       # The second consumer of the resolver (HMD-0002). A build that goes red
       # here means the model works for lint but not for rendering.
       - name: Build the wiki
@@ -149,6 +155,10 @@ jobs:
         env:
           HMD_REQUIRE_PARITY: "1"
           HQL_BIN: ${{ steps.toolchain.outputs.bin }}/hql
+          # The diagram engine's tests against the real Mermaid renderer run
+          # when this names one: that its flags are accepted, and that labels
+          # come back as SVG text (issue 0115).
+          MERMAN_BIN: ${{ steps.toolchain.outputs.bin }}/merman-cli
 
       - name: Package the extension
         run: npm run -w tools/hmd-vsc-ext package

@@ -207,6 +207,12 @@
         "title": "Run All HQL Cells",
         "category": "HyperMarkDown",
         "icon": "$(run-all)"
+      },
+      {
+        "command": "hyperMarkdown.showDiagram",
+        "title": "Show Diagram",
+        "category": "HyperMarkDown",
+        "icon": "$(eye)"
       }
     ],
     "menus": {
@@ -250,6 +256,10 @@
         {
           "command": "hyperMarkdown.runAllCells",
           "when": "editorLangId == hmd && isWorkspaceTrusted"
+        },
+        {
+          "command": "hyperMarkdown.showDiagram",
+          "when": "editorLangId == hmd"
         }
       ]
     },
@@ -279,6 +289,11 @@
           "type": "string",
           "default": "",
           "markdownDescription": "Absolute path to a `d2` executable to render diagrams with. Empty uses the `d2` bundled with this build — a pinned [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain) release, the same binary the documentation site is built with — falling back to `d2` on `PATH`. Set this only to test a different build of d2 deliberately: it takes precedence over the bundled one, and a path that is not an executable is reported rather than silently ignored."
+        },
+        "hyperMarkdown.diagram.mermaidPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Absolute path to a `merman-cli` executable to draw Mermaid diagrams with. Empty uses the `merman-cli` bundled with this build — a pinned [hypermarkdown-toolchain](https://github.com/ewiger/hypermarkdown-toolchain) release, the same binary the documentation site is built with — falling back to `merman-cli` on `PATH`. [merman](https://github.com/latias94/merman) draws Mermaid without a browser. Set this only to test a different build of it deliberately: it takes precedence over the bundled one, and a path that is not an executable is reported rather than silently ignored."
         },
         "hyperMarkdown.hql.path": {
           "type": "string",
@@ -367,6 +382,7 @@
     "example:small": "node ../../scripts/launch-example.mjs small",
     "example:notebook": "node ../../scripts/launch-example.mjs notebook",
     "example:highlighting": "node ../../scripts/launch-example.mjs highlighting",
+    "example:diagrams": "node ../../scripts/launch-example.mjs diagrams",
     "example:repo": "node ../../scripts/launch-example.mjs repo",
     "example:wiki": "node ../../scripts/launch-example.mjs wiki",
     "package": "npm run build && node ../../scripts/toolchain.mjs --dest tools/hmd-vsc-ext/toolchain && vsce package --no-dependencies",
