@@ -66,9 +66,9 @@ number. A row with nothing genuinely behind it carries `—` rather than a
 plausible guess. This is the column that replaced an earlier `Spec` column
 answering "which proposal section": the question was never wrong, the answer
 was, because a number tells a reader where something currently sits and that is
-the one fact guaranteed to change. The address grammar these references use is
-specified in [HMD-0006](../proposals/HMD-0006/README.md); the trackers are
-cards, so `hmd lint` checks every one of these references.
+the one fact guaranteed to change. These references are ordinary links to a
+heading, as the specification defines them under *Heading anchors*; the
+trackers are cards, so `hmd lint` checks every one of these references.
 
 A tracker cites a proposal under a short name, such as `hmd-0021`. The
 tracker's frontmatter binds that name with an import:

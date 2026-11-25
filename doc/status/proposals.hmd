@@ -4,7 +4,7 @@ Every proposal under [`doc/proposals/`](../proposals/README.md), read from its
 `README.md`: the number, the title, the status, and the trackers that cite it.
 The status is the first word of the `**Status**:` line; one outside the list in
 [the template](../proposals/TEMPLATE.md) (`drafted`, `accepted`, `rejected`,
-`withdrawn`, `superseded`) shows as `invalid`. A proposal carries no
+`deferred`, `withdrawn`, `superseded`) shows as `invalid`. A proposal carries no
 implementation state of its own: how far its code has got is in the trackers
 listed beside it, which are every tracker under `doc/status/` that names the
 proposal, in any case. Compare that column with the Progress column of
@@ -24,7 +24,7 @@ fn status_of(body: String) : String =
 
 // The status, or `invalid` for a value outside the template's list.
 fn checked(status: String) : String =
-    status given ["drafted", "accepted", "rejected", "withdrawn", "superseded"] | any(s => s == status)
+    status given ["drafted", "accepted", "rejected", "deferred", "withdrawn", "superseded"] | any(s => s == status)
     otherwise "invalid"
 
 // The trackers: every `.hmd` card directly under `status/` but the three generated views.

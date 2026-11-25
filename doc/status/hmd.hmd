@@ -7,6 +7,7 @@ import:
   - from /proposals/HMD-0024 import README as hmd-0024
   - from /proposals/HMD-0028 import README as hmd-0028
   - from /proposals/HMD-0030 import README as hmd-0030
+  - from /proposals/HMD-0032 import README as hmd-0032
 ---
 
 # STATUS — `hmd`, the reference implementation
@@ -78,6 +79,7 @@ commit: the retired domain does not redirect.
 | parked | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name | Waits on that branch being picked up | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]] |
 | todo | **Draw only diagram cells in the site build.** A `d2#show` fence is drawn as a `d2` fence is today, and a plain `d2` fence becomes a code block | Lands in the same release as the TypeScript implementation's change and the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`] | [[hmd-0030#the-site-build]] |
 | todo | **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells, through the same module and the same bounds as D2, with the same labelled placeholder when no renderer is installed | Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains `mermaid#show` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd) |
+| backlog | **Resolve HQL paths, the canonical implementation.** Recognise `@[[…]]` and `!@[[…]]`, build a card's tree of sections and anchored blocks, select nodes by child, descendant, and anchor steps, link to the first selected node, embed every selected node, and report HMD020. Write the three corpus cases the record lists, which the other implementations then follow | Waits on the language answering the record's open questions and writing the rule into the specification for 0.2.0 | [[hmd-0032#selecting-nodes]], [[hmd-0032#links-and-embeds]], [[hmd-0032#test-plan]] |
 
 ## Broken
 
@@ -214,6 +216,7 @@ improvement.
 
 ## Changelog
 
+- 2026-11-25: a backlog row for HQL path, HMD-0032, the construct `@[[…]]` that HyperMarkDown 0.2.0 would add; it replaces the in-card address of HMD-0006, which is archived as deferred.
 - 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-22: the 0.1 rules are implemented, unreleased.
 - 2026-11-22: the diagnostic count, eighteen, matches the code. Corrected on

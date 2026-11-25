@@ -1,7 +1,19 @@
 # HMD-0006: Extended URI for transclusion and link referencing when addressing inside a card
 
-**Status**: drafted
+**Status**: deferred
 **Created**: 2026-09-14
+
+> **Archived on 2026-11-25 as deferred.** The goal is right: a link should be
+> able to name a passage inside a card. The design came too early. It changes
+> the grammar of the ordinary `[[…]]` link, so `/`, `@`, and words such as
+> `Para3` inside a fragment would change meaning, and every tool that parses a
+> wikilink would break. The work continues in
+> [HMD-0032](../HMD-0032/README.md), which adds a separate construct,
+> `@[[…]]`, for addressing inside a card and leaves `[[…]]` exactly as 0.1
+> defines it. The unreleased implementation on the `feat/in-card-address`
+> branch is not merged. Its block segmentation, sentence and word rules, and
+> integrity digest are material for later versions of HMD-0032. The text
+> below is kept unchanged as the record of the first design.
 
 ## Abstract
 
@@ -567,3 +579,5 @@ second namespace or a widened root — is deliberately left for its own record.
 ## Changelog
 
 - 2026-09-14: drafted
+- 2026-11-25: archived as deferred; addressing inside a card continues in
+  HMD-0032 as the separate `@[[…]]` construct

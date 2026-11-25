@@ -1,6 +1,6 @@
 # HMD-NNNN: <Title>
 
-**Status**: drafted | accepted | rejected | withdrawn | superseded
+**Status**: drafted | accepted | rejected | deferred | withdrawn | superseded
 **Created**: YYYY-MM-DD
 **Source**: [document this record was derived from](<path>)
 

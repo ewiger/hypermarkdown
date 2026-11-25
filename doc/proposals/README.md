@@ -18,7 +18,6 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0003](HMD-0003/README.md) | superseded | HQL — the Hyper Query Language, now [its own project](https://hql-lang.org/) with its own documentation | [lang](../status/lang.hmd) |
 | [HMD-0004](HMD-0004/README.md) | drafted | The hyper web — namespaces beyond one tree (stub, no mechanism) | [lang](../status/lang.hmd) |
 | [HMD-0005](HMD-0005/README.md) | drafted | The HyperMarkDown rename — domain, repository, and registries | [hmd](../status/hmd.hmd) |
-| [HMD-0006](HMD-0006/README.md) | drafted | Extended URI for transclusion and link referencing when addressing inside a card | [lang](../status/lang.hmd) |
 | [HMD-0020](HMD-0020/README.md) | drafted | `@hypermarkdown/core` — the TypeScript document model | [ts-core](../status/ts-core.hmd) |
 | [HMD-0021](HMD-0021/README.md) | drafted | The VS Code extension — the HyperMarkDown preview surface | [vsc-ext](../status/vsc-ext.hmd) |
 | [HMD-0022](HMD-0022/README.md) | drafted | Diagrams as committed artifacts | [ts-core](../status/ts-core.hmd), [vsc-ext](../status/vsc-ext.hmd) |
@@ -31,6 +30,17 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0029](HMD-0029/README.md) | drafted | Markdown files are cards | [lang](../status/lang.hmd), [hmd](../status/hmd.hmd), [ts-core](../status/ts-core.hmd), [rs-core](../status/rs-core.hmd), [semantics](../status/semantics.hmd) |
 | [HMD-0030](HMD-0030/README.md) | drafted | Diagram cells — `d2#show` and `mermaid#show`, drawn like HQL cells with Show in place of Run | [vsc-ext](../status/vsc-ext.hmd), [ts-core](../status/ts-core.hmd), [hmd](../status/hmd.hmd), [lang](../status/lang.hmd), [pages](../status/pages.hmd) |
 | [HMD-0031](HMD-0031/README.md) | drafted | Freeze — every open finding against 0.1, consolidated before fixing | [lang](../status/lang.hmd) |
+| [HMD-0032](HMD-0032/README.md) | drafted | HQL path — addressing inside a card with `@[[…]]`, for HyperMarkDown 0.2.0 | [lang](../status/lang.hmd), [hmd](../status/hmd.hmd), [ts-core](../status/ts-core.hmd), [rs-core](../status/rs-core.hmd) |
+
+## Archived
+
+A proposal is archived when its design is set aside. Its folder stays where it
+is, so every link and import that names it keeps working, and its status says
+why it was set aside.
+
+| ID | Status | Title | Continued in |
+| --- | --- | --- | --- |
+| [HMD-0006](HMD-0006/README.md) | deferred | Extended URI for transclusion and link referencing when addressing inside a card | [HMD-0032](HMD-0032/README.md) |
 
 ## Progress is tracked per tool
 
