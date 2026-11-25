@@ -1,52 +1,71 @@
 # Introduction
 
-A `.hmd` file is a Markdown file that has learned to do more. Reading one
-requires nothing — any editor, any renderer, GitHub's file view all show you a
-sensible page. Writing one is a single page of new syntax on top of what you
-already know. And underneath both sits a toolchain that treats your writing the
-way a compiler treats a program: names resolve, references are checked, and
-multiple autodiscovery matches are reported rather than ranked.
+A `.hmd` file is a Markdown file with a few additions. HyperMarkDown calls
+each such file a **card**. A card is still Markdown, so any editor, any
+Markdown renderer, and GitHub's file view can display it.
 
-This chapter is the format at a glance. Every layer appears here briefly, with
-a pointer to where it is treated properly; none is specified here.
+HyperMarkDown adds three things to Markdown:
 
-## Three layers of syntax
+- **frontmatter**, a header at the top of the file that holds metadata;
+- **wikilinks**, which are links from one card to another, written `[[…]]`;
+- **cells**, which are code blocks that a tool runs or draws.
 
-**The Markdown you know.** Paragraphs, emphasis, headings, lists, blockquotes,
-fenced code. These CommonMark constructs remain available, and a fenced block
-stays literal all the way down, which is the escape hatch for showing syntax
-instead of invoking it. Byte sequences recognized as HMD syntax — such as
-wikilinks and frontmatter — acquire HMD semantics.
+A linter, `hmd lint`, checks that every wikilink points to a card that exists.
 
-**The rich layer.** Tables, footnotes, task lists, callouts, TeX mathematics,
-D2 diagrams. None of these are original Markdown, and none are
-HyperMarkDown's own — they are the conventional tier the wider Markdown world
-settled on, and the format assumes them present and renders them as
-first-class content:
+This chapter describes each part briefly and links to the page that covers it
+in full.
+
+## What a card contains
+
+A card has two parts, in this order:
+
+1. An optional frontmatter block, between two `---` lines.
+2. The body, which is Markdown text.
+
+```markdown
+---
+tags: [guides]
+---
+
+# Install
+
+Follow [[setup]] first.
+```
+
+## The syntax of the body
+
+The body uses three groups of syntax.
+
+**CommonMark.** Paragraphs, emphasis, headings, lists, blockquotes, and fenced
+code blocks work as they do in any Markdown file. The text inside a fenced
+code block is never interpreted, so you can use a fenced block to show a
+wikilink as text.
+
+**Common Markdown extensions.** Tables, footnotes, task lists, callouts, and
+TeX mathematics. HyperMarkDown did not invent these. They come from GitHub
+Flavored Markdown, Python-Markdown, and TeX, and HyperMarkDown includes them
+in the language:
 
 !!! note "This callout is real"
 
-    So is $e^{i\pi} + 1 = 0$ beside it. What a page can carry, shown working,
-    is [Features](features.md).
+    So is $e^{i\pi} + 1 = 0$ beside it. [Features](features.md) shows each
+    construct with a working example.
 
-**The hyper layer.** What HyperMarkDown itself adds, and the part that is
-genuinely new. It is all variations on one idea — *linking to another card, or to
-a part of one*:
+**HyperMarkDown's own syntax.** Wikilinks, embeds, and block anchors, which
+the table below lists, and cells, which have a section of their own:
 
 | Written | Means |
 | --- | --- |
 | `[[card]]` | a wikilink to a card, with `card` as its address |
-| <code>[[card&#124;words]]</code> | the same link, showing different words |
-| `[[card#Heading]]` | a link to a section inside that card |
-| `text ^name` | a block anchor, naming one block |
-| `[[card#^name]]` | a link to that named block |
-| `![[…]]` | an embed — any of the above, spliced in |
+| <code>[[card&#124;words]]</code> | the same wikilink, displayed as `words` |
+| `[[card#Heading]]` | a wikilink to the section under that heading in the card |
+| `text ^name` | a block anchor, which gives that block the identifier `name` |
+| `[[card#^name]]` | a wikilink to the block with the identifier `name` |
+| `![[…]]` | an embed, which inserts the content at that address into the page |
 
-The surface HyperMarkDown defines is small enough to specify and small enough
-that the resolver behind it stays checkable. The
-richness comes from everywhere else on the page, bought from the Markdown
-ecosystem rather than rebuilt, which is why the feature set keeps growing
-while the table above does not have to.
+A block is one paragraph, one list item, or a similar unit of Markdown. An
+embed takes any address that a wikilink takes, so it can insert a whole card,
+one section, or one block.
 
 ## Where a wikilink points
 
@@ -76,22 +95,82 @@ warning. If only the last step finds a match and it finds several files, the
 wikilink is ambiguous, and you choose one by writing a longer address such as
 `[[guides/tokens]]`. The complete rules are in [Namespaces](namespaces.hmd).
 
+## Cells
+
+A **cell** is a fenced code block that a tool runs or draws. An ordinary
+fenced block is only shown as code. The first word after the opening fence
+selects the kind of cell:
+
+| Kind | What the tool does |
+| --- | --- |
+| `hql#eval` | runs an [HQL](https://hql-lang.org/) query and saves its output in the card |
+| `hql#query` | runs an HQL query for the other cells that read it, and saves no output |
+| `d2#show` | draws a D2 diagram |
+| `mermaid#show` | draws a Mermaid diagram |
+
+A fence marked only `hql`, `d2`, or `mermaid` is not a cell. It shows the
+source as code and nothing runs.
+
 ## Frontmatter
 
-A card may open with a YAML block. Four keys mean something to the toolchain —
-`tags` for what a card is about, `use` for per-subtree feature toggles,
-`import` for explicit name bindings, `nav` for its place in a published site —
-including `nav.visibility`, which decides whether it is published at all.
-Every other key is yours, and nothing will inspect it.
+Frontmatter is the header of a card. It is a block of YAML at the very top of
+the file, between two `---` lines, and it holds metadata about the card as
+keys and values:
 
-## The check
+```yaml
+---
+tags: [area/auth, status/accepted]
+use: [no_autodiscovery]
+import:
+  - from /reference import api
+nav:
+  order: 10
+  visibility: public
+---
+```
 
-`hmd lint` reads the tree and reports what it could not resolve — file, line,
-rule ID. The distinction it draws is a compiler's: a link to a card that does
-not exist yet is a **warning**, because writing forward is how a wiki grows; a
-malformed link or multiple autodiscovery matches are **errors**. Explicitly
-ordered wildcard imports use declaration precedence and report shadowing as a
-warning. Everything else about your prose is left alone.
+HyperMarkDown reads four keys:
+
+- **`tags`** is a list of labels that classify the card. A `/` separates
+  levels, so `area/auth` is a tag below `area`.
+- **`use`** turns a language feature on or off for the card. The only feature
+  today is `autodiscovery`, which is the search of the whole namespace in step
+  4 above. `use: [no_autodiscovery]` turns that search off. A `use` key in a
+  folder's `index.hmd` applies to every card below that folder.
+- **`import`** makes cards from another directory available to the wikilinks
+  of this card. After `from /reference import api`, the wikilink `[[api]]`
+  points to `reference/api`. `from /reference import *` adds the whole
+  directory to step 3 of the search.
+- **`nav`** controls the published site. `nav.order` is an integer that sorts
+  the card in the navigation. `nav.visibility` is `public` or `private` and
+  decides whether the card is published at all. The default is `private`.
+
+Every other key is yours. HyperMarkDown does not interpret it, and tools such
+as HQL can still read it.
+
+## Checking a vault
+
+`hmd lint` reads every card in a vault and prints one line for each problem.
+The line gives the file, the line and column, the severity, and the rule ID:
+
+```text
+guides/install.hmd:13:27: warning[HMD001] [[deploy]] does not resolve to a page
+setup.hmd:9:51: error[HMD002] [[tokens]] matches 2 pages; qualify it (candidates: guides/tokens.hmd, reference/tokens.hmd)
+```
+
+A wikilink to a card that does not exist yet is a **warning**. You can
+therefore write the link first and the card later. These problems are
+**errors**:
+
+- a wikilink that is malformed;
+- a wikilink whose address matches several files in the search of the whole
+  namespace;
+- a wikilink to a heading or a block that the target card does not contain;
+- a frontmatter block that is not valid YAML, or a reserved key with a
+  malformed value.
+
+The linter checks only HyperMarkDown syntax. It does not check your spelling,
+your style, or your Markdown formatting.
 
 ## Adopting it
 
@@ -107,16 +186,15 @@ After that, you can adopt the format one file at a time. Rename a `.md` file to
 `.hmd`, check any text that now has a HyperMarkDown meaning, add one link, and
 run `hmd lint`. The other files can stay plain Markdown.
 
-## Where the full picture lives
+## Where to read more
 
-- [The HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) is the normative
-  text behind it: the grammar, the resolution algorithm, and the diagnostics,
-  stated exactly.
+- [The HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) is the
+  normative text. It defines the grammar, the resolution algorithm, and every
+  diagnostic.
 - [Features](features.md) lists what the language supports, with a working
-  example of each.
+  example of each construct.
 
 !!! tip "Read next"
 
-    [The HMD Tutorial](../wiki/hmd-tutorial.hmd) — every construct sketched on
-    this page, taught properly and in order. Read it once and you can write the
-    format.
+    [The HMD Tutorial](../wiki/hmd-tutorial.hmd) teaches every construct on
+    this page, in order.
