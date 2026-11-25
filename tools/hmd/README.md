@@ -249,9 +249,9 @@ for diagnostic in check(workspace):
 `parse`, `resolve`, `embed`, `urls`, and `lint` do not import MkDocs — the
 plugin is one file, `mkdocs_plugin.py`, and swapping the renderer is that file
 plus a `mkdocs.yml` rather than a re-specification. Every entry point that
-ingests a document takes the document's *text*, not only a path, because the
-language server this package will grow serves buffers that have never been
-saved.
+ingests a document takes the document's *text*, not only a path, because an
+editor's buffers have never been saved and a caller may hold a card only as
+text.
 
 ## Versioning
 

@@ -13,6 +13,12 @@ Every tool lives in its own directory under `tools/`:
   A third implementation, and a narrower one: it resolves, and neither lints
   nor renders. Its own Cargo package with its own `Cargo.lock`, outside both
   the uv and the npm workspace; published to crates.io as `hypermarkdown`.
+- `tools/hmd-lsp/` — `hmd-lsp`, the language server, as a Rust program. It
+  resolves through the crate in `tools/hmd-rs-core/`, by path, and keeps no
+  resolution code of its own; it does not lint. Its own Cargo package with
+  its own `Cargo.lock`; released on an `lsp-vX.Y.Z` tag. The package is
+  `hypermarkdown-lsp` on crates.io, because `hmd-lsp` there is another
+  project's, and the program it builds is `hmd-lsp`.
 - `tools/hmd-semantics/` — `hmd-semantics`, the builder of a vault's semantic
   index, as the Python distribution `hypermarkdown-semantics`. Its own project
   with its own `uv.lock`, outside the uv workspace, so that `torch` and
@@ -47,11 +53,11 @@ folder note as a section index; and `doc/proposals/TEMPLATE.md`. A card that the
 default. Run `hmd lint` from `doc/` after any edit there.
 
 Track progress **per tool**, in `doc/status/`: `lang.hmd` for the format itself,
-`hmd.hmd`, `ts-core.hmd`, `vsc-ext.hmd`, `rs-core.hmd`, and `semantics.hmd` for the
-five tools, and
+`hmd.hmd`, `ts-core.hmd`, `vsc-ext.hmd`, `rs-core.hmd`, `lsp.hmd`, and
+`semantics.hmd` for the six tools, and
 `pages.hmd` for the website. `kanban.hmd`, `open.hmd`, and `proposals.hmd`
 beside them are generated views, not trackers: HQL queries over the vault
-`doc/`, re-rendered with the command in `doc/status/index.hmd`. The seven
+`doc/`, re-rendered with the command in `doc/status/index.hmd`. The eight
 trackers are the only place work is tracked, and they
 read in one order: **Status** in prose, then **Open**, **Broken**, **Limitations
 (known gaps)**, and **Done** last. Open rows carry a state in the board's own

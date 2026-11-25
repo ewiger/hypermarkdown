@@ -1,0 +1,385 @@
+---
+nav:
+  visibility: public
+---
+
+# HMD-0033: `hmd-lsp` — the language server, written in Rust
+
+**Status**: drafted
+**Created**: 2026-11-25
+**Source**: [the board card that opened the work](../../issues/0117-a-language-server-in-rust.hmd)
+
+## Abstract
+
+HyperMarkDown gets a language server, and the server is a Rust program named
+`hmd-lsp`, in its own directory `tools/hmd-lsp/`. It speaks the Language
+Server Protocol over standard input and output. It resolves every reference
+through the `hypermarkdown` crate in `tools/hmd-rs-core/` and keeps no
+resolution code of its own. It answers semantic tokens, go to definition,
+hover, and diagnostics for the three ways a reference can fail to resolve;
+completion and rename follow. It reads the text an editor holds in front of
+the text on disk. The VS Code extension becomes a client of it, and keeps
+working when the program is absent. The server ships as one native binary per
+platform. This record supersedes the earlier decision that the language server
+MUST be written in Python against `pygls` and live in `tools/hmd/`. Python
+stays the canonical implementation and the only complete linter.
+
+## Motivation
+
+The work started from a question about syntax highlighting. The VS Code
+extension colours a card with a TextMate grammar, and the site colours a code
+sample with a Pygments lexer. Both match text with regular expressions. Neither
+can know whether a link resolves, and neither serves an editor other than VS
+Code. Semantic tokens from a language server do both: one implementation
+colours a card in every editor that speaks the protocol, and it colours a
+broken link differently from a working one.
+
+A language server was already decided, in Python. That decision is reversed
+here, for these reasons.
+
+- **The reason for Python no longer holds.** The earlier record chose Python
+  because a server written in any other language would be a third place where
+  resolution behaviour lives, beside the Python and the TypeScript
+  implementations. That third place now exists for another reason. HQL, the
+  query language in a sibling repository, is written in Rust and needed the
+  resolver as a library, so the repository gained the `hypermarkdown` crate.
+  The crate produces the specified resolutions on every case of the
+  conformance corpus, and its list of known differences is empty. A Rust
+  server adds no implementation. It adds a caller to one that exists.
+- **The Rust crate already reads text.** A language server answers about a
+  buffer that may never have been saved. The crate loads a vault through a
+  host trait, so a caller can place documents it holds in memory in front of
+  the files. The Python implementation cannot do this yet: its workspace
+  index reads every card from disk, and two changes to that index were the
+  recorded blockers of the Python server.
+- **A Rust server is one native binary.** The project already ships two
+  native binaries to editor users, `d2` and `hql`, through a pinned toolchain
+  that the extension bundles. A Rust server ships the same way. A Python
+  server needs an interpreter on the user's machine, or a frozen bundle of an
+  interpreter and five packages for each platform.
+- **An editor starts the server with every window.** A native program starts
+  in milliseconds. An interpreter that imports a Markdown library, a YAML
+  library and a protocol library does not.
+
+**Risk this record must not defer.** With this decision an editor shows the
+answers of two implementations side by side: the preview and the live
+diagnostics come from the TypeScript implementation, and the colours, the
+hover and the definitions come from the Rust one. A disagreement between them
+is visible to a user as a link coloured as broken that the preview follows.
+The conformance corpus is what prevents this, and it holds both
+implementations to the same expected resolutions. The specification below
+therefore forbids the server from resolving anything itself.
+
+## Goals
+
+- A language server that any editor speaking the protocol can use, with no
+  interpreter and no runtime.
+- Colours that say whether a reference resolves.
+- Answers about the text in the editor, saved or not.
+- A VS Code extension that uses the server when it is present and loses
+  nothing it has today when it is absent.
+
+## Non-goals
+
+- **Linting.** The server reports the three outcomes the resolver has for a
+  reference that does not resolve. It does not report a missing heading, a
+  repeated block anchor, a malformed import, or any other rule of the linter.
+  `hmd lint` in Python stays the linter for the command line, for continuous
+  integration and for the site build, and the TypeScript implementation stays
+  the source of live diagnostics in VS Code.
+- **Rendering.** The preview is the extension's, on the TypeScript
+  implementation. The server produces no HTML and expands no embed.
+- **Moving canonicity.** Python stays the canonical implementation. Where two
+  implementations disagree about a case the corpus covers, Python defines the
+  correct answer.
+- **Replacing the TextMate grammar or the Pygments lexer.** The grammar
+  colours a card before the server answers and when there is no server. The
+  lexer colours code samples on the site, where there is no editor.
+- **A transport other than standard input and output.**
+
+## Specification
+
+### The tool
+
+- The server MUST be a Rust program in `tools/hmd-lsp/`, built as one binary
+  named `hmd-lsp`. The Cargo package is named `hypermarkdown-lsp`, because
+  the name `hmd-lsp` on crates.io belongs to an unrelated project. It is its own Cargo package with its own committed
+  `Cargo.lock`, outside both the uv workspace and the npm workspace, as the
+  resolver crate is.
+- The package MUST depend on the `hypermarkdown` crate by path, at
+  `../hmd-rs-core`. A change to the resolver then reaches the server on the
+  next build, and the two cannot drift apart inside one commit.
+- The package MUST NOT be folded into the resolver crate. HQL depends on that
+  crate as a library, and a protocol library has no place among a resolver's
+  dependencies.
+- The tool owns its `README.md`, `CHANGELOG.md`, `LICENSE` and `DEVELOP.md`,
+  as every tool does. Its work is tracked in `doc/status/lsp.hmd`. Its release
+  tag carries the prefix `lsp-v`.
+
+### Resolution is the crate's
+
+- The server MUST obtain every resolution from the `hypermarkdown` crate. It
+  MUST NOT contain a rule that decides which card a reference names.
+- When an answer needs something the crate does not offer, the crate gains it
+  and the server calls it. The first case of this is loading a vault from disk
+  through a host the caller supplies, which the crate gains with this record.
+- The server MAY read the text of a reference to find where its parts lie,
+  because where a page name starts and ends is presentation and decides
+  nothing.
+
+### The transport and the program
+
+- The server MUST speak the Language Server Protocol, as JSON-RPC messages
+  with `Content-Length` framing, over standard input and standard output. It
+  MUST write nothing else to standard output.
+- `hmd-lsp --stdio` and `hmd-lsp` with no argument both start the server.
+  `--version` prints the name and the version, and `--help` prints the usage.
+  Any other argument is an error with exit status 2.
+- The server exits with status 0 after the client sends `shutdown` and then
+  `exit`.
+- A request the server does not answer MUST get the protocol's
+  method-not-found error. A request whose parameters the server cannot read
+  MUST get the invalid-parameters error. Neither ends the server.
+
+### Documents and vaults
+
+- The server MUST answer about the text the client last sent for a document,
+  and never about the file of the same path on disk. It asks the client for
+  the whole text on every change.
+- A document belongs to the vault whose root is the nearest directory at or
+  above the document that holds a `.hmd` directory. The namespace root is the
+  directory that the vault's `location_path` setting names.
+- The server MUST load a vault from disk with every open document placed in
+  front of the file of the same path. A document that is open and saved
+  nowhere is a card of the vault, at the path its URI names.
+- A document outside every vault, a document outside its vault's namespace
+  root, a document of a vault whose configuration cannot be read, and a
+  document whose URI is not a `file:` URI all resolve nothing. The server
+  still returns their semantic tokens, with no resolution modifier, and
+  reports no diagnostic for them.
+- The server MUST NOT resolve a reference across a vault boundary.
+- When a document changes, opens or closes, and when the client reports a
+  changed file, the server drops every loaded vault and loads again on the
+  next request. This is correct and not fast; a faster path is open work.
+- The server asks the client to watch `**/*.{hmd,md,markdown}` and
+  `**/.hmd/config.toml` when the client allows a server to register watchers.
+
+### Positions
+
+- The resolver counts a column in Unicode code points, from 1. The protocol
+  counts a character offset in UTF-16 code units, from 0. The server MUST
+  convert every position that crosses this boundary. A card with an emoji
+  before a link is the case that breaks a server that does not.
+- A line ends at a line feed, at a carriage return followed by a line feed,
+  and at a lone carriage return, on both sides, so a line number is the same
+  number on both.
+
+### Semantic tokens
+
+The server answers `textDocument/semanticTokens/full`. It emits one token for
+each part of each reference:
+
+| Part of a reference | Token type |
+| --- | --- |
+| The page, as in `[[tokens]]`, without the whitespace around it | `class` |
+| The fragment with its `#`, as in `#Rotation` or `#^rotation` | `property` |
+| The display text after the first vertical bar | `string` |
+
+Every token of one reference carries the same modifiers:
+
+| Modifier | The reference |
+| --- | --- |
+| `unresolved` | names no card |
+| `ambiguous` | names more than one card |
+| `outside` | has a path that leaves the namespace |
+| `embed` | is an embed, written `![[…]]` |
+
+- The token types MUST be standard types of the protocol, so that a theme
+  colours them with no configuration.
+- The modifiers are the server's own. A client that does not know them
+  ignores them, and a client that knows them gives each a colour.
+- A reference inside a code span, a fenced block or a comment is not a
+  reference and gets no token, because the resolver does not report it.
+- The brackets get no token. The grammar in the editor colours them.
+
+### Go to definition
+
+- On a reference that resolves, the answer is the start of the card it names.
+- On an ambiguous reference, the answer is the start of every candidate, so
+  the editor offers the choice.
+- On any other reference, and outside every reference, the answer is empty.
+- The position just after the closing brackets counts as on the reference.
+
+### Hover
+
+- On a reference, the answer says what the reference resolves to: the path of
+  the card and the rule that found it, or that no card has the name, or the
+  list of candidates, or that the path leaves the namespace.
+- The rules are named in words: the path in the reference, a named import, the
+  spine, a directory imported with `*`, and autodiscovery.
+
+### Diagnostics
+
+The server publishes diagnostics for every open document after each change.
+It reports three outcomes, with the canonical linter's code, severity and
+message for each:
+
+| Outcome | Code | Severity | Message |
+| --- | --- | --- | --- |
+| The reference names no card | `HMD001` | warning | `[[x]] does not resolve to a page` |
+| The reference names several cards | `HMD002` | error | `[[x]] matches 2 pages; qualify it (candidates: a/x.hmd, b/x.hmd)` |
+| The path leaves the namespace | `HMD003` | error | `[[../x]] resolves outside the namespace root` |
+
+- The source of each diagnostic is `hmd`.
+- The server publishes for every open document after any change, because a
+  change to one card can change what a reference in another resolves to.
+- A client MAY turn diagnostics off by sending `{"diagnostics": false}` as the
+  initialization options. The server then publishes none.
+
+### The VS Code extension is a client
+
+- The extension MUST look for the program in this order: the path in a
+  setting, the bundled toolchain directory, then `PATH`. This is the order it
+  already uses for `d2` and `hql`.
+- The extension MUST start the server with diagnostics turned off, because
+  the TypeScript implementation already reports the same three outcomes and
+  the rest of the linter's rules. A user would otherwise see each problem
+  twice.
+- **The extension MUST keep working without the server.** When it finds no
+  program, or the program fails to start, the preview, the graph, the cells
+  and the live diagnostics behave exactly as before, and the grammar colours
+  the card. The extension says once that the server is absent and what it
+  adds.
+- The extension MUST NOT start the server in a virtual workspace, where there
+  is no file system for a process to read, or in an untrusted workspace.
+- The extension contributes a colour for each of the server's modifiers, so a
+  broken link stands out in a theme that knows nothing of HyperMarkDown.
+
+### Distribution
+
+- The server is released as one binary for each platform the toolchain
+  serves: Linux on x86-64 and ARM64, macOS on x86-64 and ARM64, and Windows on
+  x86-64.
+- A release is built by a workflow in this repository on a tag with the
+  prefix `lsp-v`, and the binaries are attached to the GitHub release.
+- The package is published to crates.io as `hypermarkdown-lsp`, so that
+  `cargo install hypermarkdown-lsp` builds the program on a platform that has
+  no archive. A published package cannot depend on a path, so the resolver
+  crate is released first whenever the server needs a newer version of it.
+- The pinned toolchain carries the binary beside `d2` and `hql`, and the
+  extension bundles the toolchain, so a user of the extension installs
+  nothing.
+
+## Backwards Compatibility
+
+Nothing a user has installed changes. No language server was ever released,
+in any language.
+
+The records change. The earlier decision that the server MUST be Python on
+`pygls` is superseded by this record, and the two changes to the Python
+workspace index that it required are no longer blockers of anything. They
+stay worthwhile on their own, for any caller that wants to lint unsaved text.
+
+## Security Considerations
+
+- The server starts no process and opens no network connection.
+- The server reads files only through the resolver's host. The containment
+  rules are the resolver's: a path is normalised and checked against the
+  namespace root, a symbolic link out of the root is never followed, and a
+  nested vault is never entered.
+- A go-to-definition answer names only a card of the vault the document
+  belongs to, so the server cannot be made to point an editor at a file
+  outside the namespace.
+- A card is untrusted input. The resolver's parser never fails on a card, and
+  the server MUST NOT end on one.
+- The server holds every open document and every loaded vault in memory, and
+  loads a vault again after each change. A very large vault costs time on
+  every keystroke, not memory without bound.
+
+## Deployment / Activation
+
+1. The resolver crate gains loading from disk through a caller's host.
+2. The server answers semantic tokens, definition, hover and diagnostics, and
+   has a job in continuous integration.
+3. The extension becomes a client, with the program found by a setting or on
+   `PATH`.
+4. A release workflow builds the binaries, and the toolchain carries them.
+5. The extension bundles the server through the toolchain.
+6. Completion and rename.
+
+## Reference Implementation
+
+- `tools/hmd-rs-core/src/vault.rs` — `Vault::open_with`, which loads a vault
+  from disk through a host the caller builds over the namespace root.
+- `tools/hmd-lsp/src/server.rs` — the capabilities and the message loop.
+- `tools/hmd-lsp/src/workspace.rs` — the open documents, the loaded vaults,
+  and the host that puts a document in front of its file.
+- `tools/hmd-lsp/src/tokens.rs`, `features.rs`, `links.rs`, `lines.rs`,
+  `uri.rs` — the tokens, the three other answers, the parts of a reference,
+  the position conversion, and `file:` URIs.
+- `tools/hmd-vsc-ext/` — the client, a setting for the program's path, and
+  the colours of the modifiers.
+- `.github/workflows/ci.yml` — a job for the server.
+
+## Test Plan
+
+The protocol tests run a server on a thread and speak the protocol to it, and
+one test runs a session against the built program.
+
+Unit tests MUST include:
+
+- the position conversion, with a character outside the Basic Multilingual
+  Plane, a byte-order mark, and each of the three line endings;
+- `file:` URIs in their Unix and Windows forms, with a drive letter, a share,
+  an escaped character, and a scheme that is not `file`;
+- the parts of a reference, with and without a fragment and display text.
+
+Protocol tests MUST include:
+
+- the tokens of a reference that resolves, that names no card, that names two
+  cards, and that leaves the namespace;
+- a reference to a card that exists only as an unsaved document;
+- a document outside every vault, and a vault with a broken configuration;
+- definition on a resolved and on an ambiguous reference;
+- the three diagnostics with their codes, severities and messages, and none
+  when the client turns them off;
+- a request the server does not know, and a request with broken parameters.
+
+```bash
+cd tools/hmd-lsp
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test --locked
+```
+
+## Open Questions
+
+- Does go to definition on a reference with a fragment lead to the heading or
+  the block, and where does the code that finds a heading live? The resolver
+  crate reads no heading today, and how a heading's text becomes the name a
+  fragment matches is a rule of the language.
+- Do block anchors and frontmatter get tokens? The crate reports neither
+  position today.
+- Does the server report the linter's other rules to an editor other than VS
+  Code, by a port of the rules to Rust or by calling `hmd lint` when it is
+  installed?
+- Is the toolchain repository the place that builds the server's binaries, or
+  does it take them from this repository's release as it takes `hql` from
+  HQL's?
+- ~~Is the server published to crates.io?~~ **Answered 2026-11-25: yes, as
+  `hypermarkdown-lsp`.** The name `hmd-lsp` there is another project's.
+- How does the server update one card of a loaded vault without loading the
+  vault again?
+
+## See also
+
+- The earlier record of the language server and of the `tools/` layout:
+  [HMD-0024](../HMD-0024/index.hmd).
+- The resolver crate: [HMD-0027](../HMD-0027/index.hmd).
+- The extension: [HMD-0021](../HMD-0021/index.hmd).
+
+## Changelog
+
+- 2026-11-25: the package is `hypermarkdown-lsp` on crates.io, and the
+  program stays `hmd-lsp`.
+- 2026-11-25: drafted

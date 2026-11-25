@@ -27,7 +27,7 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0021](HMD-0021/index.hmd) | drafted | The VS Code extension — the HyperMarkDown preview surface | [vsc-ext](../status/vsc-ext.hmd) |
 | [HMD-0022](HMD-0022/index.hmd) | drafted | Diagrams as committed artifacts | [ts-core](../status/ts-core.hmd), [vsc-ext](../status/vsc-ext.hmd) |
 | HMD-0023 | reserved | Searching the wiki from the preview | — |
-| [HMD-0024](HMD-0024/index.hmd) | drafted | The `tools/` layout, and a Python language server | [hmd](../status/hmd.hmd) |
+| [HMD-0024](HMD-0024/index.hmd) | drafted | The `tools/` layout, and a Python language server; the language-server half is superseded by HMD-0033 | [hmd](../status/hmd.hmd) |
 | [HMD-0025](HMD-0025/index.hmd) | drafted | The graph tab — the vault as a picture | [vsc-ext](../status/vsc-ext.hmd) |
 | [HMD-0026](HMD-0026/index.hmd) | drafted | HQL cells — a card as a notebook | [ts-core](../status/ts-core.hmd), [vsc-ext](../status/vsc-ext.hmd), [lang](../status/lang.hmd) |
 | [HMD-0027](HMD-0027/index.hmd) | drafted | `hypermarkdown` — the resolver as a Rust crate | [rs-core](../status/rs-core.hmd) |
@@ -36,7 +36,7 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0030](HMD-0030/index.hmd) | drafted | Diagram cells — `d2#show` and `mermaid#show`, drawn like HQL cells with Show in place of Run | [vsc-ext](../status/vsc-ext.hmd), [ts-core](../status/ts-core.hmd), [hmd](../status/hmd.hmd), [lang](../status/lang.hmd), [pages](../status/pages.hmd) |
 | [HMD-0031](HMD-0031/index.hmd) | drafted | Freeze — every open finding against 0.1, consolidated before fixing | [lang](../status/lang.hmd) |
 | [HMD-0032](HMD-0032/index.hmd) | drafted | HQL path — addressing inside a card with `@[[…]]`, for HyperMarkDown 0.2.0; a design draft, not ready to implement | [lang](../status/lang.hmd) |
-| HMD-0033 | reserved | `hmd-lsp` — the language server, written in Rust | — |
+| [HMD-0033](HMD-0033/index.hmd) | drafted | `hmd-lsp` — the language server, written in Rust | [lsp](../status/lsp.hmd), [vsc-ext](../status/vsc-ext.hmd), [rs-core](../status/rs-core.hmd) |
 
 ## Archived
 
@@ -55,6 +55,7 @@ Work is tracked in [`doc/status/`](../status/), one file per thing that ships:
 for the canonical Python implementation, [`ts-core.hmd`](../status/ts-core.hmd) and
 [`vsc-ext.hmd`](../status/vsc-ext.hmd) for the TypeScript implementation and its
 editor, [`rs-core.hmd`](../status/rs-core.hmd) for the Rust resolver crate,
+[`lsp.hmd`](../status/lsp.hmd) for the language server,
 [`semantics.hmd`](../status/semantics.hmd) for the semantic index builder, and
 [`pages.hmd`](../status/pages.hmd) for the site. Those files are the
 **only** place work is tracked; there is no repository-wide task list and no

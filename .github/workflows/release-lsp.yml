@@ -1,0 +1,224 @@
+name: Release (language server)
+
+# The binaries of `hmd-lsp`, the language server, driven by an `lsp-vX.Y.Z`
+# tag. The server is its own Cargo package under `tools/hmd-lsp/`, and it is
+# released as one native program for each platform the pinned toolchain
+# serves. The archives are attached to the GitHub release, where the toolchain
+# and a user can take them. The package, `hypermarkdown-lsp`, is published to
+# crates.io by hand until a trusted publisher is configured for it.
+#
+# The prefix begins with `l`, so neither `v[0-9]*` (the Python tool), nor
+# `ts-core-v*`, `rs-core-v[0-9]*`, `semantics-v[0-9]*` or `vsc-ext-v*` matches
+# it, and this workflow matches none of theirs.
+#
+# `workflow_dispatch` runs every gate and builds every archive, and cuts no
+# release, so the packaging path can be exercised without minting a tag.
+on:
+  push:
+    tags: ["lsp-v[0-9]*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never cancel a release in flight: a release with half its archives is worse
+# than a queued one.
+concurrency:
+  group: release-lsp-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/hmd-lsp
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup toolchain install 1.95 --profile minimal
+          rustup default stable
+
+      # The version in the archive names is the one in `Cargo.toml`, which is
+      # also what `hmd-lsp --version` prints.
+      - name: Read the version
+        id: version
+        run: |
+          packaged=$(cargo metadata --no-deps --format-version 1 --locked \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)["packages"][0]["version"])')
+          echo "version=$packaged" >> "$GITHUB_OUTPUT"
+
+      # A release cannot be taken back once the toolchain has pinned its
+      # digests, so a mistyped tag must fail here.
+      - name: Check the tag matches the version
+        if: startsWith(github.ref, 'refs/tags/lsp-v')
+        run: |
+          tagged="${GITHUB_REF_NAME#lsp-v}"
+          packaged="${{ steps.version.outputs.version }}"
+          echo "tag=$tagged packaged=$packaged"
+          if [ "$tagged" != "$packaged" ]; then
+            echo "::error::tag lsp-v$tagged does not match Cargo.toml version $packaged" >&2
+            exit 1
+          fi
+
+      # The same gates as CI's `lsp` job, at the released commit.
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Check the minimum supported Rust version
+        run: cargo +1.95 check --locked --all-targets
+
+  build:
+    name: build (${{ matrix.platform }})
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # `platform` is the name the pinned toolchain gives the platform, and
+        # `target` is the Rust target the archive is named after, as HQL names
+        # its archives. `runs` says whether the runner can start the program
+        # it built: the macOS x86-64 program is built on an ARM64 runner.
+        #
+        # The Linux programs link the C library statically, so one file runs
+        # on any distribution. The Windows program links the C runtime
+        # statically for the same reason.
+        include:
+          - platform: linux-x86_64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            runs: true
+          - platform: linux-arm64
+            os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            runs: true
+          - platform: macos-x86_64
+            os: macos-latest
+            target: x86_64-apple-darwin
+            runs: false
+          - platform: macos-arm64
+            os: macos-latest
+            target: aarch64-apple-darwin
+            runs: true
+          - platform: windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            runs: true
+    defaults:
+      run:
+        shell: bash
+        working-directory: tools/hmd-lsp
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal --target "$TARGET"
+          rustup default stable
+
+      - name: Build
+        env:
+          RUSTFLAGS: ${{ matrix.os == 'windows-latest' && '-C target-feature=+crt-static' || '' }}
+        run: cargo build --release --locked --target "$TARGET"
+
+      # The program that goes into the archive says the version the archive is
+      # named after, on every runner that can start it.
+      - name: Check the program runs
+        if: matrix.runs
+        run: |
+          program="target/$TARGET/release/hmd-lsp"
+          [ -f "$program.exe" ] && program="$program.exe"
+          said=$("$program" --version)
+          echo "$said"
+          if [ "$said" != "hmd-lsp $VERSION" ]; then
+            echo "::error::the program says '$said', not 'hmd-lsp $VERSION'" >&2
+            exit 1
+          fi
+
+      # One directory in each archive, named as the archive is, holding the
+      # program and the two files a binary distribution owes its reader.
+      - name: Package
+        run: |
+          name="hmd-lsp-v$VERSION-$TARGET"
+          mkdir -p "dist/$name"
+          if [ -f "target/$TARGET/release/hmd-lsp.exe" ]; then
+            cp "target/$TARGET/release/hmd-lsp.exe" "dist/$name/"
+          else
+            cp "target/$TARGET/release/hmd-lsp" "dist/$name/"
+          fi
+          cp LICENSE README.md "dist/$name/"
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            7z a -tzip "$name.zip" "$name" > /dev/null
+          else
+            tar -czf "$name.tar.gz" "$name"
+          fi
+          rm -r "$name"
+          ls -l
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: hmd-lsp-${{ matrix.platform }}
+          path: tools/hmd-lsp/dist/*
+          if-no-files-found: error
+
+  github-release:
+    name: github release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/lsp-v')
+    runs-on: ubuntu-latest
+    # The one job that writes to the repository, and it writes only the release.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: hmd-lsp-*
+          merge-multiple: true
+          path: dist/
+
+      # Five archives, or no release: a platform that failed to build must not
+      # be missing quietly from the page the toolchain reads.
+      - name: Check every archive is here, and write the digests
+        working-directory: dist
+        run: |
+          count=$(ls hmd-lsp-v* | wc -l)
+          if [ "$count" -ne 5 ]; then
+            echo "::error::expected 5 archives, found $count" >&2
+            ls -l
+            exit 1
+          fi
+          sha256sum hmd-lsp-v* > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Cut the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Title, Latest flag, and body all follow scripts/release.py, the one
+          # place the repository's release rules live.
+          python3 scripts/release.py notes "$GITHUB_REF_NAME" > notes.md
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "$(python3 scripts/release.py title "$GITHUB_REF_NAME")" \
+            --latest="$(python3 scripts/release.py latest "$GITHUB_REF_NAME")" \
+            --notes-file notes.md

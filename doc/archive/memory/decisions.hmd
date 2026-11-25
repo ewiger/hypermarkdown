@@ -300,8 +300,24 @@ builds an empty `unknown-0.0.0` and exits zero — so the release path names
 `uv build --package hypermarkdown` explicitly.
 
 The full record is [HMD-0024](../../proposals/HMD-0024/index.hmd), which also
-decides the language server: Python on `pygls`, living with the canonical
+decided the language server: Python on `pygls`, living with the canonical
 implementation.
+
+That half was reversed on 2026-11-25. The language server is `hmd-lsp`, a Rust
+program in `tools/hmd-lsp/`, recorded in
+[HMD-0033](../../proposals/HMD-0033/index.hmd). The argument for Python was
+that a server anywhere else is a third place where resolution lives. The Rust
+resolver crate became that third place when HQL needed it, and it passes the
+conformance corpus with no known difference, so a Rust server adds a caller
+and no implementation. The crate also already loads a vault from text held in
+memory, which the Python workspace index does not, and a Rust program ships as
+one native binary through the toolchain, beside `d2` and `hql`. The question
+that led here was syntax highlighting: semantic tokens from a server colour a
+link by whether it resolves, in every editor. Python stays canonical and the
+only complete linter; the server resolves and reports three diagnostics. The
+extension is the server's client and keeps working without it, and it turns
+the server's diagnostics off because the TypeScript implementation already
+reports them.
 
 ## The packaging symlinks were the wrong instinct
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """How a GitHub release of one of this repository's tools reads.
 
-The repository releases five tools, each on its own tag prefix. A release page
+The repository releases six tools, each on its own tag prefix. A release page
 lists all of them together, so every title has to say which tool it is and where
 it is installed from. That cannot be left to workflows that each spell
 their own title. This script is the one place the rules live, and every release
@@ -102,6 +102,20 @@ class CrateTool(Tool):
         ]
 
 
+class BinaryTool(Tool):
+    def package(self, version: str) -> str:
+        return "hmd-lsp"
+
+    def links(self, version: str) -> list[str]:
+        # No registry holds the program. The archives are on the release
+        # itself, one for each platform, with their digests beside them.
+        return [
+            "one archive for each platform below, with `SHA256SUMS`",
+            f"[hypermarkdown-lsp {version}](https://crates.io/crates/hypermarkdown-lsp/{version})",
+            f"`cargo install hypermarkdown-lsp@{version}`",
+        ]
+
+
 class ExtensionTool(Tool):
     def package(self, version: str) -> str:
         return "HyperMarkDown"
@@ -120,6 +134,7 @@ TOOLS: tuple[Tool, ...] = (
     ExtensionTool("vsc-ext-v", "VS Code", "tools/hmd-vsc-ext/CHANGELOG.md", latest=True),
     NpmTool("ts-core-v", "npm", "tools/hmd-ts-core/CHANGELOG.md", latest=False),
     CrateTool("rs-core-v", "crates.io", "tools/hmd-rs-core/CHANGELOG.md", latest=False),
+    BinaryTool("lsp-v", "Binary", "tools/hmd-lsp/CHANGELOG.md", latest=False),
     SemanticsTool(
         "semantics-v", "PyPI", "tools/hmd-semantics/CHANGELOG.md", latest=False
     ),

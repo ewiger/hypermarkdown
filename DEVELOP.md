@@ -15,6 +15,7 @@ its dependencies, how it is built and released — go straight to its guide:
 | `tools/hmd-ts-core/` | [tools/hmd-ts-core/DEVELOP.md](tools/hmd-ts-core/DEVELOP.md) — build, the host port, the conformance ledger |
 | `tools/hmd-vsc-ext/` | [tools/hmd-vsc-ext/DEVELOP.md](tools/hmd-vsc-ext/DEVELOP.md) — the two bundles, the development host, the VSIX |
 | `tools/hmd-rs-core/` | [tools/hmd-rs-core/DEVELOP.md](tools/hmd-rs-core/DEVELOP.md) — the Cargo loop, the host trait, the conformance ledger |
+| `tools/hmd-lsp/` | [tools/hmd-lsp/DEVELOP.md](tools/hmd-lsp/DEVELOP.md) — the Cargo loop, the protocol tests, positions and standard output |
 | `tools/hmd-semantics/` | [tools/hmd-semantics/DEVELOP.md](tools/hmd-semantics/DEVELOP.md) — its own uv project and lockfile, the text contract shared with HQL, the fixture vault |
 
 The book under [`doc/public/`](doc/public/) explains the format to a reader. This
@@ -35,6 +36,11 @@ The Rust crate under `tools/hmd-rs-core/` declares a version of its own as well,
 in [`Cargo.toml`](tools/hmd-rs-core/Cargo.toml), with
 [its changelog](tools/hmd-rs-core/CHANGELOG.md). It is published to crates.io as
 `hypermarkdown`, by hand: no workflow releases it yet.
+
+The language server under `tools/hmd-lsp/` declares one too, in
+[`Cargo.toml`](tools/hmd-lsp/Cargo.toml), with
+[its changelog](tools/hmd-lsp/CHANGELOG.md). Its binaries are released on an
+`lsp-vX.Y.Z` tag, and its package is `hypermarkdown-lsp` on crates.io.
 
 The semantic index builder under `tools/hmd-semantics/` declares one too, as
 `__version__` in
@@ -158,8 +164,8 @@ Three conventions that are easy to get wrong:
 - **Progress is tracked per tool**, in [`doc/status/`](doc/status/), and nowhere
   else — not in `doc/memory/`, not in a wiki card, not in a proposal's own
   `README.md`, not in a tool's `README.md`. One file each: `lang.hmd` for the
-  format, `hmd.hmd`, `ts-core.hmd`, `vsc-ext.hmd`, `rs-core.hmd`, and `semantics.hmd` for the
-  five tools, and `pages.hmd` for the site. A proposal's rows go to whichever tracker owns the
+  format, `hmd.hmd`, `ts-core.hmd`, `vsc-ext.hmd`, `rs-core.hmd`, `lsp.hmd`, and `semantics.hmd` for the
+  six tools, and `pages.hmd` for the site. A proposal's rows go to whichever tracker owns the
   code, citing the proposal. Update the tracker in the same commit that changes
   the code. Each reads Status, Open, Broken, Limitations, Done — in that order,
   with Done last — and a row is a sentence that stands alone, never a pointer at
@@ -269,6 +275,7 @@ tools/hmd/                the Python tool, published as `HyperMarkDown`
 tools/hmd-ts-core/        @hypermarkdown/core — the TypeScript implementation
 tools/hmd-vsc-ext/        the VS Code extension
 tools/hmd-rs-core/        hypermarkdown — the resolver as a Rust crate
+tools/hmd-lsp/            hmd-lsp — the language server, a Rust program
 tools/hmd-semantics/      hmd-semantics — the builder of a vault's semantic index
 tests/                    repository guards: this repo's prose and its built site
 examples/small/           a runnable fixture wiki, exercised by both lines

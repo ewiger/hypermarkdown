@@ -1,7 +1,7 @@
 # Developing `tools/hmd`
 
-The Python tool: the `hmd` command, the library under it, the MkDocs plugin, and
-the `pygls` language server to come. This file is the loop for *this* tool.
+The Python tool: the `hmd` command, the library under it, and the MkDocs plugin.
+This file is the loop for *this* tool.
 [The repository's `DEVELOP.md`](../../DEVELOP.md) covers what is shared — the
 layout, the `doc/` conventions, how the site reaches the web, and the accounts a
 release needs.
@@ -95,7 +95,7 @@ Two invariants worth preserving:
 - **The library does not import MkDocs.** `parse`, `resolve`, `embed`, `urls`,
   and `lint` are renderer-agnostic, so swapping the renderer is one file plus a
   `mkdocs.yml` rather than a re-specification.
-- **Entry points take text, not only paths.** A language server's ordinary input
+- **Entry points take text, not only paths.** An editor's ordinary input
   is a buffer that has never been saved. The leaf functions honour this already;
   `Workspace` is the one layer that still reads from disk, tracked as a
   limitation in

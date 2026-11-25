@@ -12,6 +12,7 @@ each package keeps its own history:
 | [`tools/hmd/`](tools/hmd/) | [CHANGELOG.md](tools/hmd/CHANGELOG.md) | [`hypermarkdown`](https://pypi.org/project/hypermarkdown/) on PyPI, tagged `vX.Y.Z` |
 | [`tools/hmd-ts-core/`](tools/hmd-ts-core/) | [CHANGELOG.md](tools/hmd-ts-core/CHANGELOG.md) | [`@hypermarkdown/core`](https://www.npmjs.com/package/@hypermarkdown/core) on npm, tagged `ts-core-vX.Y.Z` |
 | [`tools/hmd-rs-core/`](tools/hmd-rs-core/) | [CHANGELOG.md](tools/hmd-rs-core/CHANGELOG.md) | [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on crates.io, published by hand |
+| [`tools/hmd-lsp/`](tools/hmd-lsp/) | [CHANGELOG.md](tools/hmd-lsp/CHANGELOG.md) | binaries on the GitHub release, and [`hypermarkdown-lsp`](https://crates.io/crates/hypermarkdown-lsp) on crates.io, tagged `lsp-vX.Y.Z` |
 | [`tools/hmd-semantics/`](tools/hmd-semantics/) | [CHANGELOG.md](tools/hmd-semantics/CHANGELOG.md) | [`hypermarkdown-semantics`](https://pypi.org/project/hypermarkdown-semantics/) on PyPI, tagged `semantics-vX.Y.Z` |
 | [`tools/hmd-vsc-ext/`](tools/hmd-vsc-ext/) | [CHANGELOG.md](tools/hmd-vsc-ext/CHANGELOG.md) | [`hypermarkdown.hmd`](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd) on the VS Marketplace and Open VSX, tagged `vsc-ext-vX.Y.Z` |
 

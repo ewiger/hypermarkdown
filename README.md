@@ -237,7 +237,7 @@ The Python implementation, published to PyPI as
 [`hypermarkdown`](https://pypi.org/project/hypermarkdown/): the `hmd` command
 (`lint`, `render`, `graph`), the library under it, and a MkDocs plugin that
 builds a tree of cards into a website. **Canonical** — where two implementations
-disagree, this one defines the answer. It will also host the language server.
+disagree, this one defines the answer.
 
 ### [`@hypermarkdown/core`](tools/hmd-ts-core/) — the TypeScript implementation
 
@@ -257,6 +257,19 @@ A third implementation, of resolution only: a Rust library that says which card
 a `[[reference]]` names, for programs written in Rust. It neither lints nor
 renders, it answers to the same [conformance corpus](examples/conformance/),
 and it is [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on crates.io.
+
+### [`hmd-lsp`](tools/hmd-lsp/) — the language server
+
+[![Rust](https://img.shields.io/badge/rust-1.95%2B-b7410e)](tools/hmd-lsp/DEVELOP.md)
+[![Changelog](https://img.shields.io/badge/changelog-tools%2Fhmd--lsp-informational)](tools/hmd-lsp/CHANGELOG.md)
+
+A Rust program that tells an editor what each `[[reference]]` in an open card
+resolves to, over the Language Server Protocol: semantic tokens, go to
+definition, hover, and diagnostics for a reference that does not resolve. It
+resolves through the Rust crate above, it reads the text in the editor in
+front of the text on disk, and it works in any editor that speaks the
+protocol. Each release carries the program for five platforms, and
+`cargo install hypermarkdown-lsp` builds it.
 
 ### [`hmd-semantics`](tools/hmd-semantics/) — the semantic index builder
 

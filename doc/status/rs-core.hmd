@@ -40,7 +40,9 @@ and carrying the 0.1 rules and the corrected resolution. 0.1.0 and 0.2.0 were
 published by hand.
 
 Its first consumer is HQL, which is required by its own record to resolve
-references through this crate and keep no resolution code of its own.
+references through this crate and keep no resolution code of its own. Its
+second is the language server in `tools/hmd-lsp`, tracked in
+[`lsp.hmd`](lsp.hmd), which depends on it by path.
 
 ## Open
 
@@ -71,6 +73,11 @@ implementation gains a rule the ledger does not name.
 
 ## Done
 
+- **Loading from disk through a caller's host** — `Vault::open_with` finds
+  the configuration and the namespace root as `Vault::open` does, and reads
+  the cards through a host the caller builds over that root. The language
+  server uses it to put unsaved documents in front of the files; released in
+  0.4.0.
 - **The first release through `release-rs-core.yml`** — 0.3.0, on the
   `rs-core-v0.3.0` tag through the trusted publisher on crates.io, on
   2026-11-25. The first run found that `cargo publish --dry-run` leaves its
@@ -135,6 +142,8 @@ None.
 
 ## Changelog
 
+- 2026-11-25: `Vault::open_with` is released in 0.4.0.
+- 2026-11-25: a Done row for `Vault::open_with`, and the language server named as the crate's second consumer.
 - 2026-11-25: the HQL path row is withdrawn. HMD-0032 is a design draft and is not ready to implement; the row returns when the record is accepted.
 - 2026-11-25: a backlog row for HQL path, HMD-0032, the construct `@[[…]]` that HyperMarkDown 0.2.0 would add; it replaces the in-card address of HMD-0006, which is archived as deferred.
 - 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.

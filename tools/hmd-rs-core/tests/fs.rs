@@ -98,6 +98,68 @@ fn a_vault_opens_from_its_root_with_its_own_configuration() {
     assert_eq!(vault.resolve("a.hmd", "b").path(), Some("sub/b.hmd"));
 }
 
+/// A host that answers one path from memory and every other from disk.
+struct InFront {
+    disk: FsHost,
+    path: &'static str,
+    text: &'static str,
+}
+
+impl Host for InFront {
+    fn list(&self, dir: &str) -> std::io::Result<Vec<Entry>> {
+        self.disk.list(dir)
+    }
+
+    fn read(&self, path: &str) -> std::io::Result<String> {
+        if path == self.path {
+            return Ok(self.text.to_owned());
+        }
+        self.disk.read(path)
+    }
+}
+
+#[test]
+fn a_vault_opens_through_a_host_the_caller_puts_in_front_of_the_disk() {
+    let root = tree(
+        "open-with",
+        &[
+            (".hmd/config.toml", "location_path = \"notes\"\n"),
+            ("notes/a.hmd", "[[b]]"),
+            ("notes/b.hmd", ""),
+            ("notes/c.hmd", ""),
+        ],
+    );
+    let vault = Vault::open_with(&root, |disk| {
+        // The host is over the namespace root the configuration names.
+        assert_eq!(disk.root(), root.join("notes"));
+        InFront {
+            disk,
+            path: "a.hmd",
+            text: "[[c]]",
+        }
+    })
+    .expect("the vault opens");
+    assert_eq!(vault.config().location_path, "notes");
+    let links: Vec<_> = vault
+        .page("a.hmd")
+        .expect("the card")
+        .links
+        .iter()
+        .collect();
+    assert_eq!(links.len(), 1);
+    assert_eq!(links[0].page, "c");
+}
+
+#[test]
+fn opening_through_a_host_refuses_what_opening_from_disk_refuses() {
+    let root = tree(
+        "open-with-missing",
+        &[(".hmd/config.toml", "location_path = \"absent\"\n")],
+    );
+    let err = Vault::open_with(&root, |disk| disk).expect_err("the namespace root is missing");
+    assert!(matches!(err, Error::Config { .. }));
+}
+
 #[test]
 fn a_vault_without_configuration_reads_the_vault_itself() {
     let root = tree(

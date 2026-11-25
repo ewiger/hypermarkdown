@@ -200,6 +200,21 @@ engine's tests run against a real binary when `HQL_BIN` names one:
 HQL_BIN=/path/to/hql npm test
 ```
 
+**The language server.** Build it with `cargo build` in `tools/hmd-lsp`, and
+set `hyperMarkdown.languageServer.path` to `tools/hmd-lsp/target/debug/hmd-lsp`
+in the development host. Then, in `examples/small`:
+
+- `glossary/index.hmd` line 11: `idempotency` inside `[[idempotency]]` is the
+  theme's error colour, and every link that resolves keeps the colour it had.
+- Hover on a link that resolves: the card's path and the rule that found it.
+- **Go to Definition** on that link opens the card.
+- The Problems panel still has exactly one `HMD001` for that line, not two:
+  the extension turns the server's diagnostics off.
+- Type a link to a card that does not exist yet, create the card in a second
+  editor without saving, and the link loses its error colour.
+- Clear the setting with no `hmd-lsp` on `PATH` and reload: one notice, and
+  the preview, the graph and the diagnostics work as before.
+
 **Expected rough edges.** `login.hmd` exercises callouts, math, task lists,
 tables, footnotes, code fences, all six link constructs, and a D2 diagram; all of
 them should render. What remains ledgered is narrower — `~x~` subscript, setext

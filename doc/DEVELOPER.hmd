@@ -16,25 +16,29 @@ the moment they live in different directories.
 | [`DEVELOP.md`](../DEVELOP.md) | The repository: setup, the gates, the layout, the `doc/` conventions, the site and its deploy, proposal numbering |
 | [`tools/hmd/DEVELOP.md`](../tools/hmd/DEVELOP.md) | The Python tool: the test loop, dependency policy, packaging, and cutting a release |
 | [`tools/hmd-ts-core/DEVELOP.md`](../tools/hmd-ts-core/DEVELOP.md) | `@hypermarkdown/core`: build, the `WorkspaceHost` port, the conformance corpus and its ledger |
+| [`tools/hmd-lsp/DEVELOP.md`](../tools/hmd-lsp/DEVELOP.md) | The language server: the loop, the modules, the protocol tests, and the constraints on positions and on standard output |
 | [`tools/hmd-vsc-ext/DEVELOP.md`](../tools/hmd-vsc-ext/DEVELOP.md) | The extension: the two bundles, the Extension Development Host, the manual walkthrough, the VSIX, the parked integration suite |
 
 Every tool lives under `tools/`, one directory each:
 
 - **`tools/hmd`** — the Python implementation: parser, resolver, linter, graph checker, and
   the MkDocs plugin, published to PyPI as `HyperMarkDown`. Canonical for the
-  format's semantics, and the future home of the `pygls` language server.
+  format's semantics.
 - **`tools/hmd-ts-core`** — `@hypermarkdown/core`, the TypeScript half of the
   conformance contract. A second implementation, not extension code.
 - **`tools/hmd-vsc-ext`** — the VS Code extension.
 - **`tools/hmd-rs-core`** — `hypermarkdown`, the resolver as a Rust library
   crate. A third implementation, of resolution only.
+- **`tools/hmd-lsp`** — `hmd-lsp`, the language server, as a Rust program on
+  the resolver crate. It resolves and does not lint.
 - **`tools/hmd-semantics`** — `hmd-semantics`, the builder of a vault's
   semantic index. A Python project of its own, outside the uv workspace.
 
 Progress is tracked per tool, in [`doc/status/`](status/): the format itself in
-[`lang.hmd`](status/lang.hmd), the five tools in [`hmd.hmd`](status/hmd.hmd),
+[`lang.hmd`](status/lang.hmd), the six tools in [`hmd.hmd`](status/hmd.hmd),
 [`ts-core.hmd`](status/ts-core.hmd), [`vsc-ext.hmd`](status/vsc-ext.hmd),
-[`rs-core.hmd`](status/rs-core.hmd), and [`semantics.hmd`](status/semantics.hmd),
+[`rs-core.hmd`](status/rs-core.hmd), [`lsp.hmd`](status/lsp.hmd), and
+[`semantics.hmd`](status/semantics.hmd),
 and the site in
 [`pages.hmd`](status/pages.hmd). Proposals under
 [`doc/proposals/`](proposals/) record the decisions; they carry no trackers of

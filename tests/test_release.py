@@ -1,6 +1,6 @@
 """The rules for how a GitHub release reads, held to the workflows that cut them.
 
-Five tools release from this repository, and their releases share one page. The
+Six tools release from this repository, and their releases share one page. The
 rules (a platform-first title, one tool holding the Latest badge, a body opening
 with an install line) live in `scripts/release.py`. These tests check that every
 workflow that cuts a release goes through that script, and that the script
@@ -48,6 +48,7 @@ def test_the_workflow_takes_title_latest_and_notes_from_the_script(workflow):
         ("v0.3.1", "PyPI · hypermarkdown 0.3.1", False),
         ("ts-core-v0.2.0", "npm · @hypermarkdown/core 0.2.0", False),
         ("rs-core-v0.2.0", "crates.io · hypermarkdown 0.2.0", False),
+        ("lsp-v0.1.0", "Binary · hmd-lsp 0.1.0", False),
         ("vsc-ext-v0.4.4", "VS Code · HyperMarkDown 0.4.4", True),
     ],
 )
@@ -72,3 +73,33 @@ def test_notes_open_with_the_header_and_carry_the_changelog_section():
     assert "### Fixed" in notes
     # Rewriting is idempotent: an existing header is replaced, not stacked.
     assert release.with_header("v0.3.1", notes) == notes
+
+
+def test_the_language_server_is_built_for_every_platform_the_toolchain_serves():
+    """The toolchain carries the server beside `d2`, so the two lists agree.
+
+    A platform the toolchain serves and this workflow does not build is a
+    VSIX with no language server in it, found only when a user opens one.
+    """
+    import json
+
+    workflow = (WORKFLOWS / "release-lsp.yml").read_text()
+    built = re.findall(r"^\s+- platform: (\S+)$", workflow, re.M)
+    served = json.loads((ROOT / "toolchain.json").read_text())["archives"]
+    assert sorted(built) == sorted(served)
+    # The release job refuses to cut a release with an archive missing, and
+    # the number it counts to is the number of platforms.
+    assert f'"$count" -ne {len(built)}' in workflow
+
+
+def test_the_language_server_workflow_fires_on_its_own_tags_only():
+    workflow = (WORKFLOWS / "release-lsp.yml").read_text()
+    assert 'tags: ["lsp-v[0-9]*"]' in workflow
+    # No other workflow's pattern matches an `lsp-v` tag.
+    import fnmatch
+
+    for other in sorted(WORKFLOWS.glob("release*.yml")):
+        if other.name == "release-lsp.yml":
+            continue
+        for pattern in re.findall(r'tags: \["([^"]+)"\]', other.read_text()):
+            assert not fnmatch.fnmatchcase("lsp-v0.1.0", pattern), other.name
