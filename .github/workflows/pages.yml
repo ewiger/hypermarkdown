@@ -82,10 +82,10 @@ jobs:
       # served from the CDN, which is why this repository has no `gh-pages`
       # branch and `site/` stays ignored.
       - name: Upload
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
