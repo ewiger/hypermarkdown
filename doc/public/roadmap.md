@@ -16,6 +16,9 @@ the VS Code extension 0.6.0, the Rust crate `hypermarkdown` 0.3.0, and
 extensions are case-sensitive everywhere, and a backslash in a link is an
 error.
 
+HQL 0.8.0 reads `location_path` too, so its cells and `hql render` work on
+the same vaults.
+
 **2026-11-22 — VS Code extension 0.5.2, HQL 0.7.2.** HQL ships a Windows
 binary, and the extension's Windows builds bring their own `hql`: cells run
 with nothing on `PATH`. A card's path reads `books/owl.hmd` on every system.
@@ -56,7 +59,7 @@ type; the preview needs no Python.
 | **`hypermarkdown`** — Rust resolver | 0.3.0 | [crates.io](https://crates.io/crates/hypermarkdown) |
 | **`hmd-semantics`** — semantic index | 0.2.0 | [PyPI](https://pypi.org/project/hypermarkdown-semantics/) |
 | **`hmd-vsc-ext`** — VS Code | 0.6.0 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
-| **`hql`** — the Hyper Query Language | 0.7.2 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
+| **`hql`** — the Hyper Query Language | 0.8.0 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
 
 The **HMD language specification** versions independently of the tools, and
 **HQL** versions in [its own repository](https://github.com/ewiger/hql): a

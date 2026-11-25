@@ -29,9 +29,10 @@ specification states, each unresolved reference has the outcome its HMD001,
 HMD002 or HMD003 diagnostic restates, and the list of differing cases in the
 ledger is empty. 109 tests.
 
-It is on crates.io as `hypermarkdown` 0.2.0; 0.1.0 and 0.2.0 were published by
-hand. `release-rs-core.yml` publishes on an `rs-core-vX.Y.Z` tag and has not
-run yet. The 0.1 rules and the corrected resolution are unreleased.
+It is on crates.io as `hypermarkdown` 0.3.0, released on 2026-11-25 by
+`release-rs-core.yml` on the `rs-core-v0.3.0` tag through a trusted publisher,
+and carrying the 0.1 rules and the corrected resolution. 0.1.0 and 0.2.0 were
+published by hand.
 
 Its first consumer is HQL, which is required by its own record to resolve
 references through this crate and keep no resolution code of its own.
@@ -40,7 +41,6 @@ references through this crate and keep no resolution code of its own.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **The first release through `release-rs-core.yml`** — the unreleased 0.1 rules and the corrected resolution, by an `rs-core-vX.Y.Z` tag. Whether the trusted publisher is configured on crates.io is not visible from the repository; the first run shows it | The workflow exists; it has never published | [[hmd-0027#deployment--activation]] |
 | backlog | **A comparison suite that asks the reference implementation.** The corpus pins 37 cases. The TypeScript implementation also compares itself with `hmd` over the wiki and two example vaults; this crate was compared with `hmd` by hand, over those trees and over nine thousand generated ones, with every reference, position and outcome equal, and nothing in the repository repeats that | Needs Python in the crate's CI job, which today installs none | [[hmd-0027#conformance]] |
 
 ## Broken
@@ -66,14 +66,19 @@ implementation gains a rule the ledger does not name.
 
 ## Done
 
+- **The first release through `release-rs-core.yml`** — 0.3.0, on the
+  `rs-core-v0.3.0` tag through the trusted publisher on crates.io, on
+  2026-11-25. The first run found that `cargo publish --dry-run` leaves its
+  `.crate` under `target/package/tmp-crate/`, so the workflow packages with
+  `cargo package` [`4d65fe7`].
 - **`location_path` names the namespace root** — `Vault::open` reads the
   setting formerly called `wiki`, with the default `.`, the vault itself,
-  instead of `doc/wiki`; no alias; unreleased.
+  instead of `doc/wiki`; no alias; released in 0.3.0.
 - **Name resolution as the 0.1 specification corrects it** — paths normalised
   and checked against the namespace in every phase, `EntryKind::LeavesRoot` for
   a symbolic link out of the root, `[[./]]` and `[[../]]` bound to the folder
   note only, and a written extension honoured in every phase. Held by the
-  eighteen `resolve-*` cases written from the specification; unreleased
+  eighteen `resolve-*` cases written from the specification; released in 0.3.0
   [issue 0020].
 - **A release workflow** — `release-rs-core.yml`, on an `rs-core-vX.Y.Z` tag,
   through a trusted publisher on crates.io, so no token is stored
@@ -81,7 +86,7 @@ implementation gains a rule the ledger does not name.
 - **The HyperMarkDown 0.1 rules a resolver needs** — an undecodable file is
   not loaded and is listed by `Vault::undecodable`, a byte-order mark is
   ignored, lines end only at the three CommonMark endings, and names compare
-  after NFC through `unicode-normalization`; unreleased.
+  after NFC through `unicode-normalization`; released in 0.3.0.
 - **Markdown cards** — `.md` and `.markdown` files load as `Kind::Markdown`
   cards, bind after `.hmd`, a written extension binds only itself, and a
   shadowed card is named by `Vault::shadowed_by`; released as 0.2.0

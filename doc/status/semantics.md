@@ -14,7 +14,7 @@ resolver crate in [`rs-core.md`](rs-core.md), and the website in
 
 ## Status
 
-**Published to PyPI as `hypermarkdown-semantics` 0.1.0.** The
+**Published to PyPI as `hypermarkdown-semantics` 0.2.0.** The
 tool builds an index at one depth, the card itself, in schema version 1. It
 embeds with a checkpoint in its own process or with a model behind an HTTP
 endpoint, as the vault's `.hmd/config.toml` declares, and it embeds the queries
@@ -68,7 +68,7 @@ Its first reader is HQL's `hmd` package.
 
 - **`location_path` names the namespace root** — the builder reads the
   setting formerly called `wiki`, with the default `.`, the vault itself;
-  unreleased.
+  released in 0.2.0.
 - **Published to PyPI** — `release-semantics.yml` on a `semantics-vX.Y.Z` tag,
   trusted publishing, 0.1.0 [[hmd-0028#deployment--activation]].
 - **The cards of the namespace root** — read from the directory `location_path` names,

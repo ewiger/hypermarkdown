@@ -1,13 +1,13 @@
 # 0016 — Prepare the 0.1 specification release
 
-**Column**: todo
+**Column**: done — closed 2026-11-25
 **Opened**: 2026-11-22
-**Related**: [the format's tracker](../status/lang.md),
-[the specification](../wiki/hmd-lang-spec.hmd),
-[HMD-0030](../proposals/HMD-0030/README.md),
-[issue 0014](archive/0014-non-latin-headings-cannot-be-linked.md),
-[issue 0015](0015-commonmark-examples-as-a-test-dataset.md),
-[issue 0018](archive/0018-validate-the-grammar.md)
+**Related**: [the format's tracker](../../status/lang.md),
+[the specification](../../wiki/hmd-lang-spec.hmd),
+[HMD-0030](../../proposals/HMD-0030/README.md),
+[issue 0014](0014-non-latin-headings-cannot-be-linked.md),
+[issue 0015](../0015-commonmark-examples-as-a-test-dataset.md),
+[issue 0018](0018-validate-the-grammar.md)
 
 ## What
 
@@ -135,3 +135,15 @@ that tool, listed in the release notes, not a blocker for the specification.
   cases that all three implementations pass [issue 0018].
 - The trackers agree with the registries and name the version they conform to.
 - 0.1 is dated, tagged, and linked from the roadmap.
+
+## Closed
+
+Closed on 2026-11-25, with every line of *Done when* met. The specification
+was tagged `spec-v0.1.0` and is linked from the roadmap. All three
+implementations pass the shared corpus, every grammar production is
+validated (issue 0018), and each tracker names the version it conforms to
+and the version now on its registry. The tools were released the same day,
+one at a time: the crate `hypermarkdown` 0.3.0, `hmd` 0.5.0,
+`@hypermarkdown/core` 0.4.0, the editor 0.6.0, and `hmd-semantics` 0.2.0. HQL
+0.8.0 followed, as its own project's release, and these views were
+re-rendered with it.

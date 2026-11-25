@@ -12,6 +12,12 @@ implementation in [`ts-core.md`](ts-core.md), the editor in
 
 ## Status
 
+**HyperMarkDown 0.1.0 is released, on 2026-11-25**, tagged `spec-v0.1.0`, with
+every tool released to follow it the same day: the crate `hypermarkdown`
+0.3.0, `hmd` 0.5.0, `@hypermarkdown/core` 0.4.0, the editor 0.6.0, and
+`hmd-semantics` 0.2.0, and then HQL 0.8.0 as its own project's release. The
+open rows below are the work after 0.1.0.
+
 **The format is specified and implemented twice, and the specification is a
 single normative text** rather than something a reader assembles from two
 proposals. Everything the first version needs is decided: the grammar, the
@@ -23,16 +29,16 @@ into the specification and into all three implementations.** The baseline and
 its extras, diagram cells, underlined headings, heading matching, the root
 marker, the encoding, determinism, suppression, toggles across an embed, import
 order, where publication lives, and an anchor on a heading. The shared corpus
-grew by six cases to pin them, and every implementation passes it. What is left
-before the tag are the open questions below and the release steps. [The release card](../issues/0016-prepare-the-0-1-specification-release.md)
-collects the decisions, the readability actions, and the steps to the release
+grew by six cases to pin them, and every implementation passes it. The
+[release card](../issues/archive/0016-prepare-the-0-1-specification-release.md),
+now closed, collected the decisions, the readability actions, and the steps to the release
 in one place. Still open beyond 0.1: one reserved language — cross-project
 namespaces — with a name, constraints, and no syntax at all. The other, the query language, is no longer
 this project's to design: [HQL](https://hql-lang.org/) shipped as its own project with its own
 grammar and documentation, and the record that reserved it here is superseded.
 What this side still owes is how a card carries a query.
 
-**Being written now: the 0.1 release.** The specification was restructured
+**How 0.1 was written.** The specification was restructured
 for reading on 2026-11-22 — a contents list, a table of terms, one example vault
 followed through the sections, and each section's rules ahead of a short *Why*.
 On 2026-11-24 it gained a new introduction, which calls it the language
@@ -213,6 +219,12 @@ withdrew two dozen claims.
 
 ## Changelog
 
+- 2026-11-25: HyperMarkDown 0.1.0 is released and tagged `spec-v0.1.0`,
+  and the tools followed it one at a time: the crate `hypermarkdown` 0.3.0,
+  `hmd` 0.5.0, `@hypermarkdown/core` 0.4.0, the editor 0.6.0,
+  `hmd-semantics` 0.2.0, and HQL 0.8.0, which reads `location_path`. The
+  release card, 0016, is closed. The generated views are re-rendered with
+  HQL 0.8.0.
 - 2026-11-24: the `wiki` setting is renamed `location_path`, and its default
   is `.`, the vault itself, instead of `doc/wiki`. `wiki` is banned: a
   configuration that sets it is rejected. The vault and namespace row says

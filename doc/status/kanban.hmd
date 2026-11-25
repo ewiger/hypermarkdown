@@ -59,11 +59,11 @@ then the archive.
 <!-- hql:output hash=89aeb803630e status=ok -->
 | lane    | issues |
 | ------- | ------ |
-| backlog | 5      |
-| todo    | 12     |
+| backlog | 9      |
+| todo    | 10     |
 | doing   | 0      |
 | done    | 0      |
-| archive | 19     |
+| archive | 23     |
 <!-- /hql:output -->
 
 ## Board
@@ -91,20 +91,18 @@ range(0, depth)
 | format(as = Markdown)
 ```
 <!-- hql:output hash=fc9739b6231c status=ok -->
-| backlog                                                    | todo                                                                             | doing | done |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------- | ----- | ---- |
-| 0106 There is no way to search the wiki from the preview   | 0115 Mermaid diagrams, on par with D2                                            |       |      |
-| 0102 Diagrams render on a white surface in every theme     | 0114 The cover's notebook screenshot is of another vault                         |       |      |
-| 0101 The live-editing behaviours are only checked by hand  | 0113 A relative image in a card is not shown in the preview                      |       |      |
-| 0008 A public card linking to a private one needs a policy | 0105 The preview freezes on the card it was opened over                          |       |      |
-| 0007 Conversion should name its output target              | 0100 A `???` callout snaps shut on every re-render                               |       |      |
-|                                                            | 0019 Review lexical compatibility with CommonMark                                |       |      |
-|                                                            | 0018 Validate the grammar                                                        |       |      |
-|                                                            | 0016 Prepare the 0.1 specification release                                       |       |      |
-|                                                            | 0015 CommonMark's own examples as a test dataset                                 |       |      |
-|                                                            | 0013 The roadmap is behind the releases, and it is the one page that states them |       |      |
-|                                                            | 0012 An embedded card's Markdown links resolve from the host page                |       |      |
-|                                                            | 0011 Vault and namespace: the declared design, HMD, and HQL have drifted apart   |       |      |
+| backlog                                                      | todo                                                                             | doing | done |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------- | ----- | ---- |
+| 0106 There is no way to search the wiki from the preview     | 0115 Mermaid diagrams, on par with D2                                            |       |      |
+| 0102 Diagrams render on a white surface in every theme       | 0114 The cover's notebook screenshot is of another vault                         |       |      |
+| 0101 The live-editing behaviours are only checked by hand    | 0113 A relative image in a card is not shown in the preview                      |       |      |
+| 0026 Check frontmatter with an HQL-like data type system     | 0105 The preview freezes on the card it was opened over                          |       |      |
+| 0025 Extend the shared test coverage                         | 0100 A `???` callout snaps shut on every re-render                               |       |      |
+| 0024 Define symbolic link semantics                          | 0019 Review lexical compatibility with CommonMark                                |       |      |
+| 0021 Specify the vault directory and the standard's boundary | 0015 CommonMark's own examples as a test dataset                                 |       |      |
+| 0008 A public card linking to a private one needs a policy   | 0013 The roadmap is behind the releases, and it is the one page that states them |       |      |
+| 0007 Conversion should name its output target                | 0012 An embedded card's Markdown links resolve from the host page                |       |      |
+|                                                              | 0011 Vault and namespace: the declared design, HMD, and HQL have drifted apart   |       |      |
 <!-- /hql:output -->
 
 ## Archive
@@ -129,8 +127,12 @@ issues
 | 0107 | Nothing pins `d2`                                                    |
 | 0104 | The extension has no logo, and the project already has one           |
 | 0103 | The preview is a side-bar view when it wants to be a tab in a column |
+| 0023 | Rename `wiki` to `location_path`                                     |
+| 0022 | Align the implementations with the finalized 0.1 decisions           |
 | 0020 | Validate name resolution across Python, Rust, and TypeScript         |
+| 0018 | Validate the grammar                                                 |
 | 0017 | Verify path-suffix resolution                                        |
+| 0016 | Prepare the 0.1 specification release                                |
 | 0014 | A heading in a non-Latin script cannot be linked                     |
 | 0010 | A folder note's Markdown links resolve one directory up              |
 | 0009 | A nested vault is swept into the vault around it                     |

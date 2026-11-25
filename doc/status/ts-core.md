@@ -22,8 +22,8 @@ work. Every corpus case passes, and lint output matches the reference
 implementation byte for byte on three real trees — the wiki and two example
 vaults. The missing publication rule is a listed limitation of this tool's
 conformance, ledgered, and not a blocker for the specification's release. The
-package's own version is separate: `0.3.0` is on npm, and the 0.1 rules, HMD019
-and the corrected resolution are unreleased.
+package's own version is separate: `0.4.0`, on npm since 2026-11-25, carries
+the 0.1 rules, HMD019, and the corrected resolution.
 
 **The one real gap is the card publication model** — the registry sense of the
 word is settled, and this is the other one: the frontmatter key that says
@@ -75,19 +75,19 @@ canonical side warns and this one stays silent.
 
 - **`location_path` names the namespace root** — the setting formerly called
   `wiki`, read relative to the vault with the default `.`, the vault itself,
-  instead of `doc/wiki`; no alias; unreleased.
+  instead of `doc/wiki`; no alias; released in 0.4.0.
 - **The HMD007 check follows only the embedded region** — it walks the
   region a fragment expands to, using the core's own expansion, instead of
   every embed in the target card, so embeds of different sections of one card
   are no longer a false cycle, matching the reference implementation. Held by
-  the `embed-sections-of-one-card` and `embed-self` corpus cases; unreleased.
+  the `embed-sections-of-one-card` and `embed-self` corpus cases; released in 0.4.0.
 - **Name resolution, validated** — the corrected algorithm: `..` normalised in
   every form, an escape from the namespace is HMD003 in every phase, `[[./]]`
   and `[[../]]` bind only a folder note, every imported search path is probed
   so HMD016 names each shadowed card once, and candidates sort by code point,
   not by UTF-16 unit. A host reports a symbolic link out of the root with
   `DirEntry.leavesRoot`. Held by the eighteen `resolve-*` cases written from
-  the specification, which Python, TypeScript, and Rust all pass; unreleased
+  the specification, which Python, TypeScript, and Rust all pass; released in 0.4.0
   [issue 0020].
 - **The HyperMarkDown 0.1 rules** — case for case with the reference
   implementation: heading keys with a case-folding table generated from Python,
@@ -95,7 +95,7 @@ canonical side warns and this one stays silent.
   headings, HMD019 through an optional `readBytes` on the host, the byte-order
   mark, line endings, NFC names, code-point columns and UTF-8 offsets, the
   anchor-on-heading embed, unrendered anchors, and HMD011 silenced by an
-  anchor. The slugger is gone and the IR is version 4; unreleased.
+  anchor. The slugger is gone and the IR is version 4; released in 0.4.0.
 - **Markdown cards** — `.md` and `.markdown` cards, binding by card extension,
   HMD018 and `Workspace.shadowedBy`, held to the corpus; released as 0.3.0
   [HMD-0029].
@@ -126,7 +126,7 @@ canonical side warns and this one stays silent.
   notes, imports, and a workspace index behind a host port that touches no Node
   builtins, so it runs in a browser.
 - **Eighteen diagnostics**, every one but HMD017, sorted and worded
-  identically to the reference linter; HMD019 is unreleased.
+  identically to the reference linter; HMD019 is released in 0.4.0.
 - **The corpus and its ledger** — the older cases generated from the reference
   implementation and checked against the text, the `resolve-*` cases and every
   later one written from the specification; the ledger holds no case, only the

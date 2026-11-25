@@ -14,10 +14,10 @@ embeds in [`ts-core.md`](ts-core.md), the Rust resolver in
 
 ## Status
 
-**`0.5.2` is released to both galleries, and cards are notebooks.** The
+**`0.6.0` is released to both galleries, and cards are notebooks.** The
 extension reads cards through the core it embeds, so it conforms to
 HyperMarkDown 0.1.0 as far as that core does — every rule but the publication
-model. The 0.1 rules are in the unreleased tree.
+model. 0.6.0, released on 2026-11-25, carries the 0.1 rules.
 Everything the extension claims to do works and is gated by tests: the rendered
 tab, wiki links and plain Markdown links that open what they name, embeds as collapsible cards, scroll sync both ways, red links with a
 create-the-card action, the graph, diagnostics identical to the linter's except
@@ -98,18 +98,18 @@ about 300 MB on first run, which is why it is not in the default test command.
 - **`location_path` names a vault's namespace root** — read through the core,
   with the default `.`, the folder of `.hmd/` itself, instead of `doc/wiki`.
   `hyperMarkdown.root` keeps its name; left empty, it now falls back to
-  `location_path`; unreleased.
+  `location_path`; released in 0.6.0.
 - **The 0.1 rules from the core** — following a heading link matches by key,
   so underlined headings and headings in every script are reached, diagnostics
   convert code-point columns to the editor's UTF-16 ones, an undecodable card
   is reported as HMD019, and resolution follows the corrected algorithm (`..`
   normalised, `[[./]]` binding only a folder note, candidates in code-point
-  order); unreleased.
+  order); released in 0.6.0.
 - **A symbolic link out of the vault is no longer followed as a card** — the
   host marks it with `DirEntry.leavesRoot` on a `file:` root, so the core
   reports a reference through it as leaving the namespace, HMD003, as the
   specification and the `resolve-containment-symlinks` case require;
-  unreleased [`src/workspaceHost.ts`, issue 0020].
+  released in 0.6.0 [`src/workspaceHost.ts`, issue 0020].
 - **A cell runs in its card's directory** — HQL is started in the directory
   holding the card, not the vault root, so a relative path in a cell resolves
   beside the card and HQL's upward search for the card's HQL project starts

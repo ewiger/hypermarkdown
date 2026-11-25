@@ -40,8 +40,8 @@ in [`pages.md`](pages.md).
 implemented — grammar, resolution, the nineteen diagnostics, embed expansion,
 both renderers, the site plugin, publication — and every case in the
 conformance corpus passes with no expected-failure ledger. The tool's own
-version is separate: 0.4.0 is released, and the 0.1 rules and the corrected
-resolution algorithm are implemented and unreleased. The test suite, the
+version is separate: 0.5.0, released on 2026-11-25, carries the 0.1 rules and
+the corrected resolution algorithm. The test suite, the
 shared corpus, three lint runs over real trees, and a site build stand behind
 that. `hypermarkdown` is on PyPI through a trusted publisher, each tool owns
 its own README, changelog, licence, and guide, and the repository root is a
@@ -92,13 +92,13 @@ commit: the retired domain does not redirect.
 - **`location_path` names the namespace root** — the setting formerly called
   `wiki`, read relative to the vault with the default `.`, the vault itself,
   instead of `doc/wiki`; no alias. `hmd init --location-path` replaces
-  `--wiki`, and with no flag creates no directory; unreleased.
+  `--wiki`, and with no flag creates no directory; released in 0.5.0.
 - **The HMD007 check follows only the embedded region** — it walks the
   section a fragment expands to, not every embed in the target card, so two
   embeds of different sections of one card, or a section embedding a sibling
   section, are no longer a false cycle. A card or a section that embeds itself
   still is. Held by the `embed-sections-of-one-card` and `embed-self` corpus
-  cases; unreleased.
+  cases; released in 0.5.0.
 - **The corrected resolution algorithm** — `..` is normalised in every form,
   leaving the namespace is HMD003 in every phase (a nested vault and a symbolic
   link out of the root included), a written card extension is honoured in
@@ -106,7 +106,7 @@ commit: the retired domain does not redirect.
   `[[../]]` reach only folder notes, every imported search path is probed so
   HMD016 names each shadowed card once, and HMD012 is a warning. The eighteen
   `resolve-*` corpus cases, written from the specification, stand behind it;
-  unreleased [issue 0020].
+  released in 0.5.0 [issue 0020].
 - **The HyperMarkDown 0.1 rules** — heading fragments match by key, so
   headings in every script are linkable [issue 0014], setext
   headings are headings, HMD019 reports undecodable files, a byte-order mark is
@@ -115,7 +115,7 @@ commit: the retired domain does not redirect.
   `.hmd/` marks a vault, an anchor on a heading embeds its section, an anchored
   repeat heading is not HMD011, and block anchors are no longer rendered — the
   tutorial's "you cannot see it" paragraph showed its own. A determinism test
-  and six corpus cases stand behind it; unreleased.
+  and six corpus cases stand behind it; released in 0.5.0.
 - **A syntax highlighter for cards** — a code sample marked `hmd` is coloured
   as a card wherever Pygments is used: links, embeds, block anchors, and
   frontmatter stand out, and a fenced block inside the sample is coloured as

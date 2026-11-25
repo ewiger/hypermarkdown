@@ -2,7 +2,7 @@
 
 **Status**: drafted
 **Created**: 2026-11-22
-**Source**: [the release card](../../issues/0016-prepare-the-0-1-specification-release.md),
+**Source**: [the release card](../../issues/archive/0016-prepare-the-0-1-specification-release.md),
 the format's tracker, and reviews of the specification as published
 
 ## Companion notes
@@ -165,7 +165,7 @@ exists to close.
 
 ## See also
 
-- [The release card](../../issues/0016-prepare-the-0-1-specification-release.md)
+- [The release card](../../issues/archive/0016-prepare-the-0-1-specification-release.md)
   — the decisions of 2026-11-22, the readability actions, and the steps to the
   release.
 - [The specification](../../wiki/hmd-lang-spec.hmd) — the normative text the
