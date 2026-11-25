@@ -54,7 +54,7 @@ while the table above does not have to.
 wins over a card far away, and multiple autodiscovery matches require a
 qualified reference. Ordered wildcard imports instead use declaration
 precedence and report a shadowing warning. The complete rules are in
-[Namespaces](namespaces.md).
+[Namespaces](namespaces.hmd).
 
 ## Frontmatter
 

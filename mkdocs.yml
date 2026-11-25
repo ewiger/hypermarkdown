@@ -23,9 +23,8 @@ edit_uri: edit/main/doc/
 # a setting here that the override ignores would be a second claim free to
 # drift away from the first.
 
-# The site covers the whole documentation tree, while the `[[…]]` namespace is
-# restricted to `doc/wiki` by the plugin's `root` below. The book and the wiki
-# build together; only the wiki is a namespace.
+# The site uses the existing doc/ vault, so book chapters and wiki cards can
+# refer to one another. Each .hmd card opts into publication with nav.visibility.
 docs_dir: doc
 
 # The working memory of the project, not part of the published book. `status/`
@@ -113,27 +112,20 @@ theme:
 
 plugins:
   - hypermarkdown:
-      root: doc/wiki
+      root: doc
 
 # The authored nav wins everywhere except where it asks for the wiki by name.
 # `hmd://wiki` is replaced by the section derived from the namespace tree, so
 # the book keeps its own order and still says where the cards belong.
 nav:
   - Home: index.md
-  # Two subjects rather than seven pages. A flat nav made every chapter its own
-  # tab, so the top bar was a table of contents and said nothing about which
-  # pages belong together — a visitor had to read all seven titles to find the
-  # one they wanted. `Language` comes first and is led by the normative text:
-  # since the 0.1 release the specification reads well cold, so it is the
-  # first thing the site offers after the cover. `Learn` follows, as the guided
-  # route through the same ground.
-  #
-  # A section tab links to the first page beneath it, so these open on the
-  # specification and on `Introduction` respectively.
+  # Language introduces the vision, explains namespaces, then gives the standard.
+  # A section tab opens its first page, so Language opens Vision.
   - Language:
-      - Language Specification: wiki/hmd-lang-spec.md
-      - Namespaces: public/namespaces.md
+      # The plugin registers these .hmd sources under .md names for MkDocs.
       - Vision: public/vision.md
+      - Namespaces: public/namespaces.md
+      - Language Specification: wiki/hmd-lang-spec.md
   - Learn:
       - Introduction: public/introduction.md
       - Tutorial: wiki/hmd-tutorial.md

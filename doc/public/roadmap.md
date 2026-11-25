@@ -155,7 +155,7 @@ HQL is at major version 0. A minor release may change the language.
 
 Today a name resolves inside one tree. The plan is for separately published
 collections to name each other, so a card in your vault can point into someone
-else's. The argument is in [Vision](vision.md).
+else's. The argument is in [Vision](vision.hmd).
 
 ### Your editor, not just VS Code
 

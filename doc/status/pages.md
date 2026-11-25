@@ -56,7 +56,7 @@ revisiting is that maths loads from a CDN at view time.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| doing | **Rearrange the site around the specification**: the `Language` tab now comes before `Learn`, and the cover's reading list follows the same order. The rest of the structure is still under review, on the `feature/website-improvements` branch | Since the 0.1 release the specification reads well on its own, so it leads | `mkdocs.yml`, `doc/index.md` |
+| doing | **Rearrange the site**: `Language` opens with Vision, followed by Namespaces and the Language Specification. The specification has an amber highlight in the submenu, and the cover's reading list follows the same order. The rest of the structure is still under review | Introduce the purpose and concepts before the standard | `mkdocs.yml`, `doc/index.md`, `doc/wiki/assets/hmd.css` |
 | todo | **The roadmap is behind the releases**: its version table, its news, and a section that lists released cells as coming | It now says where the work goes — the specification's first version and the editor here, AI and graph querying in HQL — and nothing else on it was brought forward. It is the one page that states versions, so it is the one page that has to be right | [the roadmap card](../issues/0013-the-roadmap-is-behind-the-releases.md) |
 | todo | **A screenshot of the example notebook for the cover**, in place of a crop from another vault | Needs the editor opened by hand | [the screenshot card](../issues/0114-a-screenshot-of-the-example-notebook.md) |
 | todo | **Rewrite every `d2` fence as `d2#show`** — in the book, the wiki, the README, and the example vaults, about eighteen fences — so the diagrams still draw once a plain `d2` fence is a listing. A fence that shows D2 source on purpose, inside an outer example fence, stays as it is | Lands with the release that turns the rule on in both implementations, not before it and not after | [[hmd-0030#backwards-compatibility]] |
@@ -83,6 +83,15 @@ revisiting is that maths loads from a CDN at view time.
 
 ## Done
 
+- **Readable Language chapters** — Vision presents a card as a unit of
+  knowledge: readable, composable, queryable, and executable, with a working
+  notebook example and the HQL blog's argument for reflection. Namespaces
+  follows the specification's handbook through naming, imports, discovery,
+  and vault boundaries. Both distinguish current capabilities from proposed
+  agent workflows and cross-namespace references; the latter now agree with
+  the standard's reserved-syntax rule. Both chapters are published `.hmd`
+  cards with wikilinks, using the existing `doc/` vault as the site's namespace
+  and retaining their public URLs.
 - **A link-preview card** — Open Graph and Twitter tags on every page, and one
   image for the site, drawn in the cover's dark scheme from
   `scripts/social-card/card.html` by `node scripts/social-card.mjs` and
@@ -183,6 +192,9 @@ run permanently.
 
 ## Changelog
 
+- 2026-11-25: rewrote Vision and Namespaces around cards as knowledge and the
+  specification's example-led explanations, with HQL examples and links to
+  its blog and book.
 - 2026-11-22: the roadmap says where the work goes; the rest of it is an open
   card.
 - 2026-11-22: a link-preview card and the tags that carry it.

@@ -72,7 +72,7 @@ subtree can be self-contained — `hmd init` inside one is how you make it so.
 
 It also names the tree, in a `[namespace]` section, after the project directory
 unless you say otherwise. A project's own namespace is otherwise unnamed, and
-[naming it](../public/namespaces.md) is what would let another project bind to
+[naming it](../public/namespaces.hmd) is what would let another project bind to
 it — reserved today, so the section records intent and changes nothing.
 
 Nothing to try it on yet? The repository carries a small runnable wiki that

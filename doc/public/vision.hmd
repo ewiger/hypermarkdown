@@ -1,0 +1,184 @@
+---
+nav:
+  visibility: public
+description: HyperMarkDown makes a page a unit of knowledge that people can read, tools can inspect, and queries can build upon.
+---
+
+# Vision
+
+HyperMarkDown makes a page a **unit of knowledge**. A page can explain an idea,
+name its sources, describe its relationships, and contain the computation that
+produces part of what it says. People can read it; programs can inspect and
+query it; both can build on it.
+
+The ambition is to give knowledge a form in which it can be used where it is
+written. A research note, a design decision, a calculation, and an instruction
+to an agent can all belong to the same knowledge base. Each has an address.
+Each can refer to the others. Explanations, evidence, and executable work can
+stay together as they develop.
+
+Markdown provides the readable text. HyperMarkDown gives it structure and
+connections. [HQL, the Hyper Query Language](https://hql-lang.org/), provides
+the queries and computations. Together, they make a document a place to work
+with knowledge as well as a place to record it.
+
+## A page is a unit of knowledge
+
+A page in HyperMarkDown is called a **card**. It is an individually addressable
+document, usually an `.hmd` file. Its body holds the explanation; its header
+can hold facts such as a title, author, subject, or status. Links connect it to
+other cards, and named sections and blocks let a reference point to a precise
+part of an argument.
+
+Consider a card about a design decision. It can explain the problem, link to
+the requirements, embed a shared definition, and include a query that lists
+the work still needed. Someone reading the card sees the decision in context.
+A program can read its metadata, follow its references, and recompute the list.
+
+The useful unit is the whole card: the claim, its context, and the means of
+working with it. A collection of these cards forms a knowledge base whose
+structure is available alongside its prose.
+
+Ordinary `.md` and `.markdown` files can also be cards: HyperMarkDown can link
+to and embed them while leaving their contents as plain Markdown. An `.hmd`
+file opts into the additional syntax. This lets an existing collection grow
+into a connected knowledge base a page at a time.
+
+## Knowledge can be composed
+
+A definition often belongs in several explanations. An embed lets those
+explanations share the same source:
+
+```markdown
+The request uses [[tokens]]. The shared definition is:
+
+![[glossary/token#^definition]]
+```
+
+The link names a card; the embed brings a named block into the page. The same
+mechanism can include a section or a whole card. When the definition changes,
+the pages that embed it show the change on their next render.
+
+Names have defined resolution rules, so a tool can identify the target of a
+reference and report an ambiguity. An embedded passage keeps the meaning of
+the links it had in its source card. That makes composition useful for more
+than publishing: a larger explanation can be assembled from smaller pieces
+without losing how those pieces relate to the knowledge around them.
+
+## A page can ask questions of its knowledge base
+
+HQL reads cards as values with a title, body, path, and metadata. It also
+provides access to their links and graph. A query can select cards, examine
+their properties, and produce a result inside another card.
+
+The repository's example notebook contains four book cards. Two have
+`status: todo` in their metadata. A reading-list cell over that vault is:
+
+````markdown
+```hql#eval
+cards
+| filter(c => c.metadata.status == "todo")
+| sort(by = c => c.title)
+| map(c => c.title)
+```
+````
+
+Run against that vault, it produces:
+
+```text
+- Emma
+- The Hobbit
+```
+
+Change a book's status and run the cell again: the reading list changes. The
+question lives on the page where its answer is useful, and the book cards
+remain the source of the answer.
+
+This is a small example of **introspection**: a knowledge base can examine its
+own contents. The same approach can build a subject index, collect decisions
+with a particular status, or count the documents in a collection. The project
+uses it for its own documentation: HQL cells read the issue cards and trackers
+to generate views of the open work.
+
+The [example notebook](https://github.com/ewiger/hypermarkdown/tree/main/examples/notebook)
+includes cells that share results with one another, a reading list, and a
+progress table. HQL's [Queries inside documents](https://hql-lang.org/book/24-documents/)
+explains how to run them and save their outputs.
+
+## Computation belongs with its explanation
+
+An executable card can carry the question, the query, the result, and the
+author's interpretation in one document. A reader can inspect how a result was
+obtained, change the query, and run it again. Other cells in the document can
+use that result in further calculations.
+
+HQL can also work with structured data outside the vault. A report can combine
+its written explanation with a computation over that data, then make the
+result available as part of the card. The knowledge base becomes a place where
+observations are interpreted and connected to what is already known.
+
+Saved cell output is ordinary document content. It remains readable without
+running the computation, and links in that output participate in the card's
+graph. The source query remains available when output is saved alongside it.
+A saved result records a run; refreshing it requires another run. Opening a
+page and executing its cells are separate actions.
+
+## Knowledge can participate in its own revision
+
+The larger possibility is a knowledge base that represents how it works and
+uses those representations to improve its work. Requirements can be cards.
+Procedures can be cards. Observations about their results can be cards too.
+They can be linked, queried, compared, and revised together.
+
+Imagine a design review. A card states the requirements and holds a query
+that gathers relevant evidence. Running the query produces observations. A
+person or an agent reviews them, revises the requirements or the procedure,
+and runs it again. Each step contributes knowledge that the next step can
+inspect.
+
+That is the sense in which the system can **reflect on itself**: its own
+descriptions and results become material for further reasoning and computation.
+The human reader can follow the process through the same documents, inspect
+the evidence, and redirect the work.
+
+HQL's design for agents extends this idea to instructions stored as cards and
+runs whose inputs, tool calls, and results can be inspected as values. This
+remains design work. The blog essay
+[From Rust to English to Strange Loops](https://hql-lang.org/blog/ai-oriented-programming-language/)
+develops the motivation, and
+[Agents inside documents](https://hql-lang.org/book/26-agents-inside-documents/)
+explores what it could look like in a card.
+
+## Independent knowledge bases can form a web
+
+Today, HyperMarkDown resolves card references inside one namespace: an
+organized collection of cards with a shared naming context and boundary. That
+gives each knowledge base a context in which names have a predictable meaning.
+
+The proposed next step is to connect independently maintained namespaces. A
+reference such as `[[research:methods/sampling]]` would name a card in another
+collection. Project configuration would say which collection `research`
+means. Its author could keep maintaining it at its source while other
+knowledge bases refer to it or compose with it.
+
+At that scale, the same idea extends outward: people read pages, programs
+query knowledge, and agents gather evidence from independently authored
+collections. The knowledge remains addressable at its source, with explicit
+connections between collections. The proposed namespace system is described
+in [[namespaces#Beyond one namespace|Namespaces]]; it is not implemented by
+the current language standard.
+
+## The foundation and the direction
+
+Cards, metadata, resolved links, embeds, and HQL cells provide the foundation
+today. They already let a knowledge base describe itself and compute views of
+its contents. Agent workflows and references between namespaces are the
+direction being explored.
+
+The aim is a readable, inspectable, executable body of knowledge: one in which
+an explanation can lead to a computation, a computation can yield new evidence,
+and that evidence can change what we understand and do next.
+
+For the precise document rules, read the
+[[/wiki/hmd-lang-spec|Language Specification]]. For how cards acquire
+names and share a context, continue with [[namespaces|Namespaces]].

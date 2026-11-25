@@ -321,7 +321,7 @@ diagnostics, over CommonMark 0.31.2. Cells are defined by HQL, not by it.
 </div>
 </div>
 
-<p class="hmd-fineprint" markdown>The first step that finds the name wins. In the graph, `specs/auth/login` imports `shared/tokens` under the name `shared-tokens`, because a bare `tokens` there is the card in its own folder. A name that is found nowhere is a warning, a red link: a link can be written before its card. Ordinary Markdown links are not checked. The full rules are in [Namespaces](public/namespaces.md).</p>
+<p class="hmd-fineprint" markdown>The first step that finds the name wins. In the graph, `specs/auth/login` imports `shared/tokens` under the name `shared-tokens`, because a bare `tokens` there is the card in its own folder. A name that is found nowhere is a warning, a red link: a link can be written before its card. Ordinary Markdown links are not checked. The full rules are in [Namespaces](public/namespaces.hmd).</p>
 
 </section>
 
@@ -738,9 +738,9 @@ summary of each card beside it is planned and not built.
 
 <div class="hmd-parts" markdown>
 
+- [**Vision**](public/vision.hmd) <span>Pages as units of knowledge: readable, connected, and executable.</span>
+- [**Namespaces**](public/namespaces.hmd) <span>Cards, directories, and reference resolution.</span>
 - [**Language Specification**](wiki/hmd-lang-spec.hmd) <span>The normative text: grammar, resolution, diagnostics.</span>
-- [**Namespaces**](public/namespaces.md) <span>How a name becomes a card: folders, imports, and what is planned across repositories.</span>
-- [**Vision**](public/vision.md) <span>Independently served cards that link to each other, and how much of that is unbuilt.</span>
 - [**Introduction**](public/introduction.md) <span>The format at a glance, and how to adopt it one file at a time.</span>
 - [**Tutorial**](wiki/hmd-tutorial.hmd) <span>Every construct of the language, with its source beside what it renders.</span>
 - [**Features**](public/features.md) <span>What a card can carry, shown working.</span>

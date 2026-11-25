@@ -51,7 +51,7 @@ the board, in the order this view lists them.
 <!-- hql:output hash=f5d971badf3f status=ok -->
 | state   | rows |
 | ------- | ---- |
-| doing   | 1    |
+| doing   | 2    |
 | todo    | 27   |
 | blocked | 5    |
 | backlog | 11   |
@@ -74,6 +74,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | state   | work                                                                                               | tracker                   |
 | ------- | -------------------------------------------------------------------------------------------------- | ------------------------- |
 | doing   | Cells, rendered by the tools.                                                                      | [lang](lang.md)           |
+| doing   | Rearrange the site                                                                                 | [pages](pages.md)         |
 | todo    | Lint text, not just files.                                                                         | [hmd](hmd.md)             |
 | todo    | Invalidate one card at a time                                                                      | [hmd](hmd.md)             |
 | todo    | Property-based tests of the resolver's claims, over generated vaults.                              | [hmd](hmd.md)             |

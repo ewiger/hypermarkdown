@@ -45,6 +45,19 @@
   --hmd-bolt: #ffc233;
 }
 
+/* Highlight the specification in the sidebar and mobile drawer. On the
+   specification itself, Material uses ./ and a separate mobile TOC label. */
+.md-nav--primary .md-nav__item:has(> a[href$="hmd-lang-spec/"]) > .md-nav__link,
+:root:has(link[rel="canonical"][href$="/wiki/hmd-lang-spec/"])
+  .md-nav--primary .md-nav__item:has(> a[href="./"]) > .md-nav__link {
+  padding: 0.4rem 0.55rem;
+  border-inline-start: 3px solid var(--hmd-bolt);
+  border-radius: 0.2rem;
+  background-color: var(--hmd-bolt-soft);
+  color: var(--md-default-fg-color);
+  font-weight: 700;
+}
+
 /* Material sizes the logo for a wordmark; a single glyph next to text wants to
    be a little larger to sit optically level with it. */
 .md-header__button.md-logo img,
