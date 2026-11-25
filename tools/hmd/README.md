@@ -116,23 +116,25 @@ Every other key is yours, and nothing will inspect it.
 | `hmd info` | Show the resolved root and discovery policy |
 | `hmd --version` | Print the installed version |
 
-The `wiki` setting in `.hmd/config.toml` is the cards location: where inside
-the vault, the directory holding `.hmd/`, the cards start (`doc/wiki` by
-default, `.` for directly under the vault). The directory it names is the
-namespace root, and every command but `init` takes `--root` to override it. A
+The `location_path` setting in `.hmd/config.toml` is the cards location: where
+inside the vault, the directory holding `.hmd/`, the cards start. It defaults
+to `.`, the vault itself, so an empty `.hmd/` directory is a complete vault. The
+directory it names is the namespace root, and every command but `init` takes
+`--root` to override it. A config that still sets `wiki`, the setting's name
+before HyperMarkDown 0.1, is refused. A
 `.hmd/` directory doubles as the project root marker, so any subtree can be
 self-contained, and it is the only marker: a `.git` directory is not one, so a
 tree with no `.hmd/` above it needs `--root`.
 
 ```bash
 hmd init                    # here; the namespace is named after the directory
-hmd init path/to/project --wiki notes --name shared
+hmd init path/to/project --location-path notes --name shared
 ```
 
 `init` writes every setting at its default rather than leaving them implicit —
-the file is where you find out which keys exist. It creates the wiki root
-alongside the config, since a `wiki` setting pointing at nothing is an error
-every later command reports. It refuses to replace a config it did not write;
+the file is where you find out which keys exist. It creates the directory
+`--location-path` names alongside the config, since a `location_path` setting
+that points at nothing is an error every later command reports. It refuses to replace a config it did not write;
 `--force` overrides that.
 
 The `[namespace]` section names this tree so another project can bind to it and

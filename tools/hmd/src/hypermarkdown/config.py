@@ -140,8 +140,8 @@ def load(root_override: Path | None = None, start: Path | None = None) -> Config
     project = find_project_root(start)
     if project is None:
         raise ConfigError(
-            f"no project root above {start}: expected a .hmd/ directory. "
-            f"Run `hmd init`, or pass --root to name the namespace root directly."
+            f"vault not found: no .hmd/ directory in {start} or any directory above it. "
+            f"Run `hmd init` to initialize a vault, or pass --root to name the namespace root directly."
         )
 
     data, source = _read(project)

@@ -105,7 +105,7 @@ rendering without it.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| `hyperMarkdown.root` | `""` | Namespace root for the workspace folder itself, for cards no vault claims. Empty discovers it from `.hmd/config.toml`, falling back to `doc/wiki`. |
+| `hyperMarkdown.root` | `""` | Namespace root for the workspace folder itself, for cards no vault claims. Empty reads `location_path` from the folder's `.hmd/config.toml`, which defaults to the folder itself. |
 | `hyperMarkdown.preview.scrollSync` | `true` | Keep preview and editor on the same source line. |
 | `hyperMarkdown.preview.embeds` | `expanded` | Whether embed cards start expanded. |
 | `hyperMarkdown.diagnostics.scope` | `workspace` | Publish diagnostics for every indexed card — in every vault opened this session — or only for open ones. |
@@ -138,8 +138,8 @@ Nothing resolves across a boundary. Two vaults are two namespaces, so a
 that wrote them.
 
 A card with no `.hmd/` above it belongs to the workspace folder itself, whose
-root is `hyperMarkdown.root` when set, else `wiki` from the folder's
-`.hmd/config.toml`, else `doc/wiki`, else the folder — so a bare directory of
+root is `hyperMarkdown.root` when set, else `location_path` from the folder's
+`.hmd/config.toml`, else the folder itself — so a bare directory of
 cards works with no setup at all.
 
 ## Where the preview appears

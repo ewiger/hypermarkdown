@@ -1,10 +1,10 @@
-# 0116 — A card no vault claims should offer to make one
+# 0116 — Vault not found: the extension should say so and offer to initialize one
 
 **Column**: todo
 **Opened**: 2026-11-25
 **Related**: [the extension's tracker](../status/vsc-ext.hmd),
 [the per-card discovery card](archive/0108-vault-root-discovery-per-card.hmd),
-[the vault boundary card](0021-specify-the-vault-directory-and-its-boundary.hmd),
+[the rename card](archive/0023-rename-wiki-to-location-path.hmd),
 [[hmd-lang-spec#the-namespace]], [[hmd-lang-spec#project-configuration]]
 
 ## What
@@ -20,117 +20,117 @@ by hand, and it went wrong in three ways:
 - They ran an HQL cell first, and it failed with
   `hql: <workspace folder>: not a vault: it holds no .hmd/`. The message names
   the problem and not the fix.
-- Neither the extension nor `hql` has an init command they could find.
+- They could not find an init command in the extension.
 
-The fix belongs in the extension. The specification already says what a vault
-is: a directory that contains a `.hmd/` directory. `.hmd/config.toml` is
-optional, and without it the namespace root is the vault directory itself. So
-an **empty `.hmd/` directory is a complete vault**, and the extension can make
-one without asking anything about configuration.
+## The rule is git's
 
-## The extension does not carry the Python `hmd`
+The specification makes a vault work the way a git repository does:
 
-The extension embeds the TypeScript core (`@hypermarkdown/core`) and bundles two
-native binaries from the toolchain: `d2` and `hql`. It does not ship the Python
-package, and it does not need an interpreter. The Python `hmd init` command
-already exists and writes `.hmd/config.toml` plus the namespace root it names,
-but an extension user does not have it. The extension's README still tells
-them that "`hmd init` creates" the marker. The extension therefore needs its own
-init. It is a single `createDirectory` call, so it does not justify a
-dependency on Python.
+- A **vault** is the directory that contains `.hmd/`. `.hmd/config.toml` is
+  optional, so an empty `.hmd/` is a complete vault.
+- When no vault is found and no explicit namespace root is set, an
+  implementation **MUST report an error and MUST NOT read the documents**.
 
-## The README still describes the `wiki` key
+Git does not work in a folder that was never `git init`-ed, and it says so.
+HyperMarkDown does not work in a folder with no `.hmd/` above it, and it should
+say so the same way: **vault not found**, followed by how to initialize one.
 
-The reporter suggests `wiki = "."` because 0.5.2 predates the specification
-change that replaced `wiki` with `location_path`
-([the rename card](archive/0023-rename-wiki-to-location-path.hmd)). A config
-that sets `wiki` is now refused on purpose. The extension's code follows the
-new rule, but its README was missed in the rename. It still says the
-fallback root comes from "`wiki` from the folder's `.hmd/config.toml`, else
-`doc/wiki`". The row for `hyperMarkdown.root` also still says "falling back to
-`doc/wiki`". This card rewrites both, since it rewrites the README's setup text
-anyway.
+The Python CLI already does this. `hmd lint` with no `.hmd/` above it fails and
+says to run `hmd init` or pass `--root`. `hql` does it too, which is the error
+the reporter saw.
 
-## The design
+## The extension breaks the rule
 
-**Instead of an error, a button.** When a card is opened, or a cell is run,
-and no vault claims the card, the extension shows a notification with a blue
-primary action:
+The extension does not fail. When no `.hmd/` is above a card, `folderRoot` in
+`tools/hmd-vsc-ext/src/workspaceHost.ts` adopts the workspace folder as the
+vault and reads the cards anyway. The README advertises this as "a bare
+directory of cards works with no setup at all". So the preview draws a card
+that has no vault, and the first tool that follows the specification, `hql`,
+refuses the same card. The two halves of the editor disagree about whether the
+card has a vault.
 
-> No HyperMarkDown vault claims `card.hmd`. **Initialize Vault…**
+The fix:
 
-The preview's empty state, which says the same thing today, carries the same
-button. The HQL path shows it too: the extension catches the case before it
-calls `hql`, so the user never sees the `not a vault` message.
+- **No vault, no reading.** Drop the fallback. A card with no `.hmd/` above it,
+  up to the workspace folder, has no vault. The only exception is the explicit
+  namespace root the specification requires an implementation to offer, which
+  in the extension is the `hyperMarkdown.root` setting. When the user sets it,
+  that root is used.
+- **The error offers the fix.** Instead of drawing the card, the extension
+  shows an error with a blue primary action:
 
-**Initialize Vault… offers the places a vault can go.** A quick pick lists
-every directory from the card's own directory up to the workspace folder, which
-is every place where a `.hmd/` would claim this card. The list is ordered from
-the outermost directory to the innermost:
+  > Vault not found for `card.hmd`: no `.hmd/` directory above it.
+  > **Initialize Vault…**
 
-- the workspace folder, the project root (marked as the default);
-- `doc/`, when the card is under it (marked as the usual place for a project's
-  documentation);
-- every directory between it and the card;
-- the card's own directory.
+  The preview's empty state carries the same button. Running a cell on such a
+  card shows the same choice before `hql` is called, so the user never sees the
+  `not a vault` message.
 
-Opened from the command palette with no card, it offers the workspace folder
-and its `doc/` directory. Each entry shows the path relative to the workspace
-folder and how many `.hmd` files the new vault would claim, so a user can see
-that a vault at the root also claims the cards in `examples/`.
+## Initialize Vault
 
-**Confirming writes one empty directory**, `<chosen>/.hmd/`, and nothing else.
-The extension writes no `config.toml`, because the defaults are the
-specification's defaults. It does not write a starter card in this pass. Then
-the extension forgets its cached discovery, re-indexes, and re-renders the
-preview, so the card is in its vault without a reload.
+Init answers one question: **where does the vault go?** That is the vault path,
+the directory that will hold `.hmd/`.
 
-**A matching command:** `HyperMarkDown: Initialize Vault`, in the command
-palette and in the preview's empty state.
+- A quick pick lists every directory from the workspace folder down to the
+  card's own directory. These are the places where a `.hmd/` would claim the
+  card. The workspace folder is first and is the default. `doc/` is marked
+  when the card is under it, because it is the usual place for a project's
+  documentation.
+- Each entry shows its path relative to the workspace folder and how many
+  `.hmd` files the new vault would claim, so a user can see that a vault at the
+  root also claims the cards in `examples/`.
+- Confirming writes one empty directory, `<chosen>/.hmd/`, and nothing else.
+  The specification's defaults need no `config.toml`.
+- Then the extension forgets its cached discovery, re-indexes, and re-renders
+  the preview, so the card is in its vault without a reload.
+- The same action is the command **HyperMarkDown: Initialize Vault**. From the
+  command palette with no card open, it offers the workspace folder and its
+  `doc/` directory.
+
+`location_path` is not part of this. It is a setting inside a vault's
+`config.toml`, it is read relative to the vault, and before init there is no
+vault for it to be relative to. `hmd init` takes it as an option beside the
+vault path, for the user who wants the cards in a subfolder from the start.
+The extension's init does not need it.
 
 ## Things to settle while building it
 
-- **A nested vault.** A directory below an existing vault's namespace root is
-  a valid choice and makes a nested vault, which takes its cards out of the
-  enclosing namespace. The quick pick should say so when it applies. It does
-  not apply in the common case, because there the card has no vault above it.
-- **A refused vault.** When the nearest `.hmd/` has a refused `config.toml`,
-  the card has a vault and the problem is the config. The notification should
-  open the config file, not offer to create a second marker.
-- **The `hyperMarkdown.root` fallback.** Today a card with no `.hmd/` above it
-  still belongs to the workspace folder's fallback root, so the preview draws
-  it. In that case the notification is advice, not an error, and it should not
-  appear on every open. It should appear once per folder, with a
-  "Don't ask again" choice stored in workspace state.
+- **A refused vault.** When the nearest `.hmd/` has a refused `config.toml`, the
+  card has a vault and the problem is the config. The error should open the
+  config file, not offer to create a second marker.
+- **A nested vault.** A directory below an existing vault's namespace root is a
+  valid choice, and it takes its cards out of the enclosing namespace. It does
+  not arise in the common case, because there the card has no vault above it.
+  If it can arise, the quick pick should say so.
 - **The cache.** Rebuilding the catalog after init fixes this path. A watcher on
   `**/.hmd` would also fix the path where a user creates the directory by hand,
-  which is the first failure in the report. Decide whether this card does both.
-- **Untrusted workspaces.** Creating a directory is a write to the user's
-  disk. Decide whether the command is offered in Restricted Mode. Cells are not
-  run there today.
+  which is the reporter's first failure. Decide whether this card does both.
+- **Untrusted workspaces.** Creating a directory writes to the user's disk.
+  Decide whether the command is offered in Restricted Mode.
+- **Repositories that relied on the fallback.** Opening a folder of cards with
+  no `.hmd/` used to preview them. After this change it shows the error. The
+  changelog states this as a breaking change, and the error's button is the
+  migration.
 
 ## Done when
 
-- Opening a card that no vault claims shows the notification with
-  **Initialize Vault…**, at most once per folder unless the user asks again.
-- Running a cell on such a card shows the same choice instead of the `hql`
-  error.
+- A card with no `.hmd/` above it, and no `hyperMarkdown.root` set, is not read.
+  The preview and the cell runner both show **Vault not found** with
+  **Initialize Vault…**.
 - The quick pick lists the workspace folder, `doc/` when present, and every
-  directory up to the card. It defaults to the workspace folder.
-- Confirming creates `.hmd/` and nothing else. The card is then claimed by the
-  new vault, its links resolve, and its cells run, all without a reload.
-- `HyperMarkDown: Initialize Vault` is in the command palette.
-- The README describes the button and the command, no longer sends extension
-  users to `hmd init`, and describes the fallback root with `location_path`
-  and its default `.`.
+  directory down to the card, and it defaults to the workspace folder.
+- Confirming creates an empty `.hmd/` and nothing else. The card is then
+  claimed by the new vault, its links resolve, and its cells run, all without a
+  reload.
+- **HyperMarkDown: Initialize Vault** is in the command palette.
+- The README states the rule (no vault, no reading), describes the button and
+  the command, and no longer sends extension users to `hmd init`.
 - Tests cover the candidate list (card at the root, card under `doc/`, a
-  nested card, a card already under a refused vault) and the cache being
-  dropped after init.
+  nested card, a card under a refused vault), the error when no vault is found,
+  the explicit `hyperMarkdown.root` still working, and the cache being dropped
+  after init.
 
 ## Not in this card
 
-- A starter `index.hmd`, and writing `location_path` from the dialog. Both are
-  possible later, but an empty marker is enough to unblock a user.
-- An init command in `hql`. HQL is its own project, and the extension no longer
-  lets a user reach its `not a vault` message from a cell.
+- A starter `index.hmd`.
 - Syntax highlighting, which is a separate question.
