@@ -36,6 +36,7 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 | [HMD-0030](HMD-0030/index.hmd) | drafted | Diagram cells — `d2#show` and `mermaid#show`, drawn like HQL cells with Show in place of Run | [vsc-ext](../status/vsc-ext.hmd), [ts-core](../status/ts-core.hmd), [hmd](../status/hmd.hmd), [lang](../status/lang.hmd), [pages](../status/pages.hmd) |
 | [HMD-0031](HMD-0031/index.hmd) | drafted | Freeze — every open finding against 0.1, consolidated before fixing | [lang](../status/lang.hmd) |
 | [HMD-0032](HMD-0032/index.hmd) | drafted | HQL path — addressing inside a card with `@[[…]]`, for HyperMarkDown 0.2.0; a design draft, not ready to implement | [lang](../status/lang.hmd) |
+| HMD-0033 | reserved | `hmd-lsp` — the language server, written in Rust | — |
 
 ## Archived
 

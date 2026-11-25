@@ -23,8 +23,8 @@ board:
     { name: "done", description: "Issues that have been completed." }
   ]
   # One counter per stream, because the numbering is split (see the header):
-  # the Python line's next issue is 0027, the editor line's is 0117.
-  last_id: 116 # highest assigned overall; per stream — Python 26, editor 116
+  # the Python line's next issue is 0027, the editor line's is 0118.
+  last_id: 117 # highest assigned overall; per stream — Python 26, editor 117
   items:
     backlog:
       - id: "0026"
@@ -82,6 +82,9 @@ board:
       - id: "0100"
         title: "A ??? callout snaps shut on every re-render"
         file: 0100-callout-open-state-lost.hmd
+      - id: "0117"
+        title: "A language server, written in Rust"
+        file: 0117-a-language-server-in-rust.hmd
       - id: "0115"
         title: "Mermaid diagrams, on par with D2"
         file: 0115-mermaid-diagrams-on-par-with-d2.hmd

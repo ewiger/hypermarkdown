@@ -1,0 +1,83 @@
+# 0117 — A language server, written in Rust
+
+**Column**: todo
+**Opened**: 2026-11-25
+**Related**: [HMD-0024](../proposals/HMD-0024/index.hmd), [HMD-0027](../proposals/HMD-0027/index.hmd), [the Rust crate's tracker](../status/rs-core.hmd), [the extension's tracker](../status/vsc-ext.hmd), [the toolchain card](archive/0107-toolchain-repository-for-native-binaries.hmd)
+
+## What
+
+HyperMarkDown gets a language server, and the server is a Rust program. It is a
+new tool in its own directory, `tools/hmd-lsp/`, and it builds one native
+binary named `hmd-lsp`. The binary speaks the Language Server Protocol over
+standard input and output. It resolves references through the `hypermarkdown`
+crate in `tools/hmd-rs-core/`, and it keeps no resolution code of its own.
+
+The server answers these requests, in this order of work:
+
+1. **Semantic tokens.** A link, an embed, a block anchor, and the frontmatter
+   are coloured in every editor that speaks the protocol. A link that resolves
+   to no card, or to several cards, gets its own colour.
+2. **Go to definition.** A link opens the card it names, at the heading or the
+   block anchor when the link has a fragment.
+3. **Hover.** A link shows the card it resolves to and the rule that found it.
+4. **Diagnostics for three outcomes.** A name that matches no card, a name that
+   matches several cards, and a path that leaves the namespace. A client can
+   turn these off, and the VS Code extension does.
+5. **Completion** of card names, headings, and block anchors inside `[[`.
+6. **Rename** of a card, with every reference to it rewritten.
+
+The VS Code extension becomes a client of the server. It looks for the binary
+in a setting, then in the bundled toolchain directory, then on `PATH`. When it
+finds no binary, it shows one notice and every other feature keeps working.
+
+## Why now
+
+The question that started this was syntax highlighting for `.hmd` files. The
+extension colours a card with a TextMate grammar, and the site colours a code
+sample with a Pygments lexer. Neither knows whether a link resolves, and
+neither serves any editor other than VS Code. Semantic tokens from a language
+server do both.
+
+## This reverses a decision
+
+[HMD-0024](../proposals/HMD-0024/index.hmd) decided that the language server
+MUST be Python on `pygls`, inside `tools/hmd/`. Its reason was that a server
+written anywhere else would be a third place where resolution behaviour lives.
+That third place now exists for another reason: the Rust crate, which HQL
+needed. The crate passes every case of the conformance corpus with an empty
+list of differences.
+
+Three facts favour Rust today:
+
+- **The crate already reads text.** Its in-memory host loads a vault from
+  strings, so an unsaved buffer is ordinary input. The Python implementation
+  still needs two changes to its workspace index before it can do this.
+- **A Rust server is one native binary.** It ships the way `d2` and `hql`
+  ship, through the pinned toolchain, and it needs no interpreter on the
+  user's machine. A Python server needs an interpreter or a frozen bundle.
+- **The server starts in milliseconds**, which matters for a process that an
+  editor starts with every window.
+
+A new proposal records the decision and supersedes the language-server section
+of HMD-0024. The `tools/` layout that HMD-0024 also decided stays in force.
+
+## What Rust does not give
+
+The Rust crate resolves and does not lint. Live diagnostics in VS Code stay
+with the TypeScript implementation, and `hmd lint` in Python stays the linter
+for the command line, for CI, and for the site build. An editor other than VS
+Code gets the three diagnostics listed above and no others, until the lint
+rules are ported to Rust or the server learns to call `hmd lint`.
+
+## Done when
+
+- The proposal is written, and HMD-0024, the decisions file, and the trackers
+  agree with it.
+- `tools/hmd-lsp/` builds and passes its tests in CI on Linux, macOS, and
+  Windows.
+- The server answers the first four requests in the list above, with a test
+  for each that speaks the protocol to the built binary.
+- The extension starts the server, colours a card with its tokens, and keeps
+  working when the binary is absent.
+- The release path for the binary is decided and written down: a tag prefix,
+  the platforms, and how the binary reaches the toolchain.
