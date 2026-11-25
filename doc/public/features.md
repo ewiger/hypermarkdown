@@ -67,7 +67,7 @@ vocabulary. `[[logging]]` in the billing folder means *your* logging card.
 Alias it, or point inside it:
 
 ```markdown
-The [[md-hmd-interop|comparison with TypeScript]] makes the case.
+The [[tokens|rotation rules]] apply to every session.
 See [[tokens#Rotation]] for the window.
 ```
 
@@ -94,7 +94,7 @@ A token is valid for exactly one rotation window. ^definition
 Write the definition once. Embed it in the API reference, the onboarding page,
 and the incident runbook. Fix it in one place.
 
-!!! tip "This page shows the syntax; the cards run it"
+!!! tip "See the syntax working in a real card"
 
     A chapter like this one is ordinary Markdown, so the constructs above stay
     quoted rather than live. The [tutorial](../wiki/hmd-tutorial.hmd) and the
@@ -200,8 +200,7 @@ Tokens rotate hourly. See [[tokens]], and here is the rule itself:
 Renaming the file changes nothing about its validity. The second version opts
 into checked wikilink semantics. `hmd lint` is `tsc --noEmit`, rendering to flat
 Markdown is compilation, and adopting it file by file is why `allowJs` mattered:
-nobody rewrites a wiki by hand. The full argument is
-[MD ↔ HMD interoperability](../wiki/md-hmd-interop.hmd).
+nobody rewrites a wiki by hand.
 
 ## Go deeper
 

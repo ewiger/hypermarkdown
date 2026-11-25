@@ -28,7 +28,7 @@ you have to install to get it:
   shipped inside the Python package
   [`hypermarkdown`](https://pypi.org/project/hypermarkdown/) beside the
   `hmd render` converter. It builds a tree of cards into a published site — a
-  hand-ordered book with a generated wiki inside it, this one — and erases the
+  hand-ordered book with cards inside it, like this one — and erases the
   embed boundary the way conversion does.
 
 * **The VS Code extension** —

@@ -33,8 +33,7 @@ without deciding it here.
 
 - Wiki mode, backlinks, category and special pages, health reports.
 - Templates, queries, and the plugin API.
-- Round-tripping flat markdown back into `.hmd`. Sketched, without consequence
-  for this proposal, in [`md-hmd-interop`](../../wiki/md-hmd-interop.hmd).
+- Round-tripping flat markdown back into `.hmd`.
 
 ## Specification
 

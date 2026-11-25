@@ -48,7 +48,7 @@ scoped to one card and must be unique within it.
 ```markdown
 A token is valid for exactly one rotation window. ^definition
 
-See [[hmd-tutorial#^definition]] and [[md-hmd-interop|the interop notes]].
+See [[hmd-tutorial#^definition]] and [[tracking|how work is tracked]].
 ```
 
 An **embed** is any wikilink with a `!` in front: the content is pulled in where

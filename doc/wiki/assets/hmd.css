@@ -252,9 +252,12 @@
   margin-top: 0;
 }
 
-/* The cover's grid is wider than a chapter's, and the header, the tab bar and
-   the footer widen with it so their edges line up with the bands. */
-body:has(.hmd-home) .md-grid {
+/* The cover's content grid is wider than a chapter's. Only the content: the
+   header, the tab bar and the footer keep the theme's grid on every page, so
+   the logo and the tabs stay put when a reader clicks between the cover and a
+   chapter. Widening them here once moved the whole menu sideways on the cover
+   alone. */
+.md-main__inner:has(> .hmd-home) {
   max-width: 72rem;
 }
 

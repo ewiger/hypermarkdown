@@ -85,11 +85,8 @@ to follow.
 - [The HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) is the normative
   text behind it: the grammar, the resolution algorithm, and the diagnostics,
   stated exactly.
-- [The feature list](../wiki/hmd-feature-list.hmd) is the exhaustive
-  inventory: every feature, what provides it, and where it stands — including
-  what is deferred or absent, so nothing gets re-argued from scratch.
-- [MD ↔ HMD interoperability](../wiki/md-hmd-interop.hmd) makes the argument
-  that `.hmd` stands to `.md` as TypeScript stands to JavaScript.
+- [Features](features.md) lists what the language supports, with a working
+  example of each.
 
 !!! tip "Read next"
 

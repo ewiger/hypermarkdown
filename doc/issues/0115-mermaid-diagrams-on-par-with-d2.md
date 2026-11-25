@@ -48,8 +48,8 @@ specification will contradict the tools:
 - [HMD-0022](../proposals/HMD-0022/README.md), in its non-goals. Its open
   question about whether `DiagramBlock` should take another fence language once
   one is real gets its answer here.
-- [the feature list](../wiki/hmd-feature-list.hmd): F23 goes from `rejected` to
-  `shipped`.
+- [the Features page](../public/features.md), which shows diagrams as D2
+  only: Mermaid joins it.
 
 D2 does not become second to Mermaid. Both are first-class, and neither is the
 default.

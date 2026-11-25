@@ -56,7 +56,7 @@ revisiting is that maths loads from a CDN at view time.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| doing | **Rearrange the site**: `Language` is Vision, Namespaces, Features, then the Language Specification, which has an amber highlight in the submenu. `Learn` is Introduction, Tutorial, Cell output, then Presentation. There is no Wiki tab: its cards stay published and reachable by link, but unlisted. The cover's reading list follows the nav order. The tutorial no longer re-teaches Markdown and points at the specification for the baseline | Introduce the purpose and concepts before the standard. Whether the remaining wiki cards should stay published at all is not decided | `mkdocs.yml`, `doc/index.md`, `doc/wiki/hmd-tutorial.hmd` |
+| doing | **Rearrange the site**: `Language` is Vision, Namespaces, Features, then the Language Specification, which has an amber highlight in the submenu. `Learn` is Introduction, Tutorial, Cell output, then Presentation. There is no Wiki tab: its cards stay published and reachable by link, but unlisted. The cover's reading list follows the nav order. The tutorial no longer re-teaches Markdown and points at the specification for the baseline. The feature-list and interop cards are gone; Features is the one page about features | Introduce the purpose and concepts before the standard. Whether the remaining wiki cards should stay published at all is not decided | `mkdocs.yml`, `doc/index.md`, `doc/wiki/hmd-tutorial.hmd` |
 | todo | **The roadmap is behind the releases**: its version table, its news, and a section that lists released cells as coming | It now says where the work goes — the specification's first version and the editor here, AI and graph querying in HQL — and nothing else on it was brought forward. It is the one page that states versions, so it is the one page that has to be right | [the roadmap card](../issues/0013-the-roadmap-is-behind-the-releases.md) |
 | todo | **A screenshot of the example notebook for the cover**, in place of a crop from another vault | Needs the editor opened by hand | [the screenshot card](../issues/0114-a-screenshot-of-the-example-notebook.md) |
 | todo | **Rewrite every `d2` fence as `d2#show`** — in the book, the wiki, the README, and the example vaults, about eighteen fences — so the diagrams still draw once a plain `d2` fence is a listing. A fence that shows D2 source on purpose, inside an outer example fence, stays as it is | Lands with the release that turns the rule on in both implementations, not before it and not after | [[hmd-0030#backwards-compatibility]] |
@@ -195,6 +195,8 @@ run permanently.
 
 ## Changelog
 
+- 2026-11-25: the feature list and the interop sketch removed, and every
+  reference to them repointed at Features or dropped.
 - 2026-11-25: Features moved into Language; Learn regrouped; the Wiki tab
   hidden; the tutorial trimmed to what HyperMarkDown adds.
 - 2026-11-25: rewrote Vision and Namespaces around cards as knowledge and the
