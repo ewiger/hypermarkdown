@@ -7,11 +7,35 @@
     { "include": "#embed" },
     { "include": "#wikilink" },
     { "include": "#anchor" },
+    { "include": "#cell-output" },
+    { "include": "source.hmd.fences" },
     { "include": "text.html.markdown" }
   ],
   "repository": {
+    "cell-output": {
+      "comment": "The markers around the output a cell wrote: <!-- hql:output id=books hash=… status=ok --> and <!-- /hql:output -->.",
+      "name": "comment.block.html meta.cell-output.marker.hmd",
+      "match": "^\\s*(<!--)\\s*(/?hql:output)\\b([^>]*?)\\s*(-->)\\s*$",
+      "captures": {
+        "1": { "name": "punctuation.definition.comment.html" },
+        "2": { "name": "keyword.other.cell-output.hmd" },
+        "3": {
+          "patterns": [
+            {
+              "match": "([A-Za-z][\\w-]*)(=)(\\S+)",
+              "captures": {
+                "1": { "name": "entity.other.attribute-name.cell.hmd" },
+                "2": { "name": "punctuation.separator.key-value.cell.hmd" },
+                "3": { "name": "string.unquoted.attribute-value.cell.hmd" }
+              }
+            }
+          ]
+        },
+        "4": { "name": "punctuation.definition.comment.html" }
+      }
+    },
     "frontmatter": {
-      "comment": "A --- fence at offset 0 only (HMD-0001 §2).",
+      "comment": "A --- fence at offset 0 only (HMD-0001, Grammar).",
       "begin": "\\A---\\s*$",
       "end": "^---\\s*$",
       "beginCaptures": {
@@ -52,7 +76,7 @@
       }
     },
     "anchor": {
-      "comment": "A trailing ^block-id (HMD-0001 §2).",
+      "comment": "A trailing ^block-id (HMD-0001, Grammar).",
       "match": "[ \\t]+(\\^)([A-Za-z0-9][A-Za-z0-9_-]{0,63})[ \\t]*$",
       "captures": {
         "1": { "name": "punctuation.definition.label.hmd" },

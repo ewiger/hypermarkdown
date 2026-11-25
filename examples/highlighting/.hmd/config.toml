@@ -1,0 +1,10 @@
+# Project config for the highlighting example: a vault to look at in the
+# editor, with HQL cells, fences in many languages, and standalone source
+# files. Open it with
+#   npm run example:highlighting        (in tools/hmd-vsc-ext)
+# and lint it with
+#   hmd lint --root examples/highlighting
+
+[discovery]
+autodiscovery = true
+mode = "both"

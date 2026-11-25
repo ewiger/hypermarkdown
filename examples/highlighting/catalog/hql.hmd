@@ -1,0 +1,10 @@
+---
+title: HQL
+metadata:
+  year: 2026
+  typing: static
+  grammar: extension
+---
+# HQL
+
+A fence named `hql` is coloured by the grammar this extension carries, and so is a `.hql` file.

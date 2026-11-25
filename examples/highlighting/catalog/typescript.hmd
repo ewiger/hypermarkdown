@@ -1,0 +1,10 @@
+---
+title: TypeScript
+metadata:
+  year: 2012
+  typing: static
+  grammar: built-in
+---
+# TypeScript
+
+A fence named `typescript` or `ts` is coloured by the grammar the editor ships.

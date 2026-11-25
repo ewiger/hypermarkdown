@@ -1,0 +1,10 @@
+# Catalog
+
+One card for each language the cells in [[cells]] count. The header of each
+card says where the grammar of the language comes from:
+
+- `built-in`: the editor ships it.
+- `extension`: this extension carries it.
+- `install`: an extension for the language has to be installed.
+
+The cards: [[python]], [[rust]], [[typescript]], [[hql]], [[kotlin]], [[zig]].

@@ -1,0 +1,42 @@
+---
+tags: [links]
+---
+# Links
+
+The grammar colours a link that stands alone on a line. A link inside a
+sentence or a list item gets its colour from the language server, when the
+server runs.
+
+## Alone on a line
+
+[[catalog]]
+
+[[catalog|the catalog]]
+
+[[cells#a-table]]
+
+[[cells#a-table|the table]]
+
+![[catalog]]
+
+## Inside a sentence
+
+The cells read [[catalog]], and [[cells#a-table|the table]] shows the result.
+
+## In a list
+
+- [[python]], which the editor colours
+- [[kotlin]], which needs an extension
+- [[hql|HQL]], which this extension colours
+
+## A link to no card
+
+[[no-such-card]]
+
+A sentence with [[no-such-card]] in it.
+
+## A block anchor
+
+This paragraph has an anchor. ^first-anchor
+
+[[links#^first-anchor]]
