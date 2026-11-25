@@ -165,6 +165,23 @@ def test_the_language_version_has_a_changelog_section():
         f" version table says {row.group(1)}. Bump the table."
     )
 
+    # The cover names the language's release line, X.Y, and never a full
+    # version (see `test_the_cover_states_no_tool_version`), so a patch release
+    # leaves it true. It once said "0.1, a draft" after 0.1.0 was released, so
+    # every line it names must be the callout's, and it must not say "draft".
+    line = ".".join(version.split(".")[:2])
+    cover = (ROOT / "doc" / "index.md").read_text(encoding="utf-8")
+    named = re.findall(r"HyperMarkDown (\d+\.\d+)\b", cover)
+    assert named, "the cover no longer names the language's release line"
+    stale = sorted({v for v in named if v != line})
+    assert not stale, (
+        f"the spec card specifies HyperMarkDown {version}, and doc/index.md"
+        f" names the {', '.join(stale)} line. Bump the cover to {line}."
+    )
+    assert not re.search(r"\bdraft\b", cover, re.I), (
+        "doc/index.md calls the specification a draft; the language is released"
+    )
+
 
 @pytest.fixture(scope="module")
 def built_site(tmp_path_factory) -> Path:
