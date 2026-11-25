@@ -166,8 +166,15 @@ nav:
       - tools/index.md
       - All tools: https://github.com/ewiger/hypermarkdown/tree/main/tools
       - hmd — Python: https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd
+      # The plugin ships inside the `hmd` package, so it has no directory of its
+      # own. It links to its section on the quick start. MkDocs refuses an anchor
+      # on a page in the nav, so this is a site-absolute path, which works
+      # because the site is served at the domain root.
+      - MkDocs plugin: /tools/#3-the-mkdocs-plugin
       - hmd-ts-core — TypeScript core: https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-ts-core
       - hmd-vsc-ext — VS Code extension: tools/vscode.md
+      - hmd-rs-core — Rust resolver: https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-rs-core
+      - hmd-semantics — semantic index: https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd-semantics
       # Not a directory under `tools/`: the query language is a sibling
       # repository with its own site, listed here because a reader looking for
       # the tools around the format should find all of them in one place.
