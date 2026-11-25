@@ -1,34 +1,59 @@
 ---
 nav:
   visibility: public
-description: HyperMarkDown makes a page a unit of knowledge that people can read, tools can inspect, and queries can build upon.
+description: The vision of HyperMarkDown is a web of plain text files. Each file is one page, and each page is a unit of knowledge that people, programs, and AI agents can read.
 ---
 
 # Vision
 
-HyperMarkDown makes a page a **unit of knowledge**. A page can explain an idea,
-name its sources, describe its relationships, and contain the computation that
-produces part of what it says. People can read it; programs can inspect and
-query it; both can build on it.
+The World Wide Web started as a collection of plain text files. Each HTML file
+was one page, and a link in one page pointed to another page. A person could
+write a page in a text editor, and anyone could read its source. HTML was then
+about as simple as Markdown is now.
 
-The ambition is to give knowledge a form in which it can be used where it is
-written. A research note, a design decision, a calculation, and an instruction
-to an agent can all belong to the same knowledge base. Each has an address.
-Each can refer to the others. Explanations, evidence, and executable work can
-stay together as they develop.
+The web later became a platform for applications. A web page today is often the
+output of a program. Its source is written for a browser to run, and it is
+difficult for a person or a program to read. The web does that job well, and
+HyperMarkDown does not replace HTML.
 
-Markdown provides the readable text. HyperMarkDown gives it structure and
-connections. [HQL, the Hyper Query Language](https://hql-lang.org/), provides
-the queries and computations. Together, they make a document a place to work
-with knowledge as well as a place to record it.
+The web still lacks a semantic level. A semantic level is a form in which a
+page states its own meaning in its own source: what the page is about, which
+other pages it refers to, and how its results are computed. AI agents now read
+and write documents together with people, and they need this level in order to
+work with what the documents say.
 
-## A page is a unit of knowledge
+The vision of HyperMarkDown is a web of HyperMarkDown files that provides this
+level. Each file is a plain text file that contains one page. HyperMarkDown
+treats that page as a **unit of knowledge** and gives it a structure:
 
-A page in HyperMarkDown is called a **card**. It is an individually addressable
-document, usually an `.hmd` file. Its body holds the explanation; its header
-can hold facts such as a title, author, subject, or status. Links connect it to
-other cards, and named sections and blocks let a reference point to a precise
-part of an argument.
+- The text of the page explains an idea in Markdown.
+- A header at the top of the file states facts about the page, such as its
+  subject or its status.
+- Links point to other pages by their addresses.
+- Queries inside the page compute part of its content.
+
+A person can read the file in any text editor. A program or an AI agent can
+read the same file, follow its links, and run its queries.
+
+A research note, a design decision, a calculation, and an instruction to an
+agent can all be pages in the same knowledge base. Each page has an address,
+and each page can link to the others.
+
+Markdown provides the readable text. HyperMarkDown adds the header, the
+addresses, and the links. [HQL, the Hyper Query Language](https://hql-lang.org/),
+provides the queries and the computations.
+
+Today, HyperMarkDown connects the pages of one knowledge base. Connecting
+separate knowledge bases into a web is proposed and not yet implemented. The
+last sections of this page describe that step.
+
+## A card is a unit of knowledge
+
+HyperMarkDown calls one page a **card**. A card is one text file, usually with
+the `.hmd` extension, and it has its own address. The body of the card contains
+the explanation. The header can state facts such as a title, an author, a
+subject, or a status. Links connect the card to other cards. A link can also
+point to one named section or one named block inside a card.
 
 Consider a card about a design decision. It can explain the problem, link to
 the requirements, embed a shared definition, and include a query that lists
