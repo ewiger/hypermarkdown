@@ -35,7 +35,7 @@ Four things version independently, and each has exactly one literal:
 The Rust crate under `tools/hmd-rs-core/` declares a version of its own as well,
 in [`Cargo.toml`](tools/hmd-rs-core/Cargo.toml), with
 [its changelog](tools/hmd-rs-core/CHANGELOG.md). It is published to crates.io as
-`hypermarkdown`, by hand: no workflow releases it yet.
+`hypermarkdown`, by `release-rs-core.yml` on an `rs-core-vX.Y.Z` tag.
 
 The language server under `tools/hmd-lsp/` declares one too, in
 [`Cargo.toml`](tools/hmd-lsp/Cargo.toml), with

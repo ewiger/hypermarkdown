@@ -75,9 +75,9 @@ the board, in the order this view lists them.
 <!-- hql:output hash=5a4227e6b146 status=ok -->
 | state   | rows |
 | ------- | ---- |
-| doing   | 3    |
+| doing   | 2    |
 | todo    | 33   |
-| blocked | 5    |
+| blocked | 4    |
 | backlog | 15   |
 | parked  | 3    |
 <!-- /hql:output -->
@@ -98,7 +98,6 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | state   | work                                                                                               | tracker                    |
 | ------- | -------------------------------------------------------------------------------------------------- | -------------------------- |
 | doing   | Cells, rendered by the tools.                                                                      | [lang](lang.hmd)           |
-| doing   | Cut the first release, 0.1.0.                                                                      | [lsp](lsp.hmd)             |
 | doing   | Rearrange the site                                                                                 | [pages](pages.hmd)         |
 | todo    | Property-based tests of the resolver's claims, over generated vaults.                              | [hmd](hmd.hmd)             |
 | todo    | Draw only diagram cells in the site build.                                                         | [hmd](hmd.hmd)             |
@@ -112,6 +111,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Review lexical compatibility with CommonMark.                                                      | [lang](lang.hmd)           |
 | todo    | Accept Mermaid as a diagram language on par with D2.                                               | [lang](lang.hmd)           |
 | todo    | Publish to crates.io from the workflow.                                                            | [lsp](lsp.hmd)             |
+| todo    | The toolchain carries the binary                                                                   | [lsp](lsp.hmd)             |
 | todo    | Go to a heading or a block.                                                                        | [lsp](lsp.hmd)             |
 | todo    | Tokens for block anchors and frontmatter.                                                          | [lsp](lsp.hmd)             |
 | todo    | Completion                                                                                         | [lsp](lsp.hmd)             |
@@ -125,7 +125,6 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | LaTeX environments at block level.                                                                 | [ts-core](ts-core.hmd)     |
 | todo    | Recognise diagram cells.                                                                           | [ts-core](ts-core.hmd)     |
 | todo    | Recognise a `mermaid#show` fence as a diagram.                                                     | [ts-core](ts-core.hmd)     |
-| todo    | Check the language client in a running editor.                                                     | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Colour the listings in the preview.                                                                | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Colour a listing whose fence names a cell.                                                         | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Confirm the grammar colours a link inside a paragraph.                                             | [vsc-ext](vsc-ext.hmd)     |
@@ -134,7 +133,6 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Diagram cells in the preview.                                                                      | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Draw Mermaid diagrams in the preview                                                               | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Redirect the retired domain                                                                        | [hmd](hmd.hmd)             |
-| blocked | The toolchain carries the binary                                                                   | [lsp](lsp.hmd)             |
 | blocked | Carry `hmd-lsp` in the build.                                                                      | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.hmd)     |

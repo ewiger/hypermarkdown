@@ -1,8 +1,8 @@
 # 0117 — A language server, written in Rust
 
-**Column**: doing
+**Column**: done — closed 2026-11-25
 **Opened**: 2026-11-25
-**Related**: [HMD-0033](../proposals/HMD-0033/index.hmd), [HMD-0024](../proposals/HMD-0024/index.hmd), [HMD-0027](../proposals/HMD-0027/index.hmd), [the server's tracker](../status/lsp.hmd), [the Rust crate's tracker](../status/rs-core.hmd), [the extension's tracker](../status/vsc-ext.hmd), [the toolchain card](archive/0107-toolchain-repository-for-native-binaries.hmd)
+**Related**: [HMD-0033](../../proposals/HMD-0033/index.hmd), [HMD-0024](../../proposals/HMD-0024/index.hmd), [HMD-0027](../../proposals/HMD-0027/index.hmd), [the server's tracker](../../status/lsp.hmd), [the Rust crate's tracker](../../status/rs-core.hmd), [the extension's tracker](../../status/vsc-ext.hmd), [the toolchain card](0107-toolchain-repository-for-native-binaries.hmd)
 
 ## What
 
@@ -40,7 +40,7 @@ server do both.
 
 ## This reverses a decision
 
-[HMD-0024](../proposals/HMD-0024/index.hmd) decided that the language server
+[HMD-0024](../../proposals/HMD-0024/index.hmd) decided that the language server
 MUST be Python on `pygls`, inside `tools/hmd/`. Its reason was that a server
 written anywhere else would be a third place where resolution behaviour lives.
 That third place now exists for another reason: the Rust crate, which HQL
@@ -81,3 +81,13 @@ rules are ported to Rust or the server learns to call `hmd lint`.
   working when the binary is absent.
 - The release path for the binary is decided and written down: a tag prefix,
   the platforms, and how the binary reaches the toolchain.
+
+## Closed
+
+Released on 2026-11-25 as `hmd-lsp` 0.1.0. The proposal is
+[HMD-0033](../../proposals/HMD-0033/index.hmd). The server answers the first
+four requests of the list above, and the extension is its client. The program
+is on the GitHub release for five platforms, and the package is
+`hypermarkdown-lsp` on crates.io, because the name `hmd-lsp` there belongs to
+an unrelated project. Completion, rename, and the toolchain carrying the
+program are rows in [the server's tracker](../../status/lsp.hmd).

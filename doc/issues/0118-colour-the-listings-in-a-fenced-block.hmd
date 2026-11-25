@@ -2,7 +2,7 @@
 
 **Column**: todo
 **Opened**: 2026-11-25
-**Related**: [the extension's tracker](../status/vsc-ext.hmd), [the language server card](0117-a-language-server-in-rust.hmd), [HMD-0021](../proposals/HMD-0021/index.hmd), [HMD-0026](../proposals/HMD-0026/index.hmd)
+**Related**: [the extension's tracker](../status/vsc-ext.hmd), [the language server card](archive/0117-a-language-server-in-rust.hmd), [HMD-0021](../proposals/HMD-0021/index.hmd), [HMD-0026](../proposals/HMD-0026/index.hmd)
 
 ## What
 
@@ -25,7 +25,7 @@ is coloured in two of the three places today:
 
 This card is about the colours of listings and of the card's own syntax in
 the grammar. The colours that say whether a link resolves come from the
-language server, which is [another card](0117-a-language-server-in-rust.hmd).
+language server, which is [another card](archive/0117-a-language-server-in-rust.hmd).
 
 ## The three parts
 
