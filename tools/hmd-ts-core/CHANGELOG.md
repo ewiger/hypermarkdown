@@ -17,7 +17,7 @@ this package from the workspace and bundles it, so a version here is not
 something the extension waits for. Implementation state is tracked per work
 point in
 [`doc/status/ts-core.md`](../../doc/status/ts-core.hmd), against
-[HMD-0020](../../doc/proposals/HMD-0020/README.md).
+[HMD-0020](../../doc/proposals/HMD-0020/index.hmd).
 
 ## [Unreleased]
 
@@ -199,7 +199,7 @@ anchors, matching the canonical implementation case for case.
 
 ### Added
 
-- **Markdown cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/README.md)).
+- **Markdown cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/index.hmd)).
   `.md` and `.markdown` files load as cards of `kind` `"markdown"`: a reference
   resolves to one and its headings are addressable, but its body is not
   scanned and not linted. `parse` dispatches on the path; `parseMarkdown`,

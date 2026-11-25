@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0001: MVP — grammar, resolver, and `hmd lint`
 
 **Status**: drafted
@@ -570,7 +575,7 @@ comments and CI configuration will reference them.
 | HMD014 | error | Malformed `import` statement |
 | HMD015 | error | Import `ref` does not resolve, or two named imports bind the same local name |
 | HMD016 | warning | A bare name matched two imported search paths; the earlier declaration won |
-| HMD017 | warning | A published card links to or embeds one that is not published ([HMD-0002](../HMD-0002/README.md) §2) |
+| HMD017 | warning | A published card links to or embeds one that is not published ([HMD-0002](../HMD-0002/index.hmd) §2) |
 
 - `--strict` MUST promote every warning to an error. It MUST NOT change which
   diagnostics are produced, only how they are counted — a strict run and a

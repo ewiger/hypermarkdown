@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0029: Markdown files are cards
 
 **Status**: drafted

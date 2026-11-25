@@ -12,7 +12,7 @@ keys and the `.hmd/config.toml` settings that steer resolution, and resolves a
 reference to one card, to none, or to an ambiguity with its candidates. It
 reports no diagnostics and renders nothing.
 
-Specified by [HMD-0027](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0027/README.md).
+Specified by [HMD-0027](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0027/index.hmd).
 The Python package under [`tools/hmd/`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd)
 is **canonical**: where the two disagree, Python is right and this crate carries
 the bug. One of the tools in the

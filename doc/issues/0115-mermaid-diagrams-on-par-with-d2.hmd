@@ -2,7 +2,7 @@
 
 **Column**: todo
 **Opened**: 2026-11-22
-**Related**: [HMD-0022](../proposals/HMD-0022/README.md), [the D2 card](archive/0004-math-callouts-diagrams.hmd), [the toolchain card](archive/0107-toolchain-repository-for-native-binaries.hmd), [the diagram surface card](0102-diagram-theme-surface.hmd)
+**Related**: [HMD-0022](../proposals/HMD-0022/index.hmd), [the D2 card](archive/0004-math-callouts-diagrams.hmd), [the toolchain card](archive/0107-toolchain-repository-for-native-binaries.hmd), [the diagram surface card](0102-diagram-theme-surface.hmd)
 
 ## What
 
@@ -43,9 +43,9 @@ specification will contradict the tools:
 
 - [the source sketch](../models/requirements/initial_sketch.hmd), under its list
   of free syntax: "Explicitly excluded: … Mermaid (superseded by D2)".
-- [HMD-0001](../proposals/HMD-0001/README.md), in its grammar: Mermaid is
+- [HMD-0001](../proposals/HMD-0001/index.hmd), in its grammar: Mermaid is
   excluded from the MVP grammar as rejected by the source.
-- [HMD-0022](../proposals/HMD-0022/README.md), in its non-goals. Its open
+- [HMD-0022](../proposals/HMD-0022/index.hmd), in its non-goals. Its open
   question about whether `DiagramBlock` should take another fence language once
   one is real gets its answer here.
 - [the Features page](../public/features.hmd), which shows diagrams as D2

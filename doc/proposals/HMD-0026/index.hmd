@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0026: HQL cells — a card as a notebook
 
 **Status**: drafted
@@ -595,10 +600,10 @@ HQL_BIN=/path/to/hql npm run -w tools/hmd-vsc-ext test
   envelope this record relies on.
 - [HQL's command-line host](https://github.com/ewiger/hql/blob/main/doc/models/behavior/cli.md)
   — `hql render` and its options.
-- [HMD-0020](../HMD-0020/README.md) — the document IR this record extends.
-- [HMD-0021](../HMD-0021/README.md) — the preview, its message boundary and its
+- [HMD-0020](../HMD-0020/index.hmd) — the document IR this record extends.
+- [HMD-0021](../HMD-0021/index.hmd) — the preview, its message boundary and its
   webview hardening.
-- [HMD-0022](../HMD-0022/README.md) — the diagram block, the first block drawn
+- [HMD-0022](../HMD-0022/index.hmd) — the diagram block, the first block drawn
   from a process the core cannot run.
-- [HMD-0003](../HMD-0003/README.md) — the reservation of the query language,
+- [HMD-0003](../HMD-0003/index.hmd) — the reservation of the query language,
   superseded by HQL.

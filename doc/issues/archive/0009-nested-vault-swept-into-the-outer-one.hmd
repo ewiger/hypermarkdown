@@ -12,7 +12,7 @@ A vault is a directory tree carrying `.hmd/`, and vaults nest. Discovery already
 honours that: walking up from a card stops at the nearest `.hmd/`, in `hmd`
 (`config.find_project_root`) and in the extension's catalog alike, and the
 decision that nothing resolves across a boundary is on record
-([decisions](../../memory/decisions.hmd), the section on a window holding a catalog
+([decisions](../../archive/memory/decisions.hmd), the section on a window holding a catalog
 of vaults).
 
 Loading does not. When `Workspace` is built for an outer root, it collects every

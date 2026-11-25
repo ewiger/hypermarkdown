@@ -35,8 +35,36 @@ an Open row, from the repository root:
 hql render --in-place --emit after doc/status/kanban.hmd doc/status/proposals.hmd doc/status/open.hmd
 ```
 
-Any `hql` from 0.7.1 on will do, including the one in the pinned toolchain
-(`node scripts/toolchain.mjs` prints its directory).
+This needs `hql` 0.8.0 or later. Earlier versions do not read `location_path`
+from the vault's configuration and refuse to run. The pinned toolchain still
+ships 0.7.2, so use an `hql` installed with `cargo install hql`.
+
+## Rows as data
+
+[`hmd.hmd`](hmd.hmd) keeps its rows as data, and HQL cells write its tables.
+It is the first tracker to do so; the other six still write their tables by
+hand.
+
+The rows are a list named `work` in the card's frontmatter. Each row has
+these fields:
+
+| Field | Holds |
+| --- | --- |
+| `kind` | `open`, `broken`, `limitation`, `done`, or `question`: the section the row belongs to |
+| `state` | `todo`, `doing`, `backlog`, `blocked`, or `parked`, on `open` and `broken` rows |
+| `tags` | the parts of the tool the row is about, such as `linter`, `site`, or `lsp` |
+| `text` | the row itself, as Markdown |
+| `notes` | the second column: the notes, the symptom, or why a limitation stands |
+| `refs` | the references that back the row |
+
+To change a row, edit it in the frontmatter and re-render the card with the
+command under [Generated views](#generated-views), adding `doc/status/hmd.hmd`
+to it. Never edit a table under a cell by hand. The rendered tables are part
+of the card, so `hmd lint` checks the references in them.
+
+Each section of the tracker is one cell that filters `work` by `kind`. The
+**By tag** section counts the rows that carry each tag. A query in any other
+card can read the same rows from `cards`, as [`open.hmd`](open.hmd) does.
 
 ## How these files work
 
@@ -66,13 +94,13 @@ number. A row with nothing genuinely behind it carries `—` rather than a
 plausible guess. This is the column that replaced an earlier `Spec` column
 answering "which proposal section": the question was never wrong, the answer
 was, because a number tells a reader where something currently sits and that is
-the one fact guaranteed to change. The address grammar these references use is
-specified in [HMD-0006](../proposals/HMD-0006/README.md); the trackers are
-cards, so `hmd lint` checks every one of these references.
+the one fact guaranteed to change. These references are ordinary links to a
+heading, as the specification defines them under *Heading anchors*; the
+trackers are cards, so `hmd lint` checks every one of these references.
 
 A tracker cites a proposal under a short name, such as `hmd-0021`. The
 tracker's frontmatter binds that name with an import:
-`from /proposals/HMD-0021 import README as hmd-0021`. Add an import when a
+`from /proposals/HMD-0021 import index as hmd-0021`. Add an import when a
 tracker cites a proposal for the first time. The fragment is matched against
 the proposal's headings after the language normalizes both, and punctuation
 becomes a separator, so the heading `3.1 Masking` is `#3-1-masking` and `The

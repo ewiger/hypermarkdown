@@ -1,0 +1,323 @@
+---
+nav:
+  visibility: public
+---
+
+# HMD-0032: HQL path — addressing inside a card with `@[[…]]`
+
+**Status**: drafted
+**Created**: 2026-11-25
+**Targets**: HyperMarkDown 0.2.0
+**Source**: [HMD-0006](../HMD-0006/index.hmd), deferred, and the document
+reference `@[[…]]` of [HQL](https://hql-lang.org/)
+
+## Abstract
+
+HyperMarkDown 0.2 adopts HQL's document reference, `@[[…]]`, as a construct of
+the language. Inside it, an **HQL path** selects parts of a card the way
+JSONPath ([RFC 9535](https://www.rfc-editor.org/rfc/rfc9535)) selects parts of
+a JSON value. A card is a tree: its headings nest by level, and each heading
+owns a section. A path walks that tree:
+
+```text
+@[[foo]]                  the card foo
+@[[foo#bar]]              the section bar, a top-level section of foo
+@[[foo#bar##subbar]]      every section subbar at any depth inside bar
+@[[foo##subbar]]          every section subbar at any depth in foo
+@[[foo#bar#^claim]]       the block anchored ^claim, inside bar
+!@[[foo#bar##subbar]]     the same selection, embedded
+```
+
+`#` is a child step and `##` is a descendant step, as `.` and `..` are in
+JSONPath. `#^` selects an anchored block. The ordinary link `[[…]]` and the
+ordinary embed `![[…]]` keep exactly the meaning 0.1 gives them. The new
+construct is marked by its `@`, so no 0.1 link changes its grammar or its
+target.
+
+The change targets **HyperMarkDown 0.2.0**. It adds a construct, which is an
+additive change for authors. It is also a breaking change for tools and for a
+small number of documents, because text that 0.1 reads as an `@` followed by a
+link becomes one construct with its own grammar. *Versioning*, below, lists
+each case.
+
+## Motivation
+
+- **A link should be able to name a part of a part.** 0.1 can name a card, one
+  heading in it, or one anchored block. It cannot say "the `Setup` section
+  inside `Linux`" when the card has a `Setup` under every platform. The
+  reader then gets the first `Setup` in the card, which is often the wrong
+  one, and the only remedy is to add an anchor to the target.
+- **Extending `[[…]]` breaks the format.** [HMD-0006](../HMD-0006/index.hmd)
+  put the address into the fragment of the ordinary link. That changed the
+  meaning of `/`, `@`, and words such as `Para3` inside every fragment that 0.1
+  accepts, and it required every tool that parses a wikilink to change at
+  once. It is deferred for that reason. A separate construct avoids the
+  problem: a tool that does not know `@[[…]]` still reads every `[[…]]`
+  correctly.
+- **HQL already has the construct.** In HQL, `@[[alice]]` is a document,
+  `@[[alice#Bio]]` is a section, and `@[[alice#^claim]]` is an anchored block.
+  Cards already contain `@[[…]]` inside HQL cells. Adopting the same spelling
+  in the language gives a reader one way to name a place, whether it is
+  written in prose or in a query.
+- **JSONPath is a known model.** Many readers already know that `$.a.b` names a
+  child of a child, and that `$..b` searches at any depth. A card's section
+  tree has the same shape, so the same two operators apply. A reader who knows
+  JSONPath can read an HQL path without a new mental model.
+
+## Goals
+
+- Name any section of a card exactly, including one whose heading text repeats
+  elsewhere in the card, without adding an anchor.
+- Keep every `[[…]]` and `![[…]]` of 0.1 unchanged in syntax and meaning.
+- Define one path grammar and one selection rule that HyperMarkDown tools and
+  HQL share. This specification is the normative text for both.
+- Keep 0.2 small. Positions, kinds of block, sentences, words, wildcards,
+  filters, and integrity digests are left for later versions.
+
+## Non-goals
+
+- **No change to `[[…]]`.** A fragment of an ordinary link is matched as 0.1
+  matches it.
+- **No counted or positional steps in 0.2.** "The third paragraph" and "words
+  five to nine" need a block segmentation that every implementation shares.
+  HMD-0006 and its unreleased branch designed one. It is material for a later
+  version of this record, and it is listed under *Open Questions*.
+- **No query language inside the path.** Filters belong to HQL. A path
+  selects by structure. A query that selects by content is an HQL pipeline
+  that starts from a path.
+- **No URI form and no cross-namespace path.** The `hmd://` URI of HMD-0006
+  and the reserved `namespace:path` form stay outside this record.
+
+## Specification
+
+### The construct
+
+```abnf
+path-link    = "@" "[[" path [ "|" display ] "]]"
+path-embed   = "!@" "[[" path [ "|" display ] "]]"
+path         = page-ref *step
+step         = anchor-step / descendant-step / child-step
+child-step   = "#" step-name
+descendant-step = "##" step-name
+anchor-step  = "#^" block-id
+step-name    = step-first *step-char
+step-first   = heading-first   ; except "#"
+step-char    = heading-char    ; except "#"
+```
+
+`page-ref`, `block-id`, `display`, `heading-first`, and `heading-char` are the
+0.1 rules. The grammar is ABNF, as the 0.1 grammar is.
+
+- A **path candidate** begins at each `@[[` outside an excluded region, and a
+  **path embed candidate** at each `!@[[`. It ends where a 0.1 link candidate
+  ends: at the first `]]`, provided no `[`, `]`, or line ending comes before
+  it. A candidate that does not match `path-link` or `path-embed` is
+  malformed, an error (HMD010).
+- A step starts at a `#`. `#^` starts an anchor step, `##` a descendant step,
+  and `#` followed by any other character a child step. A run of three or more
+  `#` is malformed (HMD010). So is `##^`: an anchor is unique in its card, so
+  a descendant anchor step would mean the same as `#^`.
+- A step name MUST NOT contain `#`, because `#` starts the next step. A heading
+  whose text contains `#` is still reachable: matching removes every character
+  that is not a letter, a mark, or a number, so the step `#C tips` reaches
+  `## C# tips`.
+- An `@` directly before `[[` always begins a path, whatever comes before the
+  `@`. An author who wants an `@` followed by an ordinary link writes `&#64;`
+  or puts a space between the two.
+
+### The tree of a card
+
+A card is the **root** of a tree. The nodes below it are sections and anchored
+blocks.
+
+- A **heading** is an ATX or a setext heading, as 0.1 defines it. A heading in
+  an excluded region is not a heading.
+- A heading's **section** runs from the heading up to the next heading of the
+  same or a lower level number, or to the end of the card, as in 0.1.
+- The **parent** of a heading is the last heading before it with a lower level
+  number. A heading with no such heading is a child of the root. Skipped
+  levels do not matter: a `####` directly under a `##` is a child of the `##`.
+- An **anchored block** is a node. Its parent is the section that contains it,
+  or the root when it comes before the first heading. An anchor on a heading's
+  line names that heading's section and adds no separate node.
+- Text before the first heading belongs to the root and to no section.
+
+### Selecting nodes
+
+A path is evaluated from left to right. It starts with a list holding the root
+of the resolved card. Each step maps the current list to a new list:
+
+- A **child step** `#name` selects, for each current node, every child section
+  whose heading's normalized identifier equals the normalized identifier of
+  `name`. The identifier is the 0.1 one: NFC, Unicode full case folding,
+  every character outside the letter, mark, and number categories replaced by
+  a space, and runs of spaces collapsed and trimmed.
+- A **descendant step** `##name` selects, for each current node, every section
+  at any depth below it whose identifier matches in the same way.
+- An **anchor step** `#^id` selects the node the anchor `id` names, when that
+  node lies inside a current node. The identifier matches character for
+  character, as in 0.1. At the root, every anchor of the card lies inside.
+
+The result of a path is a **node list** in document order, with each node at
+most once. A path with no steps selects the card itself.
+
+The page reference resolves exactly as the page reference of a 0.1 link does.
+The path never influences which card is resolved.
+
+Three equivalences connect a path with 0.1:
+
+```text
+[[foo]]          is   @[[foo]]
+[[foo#^id]]      is   @[[foo#^id]]
+[[foo#bar]]      is   the first node of @[[foo##bar]]
+```
+
+`@[[foo#bar]]` is stricter than `[[foo#bar]]`. It selects only a top-level
+section. In a card that opens with `# Title`, every other section is a child
+of the title, so `@[[foo#bar]]` selects nothing and the author writes
+`@[[foo#Title#bar]]` or `@[[foo##bar]]`. That is the JSONPath reading, and
+whether it is the right one for cards is the first open question below.
+
+### Links and embeds
+
+- A **path link** links to the first node of its node list. A section links
+  where a 0.1 heading link to it would link, and an anchored block where a 0.1
+  anchor link would. When the list holds more than one node, the link MUST be
+  reported as a warning (HMD020). The author narrows the path or anchors the
+  target.
+- A path link whose list is empty is reported where a 0.1 fragment that
+  matches nothing is reported: HMD004 when the step that emptied the list is a
+  child or descendant step, and HMD005 when it is an anchor step. The message
+  SHOULD name that step.
+- A **path embed** expands to every node of its list, in document order. Each
+  node expands as 0.1 expands a section or an anchored block, and two expanded
+  nodes are separated by one blank line. A node that lies inside another node
+  of the list is left out, because its text is already part of the other one.
+- An embed whose list is empty is left as written and reported as for a link.
+- Cycle detection, the depth limit of sixteen, and the resolution of links
+  inside embedded text are the 0.1 rules. The identity of an embedded node is
+  its card and the position of its heading or anchor.
+- The `@` is part of the syntax and is not rendered. A path link renders as a
+  0.1 link to the same node would.
+
+### Diagnostics
+
+| Code | Severity | Condition |
+| --- | --- | --- |
+| HMD010 | error | A wikilink, an embed, or a path is malformed. 0.2 adds the path grammar to the existing condition |
+| HMD020 | warning | A path link selects more than one node; the link goes to the first |
+
+HMD004 and HMD005 keep their 0.1 conditions and also cover a path that selects
+nothing.
+
+### HQL
+
+HQL's `@[[…]]` is the same construct. Its syntax and the node list a path
+selects are defined by this specification. HQL defines the type of the value a
+path produces, and what a list of more than one node becomes in a pipeline.
+
+HQL today reads `@[[alice#Bio]]` with the 0.1 meaning, as the first heading
+`Bio` anywhere in the card. Under this record it is a top-level section, and
+`@[[alice##Bio]]` is the search at any depth. HQL changes its reading in the
+release that follows HyperMarkDown 0.2.0.
+
+## Versioning
+
+This record targets HyperMarkDown **0.2.0**. The specification's patch
+releases may only correct and clarify text, and this change adds a construct,
+so it cannot be a patch. Below 1.0.0, Semantic Versioning signals a breaking
+change with the minor number.
+
+The change is additive for authors. Every `[[…]]` and `![[…]]` keeps its 0.1
+syntax and meaning, and every new form starts with `@[[` or `!@[[`. The change
+breaks tools and a small number of documents in these ways:
+
+| Text | In 0.1 | In 0.2 |
+| --- | --- | --- |
+| `@[[foo]]` | an `@`, then a link to `foo` | a path link to `foo`; the `@` is not shown |
+| `!@[[foo]]` | `!@`, then a link to `foo` | a path embed of `foo` |
+| `@[[foo#bar]]` | an `@`, then a link to the first heading `bar` anywhere | a link to the top-level section `bar` only |
+| `@[[foo#bar##baz]]` | an `@`, then a link to a heading whose identifier is `bar baz` | a link to a section `baz` inside `bar` |
+| `@[[foo###x]]` | an `@`, then a link to the heading `x` | malformed, HMD010 |
+
+The third and fourth rows matter most. A 0.1 tool reading a 0.2 card does not
+crash, but it can show a link that goes to a different heading than the one
+the author meant. A vault that uses paths therefore needs 0.2 tools for every
+reader. No card in this repository writes `@[[` outside a code span or a
+fenced block.
+
+0.2 also adds a diagnostic that a conforming implementation must report, and
+widens HMD010. A 0.1 implementation does not conform to 0.2, and each tool
+states the language version it conforms to.
+
+## Security Considerations
+
+- A path selects inside a card that the page reference already resolved, so
+  the namespace containment rule applies unchanged.
+- A path embed discloses what an embed of the same sections discloses. The
+  publication gate that governs embedding governs a path embed unchanged.
+- A descendant step visits each node of a card at most once per current node,
+  and a node list holds each node once, so evaluation is bounded by the number
+  of steps times the size of the card. An implementation MUST accept paths of
+  up to 32 steps and MAY reject longer ones as malformed.
+
+## Deployment / Activation
+
+The rule goes into the specification as *HQL paths* in the version that
+becomes 0.2.0. The canonical implementation, the TypeScript core, and the Rust
+crate implement it, and each releases with "conforms to 0.2.0". The editor
+follows the TypeScript core. HQL changes its reading of `@[[name#heading]]` in
+its next release after that. The rows for this work are in the language
+tracker and in each tool's tracker.
+
+## Test Plan
+
+The shared corpus gains three cases, and every implementation runs them:
+
+- **path-steps:** child, descendant, and anchor steps; skipped heading levels;
+  setext headings; a repeated heading reached through its parent; text before
+  the first heading; a heading containing `#`.
+- **path-diagnostics:** malformed paths (`###`, `##^`, an empty step), a link
+  that selects several nodes, and a path that selects nothing at each kind of
+  step.
+- **path-embeds:** an embed of several nodes, an embed whose nodes nest, a
+  cycle through a path embed, and the depth limit.
+
+A case also checks that `[[foo#bar##baz]]`, an ordinary link, keeps its 0.1
+reading.
+
+## Open Questions
+
+- **Is a card's title transparent to `#`?** Most cards open with one `#`
+  heading, so a strict child step makes `@[[foo#Install]]` select nothing. One
+  answer keeps the JSONPath rule and lets authors write `##`. Another treats a
+  card whose first heading is its only level-1 heading as if that heading's
+  children were the root's.
+- **How does a path name a position or a kind of block?** JSONPath writes
+  `[2]`, `[*]`, and `[?…]`, but `[` and `]` cannot appear inside `[[…]]`. The
+  spelling is open. The block segmentation, sentence and word rules, and
+  integrity digest of HMD-0006 are the starting material.
+- **Should a wildcard step select every child**, as `.*` does in JSONPath?
+- **Should a link that selects several nodes be an error** rather than a
+  warning? 0.1 links a duplicate heading to the first match and warns, which
+  argues for a warning.
+- **How does a path name its own card?** 0.1 has no same-card link, and HQL
+  writes `@[[this]]`.
+- **Should the specification define `[[foo#bar]]` as the first node of
+  `@[[foo##bar]]`**, so that the format has one selection algorithm instead
+  of two?
+
+## See also
+
+- [HMD-0006](../HMD-0006/index.hmd) — the first design for addressing inside a
+  card, deferred.
+- [HMD-0026](../HMD-0026/index.hmd) — HQL cells, where `@[[…]]` already
+  appears in cards.
+- [HMD-0031](../HMD-0031/index.hmd) — the freeze inventory for 0.1, which left
+  addressing inside a card to a later version, with diagnostics from HMD020.
+- [RFC 9535](https://www.rfc-editor.org/rfc/rfc9535) — JSONPath.
+- [HQL](https://hql-lang.org/) — the document reference and its types.
+
+## Changelog
+
+- 2026-11-25: drafted

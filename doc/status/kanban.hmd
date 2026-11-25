@@ -9,7 +9,7 @@ cannot read. A card is archived as soon as it is done, so the `done` lane is
 empty here while `kanban.yaml`'s `done` column lists the archive.
 
 This is a generated view, not a tracker: refresh it with the command in
-[the status README](README.md), and never edit an output by hand.
+[the status README](index.hmd), and never edit an output by hand.
 
 ```hql#eval id=issues hidden
 import regex

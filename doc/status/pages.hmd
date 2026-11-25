@@ -1,10 +1,10 @@
 ---
 import:
-  - from /proposals/HMD-0001 import README as hmd-0001
-  - from /proposals/HMD-0002 import README as hmd-0002
-  - from /proposals/HMD-0005 import README as hmd-0005
-  - from /proposals/HMD-0022 import README as hmd-0022
-  - from /proposals/HMD-0030 import README as hmd-0030
+  - from /proposals/HMD-0001 import index as hmd-0001
+  - from /proposals/HMD-0002 import index as hmd-0002
+  - from /proposals/HMD-0005 import index as hmd-0005
+  - from /proposals/HMD-0022 import index as hmd-0022
+  - from /proposals/HMD-0030 import index as hmd-0030
 ---
 
 # STATUS — the website

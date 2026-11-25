@@ -13,7 +13,7 @@
 > text below is kept as the record of what was argued.
 
 A second pass over the project's name, taken days after
-[HMD-0005](../proposals/HMD-0005/README.md) shipped the first one. Recorded here
+[HMD-0005](../../proposals/HMD-0005/index.hmd) shipped the first one. Recorded here
 because the decision is a convention rather than a code change, and because the
 reason it is cheap now — and would not be later — is not derivable from either
 the code or the git history.
@@ -86,5 +86,5 @@ HMD-0005's record and tracker, which necessarily name every spelling they
 discuss. And this memo.
 
 The work itself — the README, the specification, and the remaining documentation
-— is tracked in [the HMD-0005 tracker](../proposals/HMD-0005/STATUS.md), not
+— is tracked in [the HMD-0005 tracker](../../proposals/HMD-0005/STATUS.md), not
 here.

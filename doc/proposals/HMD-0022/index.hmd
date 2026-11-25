@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0022: D2 diagrams
 
 **Status**: drafted
@@ -6,9 +11,9 @@
 
 ## Companion notes
 
-- [HMD-0020](../HMD-0020/README.md) — the document IR this proposal extends with
+- [HMD-0020](../HMD-0020/index.hmd) — the document IR this proposal extends with
   a third block kind, and the ledger that carried D2 as a gap.
-- [HMD-0021](../HMD-0021/README.md) — the webview whose content security policy
+- [HMD-0021](../HMD-0021/index.hmd) — the webview whose content security policy
   constrains how a rendered diagram reaches the DOM.
 - [`.grem/styles/doc/slides/prompt.md`](../../../.grem/styles/doc/slides/prompt.md)
   — existing house practice, which already treats `d2` as a tool the project

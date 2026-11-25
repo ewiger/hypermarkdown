@@ -10,7 +10,7 @@ and writes an SQLite file into the vault's `.hmd/` directory. A reader ranks
 cards against a query by opening that file; it runs no model.
 
 The index, its configuration and its schema are specified by
-[HMD-0028](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0028/README.md).
+[HMD-0028](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0028/index.hmd).
 The first reader is the `hmd` package of [HQL](https://github.com/ewiger/hql),
 whose `semantic` ranks a vault's cards from this file.
 

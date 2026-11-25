@@ -117,7 +117,7 @@ covers — the contract has two sides, and only one of them is enforced from her
 [`LICENSE`](LICENSE) are this package's own, and `package.json` lists all three in
 `files` so they travel in a publish. None of them is a symlink. Work points are
 tracked in [`doc/status/ts-core.hmd`](../../doc/status/ts-core.hmd), against
-[HMD-0020](../../doc/proposals/HMD-0020/README.md).
+[HMD-0020](../../doc/proposals/HMD-0020/index.hmd).
 
 ## Release it
 

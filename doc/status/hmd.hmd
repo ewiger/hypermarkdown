@@ -1,12 +1,478 @@
 ---
+tags: [tracker]
 import:
-  - from /proposals/HMD-0001 import README as hmd-0001
-  - from /proposals/HMD-0004 import README as hmd-0004
-  - from /proposals/HMD-0005 import README as hmd-0005
-  - from /proposals/HMD-0020 import README as hmd-0020
-  - from /proposals/HMD-0024 import README as hmd-0024
-  - from /proposals/HMD-0028 import README as hmd-0028
-  - from /proposals/HMD-0030 import README as hmd-0030
+  - from /proposals/HMD-0001 import index as hmd-0001
+  - from /proposals/HMD-0004 import index as hmd-0004
+  - from /proposals/HMD-0005 import index as hmd-0005
+  - from /proposals/HMD-0020 import index as hmd-0020
+  - from /proposals/HMD-0024 import index as hmd-0024
+  - from /proposals/HMD-0028 import index as hmd-0028
+  - from /proposals/HMD-0030 import index as hmd-0030
+  - from /proposals/HMD-0032 import index as hmd-0032
+work:
+  - kind: open
+    state: todo
+    tags: [index, lsp]
+    text: >-
+      **Lint text, not just files.** Let a caller hand the workspace index the
+      current contents of a card, consulted ahead of any read. Every layer below
+      already takes text — the gap is exactly the one class that walks the tree
+      and reads each card
+    notes: >-
+      First half of what the language server needs
+    refs: >-
+      [[hmd-0024#text-not-paths]]
+  - kind: open
+    state: todo
+    tags: [index, lsp]
+    text: >-
+      **Invalidate one card at a time**, instead of loading the whole tree once
+      when the index is built
+    notes: >-
+      Second half. Follows the change above
+    refs: >-
+      [[hmd-0024#text-not-paths]]
+  - kind: open
+    state: todo
+    tags: [resolver, tests]
+    text: >-
+      **Property-based tests of the resolver's claims, over generated vaults.**
+      The specification asserts properties that no test states for every tree: a
+      wildcard import never changes a name the spine already resolved, a
+      resolved path never lies outside the namespace root, embed expansion
+      always terminates, and the sweep returns one match, an ambiguity, or
+      nothing, never a silent pick. Generate random trees, cards, imports and
+      embeds, and check each claim; a shrunk counterexample is either a resolver
+      bug or a sentence the specification has to withdraw. The existing
+      determinism test could take its trees from the same generator
+      [`test_determinism.py`]
+    notes: >-
+      The cheap form of the parked Lean model in the format's tracker, and the
+      condition for unparking it. Needs `hypothesis` as a test dependency
+    refs: >-
+      [[hmd-lang-spec#resolution-rules]], [[hmd-lang-spec#embed-expansion]],
+      [the format's tracker](lang.hmd)
+  - kind: open
+    state: blocked
+    tags: [lsp]
+    text: >-
+      **The language server itself.** A `pygls` server, so completion, rename,
+      and hover exist for any editor rather than only the one embedding the
+      TypeScript implementation
+    notes: >-
+      Waits on the two index changes above, and on whether it is a subcommand or
+      its own script
+    refs: >-
+      [[hmd-0024#the-language-server-is-python-on-pygls]]
+  - kind: open
+    state: blocked
+    tags: [domain]
+    text: >-
+      **Redirect the retired domain** to the current one, preserving paths
+    notes: >-
+      Registrar configuration, not a commit. See Broken
+    refs: >-
+      [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]
+  - kind: open
+    state: parked
+    tags: [rename]
+    text: >-
+      **Rename the package inside the parked integration suite** on the
+      extension's old branch, which still uses the pre-rename directory name
+    notes: >-
+      Waits on that branch being picked up
+    refs: >-
+      [[hmd-0005#the-repository-and-the-urls-that-point-at-it]]
+  - kind: open
+    state: todo
+    tags: [site, cells]
+    text: >-
+      **Draw only diagram cells in the site build.** A `d2#show` fence is drawn
+      as a `d2` fence is today, and a plain `d2` fence becomes a code block
+    notes: >-
+      Lands in the same release as the TypeScript implementation's change and
+      the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`]
+    refs: >-
+      [[hmd-0030#the-site-build]]
+  - kind: open
+    state: todo
+    tags: [site, cells]
+    text: >-
+      **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells,
+      through the same module and the same bounds as D2, with the same labelled
+      placeholder when no renderer is installed
+    notes: >-
+      Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains
+      `mermaid#show`
+    refs: >-
+      [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd)
+  - kind: open
+    state: backlog
+    tags: [language, resolver]
+    text: >-
+      **Resolve HQL paths, the canonical implementation.** Recognise `@[[…]]`
+      and `!@[[…]]`, build a card's tree of sections and anchored blocks, select
+      nodes by child, descendant, and anchor steps, link to the first selected
+      node, embed every selected node, and report HMD020. Write the three corpus
+      cases the record lists, which the other implementations then follow
+    notes: >-
+      Waits on the language answering the record's open questions and writing
+      the rule into the specification for 0.2.0
+    refs: >-
+      [[hmd-0032#selecting-nodes]], [[hmd-0032#links-and-embeds]],
+      [[hmd-0032#test-plan]]
+  - kind: broken
+    state: todo
+    tags: [site, embeds]
+    text: >-
+      **An embedded card's Markdown links resolve from the host page.**
+      Expansion is textual and carries a wikilink back to the card it was
+      written in, but an ordinary relative link is plain text to it and is
+      resolved from the page that embeds it
+    notes: >-
+      A link, an image, or a path to a card written in an embedded card is wrong
+      on every host in another directory, on the site and in `hmd render`.
+      MkDocs reports it at `info` only, so a strict build stays green
+    refs: >-
+      [the issue
+      card](../issues/0012-embedded-markdown-links-resolve-from-the-host-page.hmd),
+      [[hmd-0001#6-embed-expansion]]
+  - kind: broken
+    state: blocked
+    tags: [domain]
+    text: >-
+      **The retired domain answers 404 instead of redirecting.** Its records
+      point at a forwarding service, so the registrar side is half-configured,
+      but no rule takes effect on either scheme
+    notes: >-
+      Every link published under the old host is dead. The fix is a web form,
+      not a commit
+    refs: >-
+      [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]
+  - kind: broken
+    state: todo
+    tags: [linter, scanner]
+    text: >-
+      **A heading that ends in a code span loses that span.** The scanner
+      measures where a heading ends on the masked text, in which inline code is
+      blank, so code at the end of a heading is cut off before the heading's
+      text is read. Code in the middle of a heading is kept
+    notes: >-
+      A reference to the proposal heading *4. Red links and .md*, whose last
+      word is a code span, is reported as a missing heading (HMD004) unless the
+      fragment leaves that word out. A tracker titled *STATUS* followed by a
+      code span is reported as a duplicate of its own *Status* section (HMD011).
+      Five tracker references are written without their last word so that the
+      linter passes: `#4-red-links-and` in four places and
+      `#the-divergence-with` in one. They must gain the word back when this is
+      fixed, and the linter will report them then
+    refs: >-
+      [[hmd-lang-spec#heading-anchors]]
+  - kind: broken
+    state: todo
+    tags: [linter, scanner]
+    text: >-
+      **A code span that contains three backticks opens a fenced region.** A
+      span written with single backticks around three backticks is read as the
+      start of a fence, which runs to the next such span, across paragraphs
+    notes: >-
+      Between two such spans, a wikilink shown inside a code span is read as a
+      real wikilink and reported as unresolved (HMD001). Found in the
+      requirements sketch under `doc/models/`, which now writes those two spans
+      with character references
+    refs: >-
+      [[hmd-lang-spec#lexical-model]]
+  - kind: limitation
+    tags: [index]
+    text: >-
+      The workspace index reads every card from disk and cannot be handed an
+      editor's unsaved buffer
+    notes: >-
+      Being fixed — it is the first open item above. Worth knowing that it is
+      one layer, not a rewrite: the functions beneath it already take text
+    refs: >-
+      [[hmd-0024#text-not-paths]]
+  - kind: limitation
+    tags: [index]
+    text: >-
+      The TypeScript implementation solved that years earlier in project time,
+      and this one did not
+    notes: >-
+      Not a defect, an asymmetry: that one reads through an injectable port
+      because it had to. This one never had a caller that needed it
+    refs: >-
+      [[hmd-0020#6-resolver]]
+  - kind: limitation
+    tags: [package]
+    text: >-
+      The source archive does not ship the example vaults, so linting them does
+      not work from an unpacked archive
+    notes: >-
+      The examples are repository fixtures that both implementations lint, with
+      exactly one copy at the root. Carrying them into the package would mean a
+      duplicate tree
+    refs: >-
+      [[hmd-0024#where-tests-live-and-what-they-answer-for]]
+  - kind: limitation
+    tags: [docs]
+    text: >-
+      The same gate commands are written in the repository guide and in each
+      tool's guide
+    notes: >-
+      The cost of per-tool guides, which removed a worse problem: one guide
+      describing tools it did not live beside. Each tool's guide is
+      authoritative for its own commands; nothing enforces the duplication, and
+      a stale command is a silent defect
+    refs: >-
+      [[hmd-0024#a-tool-s-front-matter-is-its-own]]
+  - kind: limitation
+    tags: [rename, package]
+    text: >-
+      Installing under the retired name keeps installing the last release
+      published under it, forever, and the retired plugin key survives as an
+      alias
+    notes: >-
+      PyPI has no rename. The alias appears in site configs this project does
+      not own, where removing it is a hard build failure whose cause is
+      invisible to the site's author
+    refs: >-
+      [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]]
+  - kind: limitation
+    tags: [rename]
+    text: >-
+      The retired marketplace publisher and an unregistered npm scope are left
+      as they are
+    notes: >-
+      Releasing a publisher name back into the pool lets an impostor take it.
+      Deliberate inaction, not an oversight
+    refs: >-
+      [[hmd-0005#the-extension-s-identity-on-both-galleries]]
+  - kind: limitation
+    tags: [rename, docs]
+    text: >-
+      Changelog entries keep the old name where they record what a release was
+      actually called
+    notes: >-
+      A changelog is a historical record
+    refs: >-
+      [[hmd-0005#what-deliberately-keeps-its-current-spelling]]
+  - kind: done
+    tags: [config]
+    text: >-
+      **`location_path` names the namespace root** — the setting formerly called
+      `wiki`, read relative to the vault with the default `.`, the vault itself,
+      instead of `doc/wiki`; no alias. `hmd init --location-path` replaces
+      `--wiki`, and with no flag creates no directory; released in 0.5.0.
+  - kind: done
+    tags: [linter, embeds]
+    text: >-
+      **The HMD007 check follows only the embedded region** — it walks the
+      section a fragment expands to, not every embed in the target card, so two
+      embeds of different sections of one card, or a section embedding a sibling
+      section, are no longer a false cycle. A card or a section that embeds
+      itself still is. Held by the `embed-sections-of-one-card` and `embed-self`
+      corpus cases; released in 0.5.0.
+  - kind: done
+    tags: [resolver]
+    text: >-
+      **The corrected resolution algorithm** — `..` is normalised in every form,
+      leaving the namespace is HMD003 in every phase (a nested vault and a
+      symbolic link out of the root included), a written card extension is
+      honoured in every phase, a named import of another extension falls
+      through, `[[./]]` and `[[../]]` reach only folder notes, every imported
+      search path is probed so HMD016 names each shadowed card once, and HMD012
+      is a warning. The eighteen `resolve-*` corpus cases, written from the
+      specification, stand behind it; released in 0.5.0 [issue 0020].
+  - kind: done
+    tags: [language]
+    text: >-
+      **The HyperMarkDown 0.1 rules** — heading fragments match by key, so
+      headings in every script are linkable [issue 0014], setext headings are
+      headings, HMD019 reports undecodable files, a byte-order mark is ignored,
+      all three line endings are lines, names compare after NFC (import aliases
+      included), offsets count UTF-8 bytes and columns code points, only `.hmd/`
+      marks a vault, an anchor on a heading embeds its section, an anchored
+      repeat heading is not HMD011, and block anchors are no longer rendered —
+      the tutorial's "you cannot see it" paragraph showed its own. A determinism
+      test and six corpus cases stand behind it; released in 0.5.0.
+  - kind: done
+    tags: [site]
+    text: >-
+      **A syntax highlighter for cards** — a code sample marked `hmd` is
+      coloured as a card wherever Pygments is used: links, embeds, block
+      anchors, and frontmatter stand out, and a fenced block inside the sample
+      is coloured as its own language.
+  - kind: done
+    tags: [language]
+    text: >-
+      **The format, entire** — masking and the link grammar, heading links
+      rewritten to the id Python-Markdown's table of contents gives the heading
+      they matched, so links and rendered anchors cannot disagree, the
+      four-phase resolution search — named imports, the spine, imported search
+      paths, then the whole-tree sweep — folder notes, both import forms, and
+      embed expansion with a depth cap and cycle detection.
+  - kind: done
+    tags: [language]
+    text: >-
+      **Markdown cards** — `.md` and `.markdown` files load as cards that are
+      not scanned, bind after `.hmd`, and are reported as HMD018 when shadowed;
+      the MkDocs plugin links to the page MkDocs builds from one and never
+      registers it; a heading right below the frontmatter fence is a heading
+      again [HMD-0029].
+  - kind: done
+    tags: [cli, linter]
+    text: >-
+      **`hmd lint`** — nineteen diagnostics with stable identifiers, JSON
+      output, and exit codes a CI job can read.
+  - kind: done
+    tags: [cli]
+    text: >-
+      **`hmd render`** — flat markdown and HTML.
+  - kind: done
+    tags: [cli, config]
+    text: >-
+      **`hmd init`** — writes the project marker with every setting at its
+      default, creates the namespace root it names, refuses to overwrite an
+      existing config, and warns when an enclosing project would silently win.
+  - kind: done
+    tags: [config]
+    text: >-
+      **The `[hql]` and `[semantics]` tables are left alone** — a configuration
+      holding them loads and lints as one without them, whatever their values,
+      and a test holds that [[hmd-0028#the-hql-table]].
+  - kind: done
+    tags: [site]
+    text: >-
+      **The MkDocs plugin** — cards become pages, folder notes collapse onto
+      their directory's URL, links are rewritten, red links render as red links
+      without failing the build, embeds expand, and diagrams render through
+      `d2`.
+  - kind: done
+    tags: [site]
+    text: >-
+      **Publication** — opt-in visibility inherited from folder notes,
+      unpublished cards absent from the built site entirely, and a warning when
+      a published card reaches into one that is not.
+  - kind: done
+    tags: [package, rename]
+    text: >-
+      **Released and renamed** — on PyPI through a trusted publisher, under a
+      name that now matches the domain, the npm scope, and the extension
+      publisher, with the old entry point kept working as an alias.
+  - kind: done
+    tags: [package]
+    text: >-
+      **The repository layout** — five tools under `tools/`, each owning its own
+      front matter with no packaging symlinks, the shared corpus at the root
+      where it belongs to every implementation, and a workspace root that is not
+      itself a package.
+  - kind: done
+    tags: [resolver]
+    text: >-
+      **A nested vault is its own vault** — a directory below the root carrying
+      its own `.hmd/` is skipped when the workspace loads, so linting, the
+      graph, rendering, and the site see none of its cards, and an import into
+      it is HMD015. Ships in 0.3.1 [issue 0009]
+  - kind: done
+    tags: [site]
+    text: >-
+      **A folder note's ordinary links land on the built site** — the plugin
+      registers a folder note one directory above its file, and now resolves
+      every relative Markdown link in it from the file's own directory before
+      rewriting it for the registered page: links to cards, to plain pages, and
+      to images, inline and as reference definitions. Ships in 0.3.1 [issue
+      0010]
+  - kind: done
+    tags: [tests]
+    text: >-
+      **The shared corpus runs here too** — every conformance case is checked
+      against this implementation, the TypeScript one, and the Rust crate, so
+      drift is caught whichever side moves. This one carries no expected-failure
+      ledger, and its expected results are written from the specification, not
+      generated from this code.
+  - kind: question
+    tags: [lsp]
+    text: >-
+      Is the language server a subcommand of the existing command, or its own
+      script?
+    refs: >-
+      [[hmd-0024#the-language-server-is-python-on-pygls]]
+  - kind: question
+    tags: [lsp]
+    text: >-
+      Is its library a base dependency or an optional extra? An extra keeps the
+      plain install small; a base dependency means the server exists wherever
+      the command does
+    refs: >-
+      [[hmd-0024#the-language-server-is-python-on-pygls]]
+  - kind: question
+    tags: [lsp]
+    text: >-
+      Which language features move to the server first, and how does an editor
+      report an absent server without implying the preview failed? That the
+      extension becomes a client of it was settled; the sequencing was not
+    refs: >-
+      [[hmd-0024#the-language-server-is-python-on-pygls]]
+  - kind: question
+    tags: [cli, resolver]
+    text: >-
+      Should `hmd graph` record each card's resolved search path, so a consumer
+      can see what a card reaches without replaying the algorithm?
+    refs: >-
+      [[hmd-0001#5-link-resolution]]
+  - kind: question
+    tags: [site, rename]
+    text: >-
+      When is the retired plugin alias withdrawn, and what announces it — a
+      major version, a warning at build time, or nothing?
+    refs: >-
+      [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]]
+  - kind: question
+    tags: [package, rename]
+    text: >-
+      Does pruning the abandoned PyPI project mean yanking its releases or
+      deleting it? Deletion frees the name for anyone to register and serve to a
+      stale pin
+    refs: >-
+      [[hmd-0005#the-python-distribution-its-module-and-the-project-left-behind]]
+  - kind: question
+    tags: [domain]
+    text: >-
+      Does the retired domain redirect permanently, or for a fixed window after
+      which the registration is allowed to lapse? A lapsed domain that once
+      served documentation is one someone else can serve anything from
+    refs: >-
+      [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]
+  - kind: question
+    tags: [cli]
+    text: >-
+      Should `hmd init` write a starter card in the root it creates? It creates
+      an empty directory today, which lints clean and shows an author nothing —
+      but a card written by a tool is a card somebody has to delete
+    refs: >-
+      [[hmd-0001#7-hmd-cli]]
+  - kind: question
+    tags: [cli, config]
+    text: >-
+      Should `init` grow flags for the settings it writes, or is editing the
+      file it just wrote the right affordance?
+    refs: >-
+      [[hmd-0001#7-hmd-cli]]
+  - kind: question
+    tags: [linter, config]
+    text: >-
+      Should the linter check a namespace name that does not match the address
+      form? Nothing reads that key yet, and the first thing to read it would be
+      the first thing to break
+    refs: >-
+      [[hmd-0004#the-address-form]]
+  - kind: question
+    tags: [tests, language]
+    text: >-
+      Should the specification's version sentence stop being what the repository
+      guard parses, now that a rename has shown the sentence can move?
+    refs: >-
+      [[hmd-0005#the-wiki-card-that-carries-the-project-s-name]]
 ---
 
 # STATUS — `hmd`, the reference implementation
@@ -66,119 +532,154 @@ every layer beneath it already takes text rather than a path.
 Outside the repository, one thing remains broken and cannot be fixed by a
 commit: the retired domain does not redirect.
 
+```hql#eval id=work hidden
+// The rows of this tracker: the `work` list in this card's header.
+type Row { kind : String, state? : String, tags : List<String>, text : String, notes? : String, refs? : String }
+type Tracker : Data { work? : List<Row> }
+
+cards
+| filter(c => c.path == "status/hmd.hmd")
+| flat_map(c => match (c.header | Tracker).work { some(rows) => rows, _ => [] })
+```
+
 ## Open
 
-| Status | Work | Notes | References |
-| --- | --- | --- | --- |
-| todo | **Lint text, not just files.** Let a caller hand the workspace index the current contents of a card, consulted ahead of any read. Every layer below already takes text — the gap is exactly the one class that walks the tree and reads each card | First half of what the language server needs | [[hmd-0024#text-not-paths]] |
-| todo | **Invalidate one card at a time**, instead of loading the whole tree once when the index is built | Second half. Follows the change above | [[hmd-0024#text-not-paths]] |
-| todo | **Property-based tests of the resolver's claims, over generated vaults.** The specification asserts properties that no test states for every tree: a wildcard import never changes a name the spine already resolved, a resolved path never lies outside the namespace root, embed expansion always terminates, and the sweep returns one match, an ambiguity, or nothing, never a silent pick. Generate random trees, cards, imports and embeds, and check each claim; a shrunk counterexample is either a resolver bug or a sentence the specification has to withdraw. The existing determinism test could take its trees from the same generator [`test_determinism.py`] | The cheap form of the parked Lean model in the format's tracker, and the condition for unparking it. Needs `hypothesis` as a test dependency | [[hmd-lang-spec#resolution-rules]], [[hmd-lang-spec#embed-expansion]], [the format's tracker](lang.hmd) |
-| blocked | **The language server itself.** A `pygls` server, so completion, rename, and hover exist for any editor rather than only the one embedding the TypeScript implementation | Waits on the two index changes above, and on whether it is a subcommand or its own script | [[hmd-0024#the-language-server-is-python-on-pygls]] |
-| blocked | **Redirect the retired domain** to the current one, preserving paths | Registrar configuration, not a commit. See Broken | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
-| parked | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name | Waits on that branch being picked up | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]] |
-| todo | **Draw only diagram cells in the site build.** A `d2#show` fence is drawn as a `d2` fence is today, and a plain `d2` fence becomes a code block | Lands in the same release as the TypeScript implementation's change and the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`] | [[hmd-0030#the-site-build]] |
-| todo | **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells, through the same module and the same bounds as D2, with the same labelled placeholder when no renderer is installed | Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains `mermaid#show` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd) |
+```hql#eval
+work
+| filter(r => r.kind == "open")
+| map(r => { "Status": r.state.unwrap_or(""), "Work": r.text, "Notes": r.notes.unwrap_or(""), "Tags": r.tags | join(", "), "References": r.refs.unwrap_or("—") })
+| Table(columns = ["Status", "Work", "Notes", "Tags", "References"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=d77e7095d7eb status=ok -->
+| Status  | Work                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Notes                                                                                                                                        | Tags               | References                                                                                              |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------- |
+| todo    | **Lint text, not just files.** Let a caller hand the workspace index the current contents of a card, consulted ahead of any read. Every layer below already takes text — the gap is exactly the one class that walks the tree and reads each card                                                                                                                                                                                                                                                                                                                                                                                                                            | First half of what the language server needs                                                                                                 | index, lsp         | [[hmd-0024#text-not-paths]]                                                                             |
+| todo    | **Invalidate one card at a time**, instead of loading the whole tree once when the index is built                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Second half. Follows the change above                                                                                                        | index, lsp         | [[hmd-0024#text-not-paths]]                                                                             |
+| todo    | **Property-based tests of the resolver's claims, over generated vaults.** The specification asserts properties that no test states for every tree: a wildcard import never changes a name the spine already resolved, a resolved path never lies outside the namespace root, embed expansion always terminates, and the sweep returns one match, an ambiguity, or nothing, never a silent pick. Generate random trees, cards, imports and embeds, and check each claim; a shrunk counterexample is either a resolver bug or a sentence the specification has to withdraw. The existing determinism test could take its trees from the same generator [`test_determinism.py`] | The cheap form of the parked Lean model in the format's tracker, and the condition for unparking it. Needs `hypothesis` as a test dependency | resolver, tests    | [[hmd-lang-spec#resolution-rules]], [[hmd-lang-spec#embed-expansion]], [the format's tracker](lang.hmd) |
+| blocked | **The language server itself.** A `pygls` server, so completion, rename, and hover exist for any editor rather than only the one embedding the TypeScript implementation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Waits on the two index changes above, and on whether it is a subcommand or its own script                                                    | lsp                | [[hmd-0024#the-language-server-is-python-on-pygls]]                                                     |
+| blocked | **Redirect the retired domain** to the current one, preserving paths                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Registrar configuration, not a commit. See Broken                                                                                            | domain             | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]                                          |
+| parked  | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Waits on that branch being picked up                                                                                                         | rename             | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]]                                               |
+| todo    | **Draw only diagram cells in the site build.** A `d2#show` fence is drawn as a `d2` fence is today, and a plain `d2` fence becomes a code block                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Lands in the same release as the TypeScript implementation's change and the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`]  | site, cells        | [[hmd-0030#the-site-build]]                                                                             |
+| todo    | **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells, through the same module and the same bounds as D2, with the same labelled placeholder when no renderer is installed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains `mermaid#show`                                                         | site, cells        | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd)                                  |
+| backlog | **Resolve HQL paths, the canonical implementation.** Recognise `@[[…]]` and `!@[[…]]`, build a card's tree of sections and anchored blocks, select nodes by child, descendant, and anchor steps, link to the first selected node, embed every selected node, and report HMD020. Write the three corpus cases the record lists, which the other implementations then follow                                                                                                                                                                                                                                                                                                   | Waits on the language answering the record's open questions and writing the rule into the specification for 0.2.0                            | language, resolver | [[hmd-0032#selecting-nodes]], [[hmd-0032#links-and-embeds]], [[hmd-0032#test-plan]]                     |
+<!-- /hql:output -->
 
 ## Broken
 
-| Status | Defect | Symptom | References |
-| --- | --- | --- | --- |
-| todo | **An embedded card's Markdown links resolve from the host page.** Expansion is textual and carries a wikilink back to the card it was written in, but an ordinary relative link is plain text to it and is resolved from the page that embeds it | A link, an image, or a path to a card written in an embedded card is wrong on every host in another directory, on the site and in `hmd render`. MkDocs reports it at `info` only, so a strict build stays green | [the issue card](../issues/0012-embedded-markdown-links-resolve-from-the-host-page.hmd), [[hmd-0001#6-embed-expansion]] |
-| blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme | Every link published under the old host is dead. The fix is a web form, not a commit | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
-| todo | **A heading that ends in a code span loses that span.** The scanner measures where a heading ends on the masked text, in which inline code is blank, so code at the end of a heading is cut off before the heading's text is read. Code in the middle of a heading is kept | A reference to the proposal heading *4. Red links and .md*, whose last word is a code span, is reported as a missing heading (HMD004) unless the fragment leaves that word out. A tracker titled *STATUS* followed by a code span is reported as a duplicate of its own *Status* section (HMD011). Five tracker references are written without their last word so that the linter passes: `#4-red-links-and` in four places and `#the-divergence-with` in one. They must gain the word back when this is fixed, and the linter will report them then | [[hmd-lang-spec#heading-anchors]] |
-| todo | **A code span that contains three backticks opens a fenced region.** A span written with single backticks around three backticks is read as the start of a fence, which runs to the next such span, across paragraphs | Between two such spans, a wikilink shown inside a code span is read as a real wikilink and reported as unresolved (HMD001). Found in the requirements sketch under `doc/models/`, which now writes those two spans with character references | [[hmd-lang-spec#lexical-model]] |
+```hql#eval
+work
+| filter(r => r.kind == "broken")
+| map(r => { "Status": r.state.unwrap_or(""), "Defect": r.text, "Symptom": r.notes.unwrap_or(""), "Tags": r.tags | join(", "), "References": r.refs.unwrap_or("—") })
+| Table(columns = ["Status", "Defect", "Symptom", "Tags", "References"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=74b3e579ae13 status=ok -->
+| Status  | Defect                                                                                                                                                                                                                                                                     | Symptom                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Tags            | References                                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| todo    | **An embedded card's Markdown links resolve from the host page.** Expansion is textual and carries a wikilink back to the card it was written in, but an ordinary relative link is plain text to it and is resolved from the page that embeds it                           | A link, an image, or a path to a card written in an embedded card is wrong on every host in another directory, on the site and in `hmd render`. MkDocs reports it at `info` only, so a strict build stays green                                                                                                                                                                                                                                                                                                                                      | site, embeds    | [the issue card](../issues/0012-embedded-markdown-links-resolve-from-the-host-page.hmd), [[hmd-0001#6-embed-expansion]] |
+| blocked | **The retired domain answers 404 instead of redirecting.** Its records point at a forwarding service, so the registrar side is half-configured, but no rule takes effect on either scheme                                                                                  | Every link published under the old host is dead. The fix is a web form, not a commit                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | domain          | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]                                                          |
+| todo    | **A heading that ends in a code span loses that span.** The scanner measures where a heading ends on the masked text, in which inline code is blank, so code at the end of a heading is cut off before the heading's text is read. Code in the middle of a heading is kept | A reference to the proposal heading *4. Red links and .md*, whose last word is a code span, is reported as a missing heading (HMD004) unless the fragment leaves that word out. A tracker titled *STATUS* followed by a code span is reported as a duplicate of its own *Status* section (HMD011). Five tracker references are written without their last word so that the linter passes: `#4-red-links-and` in four places and `#the-divergence-with` in one. They must gain the word back when this is fixed, and the linter will report them then | linter, scanner | [[hmd-lang-spec#heading-anchors]]                                                                                       |
+| todo    | **A code span that contains three backticks opens a fenced region.** A span written with single backticks around three backticks is read as the start of a fence, which runs to the next such span, across paragraphs                                                      | Between two such spans, a wikilink shown inside a code span is read as a real wikilink and reported as unresolved (HMD001). Found in the requirements sketch under `doc/models/`, which now writes those two spans with character references                                                                                                                                                                                                                                                                                                         | linter, scanner | [[hmd-lang-spec#lexical-model]]                                                                                         |
+<!-- /hql:output -->
 
 ## Limitations (known gaps)
 
-| Limitation | Why it stands | References |
-| --- | --- | --- |
-| The workspace index reads every card from disk and cannot be handed an editor's unsaved buffer | Being fixed — it is the first open item above. Worth knowing that it is one layer, not a rewrite: the functions beneath it already take text | [[hmd-0024#text-not-paths]] |
-| The TypeScript implementation solved that years earlier in project time, and this one did not | Not a defect, an asymmetry: that one reads through an injectable port because it had to. This one never had a caller that needed it | [[hmd-0020#6-resolver]] |
-| The source archive does not ship the example vaults, so linting them does not work from an unpacked archive | The examples are repository fixtures that both implementations lint, with exactly one copy at the root. Carrying them into the package would mean a duplicate tree | [[hmd-0024#where-tests-live-and-what-they-answer-for]] |
-| The same gate commands are written in the repository guide and in each tool's guide | The cost of per-tool guides, which removed a worse problem: one guide describing tools it did not live beside. Each tool's guide is authoritative for its own commands; nothing enforces the duplication, and a stale command is a silent defect | [[hmd-0024#a-tool-s-front-matter-is-its-own]] |
-| Installing under the retired name keeps installing the last release published under it, forever, and the retired plugin key survives as an alias | PyPI has no rename. The alias appears in site configs this project does not own, where removing it is a hard build failure whose cause is invisible to the site's author | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
-| The retired marketplace publisher and an unregistered npm scope are left as they are | Releasing a publisher name back into the pool lets an impostor take it. Deliberate inaction, not an oversight | [[hmd-0005#the-extension-s-identity-on-both-galleries]] |
-| Changelog entries keep the old name where they record what a release was actually called | A changelog is a historical record | [[hmd-0005#what-deliberately-keeps-its-current-spelling]] |
+```hql#eval
+work
+| filter(r => r.kind == "limitation")
+| map(r => { "Limitation": r.text, "Why it stands": r.notes.unwrap_or(""), "Tags": r.tags | join(", "), "References": r.refs.unwrap_or("—") })
+| Table(columns = ["Limitation", "Why it stands", "Tags", "References"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=43c2d566dea4 status=ok -->
+| Limitation                                                                                                                                       | Why it stands                                                                                                                                                                                                                                    | Tags            | References                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- | ---------------------------------------------------------------------------- |
+| The workspace index reads every card from disk and cannot be handed an editor's unsaved buffer                                                   | Being fixed — it is the first open item above. Worth knowing that it is one layer, not a rewrite: the functions beneath it already take text                                                                                                     | index           | [[hmd-0024#text-not-paths]]                                                  |
+| The TypeScript implementation solved that years earlier in project time, and this one did not                                                    | Not a defect, an asymmetry: that one reads through an injectable port because it had to. This one never had a caller that needed it                                                                                                              | index           | [[hmd-0020#6-resolver]]                                                      |
+| The source archive does not ship the example vaults, so linting them does not work from an unpacked archive                                      | The examples are repository fixtures that both implementations lint, with exactly one copy at the root. Carrying them into the package would mean a duplicate tree                                                                               | package         | [[hmd-0024#where-tests-live-and-what-they-answer-for]]                       |
+| The same gate commands are written in the repository guide and in each tool's guide                                                              | The cost of per-tool guides, which removed a worse problem: one guide describing tools it did not live beside. Each tool's guide is authoritative for its own commands; nothing enforces the duplication, and a stale command is a silent defect | docs            | [[hmd-0024#a-tool-s-front-matter-is-its-own]]                                |
+| Installing under the retired name keeps installing the last release published under it, forever, and the retired plugin key survives as an alias | PyPI has no rename. The alias appears in site configs this project does not own, where removing it is a hard build failure whose cause is invisible to the site's author                                                                         | rename, package | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
+| The retired marketplace publisher and an unregistered npm scope are left as they are                                                             | Releasing a publisher name back into the pool lets an impostor take it. Deliberate inaction, not an oversight                                                                                                                                    | rename          | [[hmd-0005#the-extension-s-identity-on-both-galleries]]                      |
+| Changelog entries keep the old name where they record what a release was actually called                                                         | A changelog is a historical record                                                                                                                                                                                                               | rename, docs    | [[hmd-0005#what-deliberately-keeps-its-current-spelling]]                    |
+<!-- /hql:output -->
 
 ## Done
 
-- **`location_path` names the namespace root** — the setting formerly called
-  `wiki`, read relative to the vault with the default `.`, the vault itself,
-  instead of `doc/wiki`; no alias. `hmd init --location-path` replaces
-  `--wiki`, and with no flag creates no directory; released in 0.5.0.
-- **The HMD007 check follows only the embedded region** — it walks the
-  section a fragment expands to, not every embed in the target card, so two
-  embeds of different sections of one card, or a section embedding a sibling
-  section, are no longer a false cycle. A card or a section that embeds itself
-  still is. Held by the `embed-sections-of-one-card` and `embed-self` corpus
-  cases; released in 0.5.0.
-- **The corrected resolution algorithm** — `..` is normalised in every form,
-  leaving the namespace is HMD003 in every phase (a nested vault and a symbolic
-  link out of the root included), a written card extension is honoured in
-  every phase, a named import of another extension falls through, `[[./]]` and
-  `[[../]]` reach only folder notes, every imported search path is probed so
-  HMD016 names each shadowed card once, and HMD012 is a warning. The eighteen
-  `resolve-*` corpus cases, written from the specification, stand behind it;
-  released in 0.5.0 [issue 0020].
-- **The HyperMarkDown 0.1 rules** — heading fragments match by key, so
-  headings in every script are linkable [issue 0014], setext
-  headings are headings, HMD019 reports undecodable files, a byte-order mark is
-  ignored, all three line endings are lines, names compare after NFC (import
-  aliases included), offsets count UTF-8 bytes and columns code points, only
-  `.hmd/` marks a vault, an anchor on a heading embeds its section, an anchored
-  repeat heading is not HMD011, and block anchors are no longer rendered — the
-  tutorial's "you cannot see it" paragraph showed its own. A determinism test
-  and six corpus cases stand behind it; released in 0.5.0.
-- **A syntax highlighter for cards** — a code sample marked `hmd` is coloured
-  as a card wherever Pygments is used: links, embeds, block anchors, and
-  frontmatter stand out, and a fenced block inside the sample is coloured as
-  its own language.
-- **The format, entire** — masking and the link grammar, heading links
-  rewritten to the id Python-Markdown's table of contents gives the heading
-  they matched, so links and rendered anchors cannot disagree, the four-phase
-  resolution search — named imports, the spine, imported search paths, then
-  the whole-tree sweep — folder notes, both import forms, and embed expansion
-  with a depth cap and cycle detection.
-- **Markdown cards** — `.md` and `.markdown` files load as cards that are not
-  scanned, bind after `.hmd`, and are reported as HMD018 when shadowed; the MkDocs
-  plugin links to the page MkDocs builds from one and never registers it; a
-  heading right below the frontmatter fence is a heading again [HMD-0029].
-- **`hmd lint`** — nineteen diagnostics with stable identifiers, JSON output, and
-  exit codes a CI job can read.
-- **`hmd render`** — flat markdown and HTML.
-- **`hmd init`** — writes the project marker with every setting at its default,
-  creates the namespace root it names, refuses to overwrite an existing config,
-  and warns when an enclosing project would silently win.
-- **The `[hql]` and `[semantics]` tables are left alone** — a configuration
-  holding them loads and lints as one without them, whatever their values, and
-  a test holds that [[hmd-0028#the-hql-table]].
-- **The MkDocs plugin** — cards become pages, folder notes collapse onto their
-  directory's URL, links are rewritten, red links render as red links without
-  failing the build, embeds expand, and diagrams render through `d2`.
-- **Publication** — opt-in visibility inherited from folder notes, unpublished
-  cards absent from the built site entirely, and a warning when a published card
-  reaches into one that is not.
-- **Released and renamed** — on PyPI through a trusted publisher, under a name
-  that now matches the domain, the npm scope, and the extension publisher, with
-  the old entry point kept working as an alias.
-- **The repository layout** — five tools under `tools/`, each owning its own
-  front matter with no packaging symlinks, the shared corpus at the root where
-  it belongs to every implementation, and a workspace root that is not itself a
-  package.
-- **A nested vault is its own vault** — a directory below the root carrying its
-  own `.hmd/` is skipped when the workspace loads, so linting, the graph,
-  rendering, and the site see none of its cards, and an import into it is
-  HMD015. Ships in 0.3.1 [issue 0009]
-- **A folder note's ordinary links land on the built site** — the plugin
-  registers a folder note one directory above its file, and now resolves every
-  relative Markdown link in it from the file's own directory before rewriting
-  it for the registered page: links to cards, to plain pages, and to images,
-  inline and as reference definitions. Ships in 0.3.1 [issue 0010]
-- **The shared corpus runs here too** — every conformance case is checked
-  against this implementation, the TypeScript one, and the Rust crate, so drift
-  is caught whichever side moves. This one carries no expected-failure ledger,
-  and its expected results are written from the specification, not generated
-  from this code.
+```hql#eval
+work
+| filter(r => r.kind == "done")
+| map(r => { Shipped: r.text, Tags: r.tags | join(", ") })
+| Table(columns = ["Shipped", "Tags"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=f0400f06f960 status=ok -->
+| Shipped                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Tags            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| **`location_path` names the namespace root** — the setting formerly called `wiki`, read relative to the vault with the default `.`, the vault itself, instead of `doc/wiki`; no alias. `hmd init --location-path` replaces `--wiki`, and with no flag creates no directory; released in 0.5.0.                                                                                                                                                                                                                                                                                                                                                                      | config          |
+| **The HMD007 check follows only the embedded region** — it walks the section a fragment expands to, not every embed in the target card, so two embeds of different sections of one card, or a section embedding a sibling section, are no longer a false cycle. A card or a section that embeds itself still is. Held by the `embed-sections-of-one-card` and `embed-self` corpus cases; released in 0.5.0.                                                                                                                                                                                                                                                         | linter, embeds  |
+| **The corrected resolution algorithm** — `..` is normalised in every form, leaving the namespace is HMD003 in every phase (a nested vault and a symbolic link out of the root included), a written card extension is honoured in every phase, a named import of another extension falls through, `[[./]]` and `[[../]]` reach only folder notes, every imported search path is probed so HMD016 names each shadowed card once, and HMD012 is a warning. The eighteen `resolve-*` corpus cases, written from the specification, stand behind it; released in 0.5.0 [issue 0020].                                                                                     | resolver        |
+| **The HyperMarkDown 0.1 rules** — heading fragments match by key, so headings in every script are linkable [issue 0014], setext headings are headings, HMD019 reports undecodable files, a byte-order mark is ignored, all three line endings are lines, names compare after NFC (import aliases included), offsets count UTF-8 bytes and columns code points, only `.hmd/` marks a vault, an anchor on a heading embeds its section, an anchored repeat heading is not HMD011, and block anchors are no longer rendered — the tutorial's "you cannot see it" paragraph showed its own. A determinism test and six corpus cases stand behind it; released in 0.5.0. | language        |
+| **A syntax highlighter for cards** — a code sample marked `hmd` is coloured as a card wherever Pygments is used: links, embeds, block anchors, and frontmatter stand out, and a fenced block inside the sample is coloured as its own language.                                                                                                                                                                                                                                                                                                                                                                                                                     | site            |
+| **The format, entire** — masking and the link grammar, heading links rewritten to the id Python-Markdown's table of contents gives the heading they matched, so links and rendered anchors cannot disagree, the four-phase resolution search — named imports, the spine, imported search paths, then the whole-tree sweep — folder notes, both import forms, and embed expansion with a depth cap and cycle detection.                                                                                                                                                                                                                                              | language        |
+| **Markdown cards** — `.md` and `.markdown` files load as cards that are not scanned, bind after `.hmd`, and are reported as HMD018 when shadowed; the MkDocs plugin links to the page MkDocs builds from one and never registers it; a heading right below the frontmatter fence is a heading again [HMD-0029].                                                                                                                                                                                                                                                                                                                                                     | language        |
+| **`hmd lint`** — nineteen diagnostics with stable identifiers, JSON output, and exit codes a CI job can read.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | cli, linter     |
+| **`hmd render`** — flat markdown and HTML.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | cli             |
+| **`hmd init`** — writes the project marker with every setting at its default, creates the namespace root it names, refuses to overwrite an existing config, and warns when an enclosing project would silently win.                                                                                                                                                                                                                                                                                                                                                                                                                                                 | cli, config     |
+| **The `[hql]` and `[semantics]` tables are left alone** — a configuration holding them loads and lints as one without them, whatever their values, and a test holds that [[hmd-0028#the-hql-table]].                                                                                                                                                                                                                                                                                                                                                                                                                                                                | config          |
+| **The MkDocs plugin** — cards become pages, folder notes collapse onto their directory's URL, links are rewritten, red links render as red links without failing the build, embeds expand, and diagrams render through `d2`.                                                                                                                                                                                                                                                                                                                                                                                                                                        | site            |
+| **Publication** — opt-in visibility inherited from folder notes, unpublished cards absent from the built site entirely, and a warning when a published card reaches into one that is not.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | site            |
+| **Released and renamed** — on PyPI through a trusted publisher, under a name that now matches the domain, the npm scope, and the extension publisher, with the old entry point kept working as an alias.                                                                                                                                                                                                                                                                                                                                                                                                                                                            | package, rename |
+| **The repository layout** — five tools under `tools/`, each owning its own front matter with no packaging symlinks, the shared corpus at the root where it belongs to every implementation, and a workspace root that is not itself a package.                                                                                                                                                                                                                                                                                                                                                                                                                      | package         |
+| **A nested vault is its own vault** — a directory below the root carrying its own `.hmd/` is skipped when the workspace loads, so linting, the graph, rendering, and the site see none of its cards, and an import into it is HMD015. Ships in 0.3.1 [issue 0009]                                                                                                                                                                                                                                                                                                                                                                                                   | resolver        |
+| **A folder note's ordinary links land on the built site** — the plugin registers a folder note one directory above its file, and now resolves every relative Markdown link in it from the file's own directory before rewriting it for the registered page: links to cards, to plain pages, and to images, inline and as reference definitions. Ships in 0.3.1 [issue 0010]                                                                                                                                                                                                                                                                                         | site            |
+| **The shared corpus runs here too** — every conformance case is checked against this implementation, the TypeScript one, and the Rust crate, so drift is caught whichever side moves. This one carries no expected-failure ledger, and its expected results are written from the specification, not generated from this code.                                                                                                                                                                                                                                                                                                                                       | tests           |
+<!-- /hql:output -->
+
+## By tag
+
+The number of rows that carry each tag, by kind.
+
+```hql#eval
+type Tagged { tag : String, kind : String }
+
+fn count(items: List<Tagged>, kind: String) : Int = items | filter(x => x.kind == kind) | size
+
+work
+| flat_map(r => r.tags | map(t => Tagged(tag = t, kind = r.kind)))
+| group(by = x => x.tag)
+| sort(by = g => g.key)
+| map(g => {
+    Tag: g.key,
+    Open: count(g.items, "open"),
+    Broken: count(g.items, "broken"),
+    Limitations: count(g.items, "limitation"),
+    Done: count(g.items, "done"),
+    Questions: count(g.items, "question"),
+  })
+| Table(columns = ["Tag", "Open", "Broken", "Limitations", "Done", "Questions"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=4aad2eff54ad status=ok -->
+| Tag      | Open | Broken | Limitations | Done | Questions |
+| -------- | ---- | ------ | ----------- | ---- | --------- |
+| cells    | 2    | 0      | 0           | 0    | 0         |
+| cli      | 0    | 0      | 0           | 3    | 3         |
+| config   | 0    | 0      | 0           | 3    | 2         |
+| docs     | 0    | 0      | 2           | 0    | 0         |
+| domain   | 1    | 1      | 0           | 0    | 1         |
+| embeds   | 0    | 1      | 0           | 1    | 0         |
+| index    | 2    | 0      | 2           | 0    | 0         |
+| language | 1    | 0      | 0           | 3    | 1         |
+| linter   | 0    | 2      | 0           | 2    | 1         |
+| lsp      | 3    | 0      | 0           | 0    | 3         |
+| package  | 0    | 0      | 2           | 2    | 1         |
+| rename   | 1    | 0      | 3           | 1    | 2         |
+| resolver | 2    | 0      | 0           | 2    | 1         |
+| scanner  | 0    | 2      | 0           | 0    | 0         |
+| site     | 2    | 1      | 0           | 4    | 1         |
+| tests    | 1    | 0      | 0           | 1    | 1         |
+<!-- /hql:output -->
 
 ## Gates
 
@@ -198,22 +699,32 @@ improvement.
 
 ## Open questions
 
-| Question | References |
-| --- | --- |
-| Is the language server a subcommand of the existing command, or its own script? | [[hmd-0024#the-language-server-is-python-on-pygls]] |
-| Is its library a base dependency or an optional extra? An extra keeps the plain install small; a base dependency means the server exists wherever the command does | [[hmd-0024#the-language-server-is-python-on-pygls]] |
-| Which language features move to the server first, and how does an editor report an absent server without implying the preview failed? That the extension becomes a client of it was settled; the sequencing was not | [[hmd-0024#the-language-server-is-python-on-pygls]] |
-| Should `hmd graph` record each card's resolved search path, so a consumer can see what a card reaches without replaying the algorithm? | [[hmd-0001#5-link-resolution]] |
-| When is the retired plugin alias withdrawn, and what announces it — a major version, a warning at build time, or nothing? | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
-| Does pruning the abandoned PyPI project mean yanking its releases or deleting it? Deletion frees the name for anyone to register and serve to a stale pin | [[hmd-0005#the-python-distribution-its-module-and-the-project-left-behind]] |
-| Does the retired domain redirect permanently, or for a fixed window after which the registration is allowed to lapse? A lapsed domain that once served documentation is one someone else can serve anything from | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]] |
-| Should `hmd init` write a starter card in the root it creates? It creates an empty directory today, which lints clean and shows an author nothing — but a card written by a tool is a card somebody has to delete | [[hmd-0001#7-hmd-cli]] |
-| Should `init` grow flags for the settings it writes, or is editing the file it just wrote the right affordance? | [[hmd-0001#7-hmd-cli]] |
-| Should the linter check a namespace name that does not match the address form? Nothing reads that key yet, and the first thing to read it would be the first thing to break | [[hmd-0004#the-address-form]] |
-| Should the specification's version sentence stop being what the repository guard parses, now that a rename has shown the sentence can move? | [[hmd-0005#the-wiki-card-that-carries-the-project-s-name]] |
+```hql#eval
+work
+| filter(r => r.kind == "question")
+| map(r => { "Question": r.text, "Tags": r.tags | join(", "), "References": r.refs.unwrap_or("—") })
+| Table(columns = ["Question", "Tags", "References"])
+| format(as = Markdown)
+```
+<!-- hql:output hash=e86cf4b95f10 status=ok -->
+| Question                                                                                                                                                                                                            | Tags            | References                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------- |
+| Is the language server a subcommand of the existing command, or its own script?                                                                                                                                     | lsp             | [[hmd-0024#the-language-server-is-python-on-pygls]]                          |
+| Is its library a base dependency or an optional extra? An extra keeps the plain install small; a base dependency means the server exists wherever the command does                                                  | lsp             | [[hmd-0024#the-language-server-is-python-on-pygls]]                          |
+| Which language features move to the server first, and how does an editor report an absent server without implying the preview failed? That the extension becomes a client of it was settled; the sequencing was not | lsp             | [[hmd-0024#the-language-server-is-python-on-pygls]]                          |
+| Should `hmd graph` record each card's resolved search path, so a consumer can see what a card reaches without replaying the algorithm?                                                                              | cli, resolver   | [[hmd-0001#5-link-resolution]]                                               |
+| When is the retired plugin alias withdrawn, and what announces it — a major version, a warning at build time, or nothing?                                                                                           | site, rename    | [[hmd-0005#the-plugin-key-and-the-alias-that-keeps-existing-sites-building]] |
+| Does pruning the abandoned PyPI project mean yanking its releases or deleting it? Deletion frees the name for anyone to register and serve to a stale pin                                                           | package, rename | [[hmd-0005#the-python-distribution-its-module-and-the-project-left-behind]]  |
+| Does the retired domain redirect permanently, or for a fixed window after which the registration is allowed to lapse? A lapsed domain that once served documentation is one someone else can serve anything from    | domain          | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]               |
+| Should `hmd init` write a starter card in the root it creates? It creates an empty directory today, which lints clean and shows an author nothing — but a card written by a tool is a card somebody has to delete   | cli             | [[hmd-0001#7-hmd-cli]]                                                       |
+| Should `init` grow flags for the settings it writes, or is editing the file it just wrote the right affordance?                                                                                                     | cli, config     | [[hmd-0001#7-hmd-cli]]                                                       |
+| Should the linter check a namespace name that does not match the address form? Nothing reads that key yet, and the first thing to read it would be the first thing to break                                         | linter, config  | [[hmd-0004#the-address-form]]                                                |
+| Should the specification's version sentence stop being what the repository guard parses, now that a rename has shown the sentence can move?                                                                         | tests, language | [[hmd-0005#the-wiki-card-that-carries-the-project-s-name]]                   |
+<!-- /hql:output -->
 
 ## Changelog
 
+- 2026-11-25: a backlog row for HQL path, HMD-0032, the construct `@[[…]]` that HyperMarkDown 0.2.0 would add; it replaces the in-card address of HMD-0006, which is archived as deferred.
 - 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-22: the 0.1 rules are implemented, unreleased.
 - 2026-11-22: the diagnostic count, eighteen, matches the code. Corrected on

@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0027: `hypermarkdown` — the resolver as a Rust crate
 
 **Status**: drafted
@@ -315,12 +320,12 @@ cargo test --locked
 
 ## See also
 
-- [HMD-0020](../HMD-0020/README.md), which specifies the TypeScript
+- [HMD-0020](../HMD-0020/index.hmd), which specifies the TypeScript
   implementation, establishes that Python is canonical, and defines the
   conformance corpus and the first ledger.
-- [HMD-0024](../HMD-0024/README.md), which fixes the repository as a monorepo of
+- [HMD-0024](../HMD-0024/index.hmd), which fixes the repository as a monorepo of
   tools and says what each tool owns.
-- [HMD-0001](../HMD-0001/README.md), which specifies the grammar and the
+- [HMD-0001](../HMD-0001/index.hmd), which specifies the grammar and the
   resolver.
 - [`examples/conformance/README.md`](../../../examples/conformance/README.md),
   the corpus and its runners.

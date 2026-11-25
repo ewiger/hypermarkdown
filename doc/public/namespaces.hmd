@@ -240,5 +240,5 @@ results from it.
   — the files used on this page and in the specification.
 - [HQL: A vault of documents](https://hql-lang.org/latest/book/21-a-vault/) — querying
   cards and reading other vaults as configured sources.
-- [[/proposals/HMD-0004/README|The cross-namespace proposal]] — the design
+- [[/proposals/HMD-0004/index|The cross-namespace proposal]] — the design
   record and open questions for reaching beyond one tree.

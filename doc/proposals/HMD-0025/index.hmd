@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0025: The graph tab — the vault as a picture
 
 **Status**: drafted
@@ -295,10 +300,10 @@ npm run -w tools/hmd-vsc-ext build
 
 ## See also
 
-- [HMD-0021](../HMD-0021/README.md) — the preview surface: the tab strip, the
+- [HMD-0021](../HMD-0021/index.hmd) — the preview surface: the tab strip, the
   host/webview message envelope, and the content security policy this tab draws
   under.
-- [HMD-0020](../HMD-0020/README.md) — the format implementation whose index
+- [HMD-0020](../HMD-0020/index.hmd) — the format implementation whose index
   supplies the nodes and edges.
 - [`doc/status/vsc-ext.hmd`](../../status/vsc-ext.hmd) — where this work is
   tracked.

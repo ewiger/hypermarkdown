@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0020: `@hypermarkdown/core` — the TypeScript document model
 
 **Status**: drafted
@@ -6,7 +11,7 @@
 
 ## Companion notes
 
-- [HMD-0021](../HMD-0021/README.md) — the VS Code extension that consumes this
+- [HMD-0021](../HMD-0021/index.hmd) — the VS Code extension that consumes this
   package. Everything editor-shaped lives there; this record stops at the
   package boundary.
 

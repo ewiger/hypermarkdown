@@ -1,17 +1,17 @@
 # Proposals
 
-Every proposal under [`doc/proposals/`](../proposals/README.md), read from its
-`README.md`: the number, the title, the status, and the trackers that cite it.
+Every proposal under [`doc/proposals/`](../proposals/index.hmd), read from its
+`index.hmd`: the number, the title, the status, and the trackers that cite it.
 The status is the first word of the `**Status**:` line; one outside the list in
 [the template](../proposals/TEMPLATE.md) (`drafted`, `accepted`, `rejected`,
-`withdrawn`, `superseded`) shows as `invalid`. A proposal carries no
+`deferred`, `withdrawn`, `superseded`) shows as `invalid`. A proposal carries no
 implementation state of its own: how far its code has got is in the trackers
 listed beside it, which are every tracker under `doc/status/` that names the
 proposal, in any case. Compare that column with the Progress column of
-[the proposal index](../proposals/README.md), which is written by hand.
+[the proposal index](../proposals/index.hmd), which is written by hand.
 
 This is a generated view, not a tracker: refresh it with the command in
-[the status README](README.md), and never edit an output by hand.
+[the status README](index.hmd), and never edit an output by hand.
 
 ```hql#eval
 import regex
@@ -24,7 +24,7 @@ fn status_of(body: String) : String =
 
 // The status, or `invalid` for a value outside the template's list.
 fn checked(status: String) : String =
-    status given ["drafted", "accepted", "rejected", "withdrawn", "superseded"] | any(s => s == status)
+    status given ["drafted", "accepted", "rejected", "deferred", "withdrawn", "superseded"] | any(s => s == status)
     otherwise "invalid"
 
 // The trackers: every `.hmd` card directly under `status/` but the three generated views.
@@ -50,37 +50,38 @@ type ProposalRow { proposal : String, title : String, status : String, trackers 
 // A proposal's row, from its id and its record.
 fn row(id: String, c: Card) : ProposalRow =
     ProposalRow(
-        proposal = "[" + id + "](../proposals/" + id + "/README.md)",
+        proposal = "[" + id + "](../proposals/" + id + "/index.hmd)",
         title = regex.replace_first(c.title, "^HMD-[0-9]{4}: *", ""),
         status = checked(status_of(c.body)),
         trackers = cited_by(id),
     )
 
 cards
-| filter(c => regex.is_match(c.path, "^proposals/HMD-[0-9]{4}/README\\.md$"))
+| filter(c => regex.is_match(c.path, "^proposals/HMD-[0-9]{4}/index\\.hmd$"))
 | sort(by = c => c.path)
 | map(c => row(regex.find(c.path, "HMD-[0-9]{4}").unwrap_or(c.name), c))
 | Table(columns = ["proposal", "title", "status", "trackers"])
 | format(as = Markdown)
 ```
-<!-- hql:output hash=2de03b22833a status=ok -->
+<!-- hql:output hash=80e83a8ccbf3 status=ok -->
 | proposal                                    | title                                                                             | status     | trackers                                                                                                     |
 | ------------------------------------------- | --------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
-| [HMD-0001](../proposals/HMD-0001/README.md) | MVP — grammar, resolver, and `hmd lint`                                           | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [pages](pages.hmd), [vsc-ext](vsc-ext.hmd)                                 |
-| [HMD-0002](../proposals/HMD-0002/README.md) | MkDocs book-mode rendering                                                        | drafted    | [lang](lang.hmd), [pages](pages.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                         |
-| [HMD-0003](../proposals/HMD-0003/README.md) | HQL — the Hyper Query Language                                                    | superseded | [lang](lang.hmd)                                                                                             |
-| [HMD-0004](../proposals/HMD-0004/README.md) | The hyper web — namespaces beyond one tree                                        | drafted    | [hmd](hmd.hmd), [lang](lang.hmd)                                                                             |
-| [HMD-0005](../proposals/HMD-0005/README.md) | The HyperMarkDown rename — one identity across domain, repository, and registries | drafted    | [hmd](hmd.hmd), [pages](pages.hmd), [vsc-ext](vsc-ext.hmd)                                                   |
-| [HMD-0006](../proposals/HMD-0006/README.md) | Extended URI for transclusion and link referencing when addressing inside a card  | drafted    | [lang](lang.hmd), [ts-core](ts-core.hmd)                                                                     |
-| [HMD-0020](../proposals/HMD-0020/README.md) | `@hypermarkdown/core` — the TypeScript document model                             | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                             |
-| [HMD-0021](../proposals/HMD-0021/README.md) | The VS Code extension — the HyperMarkDown preview surface                         | drafted    | [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                                                               |
-| [HMD-0022](../proposals/HMD-0022/README.md) | D2 diagrams                                                                       | drafted    | [lang](lang.hmd), [pages](pages.hmd)                                                                         |
-| [HMD-0024](../proposals/HMD-0024/README.md) | The `tools/` layout, and a Python language server                                 | drafted    | [hmd](hmd.hmd), [vsc-ext](vsc-ext.hmd)                                                                       |
-| [HMD-0025](../proposals/HMD-0025/README.md) | The graph tab — the vault as a picture                                            | drafted    | [vsc-ext](vsc-ext.hmd)                                                                                       |
-| [HMD-0026](../proposals/HMD-0026/README.md) | HQL cells — a card as a notebook                                                  | drafted    | [lang](lang.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                                             |
-| [HMD-0027](../proposals/HMD-0027/README.md) | `hypermarkdown` — the resolver as a Rust crate                                    | drafted    | [rs-core](rs-core.hmd)                                                                                       |
-| [HMD-0028](../proposals/HMD-0028/README.md) | The `[hql]` and `[semantics]` tables, and the semantic index                      | drafted    | [hmd](hmd.hmd), [semantics](semantics.hmd)                                                                   |
-| [HMD-0029](../proposals/HMD-0029/README.md) | Markdown files are cards                                                          | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [rs-core](rs-core.hmd), [semantics](semantics.hmd), [ts-core](ts-core.hmd) |
-| [HMD-0030](../proposals/HMD-0030/README.md) | Diagram cells                                                                     | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [pages](pages.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)         |
-| [HMD-0031](../proposals/HMD-0031/README.md) | Freeze                                                                            | drafted    | —                                                                                                            |
+| [HMD-0001](../proposals/HMD-0001/index.hmd) | MVP — grammar, resolver, and `hmd lint`                                           | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [pages](pages.hmd), [vsc-ext](vsc-ext.hmd)                                 |
+| [HMD-0002](../proposals/HMD-0002/index.hmd) | MkDocs book-mode rendering                                                        | drafted    | [lang](lang.hmd), [pages](pages.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                         |
+| [HMD-0003](../proposals/HMD-0003/index.hmd) | HQL — the Hyper Query Language                                                    | superseded | [lang](lang.hmd)                                                                                             |
+| [HMD-0004](../proposals/HMD-0004/index.hmd) | The hyper web — namespaces beyond one tree                                        | drafted    | [hmd](hmd.hmd), [lang](lang.hmd)                                                                             |
+| [HMD-0005](../proposals/HMD-0005/index.hmd) | The HyperMarkDown rename — one identity across domain, repository, and registries | drafted    | [hmd](hmd.hmd), [pages](pages.hmd), [vsc-ext](vsc-ext.hmd)                                                   |
+| [HMD-0006](../proposals/HMD-0006/index.hmd) | Extended URI for transclusion and link referencing when addressing inside a card  | deferred   | [hmd](hmd.hmd), [lang](lang.hmd), [rs-core](rs-core.hmd), [ts-core](ts-core.hmd)                             |
+| [HMD-0020](../proposals/HMD-0020/index.hmd) | `@hypermarkdown/core` — the TypeScript document model                             | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                             |
+| [HMD-0021](../proposals/HMD-0021/index.hmd) | The VS Code extension — the HyperMarkDown preview surface                         | drafted    | [status/index](status/index.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                             |
+| [HMD-0022](../proposals/HMD-0022/index.hmd) | D2 diagrams                                                                       | drafted    | [lang](lang.hmd), [pages](pages.hmd)                                                                         |
+| [HMD-0024](../proposals/HMD-0024/index.hmd) | The `tools/` layout, and a Python language server                                 | drafted    | [hmd](hmd.hmd), [vsc-ext](vsc-ext.hmd)                                                                       |
+| [HMD-0025](../proposals/HMD-0025/index.hmd) | The graph tab — the vault as a picture                                            | drafted    | [vsc-ext](vsc-ext.hmd)                                                                                       |
+| [HMD-0026](../proposals/HMD-0026/index.hmd) | HQL cells — a card as a notebook                                                  | drafted    | [lang](lang.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                                             |
+| [HMD-0027](../proposals/HMD-0027/index.hmd) | `hypermarkdown` — the resolver as a Rust crate                                    | drafted    | [rs-core](rs-core.hmd)                                                                                       |
+| [HMD-0028](../proposals/HMD-0028/index.hmd) | The `[hql]` and `[semantics]` tables, and the semantic index                      | drafted    | [hmd](hmd.hmd), [semantics](semantics.hmd)                                                                   |
+| [HMD-0029](../proposals/HMD-0029/index.hmd) | Markdown files are cards                                                          | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [rs-core](rs-core.hmd), [semantics](semantics.hmd), [ts-core](ts-core.hmd) |
+| [HMD-0030](../proposals/HMD-0030/index.hmd) | Diagram cells                                                                     | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [pages](pages.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)         |
+| [HMD-0031](../proposals/HMD-0031/index.hmd) | Freeze                                                                            | drafted    | —                                                                                                            |
+| [HMD-0032](../proposals/HMD-0032/index.hmd) | HQL path — addressing inside a card with `@[[…]]`                                 | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [rs-core](rs-core.hmd), [ts-core](ts-core.hmd)                             |
 <!-- /hql:output -->

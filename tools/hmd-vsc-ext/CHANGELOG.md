@@ -17,7 +17,7 @@ the `hmd` tool's, and is released on its own tag — `vsc-ext-vX.Y.Z`, where the
 Python tool uses `vX.Y.Z`. Implementation state is tracked per work point in
 [`doc/status/vsc-ext.md`](https://github.com/ewiger/hypermarkdown/blob/main/doc/status/vsc-ext.hmd),
 against
-[HMD-0021](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0021/README.md).
+[HMD-0021](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0021/index.hmd).
 
 ## [Unreleased]
 
@@ -95,7 +95,7 @@ against
 
 ### Added
 
-- **Markdown cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/README.md)).
+- **Markdown cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/index.hmd)).
   `.md` and `.markdown` files in a vault are cards: a `[[link]]` to one
   resolves, opens the file, and shows it in the preview, and the vault
   watches them. The preview does not follow an ordinary Markdown file opened
@@ -247,7 +247,7 @@ remote script, and the graph works with no network at all. It costs about 400 KB
 in the VSIX.
 
 The tab is specified in
-[HMD-0025](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0025/README.md),
+[HMD-0025](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0025/index.hmd),
 which is where its bounds and its rules about what is not drawn are argued.
 
 ## [0.2.0] — 2026-09-14

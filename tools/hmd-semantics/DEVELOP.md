@@ -93,7 +93,7 @@ and its index as its own test fixture.
 The README is the long description of the distribution, so its links are
 absolute. Work is tracked in
 [`doc/status/semantics.hmd`](../../doc/status/semantics.hmd), against
-[HMD-0028](../../doc/proposals/HMD-0028/README.md).
+[HMD-0028](../../doc/proposals/HMD-0028/index.hmd).
 
 ## Releasing
 

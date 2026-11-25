@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0003: HQL — the Hyper Query Language
 
 **Status**: superseded
@@ -249,8 +254,8 @@ has to open both files to find out which copy is current.
 ## See also
 
 - [`doc/status/lang.hmd`](../../status/lang.hmd) — work points, limitations, and the open questions.
-- [HMD-0001](../HMD-0001/README.md) — the grammar and resolver HQL reads from.
-- [HMD-0002](../HMD-0002/README.md) — MkDocs rendering, which evaluates fences.
+- [HMD-0001](../HMD-0001/index.hmd) — the grammar and resolver HQL reads from.
+- [HMD-0002](../HMD-0002/index.hmd) — MkDocs rendering, which evaluates fences.
 - [The initial sketch, §9](../../models/requirements/initial_sketch.hmd) — where
   the requirements behind this record originate.
 

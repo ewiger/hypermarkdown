@@ -5,7 +5,7 @@ nav:
 
 # HMD-0001 — Worked examples
 
-Companion to [HMD-0001](README.md). Everything here illustrates the
+Companion to [HMD-0001](index.hmd). Everything here illustrates the
 specification; where the two disagree, the specification wins.
 
 The tree under [`examples/small/`](../../../examples/small/) is a runnable

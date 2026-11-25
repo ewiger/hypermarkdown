@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0021: The VS Code extension — the HyperMarkDown preview surface
 
 **Status**: drafted
@@ -6,10 +11,10 @@
 
 ## Companion notes
 
-- [HMD-0020](../HMD-0020/README.md) — `@hypermarkdown/core`, which owns the
+- [HMD-0020](../HMD-0020/index.hmd) — `@hypermarkdown/core`, which owns the
   grammar, the resolver, and the document IR this extension renders. Nothing
   semantic is decided here.
-- [HMD-0025](../HMD-0025/README.md) — the graph tab: what it draws, how the
+- [HMD-0025](../HMD-0025/index.hmd) — the graph tab: what it draws, how the
   network view is bounded, and the layout library it is drawn with. This record
   keeps the tab strip, the message envelope, and the policy it runs under.
 
@@ -27,7 +32,7 @@ diagnostics, and a content security policy that forbids remote content. v1
 ships the `rendered` and `graph` tabs, the graph itself specified in HMD-0025;
 `mind map` is specified only as far as the tab-strip contract. Everything
 specified here renders without Python; the language features that will arrive on the Python server of
-[HMD-0024](../HMD-0024/README.md) are out of scope for this record, and the
+[HMD-0024](../HMD-0024/index.hmd) are out of scope for this record, and the
 preview stays independent of them.
 
 ## Motivation
@@ -432,7 +437,7 @@ graph's card scope pointed at what links here, and a strip carrying both would
 offer the same thing twice.
 
 What it draws, how it is bounded, and how it is drawn are specified in
-[HMD-0025](../HMD-0025/README.md), which this record defers to. Two obligations
+[HMD-0025](../HMD-0025/index.hmd), which this record defers to. Two obligations
 stay here, because they are this record's own:
 
 - The tab MUST consume the index's node and edge lists through the `graph`
