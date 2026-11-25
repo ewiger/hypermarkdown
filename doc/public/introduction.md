@@ -30,12 +30,12 @@ first-class content:
     is [Features](features.md).
 
 **The hyper layer.** What HyperMarkDown itself adds, and the part that is
-genuinely new. It is all variations on one idea — *naming another card, or a
-part of one*:
+genuinely new. It is all variations on one idea — *linking to another card, or to
+a part of one*:
 
 | Written | Means |
 | --- | --- |
-| `[[card]]` | a link to a card, resolved by name |
+| `[[card]]` | a wikilink to a card, with `card` as its address |
 | <code>[[card&#124;words]]</code> | the same link, showing different words |
 | `[[card#Heading]]` | a link to a section inside that card |
 | `text ^name` | a block anchor, naming one block |
@@ -48,13 +48,33 @@ richness comes from everywhere else on the page, bought from the Markdown
 ecosystem rather than rebuilt, which is why the feature set keeps growing
 while the table above does not have to.
 
-## Names, and how they are found
+## Where a wikilink points
 
-`[[card]]` is a name, not a path. A folder is a *module*, the card beside you
-wins over a card far away, and multiple autodiscovery matches require a
-qualified reference. Ordered wildcard imports instead use declaration
-precedence and report a shadowing warning. The complete rules are in
-[Namespaces](namespaces.hmd).
+`[[…]]` is a wikilink, and the text between the brackets is the address of a
+card. Each card is stored in one file, so the address identifies a file. You
+can write the address in two ways.
+
+**As a path.** An address that starts with `/`, `./`, or `../` gives the
+location of the file. `[[/reference/tokens]]` starts at the namespace root,
+and `[[./tokens]]` starts in the directory of the card that contains the
+link. The resolver opens the file at that location and does not search.
+
+**As a file name.** Any other address, such as `[[tokens]]` or
+`[[reference/tokens]]`, does not give the full location. The resolver
+searches for a matching file, such as `tokens.hmd`, in this order:
+
+1. the imports of the card that contains the link;
+2. the directory of that card, then each parent directory up to the namespace
+   root;
+3. the directories that card imports with `*`, in the order it declares them;
+4. the whole namespace.
+
+The first match wins, so a file in the same directory takes precedence over a
+file with the same name elsewhere. If two directories imported with `*` both
+contain a matching file, the first one wins and the linter reports a shadowing
+warning. If only the last step finds a match and it finds several files, the
+wikilink is ambiguous, and you choose one by writing a longer address such as
+`[[guides/tokens]]`. The complete rules are in [Namespaces](namespaces.hmd).
 
 ## Frontmatter
 
