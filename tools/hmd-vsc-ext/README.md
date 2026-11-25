@@ -100,9 +100,12 @@ ARM64, where HQL publishes no binary yet, put `hql` on `PATH`. Set
 `hyperMarkdown.hql.path` to run cells with a different `hql`. Reading a card's
 saved outputs needs nothing.
 
-Completion and the other language-server features are not here yet. They arrive
-with the language server, a native program that a later version will carry.
-The preview keeps rendering without it.
+The extension is a client of `hmd-lsp`, the HyperMarkDown language server, when
+that program is on your machine. With it, a link that names no card is coloured
+as broken, hover on a link says what it resolves to, and **Go to Definition**
+opens the card. No build carries the program yet: put `hmd-lsp` on `PATH` or
+set `hyperMarkdown.languageServer.path`. Everything else works the same without
+it. Completion and rename are not written yet.
 
 ## Settings
 
@@ -113,6 +116,8 @@ The preview keeps rendering without it.
 | `hyperMarkdown.preview.embeds` | `expanded` | Whether embed cards start expanded. |
 | `hyperMarkdown.diagnostics.scope` | `workspace` | Publish diagnostics for every indexed card — in every vault opened this session — or only for open ones. |
 | `hyperMarkdown.diagram.d2Path` | `""` | A `d2` to draw diagrams with instead of the bundled one. |
+| `hyperMarkdown.languageServer.enabled` | `true` | Start `hmd-lsp` for `.hmd` files. It never starts in an untrusted or a virtual workspace. |
+| `hyperMarkdown.languageServer.path` | `""` | An `hmd-lsp` to start instead of the default. Empty uses the bundled one, falling back to `hmd-lsp` on `PATH`. |
 | `hyperMarkdown.hql.path` | `""` | An `hql` to run cells with instead of the bundled one. Empty uses the bundled `hql`, falling back to `hql` on `PATH`. A shell alias is not on `PATH`. |
 
 ## Commands

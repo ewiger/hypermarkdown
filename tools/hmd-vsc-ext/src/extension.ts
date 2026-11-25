@@ -15,6 +15,7 @@ import { initializeVault, reportMissingVault } from "./commands/initVault.js";
 import { debounce } from "./debounce.js";
 import { DiagnosticPublisher } from "./diagnostics.js";
 import { CellLensProvider, cellAtCursor } from "./hql/runner.js";
+import { LanguageServer } from "./lsp/client.js";
 import { PreviewPanel, VIEW_TYPE, type PanelState } from "./preview/panel.js";
 
 /** Gates the editor title-bar button: this window holds at least one vault. */
@@ -158,6 +159,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   }
   publishHasRoot();
   void checkCard(vscode.window.activeTextEditor);
+
+  // Last, and never awaited: the language server adds to the editor and
+  // nothing above waits on it (HMD-0033).
+  const languageServer = new LanguageServer(context);
+  context.subscriptions.push(languageServer);
+  languageServer.restart();
 }
 
 /**

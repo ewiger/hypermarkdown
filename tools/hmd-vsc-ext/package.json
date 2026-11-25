@@ -53,11 +53,11 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": "limited",
-      "description": "Indexing and preview are read-only and run in untrusted workspaces, and a card's saved HQL outputs are shown there. Running an HQL cell, creating a missing card, and initializing a vault require trust."
+      "description": "Indexing and preview are read-only and run in untrusted workspaces, and a card's saved HQL outputs are shown there. Running an HQL cell, creating a missing card, and initializing a vault require trust. The language server starts only in a trusted workspace."
     },
     "virtualWorkspaces": {
       "supported": "limited",
-      "description": "Cards render from the workspace file system. D2 diagrams need a local `d2` binary, so they show their source instead, and HQL cells show their saved output and do not run."
+      "description": "Cards render from the workspace file system. D2 diagrams need a local `d2` binary, so they show their source instead, and HQL cells show their saved output and do not run. The language server does not start, so links are coloured by the grammar alone."
     }
   },
   "activationEvents": [
@@ -223,7 +223,66 @@
           ],
           "default": "workspace",
           "markdownDescription": "Publish diagnostics for open documents only, or for every card in the index — which means every vault this window has opened a card in. A red link in a card nobody has opened is still a work item."
+        },
+        "hyperMarkdown.languageServer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Start `hmd-lsp`, the HyperMarkDown language server, for `.hmd` files. With it, a link that names no card is coloured as broken, and hover and **Go to Definition** work on links. The preview, the graph, the cells and the diagnostics do not need it. The server never starts in an untrusted or a virtual workspace."
+        },
+        "hyperMarkdown.languageServer.path": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Absolute path to an `hmd-lsp` executable, overriding the default. Empty uses the `hmd-lsp` bundled with this build, falling back to `hmd-lsp` on `PATH`. A path that is not a file is reported rather than silently ignored."
         }
+      }
+    },
+    "semanticTokenModifiers": [
+      {
+        "id": "unresolved",
+        "description": "A reference that names no card."
+      },
+      {
+        "id": "ambiguous",
+        "description": "A reference that names more than one card."
+      },
+      {
+        "id": "outside",
+        "description": "A reference whose path leaves the namespace."
+      },
+      {
+        "id": "embed",
+        "description": "A reference that is an embed, written ![[…]]."
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "hmd",
+        "scopes": {
+          "class": [
+            "entity.name.reference.hmd"
+          ],
+          "property": [
+            "entity.other.attribute-name.fragment.hmd"
+          ],
+          "string": [
+            "string.other.link.title.hmd"
+          ],
+          "class.unresolved": [
+            "invalid.illegal.reference.unresolved.hmd"
+          ],
+          "class.ambiguous": [
+            "invalid.illegal.reference.ambiguous.hmd"
+          ],
+          "class.outside": [
+            "invalid.illegal.reference.outside.hmd"
+          ]
+        }
+      }
+    ],
+    "configurationDefaults": {
+      "[hmd]": {
+        "editor.semanticHighlighting.enabled": true
       }
     }
   },
@@ -242,7 +301,8 @@
   },
   "dependencies": {
     "@hypermarkdown/core": "^0.4.0",
-    "cytoscape": "^3.34.3"
+    "cytoscape": "^3.34.3",
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "@types/cytoscape": "^3.21.9",

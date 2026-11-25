@@ -27,9 +27,10 @@ text on disk, so a reference to a card that is not saved yet resolves. 51
 tests: the unit tests, 26 tests that speak the protocol to a server on a
 thread, and 4 that run the built program.
 
-No editor uses it yet. The VS Code extension is not a client of it, there is
-no release, and the pinned toolchain does not carry it. A developer builds it
-with Cargo and points Neovim or Helix at the binary.
+The VS Code extension is a client of it, written and not yet released. There
+is no release of the server, and the pinned toolchain does not carry it. A
+developer builds it with Cargo and points the extension's setting, Neovim, or
+Helix at the binary.
 
 The server replaces the Python language server that was decided earlier and
 never built. Python stays the canonical implementation and the only complete
@@ -110,5 +111,7 @@ cargo test --locked
 
 ## Changelog
 
+- 2026-11-25: the VS Code extension is a client; its rows are in the
+  extension's tracker.
 - 2026-11-25: the tracker opens. The server is written and tested, with a CI
   job; the release, the toolchain, and the extension's client are open.

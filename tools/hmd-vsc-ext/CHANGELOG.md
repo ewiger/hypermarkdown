@@ -21,6 +21,23 @@ against
 
 ## [Unreleased]
 
+### Added
+
+- **A client of the language server.** The extension starts `hmd-lsp` for
+  `.hmd` files when it finds one: at the path in
+  `hyperMarkdown.languageServer.path`, then in the build's `toolchain/bin/`,
+  then on `PATH`. With the server, a link that names no card, names several
+  cards, or leaves the namespace is coloured as an error, hover on a link says
+  what it resolves to, and **Go to Definition** opens the card. No build
+  carries the program yet, so today it comes from the setting or from `PATH`.
+- **The extension works the same without the server.** When no program is
+  found, it says so once per installation and changes nothing else. The
+  server never starts in an untrusted or a virtual workspace, and
+  `hyperMarkdown.languageServer.enabled` turns it off.
+- **Semantic highlighting is on for `.hmd` files**, whatever the theme sets,
+  so the server's colours show. A resolved link keeps the colour the grammar
+  gives it.
+
 ## [0.6.1] — 2026-11-25
 
 ### Added
