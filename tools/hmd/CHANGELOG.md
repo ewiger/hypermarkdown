@@ -13,6 +13,8 @@ only for the Python API.
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-11-25
+
 ### Changed
 - **A tree with no vault says "vault not found".** With no `.hmd/` in the
   start directory or above it, and no `--root`, every command still exits 2,
@@ -466,7 +468,8 @@ Deliberate, and tracked per proposal under `doc/proposals/HMD-NNNN/STATUS.md`:
 Both specifications — the format and the site — are still `drafted`. Expect the
 format to move before `1.0`.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/ewiger/hypermarkdown/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/ewiger/hypermarkdown/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ewiger/hypermarkdown/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/ewiger/hypermarkdown/compare/v0.3.0...v0.3.1

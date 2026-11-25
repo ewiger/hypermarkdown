@@ -36,8 +36,9 @@ hql render --in-place --emit after doc/status/kanban.hmd doc/status/proposals.hm
 ```
 
 This needs `hql` 0.8.0 or later. Earlier versions do not read `location_path`
-from the vault's configuration and refuse to run. The pinned toolchain still
-ships 0.7.2, so use an `hql` installed with `cargo install hql`.
+from the vault's configuration and refuse to run. The pinned toolchain ships
+0.8.0 since toolchain 0.5.3 (`node scripts/toolchain.mjs` prints its
+directory), and an `hql` installed with `cargo install hql` works too.
 
 ## Rows as data
 

@@ -21,6 +21,8 @@ against
 
 ## [Unreleased]
 
+## [0.6.1] — 2026-11-25
+
 ### Added
 
 - **HyperMarkDown: Initialize Vault.** It lists the workspace folder, which is
@@ -49,6 +51,10 @@ against
 - The preview's ⚡ button and its commands are offered on any `.hmd` file, not
   only in a window that already holds a vault, since that is where the preview
   explains what is missing.
+- **The bundled `hql` is 0.8.0**, from toolchain 0.5.3, where 0.6.0 carried
+  0.7.2. 0.8.0 reads `location_path` and defaults to the vault itself, so a
+  cell runs in a vault that is only an empty `.hmd/`. 0.7.2 looked for
+  `doc/wiki` there and asked for the retired `wiki` key.
 
 ## [0.6.0] — 2026-11-25
 
@@ -403,7 +409,8 @@ built yet, and the flag comes off when they are.
   card being published and never warns about a public card linking to a private
   one.
 
-[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.6.0...HEAD
+[Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.6.1...HEAD
+[0.6.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.6.0...vsc-ext-v0.6.1
 [0.6.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.2...vsc-ext-v0.6.0
 [0.5.2]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.1...vsc-ext-v0.5.2
 [0.5.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.0...vsc-ext-v0.5.1
