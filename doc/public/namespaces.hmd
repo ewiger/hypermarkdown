@@ -20,6 +20,22 @@ The examples below use the handbook from the
 
 ## Vaults and modules
 
+A **vault** is the physical home of a namespace: the directory on disk where
+its cards are stored. A vault is marked by a `.hmd/` directory at its top, in
+the same way that a `.git/` directory marks a Git repository. `hmd init`
+creates it.
+
+The `.hmd/` directory is where tools keep their technical data about the
+vault. It does not hold much today:
+
+- `config.toml` is the vault's configuration. It says where the cards start.
+- `index.sqlite` is the semantic index that `hmd-semantics` builds. HQL uses
+  it to search the cards by meaning.
+
+HQL and its extensions can also use `.hmd/` as their storage. Indexes of every
+kind are the main example. An extension can also keep a cache, or the data for
+a new feature, in `.hmd/` without adding files next to your cards.
+
 Here is the handbook's layout:
 
 ```text
@@ -37,8 +53,7 @@ handbook/                      the vault
       api.md
 ```
 
-The **vault** is the directory marked by `.hmd/`. Its configuration says where
-the cards start. Here, `location_path = "wiki"` makes `handbook/wiki/` the
+The vault's configuration says where the cards start. Here, `location_path = "wiki"` makes `handbook/wiki/` the
 **namespace root**. Without that setting, the cards start at the vault itself.
 A tool can also be given an explicit root.
 

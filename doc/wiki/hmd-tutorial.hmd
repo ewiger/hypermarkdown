@@ -27,7 +27,11 @@ cd reading-club
 mkdir books
 ```
 
-`hmd init` creates `.hmd/config.toml` and makes `reading-club/` a **vault**.
+`hmd init` creates `.hmd/config.toml` and makes `reading-club/` a **vault**:
+the directory where the club's cards are stored. Like `.git/` in a Git
+repository, `.hmd/` holds technical data about the vault. Today that is the
+configuration, and HQL and its extensions can store their own data there, such
+as a search index.
 In this example the vault directory is also the **namespace root**, the base
 for card paths such as `books/emma.hmd`.
 

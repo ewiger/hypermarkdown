@@ -7,7 +7,7 @@
 **Build your own local wiki knowledge base**
 
 [![Documentation](https://img.shields.io/badge/docs-hypermarkdown.org-ffb300)](https://hypermarkdown.org/)
-[![Spec](https://img.shields.io/badge/spec-0.1.0-blue)](https://hypermarkdown.org/wiki/hmd-lang-spec/)
+[![Spec](https://img.shields.io/badge/spec-0.1.1-blue)](https://hypermarkdown.org/wiki/hmd-lang-spec/)
 [![CI](https://github.com/ewiger/hypermarkdown/actions/workflows/ci.yml/badge.svg)](https://github.com/ewiger/hypermarkdown/actions/workflows/ci.yml)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-yellow.svg)](LICENSE)
 [![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-ef9421.svg)](LICENSE-DOCS)

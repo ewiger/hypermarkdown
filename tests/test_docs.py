@@ -155,6 +155,16 @@ def test_the_language_version_has_a_changelog_section():
         " Version callout is the declaration, the badge only repeats it."
     )
 
+    # The roadmap's version table is the site's one statement of the language's
+    # version, so it has to name the same number as the callout.
+    roadmap = (ROOT / "doc" / "public" / "roadmap.md").read_text(encoding="utf-8")
+    row = re.search(r"^\| \*\*HyperMarkDown\*\*, the language \| ([^ |]+) \|", roadmap, re.M)
+    assert row is not None, "the roadmap's version table has no row for the language"
+    assert row.group(1) == version, (
+        f"the spec card specifies HyperMarkDown {version}, and the roadmap's"
+        f" version table says {row.group(1)}. Bump the table."
+    )
+
 
 @pytest.fixture(scope="module")
 def built_site(tmp_path_factory) -> Path:

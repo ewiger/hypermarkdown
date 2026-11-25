@@ -18,6 +18,11 @@ every tool released to follow it the same day: the crate `hypermarkdown`
 `hmd-semantics` 0.2.0, and then HQL 0.8.0 as its own project's release. The
 open rows below are the work after 0.1.0.
 
+**HyperMarkDown 0.1.1 followed the same day.** It is a patch: it says what a
+vault is, and the body of the specification now says "this version" instead of
+repeating the number. No construct changed, so every tool that conforms to 0.1.0
+conforms to 0.1.1.
+
 **The format is specified and implemented twice, and the specification is a
 single normative text** rather than something a reader assembles from two
 proposals. Everything the first version needs is decided: the grammar, the
@@ -219,6 +224,9 @@ withdrew two dozen claims.
 
 ## Changelog
 
+- 2026-11-25: HyperMarkDown 0.1.1, a patch that defines the vault as the
+  directory where a namespace is stored. The roadmap's version table is now
+  checked against the specification, as the README badge already was.
 - 2026-11-25: HyperMarkDown 0.1.0 is released and tagged `spec-v0.1.0`,
   and the tools followed it one at a time: the crate `hypermarkdown` 0.3.0,
   `hmd` 0.5.0, `@hypermarkdown/core` 0.4.0, the editor 0.6.0,

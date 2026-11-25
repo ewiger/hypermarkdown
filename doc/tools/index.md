@@ -185,9 +185,9 @@ books | filter(c => c.metadata.status == "todo") | map(c => c.title)
 hql --vault path/to/your/wiki render reading-list.hmd
 ```
 
-The vault is the same tree `hmd lint` checks. Documentation:
-[hql-lang.org](https://hql-lang.org/) — introduction, install, a twelve-chapter
-book, and the reference.
+The vault is the same tree `hmd lint` checks. To learn HQL, read
+[the HQL book](https://hql-lang.org/book/). The rest of its documentation is on
+[hql-lang.org](https://hql-lang.org/).
 
 ## Where to go next
 

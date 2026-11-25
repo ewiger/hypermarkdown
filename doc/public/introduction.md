@@ -75,10 +75,13 @@ warning. Everything else about your prose is left alone.
 
 ## Adopting it
 
-A file is only treated as a card if it is inside a vault. A vault is a
-directory with a `.hmd/` directory in it, and every file below that directory
-belongs to the vault. So the first step is to run `hmd init` at the top of your
-documentation. An empty `.hmd/` directory is enough.
+A file is only treated as a card if it is inside a vault. A vault is the
+directory where your cards are stored. It is marked by a `.hmd/` directory, in
+the same way that `.git/` marks a Git repository, and every file below it
+belongs to the vault. `.hmd/` holds the vault's configuration and the data that
+tools such as HQL keep about the vault, for example a search index. So the
+first step is to run `hmd init` at the top of your documentation. An empty
+`.hmd/` directory is enough.
 
 After that, you can adopt the format one file at a time. Rename a `.md` file to
 `.hmd`, check any text that now has a HyperMarkDown meaning, add one link, and

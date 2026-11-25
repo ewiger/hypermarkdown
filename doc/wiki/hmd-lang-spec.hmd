@@ -25,7 +25,7 @@ ensure consistent interpretation of HyperMarkDown documents across independent
 implementations.
 
 !!! info "Version"
-    This document specifies HyperMarkDown **0.1.0**. The version follows the
+    This document specifies HyperMarkDown **0.1.1**. The version follows the
     rules under [Versioning and authority](#versioning-and-authority). Changes
     between versions are recorded in
     [the language's changelog](https://github.com/ewiger/hypermarkdown/blob/main/CHANGELOG.md).
@@ -70,7 +70,7 @@ rather than defining it.
 | **card** | A card is the fundamental unit of knowledge in HyperMarkDown, represented as an individually addressable document. Cards within a namespace can be interconnected to form a structured knowledge base. |
 | **HyperMarkDown card** | A card with the extension `.hmd`. It is the only kind of card in which HyperMarkDown syntax is recognized. |
 | **Markdown card** | A card with the extension `.md` or `.markdown`. It can be linked to and embedded, but HyperMarkDown syntax is never recognized in it. |
-| **vault** | A directory that contains a `.hmd/` directory, which holds the vault's configuration. |
+| **vault** | The directory where a namespace is stored. It contains a `.hmd/` directory, which holds the vault's configuration. Tools, including HQL and its extensions, may store other data about the vault in `.hmd/`, such as a search index. |
 | **namespace root** | The directory where the vault's cards start, named by the `location_path` setting. |
 | **namespace** | A logical collection of cards and modules that together form a knowledge base with a shared naming and addressing space. |
 | **module** | A directory within a namespace that groups cards and provides a naming scope. |
@@ -528,7 +528,7 @@ Cards and modules are organized within this tree.
 Wikilinks and embeds resolve only within their namespace. Ordinary Markdown
 links can reference files and URLs outside it. The syntax
 `[[namespace:article]]` is reserved for references to cards in other namespaces;
-cross-namespace resolution is not defined in version 0.1.0.
+cross-namespace resolution is not defined in this version.
 
 - The **vault** is the nearest ancestor directory that contains a `.hmd/`
   directory, starting with the referring document's own directory.
@@ -1359,17 +1359,17 @@ does not.
 
 ## Reserved syntax and future extensions
 
-The following features are outside the scope of version 0.1.0: inline
+The following features are outside the scope of this version: inline
 properties, highlights, templates and parameterized
 transclusion, backlinks and generated category pages, and heading-level
 shifting on embed. Querying the document graph is provided by [HQL](https://hql-lang.org/),
 which can be embedded in cards through cells.
 
 The cross-namespace address form `namespace:path/to/card` is reserved for
-a future version. An implementation of version 0.1.0 MUST treat it as a
+a future version. An implementation of this version MUST treat it as a
 malformed target.
 
-Version 0.1.0 does not define an escape mechanism for wikilinks or embeds.
+This version does not define an escape mechanism for wikilinks or embeds.
 Characters excluded by the grammar cannot be included by escaping them. Code
 spans and fenced code blocks can display HyperMarkDown syntax without invoking
 it. Raw inline HTML is not an excluded region.
