@@ -128,8 +128,9 @@ if (manifest.toolchain !== pin.version) {
   fail(`archive manifest says toolchain ${manifest.toolchain}, pin says ${pin.version}`);
 }
 
-// Every tool the manifest lists must be where it says. `hql` is listed only
-// for the platforms HQL publishes, so its absence elsewhere is expected.
+// Every tool the manifest lists must be where it says. `d2` and `hmd-lsp` are
+// listed for every platform. `hql` is listed only for the platforms HQL
+// publishes, so its absence elsewhere is expected.
 for (const [tool, entry] of Object.entries(manifest.tools ?? {})) {
   if (!existsSync(join(dest, entry.path))) fail(`${archive.name} lists ${tool} at ${entry.path}, which it does not contain`);
 }

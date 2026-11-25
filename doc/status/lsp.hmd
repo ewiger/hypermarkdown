@@ -30,8 +30,9 @@ thread, and 4 that run the built program.
 The program is on the GitHub release `lsp-v0.1.0` for Linux and macOS on
 x86-64 and ARM64 and for Windows on x86-64, and the package is
 `hypermarkdown-lsp` on crates.io. The VS Code extension is a client of it,
-written and not yet released. The pinned toolchain does not carry the program
-yet, so a user downloads it or builds it with `cargo install
+written and not yet released. The pinned toolchain, 0.6.0, carries the program for
+all five platforms, so the next release of the extension bundles it. Until
+that release a user downloads the program or builds it with `cargo install
 hypermarkdown-lsp`, and puts it on `PATH`.
 
 The server replaces the Python language server that was decided earlier and
@@ -42,7 +43,6 @@ linter.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **The toolchain carries the binary** beside `d2` and `hql`, so the extension bundles it and a user installs nothing. The first release is cut, so nothing blocks this; the work is in the toolchain repository | Decide first whether the toolchain repository builds the binary or takes it from this repository's release | [[hmd-0033#distribution]] |
 | todo | **Go to a heading or a block.** A reference with a fragment leads to the top of the card today. It should lead to the heading or the block the fragment names | The resolver crate reads no heading and no block anchor. The rule that turns a heading's text into the name a fragment matches is the language's, so the code belongs in the crate | [[hmd-0033#go-to-definition]] |
 | todo | **Tokens for block anchors and frontmatter.** A trailing `^block-id` and the frontmatter block get no token | The crate reports neither position today | [[hmd-0033#semantic-tokens]] |
 | todo | **Completion** of card names, headings, and block anchors after `[[` | Needs the list of names a card can write for another card, which is the resolver's knowledge and belongs in the crate | [[hmd-0033#deployment-activation]] |
@@ -89,6 +89,11 @@ Nothing known.
   vault configurations.
 - **Positions converted** between code points and UTF-16 units, with a
   byte-order mark and all three line endings [[hmd-0033#positions]].
+- **The toolchain carries the program** — `hypermarkdown-toolchain` 0.6.0
+  holds `bin/hmd-lsp` for all five platforms, pinned from the `lsp-v0.1.0`
+  release, and its release check runs a protocol session against the server
+  on each platform. This repository pins 0.6.0, and the extension's release
+  workflow refuses a VSIX without the program [[hmd-0033#distribution]].
 - **The first release, 0.1.0** — the tag `lsp-v0.1.0` on 2026-11-25: five
   archives and `SHA256SUMS` on the GitHub release, built by the workflow on
   its first tagged run, and `hypermarkdown-lsp` 0.1.0 on crates.io, published
@@ -125,6 +130,8 @@ cargo test --locked
 
 ## Changelog
 
+- 2026-11-25: the toolchain row becomes a Done row: toolchain 0.6.0 carries
+  the program and is pinned here.
 - 2026-11-25: the release workflow publishes the package to crates.io; the
   row for it becomes a Done row.
 - 2026-11-25: 0.1.0 is released. The row for cutting it becomes a Done row,
