@@ -76,8 +76,8 @@ the board, in the order this view lists them.
 | state   | rows |
 | ------- | ---- |
 | doing   | 2    |
-| todo    | 31   |
-| blocked | 4    |
+| todo    | 32   |
+| blocked | 3    |
 | backlog | 15   |
 | parked  | 3    |
 <!-- /hql:output -->
@@ -124,14 +124,14 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Recognise diagram cells.                                                                           | [ts-core](ts-core.hmd)     |
 | todo    | Recognise a `mermaid#show` fence as a diagram.                                                     | [ts-core](ts-core.hmd)     |
 | todo    | Colour the listings in the preview.                                                                | [vsc-ext](vsc-ext.hmd)     |
-| todo    | Colour a listing whose fence names a cell.                                                         | [vsc-ext](vsc-ext.hmd)     |
-| todo    | Confirm the grammar colours a link inside a paragraph.                                             | [vsc-ext](vsc-ext.hmd)     |
+| todo    | Colour a `d2` listing in the editor.                                                               | [vsc-ext](vsc-ext.hmd)     |
+| todo    | Colour a fence nested in a list or a quote.                                                        | [vsc-ext](vsc-ext.hmd)     |
+| todo    | Colour a link inside a paragraph from the grammar.                                                 | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Automate the by-hand checks.                                                                       | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Create the card a relative link points at.                                                         | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Diagram cells in the preview.                                                                      | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Draw Mermaid diagrams in the preview                                                               | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Redirect the retired domain                                                                        | [hmd](hmd.hmd)             |
-| blocked | Carry `hmd-lsp` in the build.                                                                      | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.hmd)     |
 | backlog | Lint text, not just files.                                                                         | [hmd](hmd.hmd)             |

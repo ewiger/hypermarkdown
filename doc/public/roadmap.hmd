@@ -7,6 +7,13 @@ nav:
 
 ## News and updates
 
+**2026-11-25 — VS Code extension 0.7.0.** HQL is highlighted, in a `.hql`
+file and in a cell. A cell in another language, such as `python#eval`, is
+coloured as that language, and a fence may name any language GitHub knows. The
+extension now brings `hmd-lsp`, the language server: a link that names no card
+is coloured as broken, hover says what a link resolves to, and **Go to
+Definition** opens the card.
+
 **2026-11-25 — VS Code extension 0.6.1, `hmd` 0.5.1.** A card is read only
 inside a vault, a directory that holds `.hmd/`. When no `.hmd/` is above a
 card, the extension says **vault not found** and offers **Initialize Vault…**,
@@ -75,7 +82,7 @@ type; the preview needs no Python.
 | **`@hypermarkdown/core`** — TypeScript | 0.4.0 | [npm](https://www.npmjs.com/package/@hypermarkdown/core) |
 | **`hypermarkdown`** — Rust resolver | 0.3.0 | [crates.io](https://crates.io/crates/hypermarkdown) |
 | **`hmd-semantics`** — semantic index | 0.2.0 | [PyPI](https://pypi.org/project/hypermarkdown-semantics/) |
-| **`hmd-vsc-ext`** — VS Code | 0.6.1 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
+| **`hmd-vsc-ext`** — VS Code | 0.7.0 | [Marketplace](https://marketplace.visualstudio.com/items?itemName=hypermarkdown.hmd), [Open VSX](https://open-vsx.org/extension/hypermarkdown/hmd) |
 | **`hql`** — the Hyper Query Language | 0.8.0 | [crates.io](https://crates.io/crates/hql), [releases](https://github.com/ewiger/hql/releases) |
 
 The **HMD language specification** versions independently of the tools, and
