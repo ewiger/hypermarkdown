@@ -42,7 +42,6 @@ linter.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **Publish to crates.io from the workflow.** The first publication is by hand, because crates.io allows a trusted publisher only on a crate that exists. Configure one for `hypermarkdown-lsp`, naming this repository, `release-lsp.yml` and an environment, and add the job | The resolver crate's workflow is the model | [[hmd-0033#distribution]] |
 | todo | **The toolchain carries the binary** beside `d2` and `hql`, so the extension bundles it and a user installs nothing. The first release is cut, so nothing blocks this; the work is in the toolchain repository | Decide first whether the toolchain repository builds the binary or takes it from this repository's release | [[hmd-0033#distribution]] |
 | todo | **Go to a heading or a block.** A reference with a fragment leads to the top of the card today. It should lead to the heading or the block the fragment names | The resolver crate reads no heading and no block anchor. The rule that turns a heading's text into the name a fragment matches is the language's, so the code belongs in the crate | [[hmd-0033#go-to-definition]] |
 | todo | **Tokens for block anchors and frontmatter.** A trailing `^block-id` and the frontmatter block get no token | The crate reports neither position today | [[hmd-0033#semantic-tokens]] |
@@ -94,6 +93,11 @@ Nothing known.
   archives and `SHA256SUMS` on the GitHub release, built by the workflow on
   its first tagged run, and `hypermarkdown-lsp` 0.1.0 on crates.io, published
   by hand. The resolver crate 0.4.0 went first.
+- **The workflow publishes the package** — an `lsp-vX.Y.Z` tag publishes
+  `hypermarkdown-lsp` to crates.io through a trusted publisher, in the
+  `crates-io` environment, after all five platforms have built and before the
+  GitHub release is cut. First used by the release after 0.1.0
+  [[hmd-0033#distribution]].
 - **A release workflow** — `release-lsp.yml`, on an `lsp-vX.Y.Z` tag: the
   gates, one program for each of the five platforms the toolchain serves,
   named after its Rust target as HQL names its archives, and a GitHub release
@@ -121,6 +125,8 @@ cargo test --locked
 
 ## Changelog
 
+- 2026-11-25: the release workflow publishes the package to crates.io; the
+  row for it becomes a Done row.
 - 2026-11-25: 0.1.0 is released. The row for cutting it becomes a Done row,
   and the toolchain row is no longer blocked.
 - 2026-11-25: the package is `hypermarkdown-lsp`, because `hmd-lsp` on

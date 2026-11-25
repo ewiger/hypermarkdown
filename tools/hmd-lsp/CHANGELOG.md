@@ -19,6 +19,12 @@ Implementation state is tracked in
 
 ## [Unreleased]
 
+### Changed
+
+- **The release workflow publishes the package.** An `lsp-vX.Y.Z` tag now
+  publishes `hypermarkdown-lsp` to crates.io through a trusted publisher,
+  after every platform has built. 0.1.0 was published by hand.
+
 ## [0.1.0] — 2026-11-25
 
 The first release. The program is `hmd-lsp`. The package on crates.io is

@@ -103,3 +103,22 @@ def test_the_language_server_workflow_fires_on_its_own_tags_only():
             continue
         for pattern in re.findall(r'tags: \["([^"]+)"\]', other.read_text()):
             assert not fnmatch.fnmatchcase("lsp-v0.1.0", pattern), other.name
+
+
+def test_the_language_server_is_published_through_a_trusted_publisher():
+    """crates.io accepts the publish only from this workflow and environment.
+
+    The trusted publisher on the crate names the workflow file and the
+    environment. A job that publishes from another environment, or with a
+    stored token, is refused or is a secret nobody rotates.
+    """
+    workflow = (WORKFLOWS / "release-lsp.yml").read_text()
+    job = workflow[workflow.index("  crates-io:") : workflow.index("  github-release:")]
+    assert "name: crates-io" in job
+    assert "id-token: write" in job
+    assert "rust-lang/crates-io-auth-action" in job
+    # No stored token anywhere in the workflow, in an expression that reads one.
+    assert "${{ secrets." not in workflow
+    # Nothing is published from a manual run, or before every platform built.
+    assert "startsWith(github.ref, 'refs/tags/lsp-v')" in job
+    assert "needs: build" in job

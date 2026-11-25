@@ -5,14 +5,16 @@ name: Release (language server)
 # released as one native program for each platform the pinned toolchain
 # serves. The archives are attached to the GitHub release, where the toolchain
 # and a user can take them. The package, `hypermarkdown-lsp`, is published to
-# crates.io by hand until a trusted publisher is configured for it.
+# crates.io through a trusted publisher. The package and the program have
+# different names because `hmd-lsp` on crates.io belongs to another project.
 #
 # The prefix begins with `l`, so neither `v[0-9]*` (the Python tool), nor
 # `ts-core-v*`, `rs-core-v[0-9]*`, `semantics-v[0-9]*` or `vsc-ext-v*` matches
 # it, and this workflow matches none of theirs.
 #
-# `workflow_dispatch` runs every gate and builds every archive, and cuts no
-# release, so the packaging path can be exercised without minting a tag.
+# `workflow_dispatch` runs every gate and builds every archive, and publishes
+# nothing and cuts no release, so the packaging path can be exercised without
+# minting a tag.
 on:
   push:
     tags: ["lsp-v[0-9]*"]
@@ -180,9 +182,48 @@ jobs:
           path: tools/hmd-lsp/dist/*
           if-no-files-found: error
 
+  crates-io:
+    name: publish to crates.io
+    # After every platform has built: a version on crates.io can never be
+    # replaced, so nothing is published from a commit that fails to build
+    # somewhere.
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/lsp-v')
+    runs-on: ubuntu-latest
+    environment:
+      name: crates-io
+      url: https://crates.io/crates/hypermarkdown-lsp
+    # Trusted publishing: the job proves its identity to crates.io with a
+    # short-lived OIDC token, so there is no registry token in repository
+    # secrets. It requires a trusted publisher configured on the crate's
+    # crates.io settings: repository `ewiger/hypermarkdown`, workflow
+    # `release-lsp.yml`, environment `crates-io`. There is deliberately no
+    # `CARGO_REGISTRY_TOKEN` fallback, the same stance the other releases take.
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: tools/hmd-lsp
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+
+      # The package depends on the resolver crate by version here, not by
+      # path, so the resolver's release has to be on crates.io already.
+      - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: cargo publish --locked
+
   github-release:
     name: github release
-    needs: build
+    needs: [build, crates-io]
     if: startsWith(github.ref, 'refs/tags/lsp-v')
     runs-on: ubuntu-latest
     # The one job that writes to the repository, and it writes only the release.
