@@ -202,12 +202,17 @@ def _drawer(home: str) -> str:
 
 
 def test_language_opens_with_vision_and_ends_with_the_specification(built_home):
-    """The Language tab follows Vision → Namespaces → Specification."""
+    """The Language tab follows Vision → Namespaces → Features → Specification."""
     tab = re.search(r'<a href="public/vision/"[^>]*>', _tabs(built_home))
     assert tab is not None, "the Language tab no longer opens Vision"
 
     drawer = _drawer(built_home)
-    destinations = ("public/vision/", "public/namespaces/", "wiki/hmd-lang-spec/")
+    destinations = (
+        "public/vision/",
+        "public/namespaces/",
+        "public/features/",
+        "wiki/hmd-lang-spec/",
+    )
     positions = [drawer.index(f'href="{dest}"') for dest in destinations]
     assert positions == sorted(positions), "the Language submenu is out of order"
 

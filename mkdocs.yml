@@ -119,22 +119,28 @@ plugins:
 # the book keeps its own order and still says where the cards belong.
 nav:
   - Home: index.md
-  # Language introduces the vision, explains namespaces, then gives the standard.
-  # A section tab opens its first page, so Language opens Vision.
+  # Language introduces the vision, explains namespaces, lists the features,
+  # then gives the standard. A section tab opens its first page, so Language
+  # opens Vision.
   - Language:
       # The plugin registers these .hmd sources under .md names for MkDocs.
       - Vision: public/vision.md
       - Namespaces: public/namespaces.md
+      - Features: public/features.md
       - Language Specification: wiki/hmd-lang-spec.md
+  # Learn reads in order: what the format is, how to write it, then what a
+  # card does beyond its own text — cells that compute, and the tools that
+  # present it.
   - Learn:
       - Introduction: public/introduction.md
       - Tutorial: wiki/hmd-tutorial.md
-      - Features: public/features.md
-      - Presentation: public/presentation.md
       - Cell output: public/cell-output.md
-  - Wiki:
-      - Overview: wiki/README.md
-      - hmd://wiki
+      - Presentation: public/presentation.md
+  # No Wiki tab. The cards under `wiki/` are the project's working knowledge
+  # base, and the two a visitor needs — the tutorial and the specification —
+  # are placed above. The rest stay published and reachable by link (see
+  # `not_in_nav` below); `hmd://wiki` would splice the whole derived section
+  # back into the top bar.
   # `tools/index.md` is the section's index page, under `navigation.indexes`, so
   # the tab and the sidebar heading both open it. This tab used to lead to a
   # GitHub tree listing four directories, which answers "where is the source"
@@ -185,8 +191,12 @@ nav:
 # `validation.links.not_found: info` below would not even report. Unlisted and
 # reachable is the state that costs nothing; `not_in_nav` is how MkDocs is told
 # the omission is deliberate, so it stops offering to add them.
+#
+# The wiki cards are unlisted for the same reason: chapters and the tutorial
+# link to them, and the nav places the two a visitor needs by hand.
 not_in_nav: |
   proposals/
+  wiki/
 
 # `generator: false` drops Material's own footer credit so the license line in
 # `overrides/partials/copyright.html` is the only one there — the footer is

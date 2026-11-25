@@ -3,721 +3,216 @@ tags: [area/format, status/canonical]
 nav:
   order: 10
   visibility: public
+description: Build a reading club vault, link and embed passages, and use HQL to generate a reading list.
 ---
 
-# HMD Tutorial
+# HyperMarkDown Tutorial
 
-**This page teaches HyperMarkDown. Read it start to finish and you can write
-the format; nothing else is required reading.**
+Your reading club keeps a note for each book. Before the next meeting, you
+want to share a passage from one of those notes and see which books the club
+still has to read. In this tutorial, you'll put both on one page. The passage
+comes from a book card, and a query builds the reading list from the cards'
+reading status.
 
-It is not the normative text. Where this page says "forgiving" or
-"roughly", the exact rule is in [[hmd-lang-spec]], and where the two disagree
-the specification is right. This one is here to be read once, in order, by
-someone who has not written a card before.
+You can follow along with a text editor. Install `hmd` to check and render the
+cards, and `hql` to run the query. [Quick start](../tools/index.md)
 
-The baseline is [CommonMark 0.31.2](https://spec.commonmark.org/0.31.2/), taken
-whole. Every document CommonMark accepts is syntactically valid
-HyperMarkDown. CommonMark constructs keep their meaning unless their bytes
-form a HyperMarkDown construct, and some text CommonMark treats as literal
-gains HyperMarkDown semantics.
+## Write a book card
 
-HyperMarkDown is Markdown with **wiki** links, **html** richness, and more added.
-Everything you already know about Markdown constructs stays true. Rename a
-`.md` file to `.hmd` and it remains syntactically valid, but existing text such
-as `[[foo]]` or a leading frontmatter-shaped block can gain the meanings taught
-on this page.
+Create a vault for the club and a folder for the books.
 
-## What a file is
+```sh
+hmd init reading-club
+cd reading-club
+mkdir books
+```
 
-A **card** is one `.hmd` file. It explains one idea, and its value is in what it
-links to. Cards live under a single directory, the namespace root — `doc/wiki/`
-here — which the `location_path` setting of `.hmd/config.toml` names: where
-inside the vault the cards start, the vault itself unless the file says
-otherwise. In HMD 0.1 it bounds all HMD
-page-reference resolution. Ordinary Markdown links can still reach files and
-URLs outside it.
+`hmd init` creates `.hmd/config.toml` and makes `reading-club/` a **vault**.
+In this example the vault directory is also the **namespace root**, the base
+for card paths such as `books/emma.hmd`.
 
-A card may open with a metadata block, then it is ordinary Markdown:
+Save the first book card as `books/emma.hmd`.
 
-```markdown
+```hmd
 ---
-tags: [area/format]
+title: Emma
+metadata:
+  author: Jane Austen
+  status: todo
 ---
 
-# The title of the card
+# Emma
 
-Prose, and links to other cards.
+## Discussion
+
+Emma is quick to see what others want and slow to see what she wants. ^discussion
 ```
 
-That is the entire file format. The rest of this page is syntax.
+A **card** is a document you can refer to from another document. This `.hmd`
+card has two parts. The Markdown body holds the club's notes. The optional
+YAML block at the top, called **frontmatter**, records facts that tools can
+read by name. Later, the query will look for `todo` under `metadata.status`.
 
-## The syntax you inherit
+The `^discussion` at the end of the paragraph is a **block anchor**. It gives
+that paragraph an identifier and disappears when the card is rendered.
 
-All CommonMark constructs work as specified. Every construct below appears
-twice: **what you type**, in a fenced block, and then the result that produces
-on this page.
+Save the second card as `books/dune.hmd`.
 
-### Paragraphs, emphasis, and links
+```hmd
+---
+title: Dune
+metadata:
+  author: Frank Herbert
+  status: read
+---
 
-```markdown
-Text is written in paragraphs, separated by a blank line.
+# Dune
 
-You can mark words as *emphasis* with single asterisks, as **strong emphasis**
-with double, and as `inline code` with backticks. A
-[link to a website](https://commonmark.org) puts the text in square brackets
-and the address in parentheses.
+Who controls the spice, and what does it cost them to keep control?
 ```
 
-Renders as:
+A vault can also contain `.md` and `.markdown` cards. You can link to them
+and embed them. Use `.hmd` when the document itself uses HyperMarkDown syntax.
 
-Text is written in paragraphs, separated by a blank line.
+## Link to the discussion
 
-You can mark words as *emphasis* with single asterisks, as **strong emphasis**
-with double, and as `inline code` with backticks. A
-[link to a website](https://commonmark.org) puts the text in square brackets
-and the address in parentheses.
+Create `next.hmd` at the root of the vault.
 
-### Headings
+```hmd
+# Next meeting
 
-```markdown
-# The card's title
-
-## A section
-
-### A subsection under it
+Start with [[books/emma|Emma]] and open the [[books/emma#Discussion|discussion notes]].
 ```
 
-This one is shown without its result, because live headings would join this
-page's own outline. Heading nesting gives a card its structure and makes parts
-of it addressable, which *Linking into a card* below relies on.
+A **wikilink** uses `[[` and `]]`. Here, `books/emma` selects `books/emma.hmd`
+and `#Discussion` selects a heading in that card. The text after `|` is what
+the reader sees. You can also point to the paragraph by its block anchor with
+`[[books/emma#^discussion]]`. That reference still identifies the same
+paragraph if you rename the heading above it.
 
-### Lists
+With the default settings, `[[emma]]` would also work here. The resolver
+checks the current directory and its parents, then searches the namespace if
+it has found nothing. If you later add `archive/emma.hmd`, that last search
+finds two cards and reports an ambiguity. `[[/books/emma]]` selects the book
+from the namespace root directly. Imports and the full search order are
+covered in [[/public/namespaces|Namespaces]].
 
-```markdown
-- A bullet list uses `-` at the start of the line.
-- Nesting works by indenting.
-  - Like this.
+## Reuse a passage
 
-1. A numbered list uses `1.`, `2.`, and so on.
-2. The numbers you type do not have to be right; the renderer counts for you.
+To put the discussion prompt on the meeting page, add an embed below the
+links in `next.hmd`.
+
+```hmd
+### Discussion prompt
+
+![[books/emma#^discussion]]
 ```
 
-Renders as:
+Run `hmd render next.hmd` from the vault directory. The output includes this
+paragraph under **Discussion prompt**.
 
-- A bullet list uses `-` at the start of the line.
-- Nesting works by indenting.
-  - Like this.
+> Emma is quick to see what others want and slow to see what she wants.
 
-1. A numbered list uses `1.`, `2.`, and so on.
-2. The numbers you type do not have to be right; the renderer counts for you.
+The `!` makes the reference an **embed**. The rendered meeting page contains
+the paragraph, and the book card still holds the text you edit. You can also
+embed a section with `![[books/emma#Discussion]]` or the whole body with
+`![[books/emma]]`. Links in an embedded passage still resolve from the card
+where they were written.
 
-### Blockquotes
+## Generate the reading list
 
-```markdown
-> A blockquote is a line beginning with `>`. Use it for quoting a source, not
-> for emphasis — there are better tools above for that.
-```
+The reading list comes from the book cards themselves. Add a query to
+`next.hmd` that looks for books whose status is `todo`.
 
-Renders as:
+````hmd
+## Still to read
 
-> A blockquote is a line beginning with `>`. Use it for quoting a source, not
-> for emphasis — there are better tools above for that.
-
-### Fenced code
-
-A block of code is fenced by three backticks, optionally with a language name so
-it can be coloured. To show a fence *inside* a fence — which is what this whole
-page is doing — the outer one uses four backticks instead of three:
-
-````markdown
-```python
-def resolve(name: str) -> Page:
-    return index[name]
+```hql#eval
+cards
+| filter(c => c.metadata.status == "todo")
+| sort(by = c => c.title)
 ```
 ````
 
-Renders as:
+`cards` is the collection of cards in the vault. The first step keeps the cards
+whose status is `todo`. The second sorts them by title. The result is a list of
+cards, so HQL writes a list of wikilinks. The query reads the metadata on the
+same cards the club uses for its notes.
 
-```python
-def resolve(name: str) -> Page:
-    return index[name]
+`hql#eval` marks a cell whose result can be saved in the document. Run it from
+the vault directory.
+
+```sh
+hql render --in-place --emit after next.hmd
 ```
 
-Fenced blocks are **literal**. Nothing inside one is interpreted — not Markdown,
-and not any of the HyperMarkDown syntax below. That is how this page is able to
-show you syntax without using it, and it is the escape hatch to reach for
-whenever you need to write a construct rather than invoke one.
+Open `next.hmd` again. HQL adds the following line below the query's closing
+fence, between two HTML comments.
 
-### Horizontal rules
+```hmd
+- [[emma]]
+```
 
-```markdown
-Three dashes on their own line:
+Run `hmd render next.hmd` again and the list item becomes a link to the book
+card. Saved results are part of the document, so readers can follow that link
+without running HQL. To see where the list came from, read the cell above it.
 
+Now change Emma's status to `read` and Dune's to `todo`. Run the same HQL command.
+The saved list now contains `[[dune]]`. The discussion prompt still comes from
+*Emma*, the book you chose for the meeting. You can change which passage to
+discuss by editing the embed. To update the reading list, edit a book card
+and rerun the query.
+
+Use a plain `hql` fence to show a query as code. Use `hql#query id=books` for a
+cell whose value other cells can read as `books` without adding its own output
+to the page. The [example notebook](https://github.com/ewiger/hypermarkdown/tree/main/examples/notebook)
+uses a shared value to build a contents list and count the books still to read.
+
+## Check the vault
+
+```sh
+hmd lint
+```
+
+Try adding `[[meeting-minutes]]` to `next.hmd` and run the check again. The
+linter reports that the target is missing and tells you where you wrote the
+link. You can leave it as a reminder or add `meeting-minutes.hmd` to resolve
+it. A missing target is a warning. An ambiguous name, such as the two copies
+of `emma` above, is an error and needs a more specific reference.
+
+The linter also checks anchors, frontmatter and embeds. If you want to write a
+wikilink as an example, put it in a code span or a fenced code block.
+
+## Publish the meeting page
+
+A local card is private by default. To publish the meeting page and the book
+cards with the HyperMarkDown site plugin, add a folder note at `index.hmd`.
+
+```hmd
 ---
-```
-
-Renders as:
-
----
-
-None of this is HyperMarkDown's. It is CommonMark 0.31.2, it is specified
-better at <https://spec.commonmark.org/0.31.2/> than it could be here, and
-HyperMarkDown neither redefines nor restricts it. Where this page and that
-specification disagree about inherited syntax, that specification is right.
-
-## The syntax you inherit from the wider Markdown world
-
-A second tier sits between CommonMark and the constructs HyperMarkDown defines:
-they are not in CommonMark 0.31.2, they are not HyperMarkDown's either, and they
-have become conventional across GitHub, Obsidian, Pandoc, and most documentation
-tools. They are assumed available, and they behave the way you expect them to.
-Same shape as before: the source, then what it produces.
-
-### Tables
-
-```markdown
-| Construct | Written |
-| --- | --- |
-| Strikethrough | two tildes either side |
-| Task list item | a dash, then square brackets |
-```
-
-Renders as:
-
-| Construct | Written |
-| --- | --- |
-| Strikethrough | two tildes either side |
-| Task list item | a dash, then square brackets |
-
-### Strikethrough and task lists
-
-```markdown
-Strikethrough is ~~two tildes either side~~. A task list is a bullet list whose
-items open with `[ ]` or `[x]`:
-
-- [x] Learn the inherited syntax
-- [ ] Learn the six constructs
-```
-
-Renders as:
-
-Strikethrough is ~~two tildes either side~~. A task list is a bullet list whose
-items open with `[ ]` or `[x]`:
-
-- [x] Learn the inherited syntax
-- [ ] Learn the six constructs
-
-### Footnotes
-
-A marker in the text, and its note at the foot of the page:
-
-```markdown
-Footnotes[^2] attach a marker to a note at the foot of the page.
-
-[^2]: The note itself. It can sit anywhere in the file; it is always rendered
-    at the bottom.
-```
-
-Renders as: footnotes[^2] attach a marker to a note at the foot of the page.
-
-### Callouts
-
-A titled aside, opened with `!!!` and a kind. The body is indented four
-spaces[^1]:
-
-```markdown
-!!! note "Callouts take a kind and a title"
-
-    Their body is indented four spaces.
-
-??? tip "Opened with ??? instead, a callout starts collapsed"
-
-    So the long-winded version can sit on the page without being in the way.
-```
-
-Renders as:
-
-!!! note "Callouts take a kind and a title"
-
-    Their body is indented four spaces.
-
-??? tip "Opened with ??? instead, a callout starts collapsed"
-
-    So the long-winded version can sit on the page without being in the way.
-
-### Mathematics
-
-TeX between dollar signs — one pair for inline, two for a display block:
-
-```markdown
-A retry after attempt $n$ is delayed by $t_n$, bounded by $t_{max}$:
-
-$$
-t_n = U\bigl(0,\; \min(t_{max},\; b \cdot 2^n)\bigr)
-$$
-```
-
-Renders as:
-
-A retry after attempt $n$ is delayed by $t_n$, bounded by $t_{max}$:
-
-$$
-t_n = U\bigl(0,\; \min(t_{max},\; b \cdot 2^n)\bigr)
-$$
-
-### Diagrams
-
-A fenced block with `d2` as the language, describing nodes and the arrows
-between them:
-
-````markdown
-```d2
-direction: right
-markdown -> HyperMarkDown: adds a graph
-```
-````
-
-Renders as:
-
-```d2
-direction: right
-markdown -> HyperMarkDown: adds a graph
-```
-
-The diagram lives in the file, in version control, and in a diff you can read.
-Where the renderer has no `d2` available it degrades to its own labelled source
-rather than to a blank space or a failed build.
-
-**Which program renders any of this is not part of the language.** The tools
-change; the syntax above is what you write either way. If you need the current
-implementation — which library, which version, what is gated by which test —
-that is [[hmd-feature-list]], which keeps implementation status off this page.
-
-## The syntax HyperMarkDown adds
-
-Here is the part HyperMarkDown defines, and the reason it exists. Six
-constructs, and they are all variations on one idea: **naming another card, or a
-part of one.**
-
-### Linking to a card
-
-Two square brackets around a card's name:
-
-```markdown
-The numbered inventory lives in [[hmd-feature-list]].
-```
-
-Which renders as a link: see [[hmd-feature-list]]. The name is the card's
-filename without its extension — `hmd-feature-list.hmd` is written
-`[[hmd-feature-list]]`. You do not write a path, and you do not write `../`;
-*How a reference is found* below explains how the target is located.
-
-Linking to a card that does not exist yet is **not an error**. It renders as a
-red link and is reported as a warning, which makes it a usable way to mark
-something as worth writing later.
-
-### Showing different words
-
-A vertical bar separates the target from the text to display, so the sentence
-still reads naturally:
-
-```markdown
-The [[md-hmd-interop|comparison with TypeScript]] makes the case.
-```
-
-Which renders as: the [[md-hmd-interop|comparison with TypeScript]] makes the
-case. The part before the bar is the name that gets resolved; the part after is
-what the reader sees.
-
-### Linking into a card
-
-A `#` addresses a heading inside the target card:
-
-```markdown
-See [[md-hmd-interop#Compilation is the deeper step]].
-```
-
-Renders as: see [[md-hmd-interop#Compilation is the deeper step]].
-
-Write the heading's text as it appears. Capitalisation and spacing are
-forgiving — the heading `## Compilation is the deeper step` is equally reachable
-written as a slug:
-
-```markdown
-See [[md-hmd-interop#compilation-is-the-deeper-step]].
-```
-
-### Naming a single block
-
-Sometimes the unit you want to point at is a paragraph, not a section. Put a
-caret and an identifier at the end of the block's last line, and that block has
-a name:
-
-```markdown
-A token is valid for exactly one rotation window. ^definition
-```
-
-The anchor itself does not render. This very paragraph ends with a real one, and
-you cannot see it. ^the-anchor-example
-
-To point at a named block, use `#^` and the identifier:
-
-```markdown
-That is stated precisely in [[hmd-tutorial#^the-anchor-example]].
-```
-
-Renders as: that is stated precisely in
-[[hmd-tutorial#^the-anchor-example]].
-
-Identifiers are letters, digits, hyphens and underscores. Their scope is the
-card they appear in, so two cards may reuse the same one without colliding.
-
-### Embedding instead of linking
-
-Put a `!` in front of any of the four forms above and the content is pulled in
-where you wrote it, rather than linked:
-
-```markdown
-![[glossary/token]]              the whole card
-![[glossary/token#Rotation]]     one section of it
-![[glossary/token#^definition]]  one named block
-```
-
-This is the construct that makes cards composable: write a definition once, and
-embed it everywhere it is needed instead of repeating it. Embeds nest — an
-embedded card may itself embed another — and the expansion is textual, so
-heading levels arrive exactly as the source wrote them.
-
-Two guards apply. A cycle, where a card ends up embedding itself, is an error
-rather than a hang. And nesting stops at sixteen levels deep.
-
-*(This page shows the syntax rather than using it, because a live embed would
-splice another card's prose into the middle of a reference page. [[md-hmd-interop]]
-and the published book use them for real.)*
-
-### Summary of the six
-
-| Written | Means |
-| --- | --- |
-| `[[card]]` | link to a card |
-| <code>&#91;&#91;card&#124;words&#93;&#93;</code> | link, showing different words |
-| `[[card#Heading]]` | link to a section of a card |
-| `text ^name` | give this block a name |
-| `[[card#^name]]` | link to a named block |
-| `![[…]]` | embed any of the above instead of linking |
-
-### All six in one card
-
-Everything above, in a single file you could write today:
-
-```markdown
----
-tags: [area/auth]
 nav:
   visibility: public
 ---
 
-# Session tokens
+# Reading club
 
-A token is valid for exactly one rotation window. ^definition
-
-Rotation is described in [[tokens]], and the
-[[md-hmd-interop|comparison with TypeScript]] explains why this file checks.
-The window itself is [[tokens#Rotation]].
-
-The rule, pulled in rather than repeated:
-
-![[tokens#^rotation-rule]]
+See [[next|the next meeting]].
 ```
 
-## How a reference is found
-
-This is the part that makes HyperMarkDown feel like a language rather than a
-convention: card references are resolved by rules you can predict. The form you
-write determines which rules apply.
-
-| Reference | Form |
-| --- | --- |
-| `[[login]]` | **bare name** — exactly one segment |
-| `[[specs/login]]` | **unqualified path** — multiple segments, no leading marker |
-| `[[./login]]`, `[[../login]]` | relative path |
-| `[[/specs/login]]` | absolute path from the namespace root |
-| `[[docs:login]]` | namespace-qualified reference *(reserved; not implemented in 0.1)* |
-
-A bare name has no `/`, `./`, `../`, leading `/`, or namespace qualifier. Bare
-names and unqualified paths are collectively **unqualified references** and use
-the same search phases. Absolute and relative paths are followed directly.
-
-Take this tree:
-
-```text
-doc/wiki/
-├── tokens.hmd
-├── glossary/
-│   ├── index.hmd
-│   └── token.hmd
-└── specs/
-    ├── tokens.hmd
-    └── auth/
-        └── login.hmd
-```
-
-An unqualified reference is tried in four phases: a named import (for bare names
-only), the **spine**, wildcard import origins, then **autodiscovery**. The first
-match stops resolution.
-
-The spine looks beside the current card, then in its parent folder, then that
-folder's parent, up to the root. Each folder is probed non-recursively. A card
-nearby wins over a card far away, which lets a folder keep its own local
-vocabulary.
-
-```markdown
-<!-- written in specs/auth/login.hmd -->
-[[tokens]]
-```
-
-Nothing named `tokens` sits beside `login.hmd`, so the walk steps up to `specs/`
-and finds `specs/tokens.hmd`. The root's `tokens.hmd` is never reached — the
-nearer card won. The same link written in `glossary/index.hmd` finds the root one
-instead, because the walk from `glossary/` passes nothing else on the way.
-
-The spine never searches sideways. If it and the import phases find nothing,
-autodiscovery searches the configured scope, which is the whole namespace by
-default:
-
-```markdown
-<!-- written in glossary/index.hmd -->
-[[login]]
-```
-
-Nothing on the spine matches, so the sweep runs and finds
-`specs/auth/login.hmd`. Complete bare-name resolution can therefore reach
-sideways even though the spine cannot.
-
-Autodiscovery requires a unique match. If the tree also contained
-`admin/login.hmd`, the same link would be an error rather than a coin flip:
-
-```markdown
-<!-- written in glossary/index.hmd, and this one is an error -->
-[[login]]
-```
-
-The fix is to qualify the reference:
-
-```markdown
-[[/specs/auth/login]]          or          [[specs/auth/login]]
-```
-
-A folder can also carry an `index.hmd`, in which case the folder's name and the
-explicit index path resolve to the same destination:
-
-```markdown
-[[glossary]]         and         [[glossary/index]]
-```
-
-The first is a bare name and the second an unqualified path, but both reach
-`glossary/index.hmd`. They are two reference spellings for one folder note, not
-two page names or two published pages.
-
-## Metadata
-
-The block at the top of a card is YAML. Four keys mean something to the
-toolchain; every other key is yours, and nothing will inspect it. Here they all
-are at once, and then one at a time:
-
-```yaml
----
-tags: [area/auth, status/accepted]
-use: [no_autodiscovery]
-import:
-  - from /shared import tokens as shared-tokens
-  - from /glossary import *
-nav:
-  order: 10
-  visibility: public
-owner: platform-team          # yours; nothing inspects it
----
-```
-
-### `tags` — what a card is about
-
-```yaml
----
-tags: [area/auth, status/accepted]
----
-```
-
-Tags say what a card is *about*. Folders say where it *lives*. A tag is not a
-link target, so `[[area/auth]]` does not reach one.
-
-### `use` — feature toggles
-
-```yaml
----
-use: [no_autodiscovery]
----
-```
-
-`use` switches features on or off for this card. Prefixing `no_` turns one off,
-so the card above is restricted to its imports and its spine: step 3 of *How a
-reference is found* never runs for it, and every card it depends on is visible in its
-own header or in the link itself.
-
-It **inherits** — put it in a folder's `index.hmd` and it governs that whole
-subtree:
-
-```yaml
----
-# glossary/index.hmd — and so for every card under glossary/
-use: [no_autodiscovery]
----
-```
-
-The folder note supplies module-level configuration to the subtree; the folder
-is already a module.
-
-### `import` — binding a name explicitly
-
-```yaml
----
-import:
-  - from /shared import tokens as shared-tokens
-  - from /glossary import *
----
-```
-
-The two lines do different jobs. The first binds **one** name: `[[shared-tokens]]`
-now means `/shared/tokens.hmd` and nothing else, even if a `shared-tokens` card
-sits right beside this one. The second adds a **search origin**: bare names that
-the walk did not find are tried against `/glossary/` before the sweep runs, and a
-card added there later becomes reachable without editing this header.
-
-A named import takes precedence over the spine, so it can select a page that the
-walk would not choose. Wildcard origins run after the spine and before
-autodiscovery.
-
-### `nav` — where the card is published
-
-```yaml
----
-nav:
-  order: 10
-  visibility: public
----
-```
-
-`nav` places this card when the wiki is published as a site. `order` is an
-integer, ascending; cards that set it come before cards that do not.
-`visibility` is `public` or `private`, and it decides whether the card is
-published **at all** — a private card gets no page and no address, not merely a
-missing sidebar entry.
-
-Publication is opt-in: say nothing and the card stays private. Like `use`,
-`visibility` inherits, so this folder note publishes everything beneath it:
-
-```yaml
----
-# glossary/index.hmd
-nav:
-  visibility: public
----
-```
-
-and an individual card under it opts back out with its own:
-
-```yaml
----
-nav:
-  visibility: private
----
-```
-
-A published card that links to a private one gets a red link and a warning, and
-one that *embeds* a private card does not inline it — the content stays out of
-the built page.
-
-## When you get it wrong
-
-The language ships a checker. `hmd lint` reads the tree and reports what it
-could not resolve, with a file, a line, and a rule identifier.
-
-Write a link to a card you have not created yet:
-
-```markdown
-Retries are idempotent; see [[idempotency]].
-```
-
-and you get a warning, which is a to-do list rather than a failure:
-
-```text
-glossary/index.hmd:11:3: warning[HMD001] [[idempotency]] does not resolve to a page
-```
-
-Write the ambiguous one from *How a reference is found*:
-
-```markdown
-The flow is described in [[login]].
-```
-
-and you get an error, with the candidates it refused to choose between:
-
-```text
-glossary/index.hmd:14:5: error[HMD002] [[login]] matches 2 pages; qualify it
-  (candidates: admin/login.hmd, specs/auth/login.hmd)
-```
-
-The distinction is the same one a compiler draws. A link to a card that does not
-exist is a **warning** — you are allowed to write forward. A link that escapes
-the root, is malformed, or has multiple autodiscovery matches is an **error**.
-Ordered wildcard imports use declaration precedence and report shadowing as
-HMD016.
-
-Everything else about a card is left alone. HyperMarkDown checks the graph and
-nothing more: it has no opinion on your prose, your headings, or your Markdown.
-
-## What is not here
-
-No inline properties, no highlights, no templates, no query language. Each is
-either postponed to a later specification or turned down; [[hmd-feature-list]]
-records which is which, so that none of them gets re-argued from scratch.
-
-The omission you are most likely to notice is that **there is no escape**. The
-characters `[`, `]`, `|`, `#`, and `^` are reserved inside a link target and
-cannot be written literally there, so a card whose name needs one cannot be
-addressed:
-
-```markdown
-[[a|b]]        the bar means "display text", never a literal bar
-[[c#d]]        the hash means "fragment", never a literal hash
-```
-
-In the other direction, the only way to *show* a construct instead of using one
-is a code span or a fenced block, as this page does throughout:
-
-````markdown
-`[[tokens]]` and
-
-```markdown
-[[tokens]]
-```
-
-are both shown. Written bare, it would be resolved.
-````
-
-Raw inline HTML is not a way out — a hand-written `<code>` element is scanned
-like any other text.
-
----
-
-For the exact rules behind everything above — the grammar, the resolution
-algorithm, the diagnostics, and what a conforming implementation owes — see
-[[hmd-lang-spec]]. For the exhaustive inventory with implementation status, see
-[[hmd-feature-list]]. For the argument that the format stands to Markdown as
-TypeScript stands to JavaScript, see [[md-hmd-interop]].
-
-[^1]: Like this one. The four-space indent a footnote body uses is why the
-    scanner does not treat indented text as literal — doing so would quietly
-    drop real links out of footnotes and callouts.
-
-[^2]: The note itself. It can sit anywhere in the file; it is always rendered
-    at the bottom.
+Cards under this folder inherit `public` unless they set their own
+`nav.visibility`. This makes the whole example vault public. For a vault with
+private notes, set `nav.visibility: public` on the individual cards you want
+to publish. A public page can only link to or embed a card on the site if its
+target is published too. See the [site setup](../public/presentation.md) for
+building and viewing the site.
+
+## Further reading
+
+- [[/public/vision|Vision]] explains how cards can describe a system, compute
+  over it, and keep the results available for the next revision.
+- [[/public/features|Features]] shows the format's callouts, math, and diagrams.
+- [[hmd-lang-spec|Language Specification]] defines the syntax, including
+  frontmatter, reference resolution, and cell kinds.
+- [Cell output](../public/cell-output.md) shows what HQL writes for each kind of
+  result. [Queries inside documents](https://hql-lang.org/book/24-documents/)
+  explains running cells and sharing values between them.

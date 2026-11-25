@@ -94,12 +94,12 @@ A token is valid for exactly one rotation window. ^definition
 Write the definition once. Embed it in the API reference, the onboarding page,
 and the incident runbook. Fix it in one place.
 
-!!! tip "This page shows the syntax; the wiki runs it"
+!!! tip "This page shows the syntax; the cards run it"
 
     A chapter like this one is ordinary Markdown, so the constructs above stay
-    quoted rather than live. The [wiki](../wiki/README.md) section of this site
-    is the real thing — every card there is written in the format and resolved
-    by it.
+    quoted rather than live. The [tutorial](../wiki/hmd-tutorial.hmd) and the
+    [specification](../wiki/hmd-lang-spec.hmd) are the real thing — cards
+    written in the format and resolved by it.
 
 ## Diagrams
 
@@ -209,10 +209,6 @@ nobody rewrites a wiki by hand. The full argument is
   one sitting.
 - [The HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) — the normative
   text: grammar, resolution, diagnostics.
-- [The feature list](../wiki/hmd-feature-list.hmd) — the full inventory,
-  including what was deferred or rejected.
-- [Presentation](presentation.md) — what happens to a card afterwards: the
-  formats it converts to and the viewers that show it.
 - [Roadmap](roadmap.md) — versions, and what is being built next.
 
 [^1]: Footnotes, callouts, and the rest of this page's rich content come from
