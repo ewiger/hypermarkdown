@@ -79,7 +79,7 @@ the board, in the order this view lists them.
 | todo    | 27   |
 | blocked | 4    |
 | backlog | 10   |
-| parked  | 4    |
+| parked  | 3    |
 <!-- /hql:output -->
 
 ## Rows
@@ -141,7 +141,6 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | backlog | Say when `--vault` is not a vault.                                                                 | [semantics](semantics.hmd) |
 | backlog | Filter the graph by namespace and tag                                                              | [vsc-ext](vsc-ext.hmd)     |
 | parked  | Rename the package inside the parked integration suite                                             | [hmd](hmd.hmd)             |
-| parked  | The branch `feat/in-card-address`.                                                                 | [lang](lang.hmd)           |
 | parked  | A Lean model of resolution and embed expansion.                                                    | [lang](lang.hmd)           |
 | parked  | The integration suite                                                                              | [vsc-ext](vsc-ext.hmd)     |
 <!-- /hql:output -->
