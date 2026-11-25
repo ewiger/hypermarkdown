@@ -103,7 +103,8 @@ construct; 1.0 will promise that none changes.
 HyperMarkDown's own work has two priorities.
 
 - **The language specification.** Its first version, 0.1.0, is released.
-  Next is 1.0, the version that promises stability.
+  The next version, 0.2, adds HQL paths, below. After that comes 1.0, the
+  version that promises stability.
 - **The VS Code extension.** Bug fixes, and improvements to how a card is
   presented in the preview.
 
@@ -113,6 +114,30 @@ assembling context for a language model from a vault of cards. HQL is a
 separate project with its own releases, and most of what changes next for
 someone using HyperMarkDown arrives through it. HyperMarkDown follows by
 running the newer HQL in the editor and presenting what its cells return.
+
+### HQL paths: links into the structure of a card
+
+The largest addition planned for the language, in version 0.2.
+
+`[[card#Setup]]` reaches the first heading named `Setup` in the card. When the
+card has a `Setup` under every platform, that is often the wrong one. An HQL
+path names the section by its place in the heading tree:
+
+```markdown
+@[[setup#Linux]]              the top-level section Linux
+@[[setup#Linux##Setup]]       the Setup section inside Linux, at any depth
+@[[setup##Setup]]             every Setup section in the card
+@[[setup#Linux#^step-3]]      the block anchored step-3, inside Linux
+!@[[setup#Linux##Setup]]      that section, embedded
+```
+
+`#` selects a section directly below the current one, and `##` selects one at
+any depth below it, as `.` and `..` do in JSONPath. `#^` selects an anchored
+block. `@[[…]]` is the document reference that [HQL](https://hql-lang.org/)
+already uses, so a card's text and its queries name a place the same way.
+
+Ordinary links and embeds do not change. The design is not final: the syntax
+and its rules may change before 0.2 is released.
 
 ### Cards as notebooks
 
