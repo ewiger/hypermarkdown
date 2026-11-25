@@ -3,9 +3,11 @@
 **HyperMarkDown** (`.hmd`) is this project's most generic and most-used
 knowledge format: ordinary Markdown, plus rich visuals, plus wiki links into a
 knowledge graph. A **card** is one `.hmd` file that explains one idea and whose
-value is in what it links to; every file under `doc/wiki/` is a card. The
-baseline is CommonMark 0.31.2 taken whole, so a `.hmd` file reads fine as plain
-Markdown and any `.md` file is already syntactically valid `.hmd`.
+value is in what it links to. A file is read as a card only when it is inside
+a vault, which is a directory with a `.hmd/` directory in it. This vault is
+`doc/`. The baseline is CommonMark 0.31.2 taken whole, so a `.hmd` file reads
+fine as plain Markdown, and any `.md` file is already syntactically valid
+`.hmd`.
 
 This card owns the **syntax**. It follows the upstream
 [HyperMarkDown documentation](https://hypermarkdown.org/); the

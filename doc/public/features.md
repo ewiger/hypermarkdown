@@ -182,8 +182,9 @@ Your prose is left alone.
 
 ## Markdown is JavaScript. HyperMarkDown is TypeScript.
 
-A superset that adds structure a machine can check, erases back down to what it
-extends, and is adopted one file at a time.
+HyperMarkDown adds structure that a machine can check, and it renders back
+down to plain Markdown. Once your documentation is a vault, you can convert it
+one file at a time.
 
 ```markdown
 <!-- notes.md — valid Markdown, and already valid HyperMarkDown -->
@@ -197,8 +198,10 @@ Tokens rotate hourly. See [[tokens]], and here is the rule itself:
 ![[tokens#^rotation-rule]]
 ```
 
-Renaming the file changes nothing about its validity. The second version opts
-into checked wikilink semantics. `hmd lint` is `tsc --noEmit`, rendering to flat
+Renaming the file changes nothing about its validity, but the file must be
+inside a vault: some directory above it needs a `.hmd/` directory, which
+`hmd init` creates. The second version uses wikilinks, and `hmd lint` checks
+them. `hmd lint` is `tsc --noEmit`, rendering to flat
 Markdown is compilation, and adopting it file by file is why `allowJs` mattered:
 nobody rewrites a wiki by hand.
 

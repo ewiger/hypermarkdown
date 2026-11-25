@@ -87,9 +87,8 @@ The first viewer is the one you already have. An editor, GitHub's file view,
 `less`, a terminal, an AI chat: a card is text, so all of them show it. The
 wikilinks appear as `[[bracketed text]]` and nothing else is out of place.
 
-This is not a fallback. It is the property the whole format is built to protect
-— the reason a card can be adopted one file at a time is that nobody has to
-install anything to read it.
+This is not a fallback. The format is designed so that nobody has to install
+anything to read a card.
 
 ### MkDocs — the published book
 

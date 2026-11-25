@@ -223,8 +223,9 @@ block at the top is frontmatter. The rich layer adds its own syntax, such as
 <div markdown>
 ### Markdown files are cards
 
-A `.md` file in the tree is a target for links and embeds without being
-renamed. Rename it to `.hmd` when its own links should be checked.
+Inside a vault, a directory with a `.hmd/` directory in it, a `.md` file is a
+target for links and embeds without being renamed. Rename it to `.hmd` when its
+own links should be checked.
 </div>
 
 <div markdown>

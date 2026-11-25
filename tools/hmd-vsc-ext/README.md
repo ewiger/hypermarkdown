@@ -20,7 +20,9 @@ right, with resolved links, a table, a callout, and a d2 diagram.](https://raw.g
 HyperMarkDown is ordinary markdown plus links into a knowledge graph: you write
 the *name* of a card and it is resolved for you, a card can be built out of other
 cards, and a linter checks the whole graph. Every `.md` file is already valid
-`.hmd`. The format itself — every construct, the resolution rules, the rule IDs —
+`.hmd` syntax. A file is read as a card when it is inside a vault: some
+directory above it must contain a `.hmd/` directory, which `hmd init` creates.
+The format itself — every construct, the resolution rules, the rule IDs —
 is documented at [hypermarkdown.org](https://hypermarkdown.org/). This page is
 about the extension.
 

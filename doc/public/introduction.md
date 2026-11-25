@@ -75,10 +75,14 @@ warning. Everything else about your prose is left alone.
 
 ## Adopting it
 
-A `.md` file remains syntactically valid after it is renamed to `.hmd`, so
-adoption can be gradual: rename one file, review any text that now has HMD
-semantics, add one link, and run `hmd lint`. Nothing forces the rest of the tree
-to follow.
+A file is only treated as a card if it is inside a vault. A vault is a
+directory with a `.hmd/` directory in it, and every file below that directory
+belongs to the vault. So the first step is to run `hmd init` at the top of your
+documentation. An empty `.hmd/` directory is enough.
+
+After that, you can adopt the format one file at a time. Rename a `.md` file to
+`.hmd`, check any text that now has a HyperMarkDown meaning, add one link, and
+run `hmd lint`. The other files can stay plain Markdown.
 
 ## Where the full picture lives
 
