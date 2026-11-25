@@ -21,8 +21,14 @@ against
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-11-25
+
 ### Added
 
+- **The build carries the language server.** Every platform build holds
+  `hmd-lsp` 0.1.0, from toolchain 0.6.0, so a link that names no card is
+  coloured as an error, hover on a link says what it resolves to, and **Go to
+  Definition** opens the card, with nothing to install.
 - **Syntax highlighting for HQL.** A `.hql` file is coloured, and so is the
   body of an `hql` fence in a card: `hql`, `hql#eval`, `hql#query`. Comment
   toggling and bracket matching inside a cell are those of HQL.
@@ -42,8 +48,7 @@ against
   `hyperMarkdown.languageServer.path`, then in the build's `toolchain/bin/`,
   then on `PATH`. With the server, a link that names no card, names several
   cards, or leaves the namespace is coloured as an error, hover on a link says
-  what it resolves to, and **Go to Definition** opens the card. No build
-  carries the program yet, so today it comes from the setting or from `PATH`.
+  what it resolves to, and **Go to Definition** opens the card.
 - **The extension works the same without the server.** When no program is
   found, it says so once per installation and changes nothing else. The
   server never starts in an untrusted or a virtual workspace, and
@@ -442,6 +447,7 @@ built yet, and the flag comes off when they are.
 
 [Unreleased]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.6.1...HEAD
 [0.6.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.6.0...vsc-ext-v0.6.1
+[0.7.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.6.1...vsc-ext-v0.7.0
 [0.6.0]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.2...vsc-ext-v0.6.0
 [0.5.2]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.1...vsc-ext-v0.5.2
 [0.5.1]: https://github.com/ewiger/hypermarkdown/compare/vsc-ext-v0.5.0...vsc-ext-v0.5.1

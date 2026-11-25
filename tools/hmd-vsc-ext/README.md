@@ -104,14 +104,13 @@ ARM64, where HQL publishes no binary yet, put `hql` on `PATH`. Set
 `hyperMarkdown.hql.path` to run cells with a different `hql`. Reading a card's
 saved outputs needs nothing.
 
-The extension is a client of `hmd-lsp`, the HyperMarkDown language server, when
-that program is on your machine. With it, a link that names no card is coloured
-as broken, hover on a link says what it resolves to, and **Go to Definition**
-opens the card. No build carries the program yet: download `hmd-lsp` from
-[its release](https://github.com/ewiger/hypermarkdown/releases), or run
-`cargo install hypermarkdown-lsp`, and put it on `PATH` or set
-`hyperMarkdown.languageServer.path`. Everything else works the same without
-it. Completion and rename are not written yet.
+The extension is a client of `hmd-lsp`, the HyperMarkDown language server, and
+the build for your platform carries it. With it, a link that names no card is
+coloured as broken, hover on a link says what it resolves to, and **Go to
+Definition** opens the card. Set `hyperMarkdown.languageServer.path` to use
+another `hmd-lsp`, such as one from `cargo install hypermarkdown-lsp`.
+Everything else works the same without the server. Completion and rename are
+not written yet.
 
 ## Settings
 

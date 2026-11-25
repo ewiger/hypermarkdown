@@ -11,7 +11,7 @@ thing you care about; this page is the one-line version of each.
 | [**hypermarkdown (Rust)**](rs-core.hmd) | The resolver as a Rust library crate, held to the canonical implementation by the shared corpus | Written, passing every corpus case, and published to crates.io at 0.1.0 | A release workflow, and HQL taking it as its resolver |
 | [**hmd-lsp**](lsp.hmd) | The language server, as a Rust program on the resolver crate: tokens, definition, hover, and three diagnostics | `0.1.0` released: the program for five platforms on GitHub, and `hypermarkdown-lsp` on crates.io | Going to the heading or the block a link names |
 | [**hmd-semantics**](semantics.hmd) | The builder of a vault's semantic index: card text embedded into an SQLite file in the vault's `.hmd/` | Moved here from HQL and passing its tests; builds the card itself at one depth, and not published | The two summary depths and the schema version that carries them |
-| [**VS Code extension**](vsc-ext.hmd) | The hmd preview, diagnostics, and the graph, inside the editor | `0.3.0` live on both galleries, and the preview label is off | Automate the by-hand release checks |
+| [**VS Code extension**](vsc-ext.hmd) | The hmd preview, diagnostics, and the graph, inside the editor | `0.7.0` live on both galleries, with HQL highlighting and the language server in the build | Automate the by-hand release checks |
 | [**website**](pages.hmd) | <https://hypermarkdown.org> — the book, the prose, the branding, the deploy | Live and building clean | The roadmap page, and the stale state claims the audit for it turned up |
 
 ## Generated views
