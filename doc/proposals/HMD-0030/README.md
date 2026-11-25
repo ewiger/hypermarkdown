@@ -286,5 +286,5 @@ uv run python -m pytest tools/hmd/tests/test_diagram.py
   Edit, and the listing rule this record extends to diagrams.
 - [HMD-0022](../HMD-0022/README.md) — the diagram block, the renderer, its
   bounds, its cache, and its image delivery, all kept here.
-- [The Mermaid card](../../issues/0115-mermaid-diagrams-on-par-with-d2.md) —
+- [The Mermaid card](../../issues/0115-mermaid-diagrams-on-par-with-d2.hmd) —
   the Mermaid renderer, still to be chosen.

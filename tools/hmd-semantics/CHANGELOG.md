@@ -11,7 +11,7 @@ the usual `0.x` caveat: **the index schema may change between minor versions.**
 
 The tool is [`hypermarkdown-semantics`](https://pypi.org/project/hypermarkdown-semantics/)
 on PyPI, tagged `semantics-vX.Y.Z`. Implementation state is tracked in
-[`doc/status/semantics.md`](../../doc/status/semantics.md), against
+[`doc/status/semantics.md`](../../doc/status/semantics.hmd), against
 [HMD-0028](../../doc/proposals/HMD-0028/README.md).
 
 ## [Unreleased]

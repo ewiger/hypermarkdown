@@ -1,0 +1,51 @@
+# 0017 — Verify path-suffix resolution
+
+**Column**: done — closed into [issue 0020](0020-validate-name-resolution-across-implementations.hmd)
+**Opened**: 2026-11-24
+**Related**: [the format's tracker](../../status/lang.hmd),
+[the canonical implementation's tracker](../../status/hmd.hmd),
+[[hmd-lang-spec#path-suffix-resolution]]
+
+## What
+
+The language standard now says, under *Path-suffix resolution*, that an
+unqualified reference may be a single name or a sequence of path components.
+During the recursive search it is matched against the ending path components
+of each candidate card, so `[[physics/thermodynamics]]` and
+`[[thermodynamics]]` can both reach `science/physics/thermodynamics.hmd`.
+Matching is by complete path components, never by a string suffix.
+
+The standard is the source of truth. Verify that every implementation does
+what it says, implement whatever is missing, and record each discrepancy
+between an implementation and the standard where it is found.
+
+No conformance case uses a multi-component unqualified reference today. The
+only one in the corpus appears in a diagnostic message, not as a reference
+under test.
+
+## Steps
+
+1. **Check the implementations against the standard**: the canonical one, the
+   TypeScript one, and the Rust crate.
+2. **Add conformance cases** under `examples/conformance/cases/`, covering:
+   - single-component and multi-component references;
+   - matching by complete path components, never by string suffix;
+   - absolute and explicit relative paths;
+   - resolution relative to the referring document, not the working
+     directory;
+   - `/` as the separator on every platform;
+   - search precedence, and the namespace boundaries, a nested vault included;
+   - ambiguous matches;
+   - folder notes, and references with and without a card extension.
+3. **Fix every implementation** until all of them pass the new cases.
+
+## Out of scope
+
+The specification text itself, which is settled.
+
+## Closed
+
+Closed into issue 0020, which validates the whole resolution algorithm across
+the three implementations; path-suffix matching is one of its acceptance
+criteria. The case `resolve-path-suffix` covers what the steps above list, and
+the rest of the list is covered by the other `resolve-*` cases.

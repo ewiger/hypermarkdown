@@ -592,8 +592,8 @@ uv run python -m pytest
   dependency on this repository.
 - [HMD-0024](../HMD-0024/README.md), which fixes the repository as a monorepo
   of tools and says what each tool owns.
-- [`doc/status/semantics.md`](../../status/semantics.md), where the builder's
-  work is tracked, and [`doc/status/hmd.md`](../../status/hmd.md), where the
+- [`doc/status/semantics.hmd`](../../status/semantics.hmd), where the builder's
+  work is tracked, and [`doc/status/hmd.hmd`](../../status/hmd.hmd), where the
   Python tool's is.
 
 ## Changelog

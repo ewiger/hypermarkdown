@@ -92,7 +92,7 @@ and its index as its own test fixture.
 [`LICENSE`](LICENSE) are this tool's own files and none of them is a symlink.
 The README is the long description of the distribution, so its links are
 absolute. Work is tracked in
-[`doc/status/semantics.md`](../../doc/status/semantics.md), against
+[`doc/status/semantics.hmd`](../../doc/status/semantics.hmd), against
 [HMD-0028](../../doc/proposals/HMD-0028/README.md).
 
 ## Releasing

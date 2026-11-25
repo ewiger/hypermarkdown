@@ -84,7 +84,7 @@ over a real directory.
 [`README.md`](README.md), [`CHANGELOG.md`](CHANGELOG.md), and
 [`LICENSE`](LICENSE) are this crate's own, and `Cargo.toml` lists all three in
 `include` so they travel in a package. None of them is a symlink. Work is
-tracked in [`doc/status/rs-core.md`](../../doc/status/rs-core.md), against
+tracked in [`doc/status/rs-core.hmd`](../../doc/status/rs-core.hmd), against
 [HMD-0027](../../doc/proposals/HMD-0027/README.md).
 
 ## Releasing

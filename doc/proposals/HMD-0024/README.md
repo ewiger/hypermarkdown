@@ -2,7 +2,7 @@
 
 **Status**: drafted
 **Created**: 2026-08-08
-**Source**: [Developer guide](../../DEVELOPER.md)
+**Source**: [Developer guide](../../DEVELOPER.hmd)
 
 ## Abstract
 
@@ -371,7 +371,7 @@ uv build --package HyperMarkDown
   conformance corpus, and the drift ledger.
 - [HMD-0021](../HMD-0021/README.md) — the VS Code extension.
 - [`DEVELOP.md`](../../../DEVELOP.md) — the repository's setup and gates.
-- [`doc/DEVELOPER.md`](../../DEVELOPER.md) — an index of the four development
+- [`doc/DEVELOPER.hmd`](../../DEVELOPER.hmd) — an index of the four development
   guides; the per-tool build and test commands now live with each tool.
 
 ## Changelog
@@ -390,5 +390,5 @@ uv build --package HyperMarkDown
   the tool does not own* replaced by *A tool's front matter is its own*. Every
   tool now carries its own README, changelog, license, and development guide;
   the root's three files became indexes, and the per-tool build and test commands
-  left `doc/DEVELOPER.md` for the tools they describe. The rule that a tool's
+  left `doc/DEVELOPER.hmd` for the tools they describe. The rule that a tool's
   README links must be absolute is new, and follows from where it is read

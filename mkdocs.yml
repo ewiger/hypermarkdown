@@ -117,13 +117,15 @@ plugins:
 # The authored nav wins everywhere except where it asks for the wiki by name.
 # `hmd://wiki` is replaced by the section derived from the namespace tree, so
 # the book keeps its own order and still says where the cards belong.
+# Every page below except the cover and the Tools index is a .hmd card. The
+# plugin registers each card under a .md name for MkDocs, so the nav names
+# `public/vision.md` for the source `doc/public/vision.hmd`.
 nav:
   - Home: index.md
   # Language introduces the vision, explains namespaces, lists the features,
   # then gives the standard. A section tab opens its first page, so Language
   # opens Vision.
   - Language:
-      # The plugin registers these .hmd sources under .md names for MkDocs.
       - Vision: public/vision.md
       - Namespaces: public/namespaces.md
       - Features: public/features.md
@@ -156,7 +158,7 @@ nav:
   #
   # The extension is the one exception, and deliberately: it is the only tool a
   # reader *installs* rather than reads, and an install page on GitHub is a page
-  # nobody arrives at. `tools/vscode.md` is that landing page and nothing more —
+  # nobody arrives at. `tools/vscode.hmd` is that landing page and nothing more —
   # what it is, the two install buttons, and links out. Everything that could go
   # stale stays in the extension's own README. The quick start sends installers
   # there and states nothing about the extension the page does not.

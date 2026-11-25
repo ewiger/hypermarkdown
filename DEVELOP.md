@@ -157,9 +157,9 @@ Three conventions that are easy to get wrong:
 
 - **Progress is tracked per tool**, in [`doc/status/`](doc/status/), and nowhere
   else — not in `doc/memory/`, not in a wiki card, not in a proposal's own
-  `README.md`, not in a tool's `README.md`. One file each: `lang.md` for the
-  format, `hmd.md`, `ts-core.md`, `vsc-ext.md`, `rs-core.md`, and `semantics.md` for the
-  five tools, and `pages.md` for the site. A proposal's rows go to whichever tracker owns the
+  `README.md`, not in a tool's `README.md`. One file each: `lang.hmd` for the
+  format, `hmd.hmd`, `ts-core.hmd`, `vsc-ext.hmd`, `rs-core.hmd`, and `semantics.hmd` for the
+  five tools, and `pages.hmd` for the site. A proposal's rows go to whichever tracker owns the
   code, citing the proposal. Update the tracker in the same commit that changes
   the code. Each reads Status, Open, Broken, Limitations, Done — in that order,
   with Done last — and a row is a sentence that stands alone, never a pointer at

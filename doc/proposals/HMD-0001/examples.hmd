@@ -1,0 +1,183 @@
+---
+nav:
+  visibility: public
+---
+
+# HMD-0001 — Worked examples
+
+Companion to [HMD-0001](README.md). Everything here illustrates the
+specification; where the two disagree, the specification wins.
+
+The tree under [`examples/small/`](../../../examples/small/) is a runnable
+fixture, not a listing invented for this document. It is self-contained — its
+own `.hmd/config.toml` makes it a project root — so it can be linted directly:
+
+```bash
+hmd lint --root examples/small
+```
+
+It MUST lint with zero errors. Exactly one warning is expected and deliberate:
+the red link `[[idempotency]]` in `glossary/index.hmd`.
+
+## The tree
+
+```text
+examples/small/
+  .hmd/config.toml             ← root marker + project policy
+  index.hmd                    ← root folder note
+  logging.hmd                  ← the general logging card
+  glossary/
+    index.hmd
+    token.hmd                  ← ^definition anchor
+  shared/
+    index.hmd
+    tokens.hmd                 ← ^rotation-window anchor
+    retry-policy.hmd           ← ^backoff-formula anchor, math, footnote
+  specs/
+    index.hmd
+    auth/
+      index.hmd
+      login.hmd                ← imports, embeds, callout, d2, task list
+      logging.hmd              ← shadows /logging on the spine
+      tokens.hmd               ← shares a bare name with shared/tokens.hmd
+    billing/
+      index.hmd                ← use: [no_autodiscovery], inherited
+      invoices.hmd             ← wildcard import + relative named import
+```
+
+## Resolution
+
+### Spine and sweep
+
+| Written in | Link | Resolves to | Why |
+| --- | --- | --- | --- |
+| `specs/auth/login.hmd` | `[[logging]]` | `specs/auth/logging.hmd` | spine, own folder |
+| `specs/billing/invoices.hmd` | `[[logging]]` | `logging.hmd` | spine walks past `specs/` to the root; never reaches into `auth/` |
+| `specs/auth/logging.hmd` | `[[/logging]]` | `logging.hmd` | absolute — required here, since the bare name is this very card |
+| `index.hmd` | `[[invoices]]` | `specs/billing/invoices.hmd` | nothing on the spine; sweep finds one match |
+| `index.hmd` | `[[tokens]]` | **HMD002** | sweep matches `specs/auth/tokens.hmd` and `shared/tokens.hmd` |
+| `index.hmd` | `[[shared/tokens]]` | `shared/tokens.hmd` | spine, multi-segment |
+| `specs/billing/invoices.hmd` | `[[../auth/login]]` | `specs/auth/login.hmd` | relative |
+| anywhere | `[[specs/auth]]` | `specs/auth/index.hmd` | folder note |
+| `glossary/index.hmd` | `[[idempotency]]` | red link (HMD001) | no card claims the name; a work item, not a failure |
+
+The second row is the reason the spine is probed non-recursively. A bare name
+means *"here, or a folder above me"* and can never reach sideways into a sibling
+namespace, so billing gets the general logging card rather than whatever
+`specs/auth/` happens to contain.
+
+The fifth row is why `index.hmd` never writes `[[tokens]]`: two cards claim the
+name, neither is on that file's spine, and the sweep therefore finds both. The
+fix is qualification, not a tie-break.
+
+### Named imports
+
+`specs/auth/login.hmd` declares:
+
+```yaml
+import:
+  - from /shared import tokens as shared-tokens
+  - from /glossary import *
+```
+
+| Link | Resolves to | Why |
+| --- | --- | --- |
+| `[[shared-tokens]]` | `shared/tokens.hmd` | phase 0, aliased binding |
+| `[[tokens]]` | `specs/auth/tokens.hmd` | phase 1 — importing under an alias leaves the bare name alone |
+| `[[token]]` | `glossary/token.hmd` | phase 2, through the imported origin |
+| `[[retry-policy#Backoff]]` | `shared/retry-policy.hmd` | phase 3 — on no spine entry and in no import |
+
+The second row is the point of aliasing. Both `tokens` cards are reachable from
+this one card, unambiguously, because only one of them claims the bare name.
+
+A named import may shadow the spine, and that is deliberate — it is the one
+mechanism that can. Had `login.hmd` written `from / import logging`, its
+`[[logging]]` would resolve to the general card instead of the sibling one.
+
+### Wildcard imports
+
+`specs/billing/invoices.hmd` declares:
+
+```yaml
+import:
+  - from /shared import *
+  - from ../auth import login as login-spec
+```
+
+| Link | Resolves to | Why |
+| --- | --- | --- |
+| `[[retry-policy]]` | `shared/retry-policy.hmd` | phase 2, imported origin — no sweep needed |
+| `[[login-spec]]` | `specs/auth/login.hmd` | phase 0, relative named import |
+| `[[index]]` | `specs/billing/index.hmd` | phase 1, own folder note |
+
+`import *` adds a **search origin**; it does not eagerly bind the directory's
+contents. A card added to `shared/` later becomes reachable from here with no
+edit to this header.
+
+Because imported origins are probed *after* the whole spine, adding an
+`import *` is monotonic: it can resolve links that were previously red, but it
+can never change what an already-working link means. `[[tokens]]` written in
+`specs/auth/` still means the auth card even if that namespace later imports
+`/shared`.
+
+## Configuration
+
+`specs/billing/index.hmd` declares `use: [no_autodiscovery]`. Because `use`
+inherits, that governs `invoices.hmd` too, and the whole billing namespace
+resolves through imports and the spine only.
+
+It also overrides `.hmd/config.toml`, which enables autodiscovery for the rest
+of the tree — frontmatter always beats configuration:
+
+```text
+1. the card's own `use`                        ← billing/invoices.hmd, inherited
+2. `use` in the nearest ancestor index.hmd     ← billing/index.hmd
+3. [discovery] autodiscovery in config.toml    ← true, for everything else
+4. the built-in default                        ← ON
+```
+
+The practical difference shows up in one line of each card. `login.hmd` reaches
+`retry-policy` by sweep and says nothing about it; `invoices.hmd` reaches the
+same card only because its header names `/shared`. The second style costs a line
+of frontmatter and buys a dependency list you can read without running the
+resolver.
+
+## Syntax coverage
+
+| Feature | Sketch | Where |
+| --- | --- | --- |
+| Wikilink | 1 | everywhere |
+| Aliased link | 2 | `logging.hmd`, `specs/auth/logging.hmd` |
+| Heading link | 3 | `shared/tokens.hmd` → `[[retry-policy#Backoff]]` |
+| Block anchor | 4 | `^correlation-id`, `^definition`, `^rotation-window`, `^backoff-formula` |
+| Block reference | 5 | `specs/billing/invoices.hmd` |
+| Note embed | 6 | — *(no card embeds a whole page; see below)* |
+| Section embed | 7 | `specs/auth/logging.hmd` → `![[/logging#Redaction]]` |
+| Block embed | 8 | `specs/auth/login.hmd` → `![[token#^definition]]` |
+| Frontmatter | 9 | every card |
+| Callouts | 11 | `logging.hmd`, `specs/auth/login.hmd` |
+| Comments | 12 | `specs/auth/login.hmd` — masking demo, holds a `[[link]]` that is not a link |
+| Footnotes | 13 | `shared/retry-policy.hmd` |
+| Inline math | 14 | `shared/retry-policy.hmd`, `specs/auth/login.hmd` |
+| Display math | 15 | `shared/retry-policy.hmd`, `specs/auth/login.hmd` |
+| D2 diagram | 16 | `specs/auth/login.hmd` |
+| GFM baseline | 17 | table in `logging.hmd`, task list in `specs/auth/login.hmd` |
+| Folder notes | 52 | every `index.hmd` |
+| Red links | 28 | `glossary/index.hmd` |
+
+Whole-page embed (`![[Page]]`) is absent on purpose: in a tree this small every
+card is short enough that transcluding one entire would read as duplication
+rather than composition, which would misrepresent what the feature is for. The
+conformance corpus covers it instead.
+
+## What this tree does not cover
+
+- **Tags** beyond the `tags:` key itself. Tag pages, hierarchy queries, and
+  inline `#tag` syntax are deferred (sketch 56–61); only the frontmatter slot is
+  pinned by HMD-0001.
+- **Error cases.** Every diagnostic except HMD001 is absent by construction,
+  since the tree is meant to lint clean. HMD002, HMD012, and HMD014–HMD016
+  belong in the conformance corpus, which pairs bad input with expected
+  diagnostics.
+- **Book and wiki output.** The tree is a resolver fixture; rendering it through
+  the MkDocs plugin is M5 work.

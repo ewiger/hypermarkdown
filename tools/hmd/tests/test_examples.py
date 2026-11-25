@@ -1,6 +1,6 @@
 """The HMD-0001 example fixture is executable spec.
 
-Every resolution asserted in `doc/proposals/HMD-0001/examples.md` is reproduced
+Every resolution asserted in `doc/proposals/HMD-0001/examples.hmd` is reproduced
 here, so documentation drifting from behavior fails the suite rather than
 misleading a reader.
 """
@@ -38,7 +38,7 @@ def test_the_only_warning_is_the_deliberate_red_link(example_workspace):
 @pytest.mark.parametrize(
     "source, ref, target, phase",
     [
-        # examples.md — "Spine and sweep"
+        # examples.hmd — "Spine and sweep"
         ("specs/auth/login.hmd", "logging", "specs/auth/logging.hmd", 1),
         ("specs/billing/invoices.hmd", "logging", "logging.hmd", 1),
         ("specs/auth/logging.hmd", "/logging", "logging.hmd", None),
@@ -46,12 +46,12 @@ def test_the_only_warning_is_the_deliberate_red_link(example_workspace):
         ("index.hmd", "shared/tokens", "shared/tokens.hmd", 1),
         ("specs/billing/invoices.hmd", "../auth/login", "specs/auth/login.hmd", None),
         ("index.hmd", "specs/auth", "specs/auth/index.hmd", 1),
-        # examples.md — "Named imports"
+        # examples.hmd — "Named imports"
         ("specs/auth/login.hmd", "shared-tokens", "shared/tokens.hmd", 0),
         ("specs/auth/login.hmd", "tokens", "specs/auth/tokens.hmd", 1),
         ("specs/auth/login.hmd", "token", "glossary/token.hmd", 2),
         ("specs/auth/login.hmd", "retry-policy", "shared/retry-policy.hmd", 3),
-        # examples.md — "Wildcard imports"
+        # examples.hmd — "Wildcard imports"
         ("specs/billing/invoices.hmd", "retry-policy", "shared/retry-policy.hmd", 2),
         ("specs/billing/invoices.hmd", "login-spec", "specs/auth/login.hmd", 0),
         ("specs/billing/invoices.hmd", "index", "specs/billing/index.hmd", 1),

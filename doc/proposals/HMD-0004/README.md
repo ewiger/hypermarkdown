@@ -227,7 +227,7 @@ meaningless shape a meaning, and changes no link that resolves today.
 
 The module/namespace vocabulary is prose, and settling it changed prose only.
 [Namespaces](../../public/namespaces.hmd) was rewritten to teach the four words
-apart, and the callout in [Features](../../public/features.md) that read "a
+apart, and the callout in [Features](../../public/features.hmd) that read "a
 folder is a namespace" now says "a folder is a module". No behaviour, no
 diagnostic, and no configuration key changed, and HMD-0001 needed no amendment
 at all; see Non-goals.
@@ -252,14 +252,14 @@ before it adds a new one:
 ## Open Questions
 
 Every mechanism question is open by design. They are tracked in
-[the language tracker](../../status/lang.md#the-hyper-web-hmd-0004) and only there, following
+[the language tracker](../../status/lang.hmd#the-hyper-web-hmd-0004) and only there, following
 the same departure from `TEMPLATE.md` that [HMD-0003](../HMD-0003/README.md)
 took: a list mirrored in two files drifts, and then neither copy can be
 trusted without opening both.
 
 ## See also
 
-- [`doc/status/lang.md`](../../status/lang.md) — work points, limitations, and the open questions.
+- [`doc/status/lang.hmd`](../../status/lang.hmd) — work points, limitations, and the open questions.
 - [HMD-0001](../HMD-0001/README.md) — the module boundary, the namespace root,
   the containment check, and the `import` mechanism this record builds on and
   extends outward.

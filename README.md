@@ -336,9 +336,9 @@ cargo install hql --locked      # or a release binary from its releases page
 - **[`doc/proposals/`](doc/proposals/)** — numbered specifications. A change to
   the format or the tooling starts as one; reserve its number in
   [`doc/proposals/README.md`](doc/proposals/README.md).
-- **[`doc/status/`](doc/status/)** — progress, tracked per tool: `lang.md` for
-  the format, `hmd.md`, `ts-core.md`, `vsc-ext.md`, `rs-core.md`, and `semantics.md`
-  for the five tools, and `pages.md` for the site. Updated in the same commit that changes the code, and
+- **[`doc/status/`](doc/status/)** — progress, tracked per tool: `lang.hmd` for
+  the format, `hmd.hmd`, `ts-core.hmd`, `vsc-ext.hmd`, `rs-core.hmd`, and `semantics.hmd`
+  for the five tools, and `pages.hmd` for the site. Updated in the same commit that changes the code, and
   the only place work is tracked.
 - **Kanban board** - in `doc/issues/**`, for the repository's own work, and for the language and the
   website, as well as the tools. The board is public, but the issues are owned by the contributors team.

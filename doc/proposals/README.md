@@ -13,34 +13,34 @@ it continues at **`HMD-0100`**, leaving `0020`–`0099` to the editor line.
 
 | ID | Status | Title | Progress |
 | --- | --- | --- | --- |
-| [HMD-0001](HMD-0001/README.md) | drafted | MVP — grammar, resolver, and `hmd lint` | [lang](../status/lang.md), [hmd](../status/hmd.md) |
-| [HMD-0002](HMD-0002/README.md) | drafted | MkDocs book-mode rendering | [hmd](../status/hmd.md), [pages](../status/pages.md) |
-| [HMD-0003](HMD-0003/README.md) | superseded | HQL — the Hyper Query Language, now [its own project](https://hql-lang.org/) with its own documentation | [lang](../status/lang.md) |
-| [HMD-0004](HMD-0004/README.md) | drafted | The hyper web — namespaces beyond one tree (stub, no mechanism) | [lang](../status/lang.md) |
-| [HMD-0005](HMD-0005/README.md) | drafted | The HyperMarkDown rename — domain, repository, and registries | [hmd](../status/hmd.md) |
-| [HMD-0006](HMD-0006/README.md) | drafted | Extended URI for transclusion and link referencing when addressing inside a card | [lang](../status/lang.md) |
-| [HMD-0020](HMD-0020/README.md) | drafted | `@hypermarkdown/core` — the TypeScript document model | [ts-core](../status/ts-core.md) |
-| [HMD-0021](HMD-0021/README.md) | drafted | The VS Code extension — the HyperMarkDown preview surface | [vsc-ext](../status/vsc-ext.md) |
-| [HMD-0022](HMD-0022/README.md) | drafted | Diagrams as committed artifacts | [ts-core](../status/ts-core.md), [vsc-ext](../status/vsc-ext.md) |
+| [HMD-0001](HMD-0001/README.md) | drafted | MVP — grammar, resolver, and `hmd lint` | [lang](../status/lang.hmd), [hmd](../status/hmd.hmd) |
+| [HMD-0002](HMD-0002/README.md) | drafted | MkDocs book-mode rendering | [hmd](../status/hmd.hmd), [pages](../status/pages.hmd) |
+| [HMD-0003](HMD-0003/README.md) | superseded | HQL — the Hyper Query Language, now [its own project](https://hql-lang.org/) with its own documentation | [lang](../status/lang.hmd) |
+| [HMD-0004](HMD-0004/README.md) | drafted | The hyper web — namespaces beyond one tree (stub, no mechanism) | [lang](../status/lang.hmd) |
+| [HMD-0005](HMD-0005/README.md) | drafted | The HyperMarkDown rename — domain, repository, and registries | [hmd](../status/hmd.hmd) |
+| [HMD-0006](HMD-0006/README.md) | drafted | Extended URI for transclusion and link referencing when addressing inside a card | [lang](../status/lang.hmd) |
+| [HMD-0020](HMD-0020/README.md) | drafted | `@hypermarkdown/core` — the TypeScript document model | [ts-core](../status/ts-core.hmd) |
+| [HMD-0021](HMD-0021/README.md) | drafted | The VS Code extension — the HyperMarkDown preview surface | [vsc-ext](../status/vsc-ext.hmd) |
+| [HMD-0022](HMD-0022/README.md) | drafted | Diagrams as committed artifacts | [ts-core](../status/ts-core.hmd), [vsc-ext](../status/vsc-ext.hmd) |
 | HMD-0023 | reserved | Searching the wiki from the preview | — |
-| [HMD-0024](HMD-0024/README.md) | drafted | The `tools/` layout, and a Python language server | [hmd](../status/hmd.md) |
-| [HMD-0025](HMD-0025/README.md) | drafted | The graph tab — the vault as a picture | [vsc-ext](../status/vsc-ext.md) |
-| [HMD-0026](HMD-0026/README.md) | drafted | HQL cells — a card as a notebook | [ts-core](../status/ts-core.md), [vsc-ext](../status/vsc-ext.md), [lang](../status/lang.md) |
-| [HMD-0027](HMD-0027/README.md) | drafted | `hypermarkdown` — the resolver as a Rust crate | [rs-core](../status/rs-core.md) |
-| [HMD-0028](HMD-0028/README.md) | drafted | The `[hql]` and `[semantics]` tables, and the semantic index | [semantics](../status/semantics.md), [hmd](../status/hmd.md) |
-| [HMD-0029](HMD-0029/README.md) | drafted | Markdown files are cards | [lang](../status/lang.md), [hmd](../status/hmd.md), [ts-core](../status/ts-core.md), [rs-core](../status/rs-core.md), [semantics](../status/semantics.md) |
-| [HMD-0030](HMD-0030/README.md) | drafted | Diagram cells — `d2#show` and `mermaid#show`, drawn like HQL cells with Show in place of Run | [vsc-ext](../status/vsc-ext.md), [ts-core](../status/ts-core.md), [hmd](../status/hmd.md), [lang](../status/lang.md), [pages](../status/pages.md) |
-| [HMD-0031](HMD-0031/README.md) | drafted | Freeze — every open finding against 0.1, consolidated before fixing | [lang](../status/lang.md) |
+| [HMD-0024](HMD-0024/README.md) | drafted | The `tools/` layout, and a Python language server | [hmd](../status/hmd.hmd) |
+| [HMD-0025](HMD-0025/README.md) | drafted | The graph tab — the vault as a picture | [vsc-ext](../status/vsc-ext.hmd) |
+| [HMD-0026](HMD-0026/README.md) | drafted | HQL cells — a card as a notebook | [ts-core](../status/ts-core.hmd), [vsc-ext](../status/vsc-ext.hmd), [lang](../status/lang.hmd) |
+| [HMD-0027](HMD-0027/README.md) | drafted | `hypermarkdown` — the resolver as a Rust crate | [rs-core](../status/rs-core.hmd) |
+| [HMD-0028](HMD-0028/README.md) | drafted | The `[hql]` and `[semantics]` tables, and the semantic index | [semantics](../status/semantics.hmd), [hmd](../status/hmd.hmd) |
+| [HMD-0029](HMD-0029/README.md) | drafted | Markdown files are cards | [lang](../status/lang.hmd), [hmd](../status/hmd.hmd), [ts-core](../status/ts-core.hmd), [rs-core](../status/rs-core.hmd), [semantics](../status/semantics.hmd) |
+| [HMD-0030](HMD-0030/README.md) | drafted | Diagram cells — `d2#show` and `mermaid#show`, drawn like HQL cells with Show in place of Run | [vsc-ext](../status/vsc-ext.hmd), [ts-core](../status/ts-core.hmd), [hmd](../status/hmd.hmd), [lang](../status/lang.hmd), [pages](../status/pages.hmd) |
+| [HMD-0031](HMD-0031/README.md) | drafted | Freeze — every open finding against 0.1, consolidated before fixing | [lang](../status/lang.hmd) |
 
 ## Progress is tracked per tool
 
 Work is tracked in [`doc/status/`](../status/), one file per thing that ships:
-[`lang.md`](../status/lang.md) for the format itself, [`hmd.md`](../status/hmd.md)
-for the canonical Python implementation, [`ts-core.md`](../status/ts-core.md) and
-[`vsc-ext.md`](../status/vsc-ext.md) for the TypeScript implementation and its
-editor, [`rs-core.md`](../status/rs-core.md) for the Rust resolver crate,
-[`semantics.md`](../status/semantics.md) for the semantic index builder, and
-[`pages.md`](../status/pages.md) for the site. Those files are the
+[`lang.hmd`](../status/lang.hmd) for the format itself, [`hmd.hmd`](../status/hmd.hmd)
+for the canonical Python implementation, [`ts-core.hmd`](../status/ts-core.hmd) and
+[`vsc-ext.hmd`](../status/vsc-ext.hmd) for the TypeScript implementation and its
+editor, [`rs-core.hmd`](../status/rs-core.hmd) for the Rust resolver crate,
+[`semantics.hmd`](../status/semantics.hmd) for the semantic index builder, and
+[`pages.hmd`](../status/pages.hmd) for the site. Those files are the
 **only** place work is tracked; there is no repository-wide task list and no
 board.
 

@@ -157,7 +157,7 @@ def test_the_language_version_has_a_changelog_section():
 
     # The roadmap's version table is the site's one statement of the language's
     # version, so it has to name the same number as the callout.
-    roadmap = (ROOT / "doc" / "public" / "roadmap.md").read_text(encoding="utf-8")
+    roadmap = (ROOT / "doc" / "public" / "roadmap.hmd").read_text(encoding="utf-8")
     row = re.search(r"^\| \*\*HyperMarkDown\*\*, the language \| ([^ |]+) \|", roadmap, re.M)
     assert row is not None, "the roadmap's version table has no row for the language"
     assert row.group(1) == version, (
@@ -727,9 +727,9 @@ RETIRED_NAME_ALLOWED = {
     "tools/hmd/CHANGELOG.md",
     "tools/hmd-vsc-ext/CHANGELOG.md",
     ".github/workflows/release-vsc-ext.yml",
-    "doc/memory/decisions.md",
-    "doc/memory/2026-08-06-typescript-editor-line.md",
-    "doc/memory/2026-08-10-hypermarkdown-identity.md",
+    "doc/memory/decisions.hmd",
+    "doc/memory/2026-08-06-typescript-editor-line.hmd",
+    "doc/memory/2026-08-10-hypermarkdown-identity.hmd",
     # The release rules, which title the first two Python releases by the name
     # they shipped under on PyPI, and the test that pins it.
     "scripts/release.py",
@@ -738,8 +738,8 @@ RETIRED_NAME_ALLOWED = {
     # the retired domain and the PyPI project left abandoned under it: what is
     # broken and what is deliberately not being fixed are both named by the old
     # spelling, because that is the thing they are about.
-    "doc/status/hmd.md",
-    "doc/status/pages.md",
+    "doc/status/hmd.hmd",
+    "doc/status/pages.hmd",
     # Names the retired VS Marketplace publisher, which is deliberately kept
     # registered and unused: a publisher name returned to the pool is one an
     # impostor can publish under. The setup table has to say which one that is.

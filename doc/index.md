@@ -531,7 +531,7 @@ $$
 </div>
 </div>
 
-<p class="hmd-fineprint" markdown>Diagrams are [D2](https://d2lang.com/) and mathematics is TeX. Tables, footnotes, collapsible sections and strikethrough render in the editor preview and on a site too. Where the `d2` program is not installed, a diagram is shown as its own source with a label. Every construct is shown working in [Features](public/features.md).</p>
+<p class="hmd-fineprint" markdown>Diagrams are [D2](https://d2lang.com/) and mathematics is TeX. Tables, footnotes, collapsible sections and strikethrough render in the editor preview and on a site too. Where the `d2` program is not installed, a diagram is shown as its own source with a label. Every construct is shown working in [Features](public/features.hmd).</p>
 
 </section>
 
@@ -618,7 +618,7 @@ output. `hql render` runs a card's cells from the command line.
 
 </div>
 
-<p class="hmd-fineprint" markdown>HQL is a strongly typed expression and query language, and a separate project. A cell can query the vault's cards, their metadata and their links, and the same pipelines read JSON, YAML, SQLite, PostgreSQL, Kafka, NATS and lakehouse tables. Its documentation is at [hql-lang.org](https://hql-lang.org/). What each kind of value is written as is [Cell output](public/cell-output.md).</p>
+<p class="hmd-fineprint" markdown>HQL is a strongly typed expression and query language, and a separate project. A cell can query the vault's cards, their metadata and their links, and the same pipelines read JSON, YAML, SQLite, PostgreSQL, Kafka, NATS and lakehouse tables. Its documentation is at [hql-lang.org](https://hql-lang.org/). What each kind of value is written as is [Cell output](public/cell-output.hmd).</p>
 
 </section>
 
@@ -693,7 +693,7 @@ summary of each card beside it is planned and not built.
 
 <div class="hmd-tiles" markdown>
 
-- [**VS Code extension**](tools/vscode.md) <span>editor</span> <em>Live preview, the vault's graph, diagnostics, and Run buttons on cells.</em>
+- [**VS Code extension**](tools/vscode.hmd) <span>editor</span> <em>Live preview, the vault's graph, diagnostics, and Run buttons on cells.</em>
 - [**hmd**](https://pypi.org/project/hypermarkdown/) <span>command line · Python</span> <em>`lint`, `render`, `graph`, `init` and `info` over a tree of cards.</em>
 - [**MkDocs plugin**](tools/index.md) <span>site</span> <em>Builds a tree of cards into a website. It built this one.</em>
 - [**@hypermarkdown/core**](https://www.npmjs.com/package/@hypermarkdown/core) <span>library · TypeScript</span> <em>Parser, resolver and renderer. The extension's preview runs on it.</em>
@@ -704,7 +704,7 @@ summary of each card beside it is planned and not built.
 
 </div>
 
-<p class="hmd-fineprint" markdown>The specification decides what a card means. The Python, TypeScript and Rust implementations run the same test cases, and where neither settles a question the Python tool's behaviour stands. Cells run in the editor and through HQL; `hmd` and the site build do not run them. A card is plain text, so any editor, GitHub or a chat window shows its source; what each viewer draws is [Presentation](public/presentation.md).</p>
+<p class="hmd-fineprint" markdown>The specification decides what a card means. The Python, TypeScript and Rust implementations run the same test cases, and where neither settles a question the Python tool's behaviour stands. Cells run in the editor and through HQL; `hmd` and the site build do not run them. A card is plain text, so any editor, GitHub or a chat window shows its source; what each viewer draws is [Presentation](public/presentation.hmd).</p>
 
 </section>
 
@@ -741,13 +741,13 @@ summary of each card beside it is planned and not built.
 
 - [**Vision**](public/vision.hmd) <span>A web of plain text pages that people, programs, and AI agents can read.</span>
 - [**Namespaces**](public/namespaces.hmd) <span>Cards, directories, and reference resolution.</span>
-- [**Features**](public/features.md) <span>What a card can carry, shown working.</span>
+- [**Features**](public/features.hmd) <span>What a card can carry, shown working.</span>
 - [**Language Specification**](wiki/hmd-lang-spec.hmd) <span>The normative text: grammar, resolution, diagnostics.</span>
-- [**Introduction**](public/introduction.md) <span>The format at a glance, and how to adopt it one file at a time.</span>
+- [**Introduction**](public/introduction.hmd) <span>The format at a glance, and how to adopt it one file at a time.</span>
 - [**Tutorial**](wiki/hmd-tutorial.hmd) <span>Build a reading club vault and generate a reading list with HQL.</span>
-- [**Cell output**](public/cell-output.md) <span>What each kind of value is written as, and how to choose a format.</span>
-- [**Presentation**](public/presentation.md) <span>Editor, site and plain text: what each one shows.</span>
-- [**Roadmap**](public/roadmap.md) <span>Released versions, what works today, and what is coming.</span>
+- [**Cell output**](public/cell-output.hmd) <span>What each kind of value is written as, and how to choose a format.</span>
+- [**Presentation**](public/presentation.hmd) <span>Editor, site and plain text: what each one shows.</span>
+- [**Roadmap**](public/roadmap.hmd) <span>Released versions, what works today, and what is coming.</span>
 
 </div>
 </section>
@@ -782,6 +782,6 @@ hmd lint
 
 </div>
 
-<p class="hmd-fineprint" markdown>What each install gives you is the [Quick start](tools/index.md). The tools implement specification 0.1, a draft; released versions are on the [Roadmap](public/roadmap.md). Code is MIT, documentation and specifications are CC BY 4.0.</p>
+<p class="hmd-fineprint" markdown>What each install gives you is the [Quick start](tools/index.md). The tools implement specification 0.1, a draft; released versions are on the [Roadmap](public/roadmap.hmd). Code is MIT, documentation and specifications are CC BY 4.0.</p>
 
 </section>

@@ -2,7 +2,7 @@
 
 **Status**: drafted
 **Created**: 2026-08-06
-**Source**: [HyperMarkDown in the editor — Requirements](../../models/requirements/vscode-extension.md)
+**Source**: [HyperMarkDown in the editor — Requirements](../../models/requirements/vscode-extension.hmd)
 
 ## Companion notes
 
@@ -86,7 +86,7 @@ The repository gains a JavaScript half that never touches the Python half.
 package.json                 npm workspaces root, private
 tools/hmd-ts-core/           @hypermarkdown/core
 tools/hmd-vsc-ext/           the extension (HMD-0021)
-doc/status/ts-core.md        implementation status, JS side
+doc/status/ts-core.hmd        implementation status, JS side
 examples/conformance/cases/  the shared corpus (§10)
 ```
 
@@ -461,7 +461,7 @@ Nothing is released on the JavaScript side, so there is no API to break. Three
 project-level effects:
 
 - **Principle P5 is retired.**
-  [`initial_sketch.md`](../../models/requirements/initial_sketch.md) §2 states
+  [`initial_sketch.hmd`](../../models/requirements/initial_sketch.hmd) §2 states
   it, and §15 builds the editor architecture on it. Both should be annotated
   once this proposal is accepted; the sketch's status as a v0.1 draft means the
   annotation is cheaper than a rewrite.

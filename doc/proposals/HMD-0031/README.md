@@ -2,7 +2,7 @@
 
 **Status**: drafted
 **Created**: 2026-11-22
-**Source**: [the release card](../../issues/archive/0016-prepare-the-0-1-specification-release.md),
+**Source**: [the release card](../../issues/archive/0016-prepare-the-0-1-specification-release.hmd),
 the format's tracker, and reviews of the specification as published
 
 ## Companion notes
@@ -10,17 +10,17 @@ the format's tracker, and reviews of the specification as published
 Each note holds one category of findings: what the text or the repository
 says, why it matters, the resolutions on the table, and the questions left.
 
-- [`errata.md`](errata.md) — places where the specification, or a page that
+- [`errata.hmd`](errata.hmd) — places where the specification, or a page that
   describes it, contradicts itself.
-- [`authority.md`](authority.md) — which of the specification, the corpus, and
+- [`authority.hmd`](authority.hmd) — which of the specification, the corpus, and
   the implementations decides, and what it means to conform.
-- [`corpus.md`](corpus.md) — what the conformance cases compare and what they
+- [`corpus.hmd`](corpus.hmd) — what the conformance cases compare and what they
   do not yet cover.
-- [`platforms.md`](platforms.md) — names and paths that resolve differently
+- [`platforms.hmd`](platforms.hmd) — names and paths that resolve differently
   depending on the filesystem.
-- [`publication.md`](publication.md) — ways private content can reach a
+- [`publication.hmd`](publication.hmd) — ways private content can reach a
   published page.
-- [`release.md`](release.md) — what may change after the tag, and the
+- [`release.hmd`](release.hmd) — what may change after the tag, and the
   questions the release itself has to answer.
 
 ## Abstract
@@ -101,7 +101,7 @@ step, except in the sweep. The grammar admits `a:b` as a name while the text
 calls the reserved `namespace:path` form malformed. And one paragraph says an
 embed of a Markdown card points at a page, while embed expansion says it
 transcludes the body. Pages around the specification also carry stale counts
-and a stale description of heading matching. Details in [`errata.md`](errata.md).
+and a stale description of heading matching. Details in [`errata.hmd`](errata.hmd).
 
 ### Authority and conformance
 
@@ -110,7 +110,7 @@ Python package canonical and generates every expected result from it, so in
 practice the package decides. The specification also knows one kind of
 conforming implementation, and that kind must report every diagnostic. The Rust
 crate resolves and reports nothing, so as written it cannot conform. Details
-in [`authority.md`](authority.md).
+in [`authority.hmd`](authority.hmd).
 
 ### The corpus
 
@@ -118,14 +118,14 @@ The thirteen cases pin resolutions and diagnostics, and the TypeScript runner
 also compares each diagnostic's English message. Nothing pins construct spans,
 whose units 0.1 just changed, or the text an embed expands to. No case covers
 publication, a written extension outside the unqualified form, or the
-divergences the specification permits. Details in [`corpus.md`](corpus.md).
+divergences the specification permits. Details in [`corpus.hmd`](corpus.hmd).
 
 ### Platforms
 
 Names are compared after NFC, but the text says nothing about case. On a
 case-insensitive filesystem a link resolves that is a forward reference on
 Linux, which breaks the determinism rule. Card identity across drive letters
-and separators is implied, not stated. Details in [`platforms.md`](platforms.md).
+and separators is implied, not stated. Details in [`platforms.hmd`](platforms.hmd).
 
 ### Publication
 
@@ -133,7 +133,7 @@ A Markdown card's effective visibility is always public. Its body can therefore
 apparently be expanded into a published page even from inside a private
 folder. Nested embeds, fragment embeds, and what a degraded embed may show
 are stated loosely or not at all, and none of it is tested. Details in
-[`publication.md`](publication.md).
+[`publication.hmd`](publication.hmd).
 
 ### Release
 
@@ -141,7 +141,7 @@ The text says its version moves only when constructs change. It does not say
 whether a correction like the extension erratum is a 0.1 revision or a new
 version. The site renders with a library that does not follow CommonMark. The
 anchor that 0.1 recommends as the remedy for duplicate headings has an
-undecided embed behaviour. Details in [`release.md`](release.md).
+undecided embed behaviour. Details in [`release.hmd`](release.hmd).
 
 ## Adding a finding
 
@@ -156,25 +156,25 @@ question in every note has an answer.
 Each note ends with its own list; together they are the questions this record
 exists to close.
 
-- [Errata](errata.md#open-questions)
-- [Authority and conformance](authority.md#open-questions)
-- [The corpus](corpus.md#open-questions)
-- [Platforms](platforms.md#open-questions)
-- [Publication](publication.md#open-questions)
-- [Release](release.md#open-questions)
+- [Errata](errata.hmd#open-questions)
+- [Authority and conformance](authority.hmd#open-questions)
+- [The corpus](corpus.hmd#open-questions)
+- [Platforms](platforms.hmd#open-questions)
+- [Publication](publication.hmd#open-questions)
+- [Release](release.hmd#open-questions)
 
 ## See also
 
-- [The release card](../../issues/archive/0016-prepare-the-0-1-specification-release.md)
+- [The release card](../../issues/archive/0016-prepare-the-0-1-specification-release.hmd)
   — the decisions of 2026-11-22, the readability actions, and the steps to the
   release.
 - [The specification](../../wiki/hmd-lang-spec.hmd) — the normative text the
   findings are read against.
 - [The conformance corpus](../../../examples/conformance/README.md) — the cases
   and their runners.
-- [The format's tracker](../../status/lang.md) — where the work goes once this
+- [The format's tracker](../../status/lang.hmd) — where the work goes once this
   record is accepted.
-- [The CommonMark dataset card](../../issues/0015-commonmark-examples-as-a-test-dataset.md)
+- [The CommonMark dataset card](../../issues/0015-commonmark-examples-as-a-test-dataset.hmd)
   — the parallel track 0.1 does not wait on.
 
 ## Changelog

@@ -2,7 +2,7 @@
 
 **Status**: drafted
 **Created**: 2026-08-07
-**Source**: [HyperMarkDown in the editor — Requirements](../../models/requirements/vscode-extension.md) (VSX-016)
+**Source**: [HyperMarkDown in the editor — Requirements](../../models/requirements/vscode-extension.hmd) (VSX-016)
 
 ## Companion notes
 

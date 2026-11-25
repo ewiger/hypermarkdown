@@ -2,7 +2,7 @@
 
 **Status**: drafted
 **Created**: 2026-09-14
-**Source**: [HyperMarkDown in the editor — Requirements](../../models/requirements/vscode-extension.md)
+**Source**: [HyperMarkDown in the editor — Requirements](../../models/requirements/vscode-extension.hmd)
 
 ## Abstract
 
@@ -300,7 +300,7 @@ npm run -w tools/hmd-vsc-ext build
   under.
 - [HMD-0020](../HMD-0020/README.md) — the format implementation whose index
   supplies the nodes and edges.
-- [`doc/status/vsc-ext.md`](../../status/vsc-ext.md) — where this work is
+- [`doc/status/vsc-ext.hmd`](../../status/vsc-ext.hmd) — where this work is
   tracked.
 
 ## Changelog

@@ -1,0 +1,266 @@
+---
+import:
+  - from /proposals/HMD-0001 import README as hmd-0001
+  - from /proposals/HMD-0002 import README as hmd-0002
+  - from /proposals/HMD-0005 import README as hmd-0005
+  - from /proposals/HMD-0020 import README as hmd-0020
+  - from /proposals/HMD-0021 import README as hmd-0021
+  - from /proposals/HMD-0024 import README as hmd-0024
+  - from /proposals/HMD-0025 import README as hmd-0025
+  - from /proposals/HMD-0026 import README as hmd-0026
+  - from /proposals/HMD-0030 import README as hmd-0030
+---
+
+# STATUS — the VS Code extension
+
+`tools/hmd-vsc-ext` — HyperMarkDown inside the editor: a rendered card in a tab
+beside its source, diagnostics in the Problems panel, and the graph. It carries
+its own copy of the format, so nothing has to be installed to preview a card —
+no interpreter, no virtualenv, no subprocess between a keystroke and the
+preview. Published as `hypermarkdown.hmd` on the VS Marketplace and Open VSX.
+
+Beside this file: the format itself in [`lang.hmd`](lang.hmd), the reference
+implementation in [`hmd.hmd`](hmd.hmd), the format implementation this extension
+embeds in [`ts-core.hmd`](ts-core.hmd), the Rust resolver in
+[`rs-core.hmd`](rs-core.hmd), the semantic-index builder in
+[`semantics.hmd`](semantics.hmd), and the website in [`pages.hmd`](pages.hmd).
+
+## Status
+
+**`0.6.0` is released to both galleries, and cards are notebooks.** The
+extension reads cards through the core it embeds, so it conforms to
+HyperMarkDown 0.1.0 as far as that core does — every rule but the publication
+model. 0.6.0, released on 2026-11-25, carries the 0.1 rules.
+Everything the extension claims to do works and is gated by tests: the rendered
+tab, wiki links and plain Markdown links that open what they name, embeds as collapsible cards, scroll sync both ways, red links with a
+create-the-card action, the graph, diagnostics identical to the linter's except
+the publication rule, and
+math, callouts, and D2 diagrams — the `d2` binary travels inside the extension,
+so a diagram draws on a fresh install with nothing configured. Releases publish
+from CI with no stored credential.
+
+**The graph tab is in, and backlinks is gone.** Two scopes, a direction, link
+and embed edges drawn apart, click-to-navigate, full screen, and a toolbar,
+drawn with a bundled Cytoscape.js and specified in its own record [[hmd-0025]].
+It was the last thing the `preview` flag was waiting on, and the flag came off
+with this release [issue 0109].
+
+**Cells are in, as of `0.4.0`.** A `hql#eval` or `hql#query` fence is a cell,
+and `hql#query` is `hql#eval hidden`: the preview draws the output saved in the
+card, with the code behind a **Code** toggle and **Edit** and **Run** beside it,
+and says whether the output is current or stale without running anything. Run
+hands the card to the `hql` binary and writes the answer back in the bytes
+`hql render` would, as one undoable edit; nothing runs on open, and nothing
+runs in an untrusted workspace. A plain `hql` fence is a listing and never runs
+[[hmd-0026]]. Tested against the real binary and checked by hand in a running
+editor [issue 0110]. Since `0.4.1` the `hql` comes with the extension, from the
+pinned toolchain beside `d2`, on Linux x64 and macOS, and on Windows since
+`0.5.2` — `hql` 0.7.2 as of `0.5.2`; `hyperMarkdown.hql.path`
+overrides it, and Linux ARM64 uses `hql` on `PATH` [issue 0111].
+
+**Vaults are now discovered from the card.** A window holds a catalog of
+vaults rather than one project, so a repository carrying several — this one
+carries `doc/wiki` plus a vault per example tree — previews a card in any of
+them. A vault nested inside another is its own vault on every path, not only
+on discovery, since `0.4.4` [issue 0009].
+
+## Open
+
+| Status | Work | Notes | References |
+| --- | --- | --- | --- |
+| todo | **Automate the by-hand checks.** The list in the extension's `DEVELOP.md` — the graph's legibility on a real vault, live editing, scroll sync — is read by hand before a release, and nothing stands in for it. The parked integration suite is where this would live [issue 0101] | Not a gate on shipping; it is the reason a release still costs an afternoon | [[hmd-0025]] |
+| backlog | **Filter the graph by namespace and tag**, which the requirement asks for and the tab does not do. The index carries both on every node already | Waits on the open question below: what a filter does to the node cap | [[hmd-0025]] |
+| todo | **Create the card a relative link points at.** Create-card places a bare target beside the linking card and an absolute one under the root, and declines `./` and `../` targets with a warning. Writing the link relative is how an author places a card deliberately, so the one form that says where the card goes is the form the action refuses | Path derivation and its test both encode the refusal today [`src/commands/createCard.ts`, `test/protocol.test.ts`] | [[hmd-0001#2-grammar]], [[hmd-0021#5-rendering-the-ir]] |
+| todo | **Offer to make a vault for a card no vault claims.** The preview and the cell runner report the missing `.hmd/` and stop, and the README sends users to `hmd init`, which the extension does not ship. Since the specification makes an empty `.hmd/` a complete vault, an **Initialize Vault…** button and command can offer every directory from the workspace folder down to the card, write an empty `.hmd/`, and re-index without a reload. The same pass rewrites the README's fallback-root text, which still names the `wiki` key the rename replaced | Reported on 0.5.2 for Windows: a `.hmd/` created by hand is ignored until **Rebuild Index**, and a cell run first fails with `hql: … not a vault: it holds no .hmd/` | [the issue card](../issues/0116-initialize-a-vault-from-the-editor.md), [[hmd-lang-spec#the-namespace]] |
+| blocked | **Drop the mask.** Before handing a card to HQL the extension renames a bare `hql` fence to `txt` and marks an `hql#query` fence `hidden`, because `hql render` runs bare `hql` fences as cells and writes outputs for queries, and this format says they are a listing and a hidden cell. Unblocks when HQL adopts both rules | One function and its call [`src/hql/engine.ts`, `maskForHql`] | [[hmd-0026#the-divergence-with]] |
+| blocked | **Name the HQL project and import `hmd` on the command line.** HQL's record of projects and vaults has a host pass the project it resolved, `--project <dir>`, and inject `--import hmd`. The extension passes neither: `hql render` imports `hmd` and selects the project itself, and the HQL the toolchain pins predates both flags and refuses an option it does not know. Unblocks when the toolchain pins an HQL release that has them | One argument list [`src/hql/engine.ts`, `run`] | [[hmd-0026#running-a-cell]] |
+| parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
+| todo | **Diagram cells in the preview.** A `d2#show` or `mermaid#show` fence is drawn like an `hql#eval` cell: the drawing first, the source behind Code, Edit beside it, and Show in place of Run. A cell is drawn when the card opens; after an edit it keeps its last drawing, marked stale, until Show. Nothing is written into the card, and a plain `d2` fence becomes code | Lands together with the core's change and the rewrite of this repository's `d2` fences, or the book loses its diagrams | [[hmd-0030]] |
+| todo | **Draw Mermaid diagrams in the preview**, for `mermaid#show` cells, with a renderer pinned in the toolchain beside `d2`, falling back to `PATH`, and the same cache, bounds, and `data:` image delivery | The renderer is the cost: Mermaid's reference CLI drives a headless Chromium, which is heavy in a VSIX and slow to start | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd) |
+
+**Why the integration suite is parked**, neither reason in our code: the test
+harness spawns `Contents/MacOS/Electron` and current VS Code ships that binary
+as `Code`, and symlinking around the rename invalidates the app signature, so
+macOS kills the process outright. The untested next step is the harness's 3.1.0
+release. Neither failure exists on a Linux runner, so when this is picked up it
+belongs in CI under a virtual display rather than on a laptop. It also downloads
+about 300 MB on first run, which is why it is not in the default test command.
+
+## Broken
+
+| Status | Defect | Symptom | References |
+| --- | --- | --- | --- |
+| todo | **A relative image in a card is not shown in the preview.** The rendered HTML keeps the image path as written, nothing rewrites it to a webview resource, and the webview is allowed to load files from the extension's own `media` folder only | `![chart](chart.png)` shows a broken image in every card, where the built site shows the picture. Found by reading the code while checking folder notes, and not yet reproduced in a running editor. Ordinary links are not affected: a click resolves from the card's own folder, a folder note included | [the issue card](../issues/0113-relative-images-do-not-show-in-the-preview.hmd) |
+
+## Limitations (known gaps)
+
+| Limitation | Why it stands | References |
+| --- | --- | --- |
+| Run needs `hql` on `PATH` on Linux ARM64 | HQL 0.7.2 publishes no binary for it, so the toolchain archive for it carries `d2` only. A toolchain release picks it up when HQL publishes it | [[hmd-0026#running-a-cell]] |
+| Raw HTML in a card is escaped rather than rendered | A webview that renders HTML out of a workspace is a script-injection surface reachable from any cloned repository. Deliberate, and a divergence from the website, which does render it | [[hmd-0021#11-webview-hardening]] |
+| A published card linking to a private one is never flagged | The publication model is unported in the core, so nothing here knows whether a card is published at all (rule HMD017). A listed limitation of the core's conformance to 0.1.0; it arrives here with the core's port | [[hmd-0002#3-expansion]] |
+| Math is typeset by KaTeX, not the website's MathJax, and `~x~` subscript does nothing | KaTeX is bundled and needs no network; it covers a subset of LaTeX and shows what it cannot render in red. Subscript is a small addition waiting on the core | [[hmd-0020#3-3-free-syntax]] |
+| Completion, rename, and hover are absent | They arrive with the language server, which lives with the reference implementation. The preview keeps rendering without it either way | [[hmd-0024#the-language-server-is-python-on-pygls]] |
+| The integration suite is not in the default test command | Its harness downloads about 300 MB on first run | [[hmd-0021#12-packaging-and-ci]] |
+| The graph draws only what resolved, and stops at 400 cards | A red link has no card at the other end to draw it to, and is reported in the rendered tab and the Problems panel instead. Past the cap the view keeps the cards nearest the one being read and says how many it dropped: a hairball is not a more honest picture than a bounded one that names what is missing | [[hmd-0025]] |
+| Full screen can fall one press out of step | Zen mode and the rest are toggles the editor does not let an extension read back, so the tab tracks what it performed. Leave zen mode by hand and the button's next press puts it back in step | [[hmd-0025]] |
+| Adding or removing a `.hmd/` directory inside an indexed vault takes effect only after **Rebuild Index** | The watcher follows cards, not markers. The vault's view of which directories are nested vaults is fixed when it loads | [[hmd-lang-spec#project-configuration]] |
+| The webview bundle is about 400 KB, nearly all of it Cytoscape | The policy forbids remote script, so a graph library is either compiled in or absent | [[hmd-0025]], [[hmd-0021#11-webview-hardening]] |
+
+## Done
+
+- **`location_path` names a vault's namespace root** — read through the core,
+  with the default `.`, the folder of `.hmd/` itself, instead of `doc/wiki`.
+  `hyperMarkdown.root` keeps its name; left empty, it now falls back to
+  `location_path`; released in 0.6.0.
+- **The 0.1 rules from the core** — following a heading link matches by key,
+  so underlined headings and headings in every script are reached, diagnostics
+  convert code-point columns to the editor's UTF-16 ones, an undecodable card
+  is reported as HMD019, and resolution follows the corrected algorithm (`..`
+  normalised, `[[./]]` binding only a folder note, candidates in code-point
+  order); released in 0.6.0.
+- **A symbolic link out of the vault is no longer followed as a card** — the
+  host marks it with `DirEntry.leavesRoot` on a `file:` root, so the core
+  reports a reference through it as leaving the namespace, HMD003, as the
+  specification and the `resolve-containment-symlinks` case require;
+  released in 0.6.0 [`src/workspaceHost.ts`, issue 0020].
+- **A cell runs in its card's directory** — HQL is started in the directory
+  holding the card, not the vault root, so a relative path in a cell resolves
+  beside the card and HQL's upward search for the card's HQL project starts
+  at the card. The vault named with `--vault` is unchanged
+  [`src/hql/engine.ts`, `run`].
+- **Nested vaults stay separate** — a card in a vault nested inside an indexed
+  one is skipped by the outer vault's load, watcher, open buffers, and edits,
+  so the outer vault's diagnostics no longer report false ambiguities or
+  unresolved absolute links, and opening the inner card indexes the vault it
+  belongs to instead of the outer one claiming it [issue 0009].
+- **Plain Markdown links** — `[bar](../foo/bar.md)` in the preview opens the
+  file it names, resolved from the card's folder: a card in the preview, any
+  other file in the editor. Web and mail links open outside the editor, and
+  every other scheme is refused [issue 0112].
+- **`hql` on Windows, and 0.7.2** — toolchain 0.5.2 carries `hql.exe` in
+  the Windows archive, and the release gate requires it in both Windows
+  VSIXes. A card's path is written with `/` on every host [HQL issue 0082].
+- **`hql` 0.7.1** — toolchain 0.5.1 carries it. The cell protocol is
+  unchanged, and the real-binary tests pass against it.
+- **`hql` 0.7.0** — toolchain 0.5.0 carries it. `--vault` names the vault
+  root, and the real-binary tests pass against it.
+- **`hql` 0.6.0** — toolchain 0.4.0 carries it. The cell protocol is
+  unchanged, and the real-binary tests pass against it and against 0.5.2.
+- **`hql` 0.5.2** — toolchain 0.3.0 carries it, and the engine reads its
+  `diagnostics` field as well as the `reports` field older binaries write.
+  The real-binary tests cover a failing cell and a folder that is not a vault.
+- **`hql` from the toolchain** — the pinned `hypermarkdown-toolchain` 0.2.0
+  carries `hql` 0.4.2 beside `d2` on the platforms HQL publishes; each VSIX
+  for those platforms carries it and uses it by default, the release checks it
+  is there, and CI runs the engine's real-binary tests against it. The setting
+  overrides it [issue 0111].
+- **HQL cells** — a `hql#eval` or `hql#query` fence drawn as its saved output
+  with the code hidden, a Code toggle that survives re-renders, Edit, Run,
+  current and stale states computed from the card's text, code lenses and two
+  commands in the editor, runs gated on workspace trust, an answer refused when
+  HQL's cells and hashes disagree with the card's, and outputs written as one
+  undoable edit that `hql render` would leave unchanged. Diagrams inside
+  outputs are drawn [[hmd-0026]].
+- **The preview** — a rendered card in an editor tab, updating from the unsaved
+  buffer, scroll-synced with the editor in both directions, following the active
+  editor unless pinned, and restored on its own card after a window reload.
+- **Embeds render as cards**, labelled with the card and fragment they came
+  from, collapsible, nested, and navigating to the embedded card.
+- **Red links** for targets that do not resolve, with an action that writes the
+  missing card.
+- **The graph tab** — the vault as nodes and edges, in a network scope or a card
+  scope pointed at what this card links to or at what links to it, link and
+  embed edges drawn apart, a node opening its card, and a toolbar for zoom, fit,
+  and re-running the layout. Which cards are in the picture is decided in the
+  extension host, so it is under test without a canvas. Full screen hands it the
+  whole window — zen mode, uncentred, a split maximised — and `Escape` gives the
+  editor back. It replaced the backlinks tab, whose
+  renderer went with it [issue 0109].
+- **Diagnostics** in the Problems panel, byte-identical to the linter's, at 500
+  ms and suppressed on the line the cursor is in.
+- **Math, callouts, and D2 diagrams**, with KaTeX and a pinned `d2` build
+  shipped inside the VSIX — one build per platform, each gated on the binary
+  being there.
+- **Syntax highlighting** for `.hmd` as its own language.
+- **Several vaults in one folder** — a vault is discovered by walking up from
+  the card to the nearest `.hmd/`, stopping at the containing workspace folder,
+  and the window holds one index, watcher, and diagnostic scope per vault, built
+  the first time a card asks for it. Nothing resolves across a boundary: two
+  vaults are two namespaces. A card no vault claims is told so, in place of the
+  old message that asked the reader to open a card while they were looking at
+  one [issue 0108].
+- **Released** — `0.1.0` on both galleries in August, then `0.2.0` and `0.3.0`
+  on 2026-09-14, each for six platform targets, published from CI by federated
+  credential with no stored token, with a landing page on the website. `0.3.0`
+  is the first release not marked `preview`. Then `0.4.0` to `0.4.4` from
+  2026-10-19 to 2026-11-13, and `0.5.0` to `0.5.2` from 2026-11-15 to
+  2026-11-22, the same way.
+
+## Gates
+
+```bash
+npm run typecheck && npm run build
+HMD_REQUIRE_PARITY=1 npm test
+npm run -w tools/hmd-vsc-ext package
+```
+
+## Open questions
+
+| Question | References |
+| --- | --- |
+| Should *Run all* offer to run only the stale cells? HQL evaluates the whole card either way, so the saving is in what is written, not in what runs | [[hmd-0026#open-questions]] |
+| Should the graph filter by namespace and tag? The index carries both on every node; the question the filter raises is what it does to the node cap — filtering before the cap and filtering after it are different pictures | [[hmd-0025]] |
+| Should a card with no resolved edges in either direction be reported somewhere other than the graph? The graph draws an island, which is honest and easy to miss | [[hmd-0025]] |
+| The publisher is not domain-verified, and re-submitting will not help: the gallery grants it by manual review after roughly six months of continuous release history. First release was 2026-08-11, so the earliest worth raising again is around February 2027, and only if releases have kept coming. Do not reach for DNS — the TXT record on the apex is Open VSX's claim, not the gallery's — and re-check by querying the public extension API rather than by looking at the portal | [[hmd-0005#the-extension-s-identity-on-both-galleries]] |
+
+## Changelog
+
+- 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
+- 2026-11-24: before the 0.1.0 release. Status names `0.5.2`, the version on
+  both galleries, and says the extension conforms to HyperMarkDown 0.1.0
+  through its core, but for publication. The Open row for unpublished links
+  duplicated the limitation and is dropped; the limitation about underlined
+  headings is gone, since the core indexes them. The host now reports a
+  symbolic link out of the vault, a gap found by reading it against the
+  corrected resolution and closed the same day. The graph filter is backlog
+  until its open question is answered.
+- 2026-11-22: follows the core's 0.1 rules, unreleased.
+- 2026-11-15: a cell runs in its card's directory, which is what HQL's record
+  of projects and vaults asks of a host: the source directory of a cell is
+  the directory of its document.
+- 2026-09-14: `0.3.0` released, and the `preview` flag came off the manifest.
+  What it was waiting on — a graph of the vault — is in and read in a running
+  editor, so the label had nothing left to stand for [issue 0109]. The
+  extension's summary line lost *backlinks* along with the tab, and the
+  website's landing page lost both the preview section and a stale claim that a
+  `d2` fence needs `d2` on the reader's `PATH`; the binary has travelled inside
+  the VSIX since `0.2.0`.
+- 2026-09-14: the graph's full screen took the window rather than the panel. It
+  first stood only the preview's own chrome down, which left the editor's tab
+  bar, side bar, and status bar around a canvas that had asked for the screen —
+  no help at all in the case it exists for, a network too large to navigate. It
+  now asks for zen mode, undoes the centring that would trade the width back,
+  maximises a split, and undoes exactly what it did; a preview closed while it
+  holds the window gives it back [[hmd-0025]].
+- 2026-09-14: the graph tab landed and the backlinks tab was deleted. It answers
+  both questions the tracker was carrying about it: the specification was
+  written from the implementation rather than ahead of it, and a large vault is
+  bounded — the network scope draws the 400 cards nearest the one being read and
+  says how many it left out. The design went to a record of its own [[hmd-0025]]
+  rather than staying a section of the preview surface: a bundled layout engine,
+  a node cap, and a scope model are a decision, not a detail of the surface they
+  sit on. What is still open is the live look at it, which is what the preview
+  label now waits on [issue 0109].
+- 2026-09-14: create-card's path rule is settled in the proposal — the action never prompts, and the link's own form picks the path. The gap it exposed, relative targets being refused, is open above.
+- 2026-09-14: per-card vault discovery landed. The three open questions it
+  carried are answered in the proposal rather than here: one index per vault,
+  no resolution across a boundary, and `diagnostics.scope: "workspace"`
+  redefined as every vault the window has opened a card in.
+- 2026-09-14: rewritten in the shape the trackers now use — status first in
+  prose, then open work, broken, gaps, and done last. Work-point numbers are
+  gone: a row is named by what it is. The graph tab gained its design, and it
+  now owns the removal of the preview label; per-card vault discovery arrived
+  from the issue board.
+- 2026-09-14: split out of the editor line's shared tracker, which covered this
+  extension and the format implementation it embeds in one file.

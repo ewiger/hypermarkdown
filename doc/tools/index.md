@@ -28,7 +28,7 @@ type, with embeds still visible as embeds and a link to nothing in red.
 implementation of the format — parser, resolver, and renderer, in TypeScript,
 running inside the editor — so there is no interpreter to find and no subprocess
 between a keystroke and the preview. What it does, and what it does not do yet,
-is [The VS Code extension](vscode.md).
+is [The VS Code extension](vscode.hmd).
 
 ## 2. The command line
 
@@ -193,11 +193,11 @@ The vault is the same tree `hmd lint` checks. To learn HQL, read
 
 - **[Tutorial](../wiki/hmd-tutorial.hmd)** — the whole language in one sitting,
   every construct with its source shown beside what it renders.
-- **[The VS Code extension](vscode.md)** — what the preview gives you, and the
+- **[The VS Code extension](vscode.hmd)** — what the preview gives you, and the
   gaps it still has.
 - **[HQL](https://hql-lang.org/)** — the query language's own site:
   introduction, install, the book, and the reference.
-- **[Presentation](../public/presentation.md)** — the trade-offs between
+- **[Presentation](../public/presentation.hmd)** — the trade-offs between
   rendering a card in an editor, converting it, and publishing a tree of them.
 - **[Language Specification](../wiki/hmd-lang-spec.hmd)** — the normative text,
   once you need the exact answer rather than the teaching one.

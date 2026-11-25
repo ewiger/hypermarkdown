@@ -2,11 +2,11 @@
 
 **Status**: drafted
 **Created**: 2026-07-31
-**Source**: [Hypermarkdown — Requirements (Draft v0.1)](../../models/requirements/initial_sketch.md)
+**Source**: [Hypermarkdown — Requirements (Draft v0.1)](../../models/requirements/initial_sketch.hmd)
 
 ## Companion notes
 
-- [`examples.md`](examples.md) — worked resolution tables and a syntax-coverage
+- [`examples.hmd`](examples.hmd) — worked resolution tables and a syntax-coverage
   map for the fixture below.
 - [`examples/small/`](../../../examples/small/) — a self-contained example wiki
   that exercises the spine walk, both import forms, `use` inheritance, folder
@@ -485,7 +485,7 @@ therefore behaves the way a new author would expect: bare names find pages.
 #### 5.4 Worked example
 
 The examples are maintained as a runnable fixture rather than inline prose. See
-[`examples.md`](examples.md) for the resolution tables, and
+[`examples.hmd`](examples.hmd) for the resolution tables, and
 [`examples/small/`](../../../examples/small/) for the tree they describe — a
 self-contained wiki that exercises the spine walk, both import forms, `use`
 inheritance, folder notes, and most of the syntax of §2. It MUST lint with zero
@@ -741,7 +741,7 @@ Integration tests MUST include:
 
 - The **example fixture** at `examples/small/` MUST lint with zero errors and
   exactly one warning — the deliberate red link in `glossary/index.hmd`. Every
-  resolution asserted in [`examples.md`](examples.md) MUST be reproduced by a
+  resolution asserted in [`examples.hmd`](examples.hmd) MUST be reproduced by a
   test, so that documentation drifting from behavior fails the suite rather than
   misleading a reader.
 
@@ -812,5 +812,5 @@ excerpts versus block anchors (Q3), and the query grammar (Q6).
   overridable per card) and `mode` (*how* it searches, project-only), resolving
   the conflict between `mode = "spine"` and a card's `use: [autodiscovery]`;
   precedence chain pinned with frontmatter above config and the built-in default
-  ON; §5.4 moved to `examples.md` and backed by the runnable `examples/small/`
+  ON; §5.4 moved to `examples.hmd` and backed by the runnable `examples/small/`
   fixture, now an M3 gate

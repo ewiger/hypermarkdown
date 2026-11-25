@@ -11,7 +11,7 @@ the usual `0.x` caveat: **the format itself may change between minor versions.**
 
 The crate is [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on
 crates.io. Implementation state is tracked in
-[`doc/status/rs-core.md`](../../doc/status/rs-core.md), against
+[`doc/status/rs-core.md`](../../doc/status/rs-core.hmd), against
 [HMD-0027](../../doc/proposals/HMD-0027/README.md).
 
 ## [Unreleased]

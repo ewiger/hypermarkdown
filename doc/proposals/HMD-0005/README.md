@@ -383,7 +383,7 @@ uv run mkdocs build --strict
 
 ## Open Questions
 
-These are worked in [the tracker](../../status/hmd.md#open-questions-and-blockers), which
+These are worked in [the tracker](../../status/hmd.hmd#open-questions-and-blockers), which
 holds the only copy.
 
 - When is the `hyper-markdown` MkDocs entry-point alias withdrawn, and what
@@ -398,7 +398,7 @@ holds the only copy.
 
 ## See also
 
-- [`doc/memory/decisions.md`](../../memory/decisions.md) — the four-versions
+- [`doc/memory/decisions.hmd`](../../memory/decisions.hmd) — the four-versions
   rule, the tag prefixes, and why the packaging symlinks were reversed.
 - [HMD-0024](../HMD-0024/README.md) — the `tools/` layout whose directory names
   this record leaves alone.

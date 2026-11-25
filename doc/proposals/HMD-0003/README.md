@@ -20,7 +20,7 @@
 >
 > What remains on this side is the tooling around cells — the site build and
 > the editor preview rendering them — and that is tracked in
-> [the language tracker](../../status/lang.md), not here. The text below is kept
+> [the language tracker](../../status/lang.hmd), not here. The text below is kept
 > unedited as a record of what was asked, and should not be cited as a
 > specification of anything.
 
@@ -241,17 +241,17 @@ authored input, so the resource bounds are the security surface.
 Every syntactic decision is open by design, and the grammar blocks all of them.
 They must be resolved before this record moves from `drafted` to `accepted`.
 
-The questions are tracked in [the language tracker](../../status/lang.md#hql-hmd-0003)
+The questions are tracked in [the language tracker](../../status/lang.hmd#hql-hmd-0003)
 and only there. The template asks a record to carry the list and mirror it into
 the tracker; this record does not, because the mirror drifts and then a reader
 has to open both files to find out which copy is current.
 
 ## See also
 
-- [`doc/status/lang.md`](../../status/lang.md) — work points, limitations, and the open questions.
+- [`doc/status/lang.hmd`](../../status/lang.hmd) — work points, limitations, and the open questions.
 - [HMD-0001](../HMD-0001/README.md) — the grammar and resolver HQL reads from.
 - [HMD-0002](../HMD-0002/README.md) — MkDocs rendering, which evaluates fences.
-- [The initial sketch, §9](../../models/requirements/initial_sketch.md) — where
+- [The initial sketch, §9](../../models/requirements/initial_sketch.hmd) — where
   the requirements behind this record originate.
 
 ## Changelog

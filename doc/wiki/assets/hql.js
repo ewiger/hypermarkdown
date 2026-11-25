@@ -3,7 +3,7 @@
  * The theme renders the tab as a link with its title as bare text. Letter-by-
  * letter animation needs one element per letter, and the one place that could
  * emit them is a theme template — which the site does not override, by policy
- * (see `doc/status/pages.md`). So the markup is built here, at load time, from
+ * (see `doc/status/pages.hmd`). So the markup is built here, at load time, from
  * the link the theme already emitted. Without this script the tab is a plain
  * link that reads "HQL", which is the correct degraded state.
  *

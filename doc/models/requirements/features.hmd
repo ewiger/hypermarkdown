@@ -1,0 +1,87 @@
+# Hypermarkdown — Top 10 Features
+
+**Status:** Derived from `initial_sketch.hmd` (Draft v0.1)
+**Method:** Ranked by the source document's own emphasis (explicit callouts like
+"the primary differentiator," "the keystone feature") plus cross-cutting
+importance — features that other requirements depend on outrank standalone
+syntax items.
+
+---
+
+1. **Namespace-scoped link resolution** (req 46–51, §7)
+   Folders are namespaces, not decoration. `[[login]]` resolves nearest-first
+   (same folder, then up toward root); ambiguity is a hard error, never a
+   guess. Called out in the source as **"the primary differentiator"** —
+   everything else in the format assumes this exists.
+
+2. **Wikilinks, embeds, and block-level addressing** (req 1–8)
+   `[[Page]]`, `[[Page#Section]]`, `[[Page#^id]]`, and their `!`-prefixed
+   embed forms. The base composition primitive everything else (templates,
+   queries, transclusion) builds on top of.
+
+3. **Parameterized transclusion / templates** (req 20, 79–86, §10)
+   `{{template|arg=value}}` on Jinja2, with query-result iteration (82) and
+   "Topic" as a first-class template+query+namespace unit (86). Labeled
+   directly in the source as **"the keystone feature."**
+
+4. **Query language with materialization** (req 34–41, §9)
+   Dataview-style `FROM`/predicate queries, but results are written back into
+   the file as a fenced block (40) rather than existing only at render time —
+   explicitly fixing the flaw that spawned Obsidian's separate "Dataview
+   Serializer" plugin.
+
+5. **`hmd lint`** (req 63, §19)
+   The only v0 command: parse, resolve, report. Chosen as the sequencing
+   anchor because it's useful before rendering, queries, or templates exist —
+   lets the format be adopted one file at a time.
+
+6. **LSP as the spine, single Python implementation** (§15)
+   `hmd lsp` backs the CLI, the MkDocs build, and the VS Code extension
+   through one grammar. No second implementation to drift out of sync — the
+   architectural decision that makes P5 ("one implementation") real rather
+   than aspirational.
+
+7. **VS Code live preview** (req 87–97, §14)
+   Scroll-synced rendered/graph/mind-map views in a sidebar webview, backed
+   entirely by LSP requests. Stated directly: **"Preview is the product.
+   Everything else is supporting cast."**
+
+8. **Dual MkDocs output — book and wiki modes** (req 98–109, §13)
+   One source tree renders as a linear, nav-ordered book or a browsable,
+   graph-oriented wiki (or both). This is the payoff of namespace-derived
+   structure applied to a real static-site consumer.
+
+9. **Namespace / tag orthogonality** (§8, req 56–61)
+   Namespace = where a page lives (one, structural, filesystem-derived). Tag
+   = what it's about (many, semantic, declared). The doc calls this
+   orthogonality "load-bearing" — collapsing the two into one axis breaks
+   both.
+
+10. **Plugin purity declaration** (req 77–78, §12)
+    Every plugin must declare whether its output is deterministic; strict
+    mode refuses impure plugins. Guards P1 (determinism) against being
+    silently broken by a single plugin's network call — flagged as a risk
+    that "must exist from the first plugin, not be retrofitted."
+
+---
+
+## Notable exclusions
+
+Left out of the top 10 despite appearing in the source, with reasons:
+
+- **Redirects (19)** — potentially removes the need for stable artifact IDs
+  (open question Q2), but its value is conditional on that question resolving
+  in its favor.
+- **Interactive graph views (90–92)** — significant scope (needs a second,
+  JS-side renderer per §15's caveat) but downstream of namespaces/links, not
+  foundational.
+- **Callouts, footnotes, math, D2 diagrams (11–16)** — all "free" (come from
+  existing Python-Markdown/MkDocs extensions), so they're low-risk but also
+  not differentiating.
+- **Health reports, backlinks, red links (25–32)** — valuable generated
+  content, but derivative of namespaces + links rather than independent
+  features.
+
+See `initial_sketch.hmd` §19 for the suggested v0 slice, which is narrower
+than this top-10 list (it defers templates, queries, the plugin API, wiki
+mode, and the VS Code extension entirely).

@@ -324,9 +324,9 @@ cargo test --locked
   resolver.
 - [`examples/conformance/README.md`](../../../examples/conformance/README.md),
   the corpus and its runners.
-- [`doc/status/rs-core.md`](../../status/rs-core.md), where the crate's work is
+- [`doc/status/rs-core.hmd`](../../status/rs-core.hmd), where the crate's work is
   tracked.
-- [Issue 0011](../../issues/0011-vault-and-namespace-drift-between-hmd-and-hql.md),
+- [Issue 0011](../../issues/0011-vault-and-namespace-drift-between-hmd-and-hql.hmd),
   on where the namespace starts in this project and in HQL.
 
 ## Changelog

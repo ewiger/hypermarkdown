@@ -1,0 +1,411 @@
+# Hypermarkdown — Requirements
+
+**Status:** Draft v0.1 — design notes, nothing implemented
+**Project:** HyperMarkDown — https://github.com/ewiger/hypermarkdown
+**File extension:** `.hmd`
+**Reference implementation:** `hmd` (Python, Typer), scaffolded by grem
+**Date:** 2026-07-31
+
+---
+
+## 0. Naming — decided
+
+**The project is `HyperMarkDown`.** Repository:
+https://github.com/ewiger/hypermarkdown
+
+Background for the choice. `HyperMD` is a pre-existing project: a WYSIWYG
+markdown editor for browsers built as CodeMirror add-ons (`laobubu/HyperMD`). The
+npm package `hypermd` exists, last published ~7 years ago at 0.3.11. It is
+dormant, so this was a search-collision concern rather than a legal one, but it
+occupies the same domain (markdown editing). The hyphenated `HyperMarkDown`
+separates the two cleanly in search and in package namespaces.
+
+The `hmd` abbreviation is retained for the CLI binary and the `.hmd` file
+extension. HyperMD uses `hmd` as an internal API prefix, but since the project
+names no longer collide, the abbreviation carries no ambiguity in practice.
+
+---
+
+## 1. Summary
+
+Hypermarkdown is a strict, machine-checkable dialect of markdown for project
+knowledge bases. Files live in a project tree where **subfolders are namespaces**.
+Pages link to, transclude from, and query each other.
+
+Three consumers:
+
+1. **MkDocs** — renders two site shapes from one source: a linear *book* and a
+   browsable *wiki*
+2. **VS Code extension** — headline feature is a live preview sidebar
+3. **`hmd` CLI** — linting, rendering, querying, and the language server that
+   backs the editor
+
+The CLI is the single source of semantic truth. Nothing re-implements the
+grammar.
+
+---
+
+## 2. Design principles
+
+| # | Principle | Consequence |
+|---|---|---|
+| P1 | **Determinism** | Same tree, same output, always. No time-relative predicates, no implicit ordering, no network at build time. |
+| P2 | **Strictness** | The consumer is a parser, not a human. Ambiguity is an error, not a heuristic. |
+| P3 | **Domain-free** | The spec ships mechanisms, not vocabulary. Users declare their own. |
+| P4 | **Filesystem is structure** | Directory layout carries meaning; it is not decoration. |
+| P5 | **One implementation** | Semantics live in Python. Editors are thin clients. |
+
+---
+
+## 3. Non-goals
+
+- **Obsidian compatibility** — explicitly abandoned. Obsidian's link-text
+  character restrictions (`# | ^ :`) and shortest-unique-path resolution do not
+  constrain this design.
+- **Native GitHub rendering** — `.hmd` will not render on github.com. Accepted.
+- **A built-in ontology** — an earlier draft proposed a fixed relation
+  vocabulary (`implements`, `supersedes`, `depends-on`, `verifies`,
+  `derived-from`, `blocks`) and a fixed lifecycle (`draft → accepted →
+  superseded → deprecated`). **Rejected.** That is grem's domain model wearing
+  the format's clothes. A markup spec that hardcodes ADR lifecycle is a spec
+  nobody but grem can adopt. The mechanism stays (properties can carry typed
+  values); the vocabulary is user-declared in config.
+- **LLM calls** — the format and toolchain never invoke a model.
+- **Real-time collaboration**
+- **Plugin-ecosystem-first design** — core ships the important things; plugins
+  extend, they don't complete.
+
+---
+
+## 4. Syntax (1–17)
+
+| # | Feature | Syntax | Build or free |
+|---|---|---|---|
+| 1 | Wikilinks | `[[Page]]` | build |
+| 2 | Aliased links | <code>&#91;&#91;Page&#124;display text&#93;&#93;</code> | build |
+| 3 | Heading links | `[[Page#Section]]` | build |
+| 4 | Block anchors | trailing `^id` | build |
+| 5 | Block references | `[[Page#^id]]` | build |
+| 6 | Note embed | `![[Page]]` | build |
+| 7 | Section embed | `![[Page#Section]]` | build |
+| 8 | Block embed | `![[Page#^id]]` | build |
+| 9 | YAML frontmatter | `---` fenced | free |
+| 10 | Inline properties | `key:: value` | build |
+| 11 | Callouts | `!!! note "Title"` | free — `admonition`, `pymdownx.details` |
+| 12 | Comments | `<!-- ... -->` | free |
+| 13 | Footnotes | `[^1]` | free — Python-Markdown `footnotes` |
+| 14 | Inline math | `$E = mc^2$` | free — `pymdownx.arithmatex` |
+| 15 | Display math | `$$ ... $$` | free |
+| 16 | D2 diagrams | <code>&#96;&#96;&#96;d2</code> | free — `mkdocs-d2-plugin` |
+| 17 | GFM baseline | tables, task lists, fenced code, strikethrough | free |
+
+**Explicitly excluded:** highlights (`==text==`), Mermaid (superseded by D2).
+
+**Notes on the free items.**
+
+- Arithmatex `smart_dollar` mode is on by default: the opening `$` must be
+  followed by non-whitespace and the closing preceded by non-whitespace, so
+  `I have $2.00 and Bob has $10.00` needs no escaping. This solves the
+  dollar-sign ambiguity without custom work.
+- `mkdocs-d2-plugin` provides caching (on by default), configurable layout
+  engine, themes, sketch mode, and light/dark switching.
+- Callouts use `!!!` rather than `> [!type]`. Dropping Obsidian compatibility
+  removed the need for a custom transform here.
+
+---
+
+## 5. Addressing & composition (18–23)
+
+Sourced from Wikipedia and Confluence rather than Obsidian.
+
+18. **Named excerpts** — mark a region, transclude it by name
+    (`[[Page>>overview]]`). Ergonomically better than hunting a `^id`.
+19. **Redirects** — a page that forwards to another. This is how Wikipedia
+    survives renames *without* an ID scheme, and it may remove the need for
+    stable artifact IDs entirely.
+20. **Parameterized transclusion** — `{{template|arg=value}}`. The keystone
+    feature; see §9.
+21. **Labels / categories** — declared membership generating automatic listings.
+22. **Page hierarchy** — explicit parent/child, aligned with MkDocs nav.
+23. **Namespaces** — *superseded by §7*; folders now carry this. Candidate for
+    deletion.
+
+---
+
+## 6. Generated content (24–33)
+
+The Wikipedia-derived automation layer.
+
+24. **Auto table of contents** from headings — free (`toc`)
+25. **Backlinks** / "What links here"
+26. **Child page listing**
+27. **Category listing pages**, populated from 21
+28. **Red links** — links to pages that don't exist yet, rendered distinctly.
+    Converts a broken link from an error into a work item and gives the query
+    language a free TODO list.
+29. **Infobox** — structured summary rendered from frontmatter via 20
+30. **See-also / navbox** — auto footer from shared categories
+31. **Disambiguation & hatnotes**
+32. **Health reports** — orphans, dead ends, most-linked, recently changed
+33. **Section-level permalinks** on every heading
+
+---
+
+## 7. Namespaces (46–55)
+
+**This is the primary differentiator.** Obsidian treats folders as decorative —
+link resolution ignores them. Hypermarkdown inverts that, and it aligns with
+MkDocs, whose nav is already directory-derived.
+
+46. **Project root** — a marker file defines the boundary; everything below is
+    the namespace tree. Doubles as the config file (see 70).
+47. **Path → namespace** — `specs/auth/login.hmd` lives in `specs/auth`
+48. **Scoped resolution** — `[[login]]` resolves nearest-first: same folder,
+    then walk up toward root
+49. **Absolute links** — `[[/specs/auth/login]]`
+50. **Relative links** — `[[../shared/tokens]]`
+51. **Ambiguity is an error** — no shortest-unique-path guessing. Require
+    qualification. (P2)
+52. **Folder notes** — `index.hmd` as the namespace landing page
+53. **Implicit membership** — every page belongs to its folder's category
+    without declaring it. Wikipedia categories require manual tagging;
+    hypermarkdown derives them from the filesystem.
+54. **Namespace-scoped queries** — `FROM /specs/auth`, with or without
+    descendants
+55. **Namespace-scoped templates** — a template auto-applies to new pages in a
+    folder
+
+---
+
+## 8. Tags (56–61)
+
+56. Inline tags anywhere in body — `#auth`
+57. Nested tags — `#area/backend/auth`
+58. Frontmatter `tags:` list, merged with inline
+59. Auto-generated tag pages with membership listings
+60. Tag hierarchy queries — `#area/backend` matches descendants
+61. Query domain spans both — `FROM /specs/auth AND #status/open`
+
+**Orthogonality is load-bearing.** Namespace = *where it lives* (one,
+structural, derived from disk). Tags = *what it's about* (many, semantic,
+declared). This mirrors Wikipedia's namespace-vs-category split. If tags imply
+location or folders imply topic, both collapse into mush.
+
+---
+
+## 9. Query language (34–41)
+
+34. **Grammar** — precedents to study: Confluence CQL, Obsidian Dataview DQL,
+    Semantic MediaWiki `#ask`. Dataview's `FROM` clause is the closest fit; it
+    already unifies tags, folders, and links as sources.
+35. **Domain** — pages, headings, blocks, frontmatter, inline properties,
+    labels, inbound/outbound links
+36. **Predicates** on properties, labels, link relations, path, hierarchy
+37. **Output modes** — table, list, cards, or transclusion of matched regions
+38. **Fenced syntax** — <code>&#96;&#96;&#96;hmq</code>
+39. **Determinism** — explicit sort required, no implicit ordering, no
+    time-relative predicates unless pinned (P1)
+40. **Materialization** — results written back into the file as a fenced block,
+    so a plain reader sees them
+41. **Reference use case** — Confluence's Page Properties Report: a table on
+    many pages, aggregated into one
+
+**Evidence for 39–40.** *Dataview Serializer* exists as a separate popular
+Obsidian plugin whose entire job is saving Dataview results as markdown. That is
+a community workaround for Dataview's core flaw — results that only exist at
+render time. Build materialization in from the start.
+
+---
+
+## 10. Templates (79–86)
+
+79. **Jinja2** as the engine — already in the MkDocs stack, universally known,
+    `SandboxedEnvironment` available
+80. Parameters with defaults and required-argument validation
+81. Conditionals and iteration
+82. **Iteration over query results** — this is what makes Wikipedia-style topic
+    pages possible
+83. Frontmatter access for the invoking page
+84. Namespace-scoped template resolution (ties to 55)
+85. Recursion depth limit and cycle detection, shared with the embed resolver
+86. **"Topic" as a first-class composite** — template + query + namespace,
+    invoked as one unit. Make this a named concept in the spec rather than
+    something users assemble by hand.
+
+---
+
+## 11. `hmd` CLI (62–70)
+
+62. Typer application, scaffolded by grem (dogfooding; also a demonstrable proof
+    point for grem itself)
+63. **`hmd lint`** — first and only v0 command
+64. `hmd render` — resolve embeds, queries, templates to HTML or flat markdown
+65. `hmd graph --json` — dump the resolved graph
+66. `hmd query` — run a query from the shell
+67. `hmd serve` — long-lived process, JSON over stdio; also serves the live wiki
+    (see §13)
+68. `hmd lsp` — language server mode
+69. Exit codes and `--format json`, so CI and the editor consume identical output
+70. Config file at project root, doubling as the root marker (46)
+
+---
+
+## 12. Plugin architecture (71–78)
+
+71. Discovery via Python entry points, group `hmd.plugins` — pip-installable,
+    same model as MkDocs
+72. **Parse hooks** — register new inline/block syntax
+73. **Graph hooks** — derive relations
+74. **Lint hooks** — custom rules
+75. **Render hooks** — output transforms
+76. **Query hooks** — new sources and functions
+77. **Purity declaration** — every plugin declares whether its output is
+    deterministic; strict mode refuses impure plugins. Without this, one plugin
+    making a network call destroys P1 for the entire format.
+78. **Dataview plugin** as the reference implementation, shipping in-tree. Best
+    available forcing function for the plugin API.
+
+---
+
+## 13. MkDocs integration and the wiki output (98–109)
+
+MkDocs matches a fixed set of markdown extensions and `.hmd` is not among them.
+The plugin must collect and register `.hmd` files via an `on_files` hook. Bounded
+work, but it is work.
+
+**Two site shapes from one source tree:**
+
+98. **Book mode** — linear, nav-ordered, reading-oriented. Conventional MkDocs
+    output.
+99. **Wiki mode** — graph-oriented, browsable, no canonical reading order
+100. Both generated from the same tree, selected by config; optionally both at
+     once
+101. **All-pages index**
+102. **Category / tag browse pages**
+103. **Namespace browse** — navigate the folder tree as a hierarchy
+104. **Random page**
+105. **Recent changes**, derived from git history
+106. **Full-text search** — largely free via MkDocs Material
+107. **Special pages** — orphans, dead ends, wanted (red-linked) pages,
+     most-linked
+108. **Per-page metadata footer** — backlinks, categories, namespace, last
+     modified
+109. **Embedded interactive graph** in the wiki site
+
+**Live browsing:** `hmd serve` runs a local server exposing the wiki with
+incremental rebuild, so the knowledge base is browsable during editing without a
+full site build.
+
+---
+
+## 14. VS Code extension (87–97)
+
+**Preview is the product.** Everything else is supporting cast.
+
+87. `WebviewViewProvider` in the right sidebar container (Claude Code-style
+    placement)
+88. **Mode switcher** — source · rendered · graph · mind map
+89. Rendered preview, scroll-synced with the editor
+90. **Interactive graph** — click to navigate, filter by namespace and tag
+91. **Mind-map view** — hierarchy from namespace tree or from links
+92. **Local graph** — n-hop neighbourhood of the current file
+93. Live update on save, ideally on edit
+94. Click-through from any preview element back to source
+95. Breadcrumb showing namespace path
+96. Query results rendered live in preview before materialization
+97. Backlinks folded into the same sidebar rather than a separate view
+
+Supporting editor features (grammar, `[[` completion, go-to-definition, hover
+with resolved embeds, rename refactor, diagnostics) all arrive over LSP.
+
+**D2 preview** is free — `terrastruct/d2-vscode` already exists.
+
+---
+
+## 15. Architecture: LSP as the spine
+
+The `.hmd` extension gives the extension its own language ID, so it does not
+fight VS Code's built-in markdown language for the preview pane or the grammar.
+Given that preview is the headline feature, this alone justifies the custom
+extension.
+
+**Make `hmd lsp` the spine and the VS Code extension a thin client.** Every
+semantic feature — diagnostics, completion, go-to-definition, hover, backlinks,
+graph, rendered HTML — comes from the Python process over LSP, with custom
+requests for the non-standard parts (`hmd/renderPreview`, `hmd/graph`). The
+extension becomes an LSP client plus a webview: roughly 1,500 lines of
+TypeScript.
+
+This eliminates grammar drift by construction. There is no second implementation.
+The VS Code preview is rendered by the same code that builds the MkDocs site, so
+they cannot disagree.
+
+**Cost:** users need Python available. For a tool scaffolded by a Python CLI,
+that is already true.
+
+**Caveat on graph rendering.** D2 renders server-side to static SVG — correct for
+documentation diagrams, wrong for click-to-navigate exploration. Items 90–92 need
+a JS graph library in the webview (Cytoscape.js or d3-force) fed by `hmd/graph`
+JSON. Two renderers, two jobs. Do not try to make D2 do both.
+
+---
+
+## 16. Conformance
+
+110. **Grammar document** — the normative artifact
+111. **Conformance corpus** — paired input/expected-output fixtures
+112. **Reserved character set** — now yours to define, unconstrained by Obsidian
+
+With the LSP architecture, the corpus tests one implementation rather than
+policing two. It retains value as regression protection and as executable spec.
+
+---
+
+## 17. Open questions
+
+| # | Question | Notes |
+|---|---|---|
+| Q2 | Stable IDs *or* redirects? | 19 may make artifact IDs unnecessary. Redirects are more markdown-native and degrade gracefully. |
+| Q3 | Named excerpts (18) *or* block anchors (4)? | Overlapping mechanisms. Shipping both doubles the addressing surface. |
+| Q4 | Delete requirement 23? | Folders now do the namespace job. |
+| Q5 | May `.md` and `.hmd` coexist in one tree? | Affects lint rules and MkDocs file collection. |
+| Q6 | Query grammar | Entirely undesigned. §9 lists precedents, not decisions. |
+| Q7 | How are inline property vocabularies declared? | Config schema needed for 10. |
+| Q8 | Book/wiki: two builds or one build, two themes? | Affects plugin structure. |
+
+---
+
+## 18. Risks
+
+- **Scope.** This document contains ~110 requirements. As a solo project that is
+  multi-year. Sequencing matters more than completeness. See §19.
+- **Two hierarchies.** Namespaces and nested tags are both trees. If the
+  distinction blurs in the docs, users will build broken mental models. Needs a
+  crisp statement in the spec's first page.
+- **Plugin purity.** Requirement 77 must exist from the first plugin, not be
+  retrofitted. Determinism is not recoverable once lost.
+- **Template + query recursion.** Templates iterate query results; queries can
+  match template output. Depth limits (85) must be shared with the embed
+  resolver, not separately implemented.
+- **`.hmd` invisibility.** Nothing outside your toolchain renders these files.
+  Every integration is work you own.
+
+---
+
+## 19. Suggested v0 slice
+
+Ship the smallest thing that demonstrates the thesis:
+
+- Requirements **1–9** (links, embeds, frontmatter) — no properties, no queries
+- Requirements **46–52** (namespaces and resolution)
+- Requirement **63** (`hmd lint`) — parse, resolve, report; nothing else
+- MkDocs plugin: `on_files` collection plus rendering. Book mode only.
+
+**Deferred:** queries, templates, plugin API, wiki mode, the entire VS Code
+extension, the graph views.
+
+Rationale: namespaced link resolution with transclusion is the differentiating
+claim. If that is not compelling on its own, no amount of query language will
+rescue it. And `hmd lint` is the one command that is useful before anything else
+exists — it gives the format a reason to be adopted incrementally, one file at a
+time.

@@ -1,0 +1,50 @@
+# 0026 — Check frontmatter with an HQL-like data type system
+
+**Column**: backlog
+**Opened**: 2026-11-24
+**Related**: [the format's tracker](../status/lang.hmd),
+[the alignment card](archive/0022-align-implementations-with-the-0-1-decisions.hmd),
+[[hmd-lang-spec#frontmatter]]
+
+## Decided
+
+The user decided on 2026-11-24, while settling where frontmatter diagnostics
+are reported for 0.1: after the 0.1.0 release, the type and field checks
+inside frontmatter are handled by a data type system like HQL's, not by
+rules written for each key.
+
+## What
+
+In 0.1 each reserved key carries its own hand-written checks: `tags` is a
+list of strings, `use` a string or a list of feature names, `import` a list
+of statements, and `nav` a mapping of an integer `order` and a `visibility`
+of `public` or `private`. Each implementation repeats those checks, and the
+specification states each one in prose. Every new key or field means another
+rule, written three times, plus a position rule for its diagnostic, as card
+0022 needed for `nav`.
+
+A type for the frontmatter, declared once in a type language like HQL's,
+would state the shape of every reserved key. Checking a card would then mean
+checking its mapping against that type, and the specification would cite the
+declaration instead of restating it.
+
+## Scope
+
+- Declare the shape of the four reserved keys as types, in a notation taken
+  from, or compatible with, HQL's data types.
+- Define what a type mismatch reports: which diagnostic, and where.
+- Let a project declare types for its own frontmatter keys, so the same
+  mechanism checks them. The specification still doesn't interpret
+  unreserved keys.
+- Replace the per-key checks in Python, TypeScript, and Rust where it applies.
+
+## Not in scope
+
+Anything for 0.1.0. The hand-written checks and the position rule from card
+0022 stay as the 0.1 behaviour.
+
+## Done when
+
+The reserved keys' shapes are declared once and checked against that
+declaration in every implementation, the specification cites it, and the
+shared cases still pass.

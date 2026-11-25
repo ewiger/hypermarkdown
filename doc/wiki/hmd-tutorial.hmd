@@ -207,7 +207,7 @@ Cards under this folder inherit `public` unless they set their own
 `nav.visibility`. This makes the whole example vault public. For a vault with
 private notes, set `nav.visibility: public` on the individual cards you want
 to publish. A public page can only link to or embed a card on the site if its
-target is published too. See the [site setup](../public/presentation.md) for
+target is published too. See the [site setup](../public/presentation.hmd) for
 building and viewing the site.
 
 ## Further reading
@@ -217,6 +217,6 @@ building and viewing the site.
 - [[/public/features|Features]] shows the format's callouts, math, and diagrams.
 - [[hmd-lang-spec|Language Specification]] defines the syntax, including
   frontmatter, reference resolution, and cell kinds.
-- [Cell output](../public/cell-output.md) shows what HQL writes for each kind of
+- [Cell output](../public/cell-output.hmd) shows what HQL writes for each kind of
   result. [Queries inside documents](https://hql-lang.org/latest/book/24-documents/)
   explains running cells and sharing values between them.

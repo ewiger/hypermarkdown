@@ -5,13 +5,13 @@ thing you care about; this page is the one-line version of each.
 
 | Tool | Covers | Where it stands | Next |
 | --- | --- | --- | --- |
-| [**language**](lang.md) | The format itself — grammar, resolution, frontmatter, diagnostics, publication | Specified and implemented twice, with the specification a single normative text | Decide whether headings written with an underline are addressable, since the tools and the website currently disagree |
-| [**hmd**](hmd.md) | The canonical implementation: the CLI, the core, the site plugin, the package | Complete and released; everything the format specifies is implemented | The language server, and the two index changes it needs |
-| [**@hypermarkdown/core**](ts-core.md) | The format in TypeScript, held to the canonical implementation by a shared corpus | `0.1.1` on npm; complete except the card publication *model*, and byte-identical to the canonical linter on everything it implements | Port the publication model, once the specification says which proposal owns it here |
-| [**hypermarkdown (Rust)**](rs-core.md) | The resolver as a Rust library crate, held to the canonical implementation by the shared corpus | Written, passing every corpus case, and published to crates.io at 0.1.0 | A release workflow, and HQL taking it as its resolver |
-| [**hmd-semantics**](semantics.md) | The builder of a vault's semantic index: card text embedded into an SQLite file in the vault's `.hmd/` | Moved here from HQL and passing its tests; builds the card itself at one depth, and not published | The two summary depths and the schema version that carries them |
-| [**VS Code extension**](vsc-ext.md) | The hmd preview, diagnostics, and the graph, inside the editor | `0.3.0` live on both galleries, and the preview label is off | Automate the by-hand release checks |
-| [**website**](pages.md) | <https://hypermarkdown.org> — the book, the prose, the branding, the deploy | Live and building clean | The roadmap page, and the stale state claims the audit for it turned up |
+| [**language**](lang.hmd) | The format itself — grammar, resolution, frontmatter, diagnostics, publication | Specified and implemented twice, with the specification a single normative text | Decide whether headings written with an underline are addressable, since the tools and the website currently disagree |
+| [**hmd**](hmd.hmd) | The canonical implementation: the CLI, the core, the site plugin, the package | Complete and released; everything the format specifies is implemented | The language server, and the two index changes it needs |
+| [**@hypermarkdown/core**](ts-core.hmd) | The format in TypeScript, held to the canonical implementation by a shared corpus | `0.1.1` on npm; complete except the card publication *model*, and byte-identical to the canonical linter on everything it implements | Port the publication model, once the specification says which proposal owns it here |
+| [**hypermarkdown (Rust)**](rs-core.hmd) | The resolver as a Rust library crate, held to the canonical implementation by the shared corpus | Written, passing every corpus case, and published to crates.io at 0.1.0 | A release workflow, and HQL taking it as its resolver |
+| [**hmd-semantics**](semantics.hmd) | The builder of a vault's semantic index: card text embedded into an SQLite file in the vault's `.hmd/` | Moved here from HQL and passing its tests; builds the card itself at one depth, and not published | The two summary depths and the schema version that carries them |
+| [**VS Code extension**](vsc-ext.hmd) | The hmd preview, diagnostics, and the graph, inside the editor | `0.3.0` live on both galleries, and the preview label is off | Automate the by-hand release checks |
+| [**website**](pages.hmd) | <https://hypermarkdown.org> — the book, the prose, the branding, the deploy | Live and building clean | The roadmap page, and the stale state claims the audit for it turned up |
 
 ## Generated views
 
@@ -67,9 +67,16 @@ plausible guess. This is the column that replaced an earlier `Spec` column
 answering "which proposal section": the question was never wrong, the answer
 was, because a number tells a reader where something currently sits and that is
 the one fact guaranteed to change. The address grammar these references use is
-specified in [HMD-0006](../proposals/HMD-0006/README.md); the wikilinks resolve
-once the documentation tree is a vault, and until then they are read rather than
-followed.
+specified in [HMD-0006](../proposals/HMD-0006/README.md); the trackers are
+cards, so `hmd lint` checks every one of these references.
+
+A tracker cites a proposal under a short name, such as `hmd-0021`. The
+tracker's frontmatter binds that name with an import:
+`from /proposals/HMD-0021 import README as hmd-0021`. Add an import when a
+tracker cites a proposal for the first time. The fragment is matched against
+the proposal's headings after the language normalizes both, and punctuation
+becomes a separator, so the heading `3.1 Masking` is `#3-1-masking` and `The
+extension's identity` is `#the-extension-s-identity`.
 
 **Update the tracker in the same commit that changes the code.** A tracker
 updated afterwards describes a repository that no longer exists, and one updated

@@ -1,0 +1,90 @@
+# 2026-08-10 — the HyperMarkdown identity
+
+> **Withdrawn on 2026-11-22.** The prose spelling is **`HyperMarkDown`**, with
+> the internal capital `D`, as the original naming decision fixed it. The pass
+> this memo describes was never applied: the site, the README, the
+> specification, the tests, and the extension all kept `HyperMarkDown`, and the
+> project's author settled the question in that spelling's favour while the
+> cover was being rebuilt. What stands from this memo is the other half:
+> `hypermarkdown` in identifiers, `https://hypermarkdown.org` as the canonical
+> host, and the observation that separating the human name from the machine
+> name is what makes the human one cheap to change. The few records that wrote
+> `HyperMarkdown` in the meantime are re-spelled as they are next touched. The
+> text below is kept as the record of what was argued.
+
+A second pass over the project's name, taken days after
+[HMD-0005](../proposals/HMD-0005/README.md) shipped the first one. Recorded here
+because the decision is a convention rather than a code change, and because the
+reason it is cheap now — and would not be later — is not derivable from either
+the code or the git history.
+
+## One spelling in prose, one in identifiers
+
+- **`HyperMarkdown`** — capital `H`, capital `M`, lowercase `d` — is the name in
+  specifications, documentation, and every other human-facing string.
+- **`hypermarkdown`** is the name in package names, IDs, namespaces, keys, and
+  domains.
+- **`https://hypermarkdown.org`** is the canonical project website.
+  `hyper-markdown.org` is the legacy address and is described that way, never as
+  an alternative one.
+
+This amends HMD-0005's D2 and D17, which fixed the prose spelling as
+`HyperMarkDown` with an internal capital `D`. The identifier half of that
+decision is untouched and was right; only the capitalisation of the display name
+moves.
+
+## The correction is worth making now precisely because it is small
+
+The project is early enough that one identity can be carried forward instead of
+two. Nothing that has been argued about the name gets cheaper by waiting — every
+week adds documents, and eventually external links, that would have to be
+reconciled or abandoned rather than re-spelled. The moment to settle an internal
+capital is before anyone has read it often enough to have learned it.
+
+What makes the timing genuinely favourable rather than merely early is the split
+D2 made between the two spellings. **Nothing immutable carries the internal
+capital.** The PyPI distribution, the npm scope, the extension publisher, the
+Open VSX namespace, the MkDocs entry-point key, and the domain are all lowercase
+already, and every one of them is a name that cannot be changed after the fact —
+a published distribution name, a claimed namespace, a registered publisher. So
+this is a pass over display strings and nothing else. Had prose and identifiers
+shared one spelling, the same cosmetic correction would have been a second
+abandon-and-republish on two registries, which is the trade HMD-0005's L1 records
+as permanent.
+
+Worth keeping for the next naming argument: separating the human name from the
+machine name is what buys the right to change your mind about the human one.
+
+## What follows mechanically, and what does not
+
+The plugin class follows the prose. D20 resolved that `HyperMarkDownPlugin`
+tracks the prose capitalisation rather than standing on its own, so the rule that
+produced that symbol now produces `HyperMarkdownPlugin`. Both entry-point keys
+are lowercase and unaffected, so the compatibility alias is not in play.
+
+Two guards in `tests/test_docs.py` hardcode the old spelling and have to move in
+the same commit as the prose. `SPEC_VERSION` parses the language's version out of
+a sentence of the specification that contains the project's name — the fragility
+`decisions.hmd` already flags under "Four versions", showing up for the second
+time in four days — and `test_the_retired_name_is_gone` states the sanctioned
+spelling in its own docstring.
+
+The part that is easy to get wrong: **the retired-name guard does not catch
+this.** Its pattern is `hyper[-_]markdown`, so what it recognises is the
+*separator*. A surviving `HyperMarkDown` has none and is invisible to it, which
+means the guard that found eleven wrong identifiers during the rename offers no
+protection at all here. Enforcing the new spelling the way the old one is
+enforced needs a second pattern — an internal capital `D` with no separator —
+with its own allowlist, and that allowlist is not the same set as the existing
+one.
+
+## What keeps `HyperMarkDown` on purpose
+
+Changelogs, for the reason L5 already gives: they record what a release was
+called when it shipped, and re-spelling them would make them claim otherwise.
+HMD-0005's record and tracker, which necessarily name every spelling they
+discuss. And this memo.
+
+The work itself — the README, the specification, and the remaining documentation
+— is tracked in [the HMD-0005 tracker](../proposals/HMD-0005/STATUS.md), not
+here.
