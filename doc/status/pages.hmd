@@ -92,6 +92,12 @@ revisiting is that maths loads from a CDN at view time.
 
 ## Done
 
+- **The cover names the released language** — it says the tools implement
+  HyperMarkDown 0.1, links the specification, and no longer calls it a draft.
+  The cover names the release line and not the patch, so a patch release
+  leaves it true, and a test fails when the line differs from the
+  specification's Version callout or the word "draft" returns
+  [`tests/test_docs.py`].
 - **The documentation is written in HyperMarkDown** — the chapters, the
   trackers, the issues, the memory notes, the models, and the
   companion notes of the proposals are `.hmd` cards, and `hmd lint` checks all
@@ -209,6 +215,8 @@ run permanently.
 
 ## Changelog
 
+- 2026-11-25: the cover stops calling the specification a draft and names
+  HyperMarkDown 0.1, checked against the Version callout.
 - 2026-11-25: the feature list and the interop sketch removed, and every
   reference to them repointed at Features or dropped.
 - 2026-11-25: Features moved into Language; Learn regrouped; the Wiki tab
