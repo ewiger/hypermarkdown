@@ -218,5 +218,5 @@ building and viewing the site.
 - [[hmd-lang-spec|Language Specification]] defines the syntax, including
   frontmatter, reference resolution, and cell kinds.
 - [Cell output](../public/cell-output.md) shows what HQL writes for each kind of
-  result. [Queries inside documents](https://hql-lang.org/book/24-documents/)
+  result. [Queries inside documents](https://hql-lang.org/latest/book/24-documents/)
   explains running cells and sharing values between them.

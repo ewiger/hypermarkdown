@@ -186,7 +186,7 @@ hql --vault path/to/your/wiki render reading-list.hmd
 ```
 
 The vault is the same tree `hmd lint` checks. To learn HQL, read
-[the HQL book](https://hql-lang.org/book/). The rest of its documentation is on
+[the HQL book](https://hql-lang.org/latest/book/). The rest of its documentation is on
 [hql-lang.org](https://hql-lang.org/).
 
 ## Where to go next

@@ -102,7 +102,7 @@ to generate views of the open work.
 
 The [example notebook](https://github.com/ewiger/hypermarkdown/tree/main/examples/notebook)
 includes cells that share results with one another, a reading list, and a
-progress table. HQL's [Queries inside documents](https://hql-lang.org/book/24-documents/)
+progress table. HQL's [Queries inside documents](https://hql-lang.org/latest/book/24-documents/)
 explains how to run them and save their outputs.
 
 ## Computation belongs with its explanation
@@ -146,7 +146,7 @@ runs whose inputs, tool calls, and results can be inspected as values. This
 remains design work. The blog essay
 [From Rust to English to Strange Loops](https://hql-lang.org/blog/ai-oriented-programming-language/)
 develops the motivation, and
-[Agents inside documents](https://hql-lang.org/book/26-agents-inside-documents/)
+[Agents inside documents](https://hql-lang.org/latest/book/26-agents-inside-documents/)
 explores what it could look like in a card.
 
 ## Independent knowledge bases can form a web

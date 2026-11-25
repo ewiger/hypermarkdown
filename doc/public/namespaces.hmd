@@ -238,7 +238,7 @@ results from it.
   authoritative namespace and resolution rules.
 - [The example handbook](https://github.com/ewiger/hypermarkdown/tree/main/examples/handbook)
   — the files used on this page and in the specification.
-- [HQL: A vault of documents](https://hql-lang.org/book/21-a-vault/) — querying
+- [HQL: A vault of documents](https://hql-lang.org/latest/book/21-a-vault/) — querying
   cards and reading other vaults as configured sources.
 - [[/proposals/HMD-0004/README|The cross-namespace proposal]] — the design
   record and open questions for reaching beyond one tree.
