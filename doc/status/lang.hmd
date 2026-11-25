@@ -10,6 +10,7 @@ import:
   - from /proposals/HMD-0026 import index as hmd-0026
   - from /proposals/HMD-0030 import index as hmd-0030
   - from /proposals/HMD-0032 import index as hmd-0032
+  - from /proposals/HMD-0034 import index as hmd-0034
 ---
 
 # STATUS — the language
@@ -105,7 +106,7 @@ cases), and executable examples (inputs and expected outputs a test can run).
 | todo | **Validate the grammar, a release requirement for 0.1.** Check every production in *Grammar* against the normative prose, and record each rule the prose adds that a production does not express. Write language-neutral positive and negative cases for every production, block anchors, the frontmatter block, and masking. Run them against Python, TypeScript, and Rust. Compare the syntax recognised, the parsed reference components, source positions, and diagnostics, independently of rendering. Report each discrepancy and correct the implementation; a change to the standard is a reviewed decision, never a quiet match to one implementation. | Kept separate from the specification and from the existing corpus, which compares only diagnostics and resolutions, and in Rust resolutions only. Two things to decide first: grammar cases cannot be generated from the canonical implementation if they are to find it wrong, and they need a parse-level output that `expected.json` does not have | [the card](../issues/archive/0018-validate-the-grammar.hmd), [[hmd-lang-spec#grammar]], [[hmd-lang-spec#lexical-model]] |
 | todo | **Review lexical compatibility with CommonMark.** *Lexical model* permits a line-oriented scanner to differ from a full CommonMark parser on pathological input, such as a wikilink in an HTML block or a fence opened in a blockquote. *Conformance to the Standard* requires every implementation to recognise the same syntax. Find out whether two conforming implementations can read one document differently, list the cases and what each implementation does, and propose resolutions | The divergence paragraph stays as it is until a semantic decision is made | [the card](../issues/0019-lexical-compatibility-with-commonmark.hmd), [[hmd-lang-spec#lexical-model]] |
 | backlog | **Derive a test dataset from the standard.** Each construct, each interaction between constructs, and each corner case the formal definitions state becomes an executable example with its expected output. The aim is that every rule in the standard has a case and every case cites the rule it tests. Outside the scope of the 2026-11-24 revision | Follows the proofreading at three levels of specificity; extends the shared corpus rather than replacing it | [[hmd-lang-spec]], `examples/conformance/cases/` |
-| todo | **Accept Mermaid as a diagram language on par with D2.** The format rejected it as superseded by D2 when it was first sketched, and the MVP grammar and the D2 proposal's non-goals still say so, while HQL's `mermaid` step already writes Mermaid fences that every tool then shows as code. Reverse the rejection in all three places in one pass. The specification's line rejecting a second diagram notation is already gone. The format's half is answered by diagram cells: a `mermaid#show` fence is a diagram whose body is opaque to the resolver, exactly as a `d2#show` fence is | The renderer choice comes first: Mermaid is a JavaScript library, not a single binary like `d2` | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd), [[hmd-0022]], [[hmd-0030]] |
+| todo | **Ask HQL to write `mermaid#show` and `d2#show`.** HQL's `mermaid` format step writes a plain `mermaid` fence, which is a listing, so the output of that step is shown as code while a Mermaid cell written by hand is drawn. Its graph output writes a plain `d2` fence, which still draws and will become a listing | HQL is its own project; the request goes to its tracker. A plain `d2` fence cannot become a listing before this | [[hmd-0034#open-questions]], [[hmd-0030#deployment-activation]] |
 
 ## Broken
 
@@ -129,6 +130,14 @@ nothing is wrong yet, only unstated.
 
 ## Done
 
+- **Mermaid is a diagram language on par with D2** — the format rejected it as
+  superseded by D2 when it was first sketched. The rejection is reversed in
+  the three places that stated it: the source sketch, the MVP grammar, and the
+  D2 record's non-goals. A `mermaid#show` fence is a diagram cell whose body
+  is opaque to the resolver, exactly as a `d2#show` fence is, and a plain
+  `mermaid` fence is a listing. The renderer is a native program,
+  `merman-cli`, so Mermaid shares D2's bounds and image delivery
+  [[hmd-0034]].
 - **Name resolution agrees across the three implementations** — eighteen
   `resolve-*` cases, written from the corrected *Name resolution* text rather
   than generated, cover every point the validation set out to check,
@@ -233,6 +242,7 @@ withdrew two dozen claims.
 
 ## Changelog
 
+- 2026-11-25: Mermaid is accepted as a diagram language beside D2, HMD-0034, and its Open row moves to Done. A diagram cell is drawn as its source is edited, which amends HMD-0030. A new Open row asks HQL to write `mermaid#show` and `d2#show`.
 - 2026-11-25: the branch `feat/in-card-address` is deleted, locally and on GitHub, without being merged, so its parked row is removed. HMD-0006 keeps the design.
 - 2026-11-25: two Open rows are removed: asking HQL to read `location_path`, and re-rendering the generated views once it does. HQL 0.8.0 reads `location_path`, and `hql render` renders all three views again.
 - 2026-11-25: HMD-0006 archived as deferred. Addressing inside a card continues as HQL path, HMD-0032, for HyperMarkDown 0.2.0; its rows and open questions replace those of HMD-0006, and the branch `feat/in-card-address` is parked.

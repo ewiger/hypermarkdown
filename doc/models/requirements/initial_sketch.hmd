@@ -99,7 +99,9 @@ grammar.
 | 16 | D2 diagrams | <code>&#96;&#96;&#96;d2</code> | free — `mkdocs-d2-plugin` |
 | 17 | GFM baseline | tables, task lists, fenced code, strikethrough | free |
 
-**Explicitly excluded:** highlights (`==text==`), Mermaid (superseded by D2).
+**Explicitly excluded:** highlights (`==text==`). Mermaid was excluded here
+too, as superseded by D2. That is reversed: Mermaid is a diagram language with
+the same standing as D2 ([HMD-0034](../../proposals/HMD-0034/index.hmd)).
 
 **Notes on the free items.**
 

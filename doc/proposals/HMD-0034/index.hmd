@@ -1,0 +1,302 @@
+---
+nav:
+  visibility: public
+---
+
+# HMD-0034: Mermaid, drawn by a native renderer
+
+**Status**: drafted
+**Created**: 2026-11-25
+**Source**: [the board card that opened the work](../../issues/0115-mermaid-diagrams-on-par-with-d2.hmd)
+
+## Abstract
+
+Mermaid is a diagram language of HyperMarkDown with the same standing as D2.
+A fence whose info string opens `mermaid#show` is a diagram cell, and every
+tool that draws a `d2#show` cell draws it. The renderer is `merman-cli`, a
+native program that draws Mermaid without a browser. It is run the way `d2` is
+run: the fence body on standard input, SVG on standard output, within the same
+bounds, delivered as a `data:` image. It is pinned in the toolchain beside
+`d2`. This record reverses the earlier rejection of Mermaid as superseded by
+D2. Neither language is the default.
+
+## Motivation
+
+- **Readers already know Mermaid.** GitHub, GitLab, and Obsidian draw it, and
+  it is the diagram language most Markdown authors have used. A card brought in
+  from elsewhere carries Mermaid, not D2.
+- **HQL already writes Mermaid.** Its `mermaid` format step emits a Mermaid
+  fence, and every preview and site build then shows that output as code. One
+  half of the toolchain produces a diagram that the other half does not draw.
+- **The reason for the rejection was the renderer.** Mermaid's reference
+  renderer is a JavaScript library that lays out text through a browser, and
+  its command-line tool drives a headless Chromium. That is hundreds of
+  megabytes per platform and a cold start of seconds. A native renderer removes
+  both costs, so the rejection no longer has a reason.
+
+**What this must not break.** A card with Mermaid cells renders completely
+with no renderer installed: each cell shows its source and says why it is not
+drawn. D2 keeps everything it has.
+
+## Goals
+
+- There is nothing D2 gets that Mermaid does not: the fence rule, the
+  TypeScript implementation, the site build, the editor preview, the toolchain
+  pin, the bounds, the image delivery, and the degraded state.
+- One renderer draws Mermaid in the editor and on the site, so a diagram looks
+  the same in both.
+- No browser, no Node runtime, and no container is needed to draw a diagram.
+
+## Non-goals
+
+- **Drawing a plain `mermaid` fence.** A plain `mermaid` fence is a listing,
+  shown as code. This is the rule for every diagram language, and it means a
+  Mermaid block written for GitHub or Obsidian shows as code here until its
+  fence is renamed to `mermaid#show`.
+- **Interactive diagrams.** A drawing reaches the page as an image, so a
+  `click` directive, a link, or a tooltip inside it does nothing.
+- **Pixel parity with mermaid.js.** The renderer follows Mermaid's syntax and
+  layout closely. It is a second implementation, and a drawing can differ in
+  detail from what a browser draws.
+- **A second renderer as a fallback.** A diagram drawn by one renderer in the
+  editor and another on the site would differ from itself.
+
+## Specification
+
+### The fence
+
+- A fence whose kind is `mermaid#show` MUST be a diagram cell. Matching is
+  exact and case-sensitive: `Mermaid#show` is a listing.
+- A plain `mermaid` fence MUST NOT be drawn.
+- The body of a Mermaid cell is opaque to the resolver. It yields no link, no
+  embed, no anchor, and no graph edge, even where Mermaid's own syntax uses
+  double square brackets for a node shape.
+
+````markdown
+```mermaid#show
+flowchart LR
+  client --> server
+```
+
+```mermaid
+flowchart LR
+  client --> server
+```
+````
+
+The first is drawn; the second is shown as code.
+
+### The renderer
+
+The renderer is `merman-cli`, from the `merman` project, version 0.11.0.
+
+- It is a native program written in Rust. It starts no browser and needs no
+  JavaScript runtime.
+- It publishes a binary for each of the five toolchain platforms: Linux on
+  x86-64 and ARM64, macOS on x86-64 and ARM64, and Windows on x86-64.
+- Its licence is MIT or Apache-2.0, at the user's choice. The layout engine it
+  bundles for some diagram types is under EPL-2.0. The toolchain archive
+  carries the licence files with the binary.
+- It follows Mermaid 12 and draws more than thirty diagram types, including
+  flowchart, sequence, class, state, entity-relationship, Gantt, pie, mindmap,
+  timeline, and Git graph.
+
+An implementation MUST run it with exactly these arguments, with the fence
+body on standard input:
+
+```text
+merman-cli render - --format svg --svg-pipeline resvg-safe \
+    --resource-profile constrained --operation-timeout-ms 2000 --quiet
+```
+
+- `render -` reads the source from standard input and writes the drawing to
+  standard output. No path, no workspace, and no environment from the card
+  reaches the process.
+- `--svg-pipeline resvg-safe` draws every label as SVG text. Mermaid's default
+  draws labels as HTML inside a `foreignObject` element, and an image does not
+  show the content of that element: the diagram would arrive with empty boxes.
+- `--resource-profile constrained` is the renderer's own resource policy for
+  input nobody has vetted. It bounds the source size, the size of the parsed
+  model, the layout work, and the size of the SVG.
+- `--operation-timeout-ms 2000` is the renderer's own deadline. The
+  implementation still kills the process at the shared bound.
+
+The renderer MUST NOT be given `--allow-network`. Without it the renderer
+opens no connection, so an icon pack named in a diagram is not fetched.
+
+### Bounds
+
+Mermaid shares the numbers D2 has. Both implementations refuse the same input
+for the same stated reason.
+
+| Bound | Value |
+| --- | --- |
+| Source size | 64 KiB |
+| Time for one render | 2 seconds |
+| Cached drawings | 64, least recently used evicted |
+
+The 2-second bound holds with room to spare. On an Apple M-series machine a
+flowchart, a sequence diagram, a class diagram, a state diagram, an
+entity-relationship diagram, and a Gantt chart each drew in about 10
+milliseconds, which is faster than `d2` draws.
+
+The cache key holds the diagram language as well as the source, because the
+same text is one diagram in D2 and another in Mermaid.
+
+### When a Mermaid cell is drawn
+
+A Mermaid cell is drawn exactly when a D2 cell is, as the record on diagram
+cells specifies: when the card is shown, and again as its source is edited.
+The earlier draft of that record forbade drawing while the author types,
+because Mermaid was expected to need a headless browser. The native renderer
+draws in milliseconds, so that restriction is withdrawn for both languages.
+
+### Delivery and security
+
+- The drawing MUST reach the page as a `data:` URI image and MUST NOT be
+  inserted as markup. An image runs no script and follows no link, so nothing
+  in diagram source reaches the page as code.
+- Drawing MUST NOT require a trusted workspace. The process gets the fence
+  body and nothing else.
+- A `click` directive or a link in a diagram is written into the SVG as a
+  link. Inside an image it does nothing.
+
+### Configuration inside the fence
+
+Mermaid lets a diagram configure itself, with an `%%{init: …}%%` directive or
+a frontmatter block at the top of its body.
+
+- Configuration inside the fence is honoured. A diagram that asks for the
+  `dark` theme is drawn in the dark theme.
+- It cannot widen what the renderer may do. The resource profile, the
+  timeout, and the absence of network access are set on the command line, and
+  the image delivery is the implementation's.
+
+### Theme
+
+A drawing sits on a white surface in every editor theme, as a D2 drawing
+does. Mermaid ships a dark theme and D2 ships one too, so drawing each diagram
+for the editor's theme is possible for both, and remains the open question it
+was for D2.
+
+### The degraded state
+
+A Mermaid cell that is not drawn shows its source, labelled, with the reason.
+The wording is the same as for D2, with the engine's name in it.
+
+| Cause | What the reader sees |
+| --- | --- |
+| No renderer | The source, and that no Mermaid renderer was found |
+| A syntax error | The renderer's own one-line message |
+| A timeout | That the render exceeded 2 seconds |
+| A source over 64 KiB | That the source exceeds 64 KiB |
+
+In the preview, a cell that drew before keeps its last drawing, marked stale,
+with the reason under it. On a built page there is no earlier drawing, and the
+page shows the source.
+
+### Where the renderer comes from
+
+- The toolchain repository pins `merman-cli` beside `d2`, one asset per
+  platform with its digest, and each archive carries it at `bin/merman-cli`
+  (`bin/merman-cli.exe` on Windows).
+- The extension's package for each platform carries the binary at
+  `toolchain/bin/`. The extension downloads nothing.
+- The extension looks for the renderer in this order: the path in the
+  setting `hyperMarkdown.diagram.mermaidPath`, then the bundled binary, then
+  `merman-cli` on `PATH`. A setting that names something that is not an
+  executable is reported, and the search stops there.
+- The site build finds `merman-cli` on `PATH`. Continuous integration installs
+  the pinned toolchain and checks `merman-cli --version` beside `d2 --version`.
+
+### The cover's live editor
+
+The cover's live editor shows a diagram as its text, D2 included. Mermaid gets
+the same treatment.
+
+## Rationale
+
+- **A native renderer, not Mermaid's own command-line tool.** Mermaid's tool
+  is faithful, because it is Mermaid. It needs Node and a pinned Chromium,
+  which is hundreds of megabytes in each platform package, and a cold start
+  that does not fit in 2 seconds.
+- **A native renderer, not mermaid.js inside the preview.** Running the
+  library in the webview puts diagram source into a script context in the
+  preview, which the image delivery exists to prevent. It also does nothing
+  for the site build, which has no browser.
+- **`merman-cli`, not `mmdr`.** `mmdr` is the other native renderer with
+  binaries for all five platforms, and its binary is a tenth of the size. Its
+  own documentation says its output may not match Mermaid's, it draws fewer
+  diagram types, and its last release is five months old. `merman-cli` is
+  checked against Mermaid, its output is the same bytes on every run, it has
+  resource limits built in, and it released four days before this record.
+- **The cost is size.** The `merman-cli` binary is about 66 MB unpacked and
+  16 MB to 26 MB compressed, per platform. Each platform package of the
+  extension grows by that much.
+
+## Backwards Compatibility
+
+- No card changes. A plain `mermaid` fence was a code block and stays one.
+- A `mermaid#show` fence was a code block in every earlier release. It is
+  drawn from the release that carries this record.
+- The settings, the bounds, and the delivery of D2 are unchanged.
+
+## Security Considerations
+
+- A new program runs on text from a cloned repository. It is a pinned binary
+  with a checked digest, it reads standard input only, it is bounded in time
+  and in resources, and its output is shown as an image.
+- The renderer is given no network access.
+- SVG is a scripting context. The drawing is never inserted as markup, so a
+  script or an event handler in it cannot run.
+
+## Test Plan
+
+Unit tests MUST include, for Mermaid, each test that exists for D2:
+
+- `mermaid#show` is a diagram cell; `mermaid`, `Mermaid#show`, and every other
+  kind are not.
+- The body of a Mermaid cell yields no link and no edge.
+- The cache key differs between the two languages for the same source.
+- A missing renderer, a failed render, and an oversized source each show the
+  labelled source with the reason.
+- A hostile SVG reaches the page as base64 in an image and never as markup.
+- The renderer is started with the arguments above.
+
+Tests against the real binary MUST include:
+
+- A flowchart draws with its labels as SVG text, with no `foreignObject`
+  element and no `script` element.
+- The same source draws the same bytes twice.
+- A syntax error comes back as a one-line reason.
+
+Integration tests MUST include:
+
+- A site build of a card with a `mermaid#show` cell and a plain `mermaid`
+  fence draws the first and shows the second as code.
+- A site build with no renderer shows the source and stays green.
+
+## Open Questions
+
+- Should HQL's `mermaid` format step write `mermaid#show`? Until it does, the
+  output of that step is a listing.
+- Should a plain `mermaid` fence raise a diagnostic suggesting `#show`? It
+  would help a vault brought in from elsewhere, and it would fire on every
+  deliberate listing.
+- Should a smaller build of the renderer be produced, with only the diagram
+  types a documentation site needs? It would cut the package size, and the
+  toolchain would then build a binary instead of repackaging a released one.
+
+## Changelog
+
+- 2026-11-25: drafted, with the renderer chosen and measured.
+
+## See also
+
+- [HMD-0030](../HMD-0030/index.hmd) — diagram cells: the `#show` kinds, the
+  preview's layout, and when a cell is drawn.
+- [HMD-0022](../HMD-0022/index.hmd) — the diagram block, the bounds, the
+  cache, and the image delivery that Mermaid shares.
+- [merman](https://github.com/latias94/merman) — the renderer.
+- [The toolchain card](../../issues/archive/0107-toolchain-repository-for-native-binaries.hmd)
+  — why native binaries are pinned in one repository.

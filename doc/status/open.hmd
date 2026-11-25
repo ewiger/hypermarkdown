@@ -76,9 +76,9 @@ the board, in the order this view lists them.
 | state   | rows |
 | ------- | ---- |
 | doing   | 2    |
-| todo    | 32   |
-| blocked | 3    |
-| backlog | 15   |
+| todo    | 29   |
+| blocked | 6    |
+| backlog | 16   |
 | parked  | 3    |
 <!-- /hql:output -->
 
@@ -101,7 +101,6 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | doing   | Rearrange the site                                                                                 | [pages](pages.hmd)         |
 | todo    | Property-based tests of the resolver's claims, over generated vaults.                              | [hmd](hmd.hmd)             |
 | todo    | Draw only diagram cells in the site build.                                                         | [hmd](hmd.hmd)             |
-| todo    | Draw Mermaid diagrams in the site build                                                            | [hmd](hmd.hmd)             |
 | todo    | Answer the open questions of HQL path before it is built.                                          | [lang](lang.hmd)           |
 | todo    | Clear numeric section references from the documentation.                                           | [lang](lang.hmd)           |
 | todo    | Finish unifying what a vault and a namespace are across the specification, the HMD tools, and HQL. | [lang](lang.hmd)           |
@@ -109,7 +108,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Specify the Extended Markdown syntax.                                                              | [lang](lang.hmd)           |
 | todo    | Validate the grammar, a release requirement for 0.1.                                               | [lang](lang.hmd)           |
 | todo    | Review lexical compatibility with CommonMark.                                                      | [lang](lang.hmd)           |
-| todo    | Accept Mermaid as a diagram language on par with D2.                                               | [lang](lang.hmd)           |
+| todo    | Ask HQL to write `mermaid#show` and `d2#show`.                                                     | [lang](lang.hmd)           |
 | todo    | Go to a heading or a block.                                                                        | [lsp](lsp.hmd)             |
 | todo    | Tokens for block anchors and frontmatter.                                                          | [lsp](lsp.hmd)             |
 | todo    | Completion                                                                                         | [lsp](lsp.hmd)             |
@@ -121,19 +120,20 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | The publication model, and the rule that depends on it.                                            | [ts-core](ts-core.hmd)     |
 | todo    | Subscript.                                                                                         | [ts-core](ts-core.hmd)     |
 | todo    | LaTeX environments at block level.                                                                 | [ts-core](ts-core.hmd)     |
-| todo    | Recognise diagram cells.                                                                           | [ts-core](ts-core.hmd)     |
-| todo    | Recognise a `mermaid#show` fence as a diagram.                                                     | [ts-core](ts-core.hmd)     |
+| todo    | Turn a plain `d2` fence into a listing.                                                            | [ts-core](ts-core.hmd)     |
 | todo    | Colour the listings in the preview.                                                                | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Colour a `d2` listing in the editor.                                                               | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Colour a fence nested in a list or a quote.                                                        | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Colour a link inside a paragraph from the grammar.                                                 | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Automate the by-hand checks.                                                                       | [vsc-ext](vsc-ext.hmd)     |
 | todo    | Create the card a relative link points at.                                                         | [vsc-ext](vsc-ext.hmd)     |
-| todo    | Diagram cells in the preview.                                                                      | [vsc-ext](vsc-ext.hmd)     |
-| todo    | Draw Mermaid diagrams in the preview                                                               | [vsc-ext](vsc-ext.hmd)     |
+| todo    | Turn a plain `d2` fence into code in the preview.                                                  | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Redirect the retired domain                                                                        | [hmd](hmd.hmd)             |
+| blocked | Install `merman-cli` where the site is built.                                                      | [hmd](hmd.hmd)             |
+| blocked | Show Mermaid beside D2 on the public pages                                                         | [pages](pages.hmd)         |
 | blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.hmd)     |
+| blocked | Carry `merman-cli` in the build.                                                                   | [vsc-ext](vsc-ext.hmd)     |
 | backlog | Lint text, not just files.                                                                         | [hmd](hmd.hmd)             |
 | backlog | Invalidate one card at a time                                                                      | [hmd](hmd.hmd)             |
 | backlog | HQL path, for HyperMarkDown 0.2.0.                                                                 | [lang](lang.hmd)           |
@@ -149,6 +149,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | backlog | A comparison suite that asks the reference implementation.                                         | [rs-core](rs-core.hmd)     |
 | backlog | Say when `--vault` is not a vault.                                                                 | [semantics](semantics.hmd) |
 | backlog | Filter the graph by namespace and tag                                                              | [vsc-ext](vsc-ext.hmd)     |
+| backlog | Show All Diagrams                                                                                  | [vsc-ext](vsc-ext.hmd)     |
 | parked  | Rename the package inside the parked integration suite                                             | [hmd](hmd.hmd)             |
 | parked  | A Lean model of resolution and embed expansion.                                                    | [lang](lang.hmd)           |
 | parked  | The integration suite                                                                              | [vsc-ext](vsc-ext.hmd)     |

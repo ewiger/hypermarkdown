@@ -16,12 +16,12 @@ A fence whose info string opens `d2#show` or `mermaid#show` is a **diagram
 cell**. The preview draws it the way it draws an `hql#eval` cell: the picture
 first, the source behind a **Code** toggle, and an **Edit** button beside it.
 Where an HQL cell has **Run**, a diagram cell has **Show**. A diagram cell is
-drawn when the card opens. After its source is edited it keeps its last
-drawing, marked stale, until the reader presses Show. The drawing lives in the
-preview only; nothing is written into the card. A plain `d2` or `mermaid`
-fence becomes a **listing**, shown as code, exactly as a plain `hql` fence is.
-The document IR's `DiagramBlock` gains a staleness state and moves to version
-4.
+drawn when the card opens, and drawn again as its source is edited. When an
+edit leaves source that does not draw, the cell keeps its last drawing, marked
+stale, with the reason under it. The drawing lives in the preview only;
+nothing is written into the card. A plain `d2` or `mermaid` fence becomes a
+**listing**, shown as code, exactly as a plain `hql` fence is. The document
+IR's `DiagramBlock` gains the state of its drawing and moves to version 5.
 
 ## Motivation
 
@@ -33,10 +33,14 @@ The document IR's `DiagramBlock` gains a staleness state and moves to version
 - **A reader wants the picture; an author wants the source.** The notebook
   layout already solves this for HQL: answer first, code one click away. A
   diagram is the same shape of thing.
-- **Mermaid cannot be drawn on every keystroke.** Its reference renderer
-  drives a headless browser, and a cold start does not fit the two-second
-  bound D2 meets. Drawing on open and on Show, and never while typing, keeps
-  the preview responsive whichever renderer Mermaid ends up with.
+- **An author watches the diagram while typing it.** D2 has always been drawn
+  as its source changes, and that is the feature an author uses most. The cell
+  layout keeps it, for D2 and for Mermaid. Mermaid's renderer is a native
+  program that draws in milliseconds, so it needs no exception.
+- **A broken edit should not blank the diagram.** Half-typed source does not
+  draw. A cell that kept nothing would flicker between a picture and an error
+  on every keystroke, so it keeps its last drawing until the source draws
+  again.
 
 **What this must not break.** A card with diagram cells renders completely
 with no renderer installed: each cell shows its source and says why it is not
@@ -46,7 +50,8 @@ drawn.
 
 - `d2#show` and `mermaid#show` behave like HQL cells in the preview, with Show
   in place of Run.
-- No renderer starts while the reader types.
+- A diagram follows its source as the author types, in both languages.
+- A cell never loses its drawing to an edit that does not draw.
 - The card stays text: showing a diagram never edits the file.
 
 ## Non-goals
@@ -55,8 +60,8 @@ drawn.
   artifacts as more machinery than the problem has, and this record keeps that
   decision.
 - **Choosing Mermaid's renderer.** That choice, its bounds, and its security
-  settings belong to the Mermaid card. Until it is made, a `mermaid#show` cell
-  shows its source and says no renderer is available.
+  settings are made in HMD-0034: a native renderer, `merman-cli`, under the
+  bounds D2 has.
 - **Interactive diagrams.** A drawing still reaches the page as an image, so
   links and click handlers inside it do nothing.
 - **New diagram languages.** Only `d2` and `mermaid` get a `#show` kind.
@@ -100,20 +105,26 @@ The first is drawn; the second is shown as code.
 
 ### When a diagram cell is drawn
 
-A cell is drawn when the card is shown, and again when the reader asks.
+A cell is drawn when the card is shown, again whenever its source changes,
+and again when the reader asks.
 
-- When the preview first shows a card, it MUST draw each diagram cell whose
-  renderer is available, within the bounds of HMD-0022. A drawing already in
-  the cache is used without starting a renderer.
-- When a cell's source changes, the preview MUST NOT start a renderer. If the
-  new source is in the cache — after an undo, say — that drawing is shown and
-  the cell is current. Otherwise the last drawing stays on screen, marked
-  **stale**.
-- **Show** draws the cell's current source and replaces its drawing. It is
-  also how a reader retries after a timeout or a failure.
-- A cell whose source has never been drawn, and is not in the cache, is **not
-  drawn**, with the reason: no renderer, a syntax error, a timeout, or a
-  source over the size bound.
+- When the preview shows a card, it MUST draw each diagram cell whose renderer
+  is available, within the bounds of HMD-0022. A drawing already in the cache
+  is used without starting a renderer.
+- When a cell's source changes, the preview MUST draw the new source, on the
+  same delay it re-reads the card on. If the new source is in the cache —
+  after an undo, say — that drawing is shown without starting a renderer.
+- When the new source does not draw, the last drawing MUST stay on screen,
+  marked **stale**, with the reason under it: a syntax error, a timeout, or a
+  source over the size bound. The cell is current again as soon as its source
+  draws.
+- A cell whose source has never drawn is **not drawn**. It shows its source
+  and the reason.
+- **Show** draws the cell's current source again. A failure is not answered
+  from the cache, and a renderer that was missing is looked for again, so Show
+  is how a reader retries after a timeout or after installing a renderer.
+- A drawing kept for a stale cell belongs to one preview and one card. It is
+  dropped when the preview moves to another card.
 
 The cache is HMD-0022's: in memory, keyed by source, bounded to 64 entries,
 least recently used evicted.
@@ -167,8 +178,10 @@ DiagramBlock := {
 }
 ```
 
-- `IR_VERSION` becomes **4**. A webview that receives another version refuses
+- `IR_VERSION` becomes **5**. A webview that receives another version refuses
   to render and asks for a reload.
+- `language` is `d2` for a plain `d2` fence for as long as that fence still
+  draws. Such a block has no cell layout and keeps its key by source.
 - The key is the cell's position among diagram cells, not its content. Editing
   a cell would otherwise give it a new key, and the reader's Code toggle and
   the stale drawing would be lost with it.
@@ -180,8 +193,8 @@ DiagramBlock := {
 The canonical implementation follows the same fence rule.
 
 - A site build MUST draw `d2#show` cells, with the renderer and bounds it uses
-  today, and MUST render a plain `d2` fence as a code block. `mermaid#show`
-  draws once the Mermaid renderer is chosen.
+  today, and MUST render a plain `d2` fence as a code block. It MUST draw
+  `mermaid#show` cells with the renderer HMD-0034 chooses.
 - How a built page shows a diagram cell's source is an open question below.
   Until it is answered, the page shows the drawing only, as it does today.
 
@@ -197,7 +210,7 @@ The canonical implementation follows the same fence rule.
   draw.
 - **HQL's `mermaid` format step writes a plain `mermaid` fence**, which becomes
   a listing. HQL is asked to write `mermaid#show`.
-- **`IR_VERSION` moves from 3 to 4.** A stale webview shows the reload message.
+- **`IR_VERSION` moves from 4 to 5.** A stale webview shows the reload message.
 - No card changes on disk because of this record. Showing a diagram never
   writes.
 
@@ -215,15 +228,16 @@ Nothing new runs, and nothing runs on new input.
 
 ## Deployment / Activation
 
-1. In both implementations, recognise `d2#show` as a diagram, beside plain
-   `d2`. Both still draw, so nothing breaks.
+1. In both implementations, recognise `d2#show` and `mermaid#show` as diagram
+   cells, beside plain `d2`. All three draw, so nothing breaks. In the same
+   release, land the preview's cell layout, Show, the stale state, and
+   `IR_VERSION` 5 for the two cell kinds.
 2. Rewrite every `d2` fence in this repository as `d2#show`.
-3. In one release of each tool, turn plain `d2` into a listing, and land the
-   preview's cell layout, Show, the stale state, and `IR_VERSION` 4. State the
+3. Ask HQL to write `d2#show` and `mermaid#show` where it writes `d2` and
+   `mermaid` today. A cell's output is machine-written, and it would otherwise
+   become a listing in the next step.
+4. In one release of each tool, turn plain `d2` into a listing. State the
    change in each changelog, with the one-line migration: rename the fence.
-4. Add `mermaid#show` to the recognised kinds. It shows its source until the
-   Mermaid renderer lands.
-5. Ask HQL to write `mermaid#show` from its `mermaid` step.
 
 ## Reference Implementation
 
@@ -248,10 +262,13 @@ Unit tests MUST include:
   and every other kind are not.
 - A diagram cell takes no HQL cell number and is untouched by the HQL mask.
 - A diagram cell's body yields no link and no edge.
-- On first render the cell is drawn; after an edit no renderer starts and the
-  cell is stale; after an undo to a cached source it is current again without
-  a render.
-- Show replaces the drawing and clears stale; a failed draw keeps the reason.
+- On first render the cell is drawn; after an edit that draws, the new
+  drawing is shown and the cell is current; after an edit that does not draw,
+  the last drawing is kept and the cell is stale, with the reason.
+- A source drawn before is answered from the cache without a render.
+- Show draws a failed source again and does not answer from the cache; it
+  looks again for a renderer that was missing.
+- One cell's last drawing is never shown under another cell.
 - The Code toggle survives an edit and a redraw.
 - Show is offered inside an embed, and Run is still not.
 - The key of a diagram cell does not change when its source does.
@@ -284,6 +301,13 @@ uv run python -m pytest tools/hmd/tests/test_diagram.py
 ## Changelog
 
 - 2026-11-22: drafted.
+- 2026-11-25: a cell is drawn as its source is edited, in both languages. The
+  first draft forbade a renderer while the author types, because Mermaid was
+  expected to need a headless browser; HMD-0034 chose a native renderer that
+  draws in milliseconds. Stale now means that the edited source does not
+  draw. `IR_VERSION` is 5, because 4 was taken by heading keys. The cell
+  layout lands with the two `#show` kinds, before a plain `d2` fence becomes
+  a listing.
 
 ## See also
 
@@ -291,5 +315,5 @@ uv run python -m pytest tools/hmd/tests/test_diagram.py
   Edit, and the listing rule this record extends to diagrams.
 - [HMD-0022](../HMD-0022/index.hmd) — the diagram block, the renderer, its
   bounds, its cache, and its image delivery, all kept here.
-- [The Mermaid card](../../issues/0115-mermaid-diagrams-on-par-with-d2.hmd) —
-  the Mermaid renderer, still to be chosen.
+- [HMD-0034](../HMD-0034/index.hmd) — the Mermaid renderer, its arguments,
+  and its bounds.

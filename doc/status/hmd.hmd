@@ -8,6 +8,7 @@ import:
   - from /proposals/HMD-0024 import index as hmd-0024
   - from /proposals/HMD-0028 import index as hmd-0028
   - from /proposals/HMD-0030 import index as hmd-0030
+  - from /proposals/HMD-0034 import index as hmd-0034
 work:
   - kind: open
     state: backlog
@@ -76,25 +77,28 @@ work:
     state: todo
     tags: [site, cells]
     text: >-
-      **Draw only diagram cells in the site build.** A `d2#show` fence is drawn
-      as a `d2` fence is today, and a plain `d2` fence becomes a code block
+      **Draw only diagram cells in the site build.** A plain `d2` fence still
+      draws beside the `d2#show` cell, and it becomes a code block
     notes: >-
-      Lands in the same release as the TypeScript implementation's change and
-      the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`]
+      Lands in the same release as the TypeScript implementation's change,
+      after this repository's fences are rewritten and HQL writes `d2#show`
+      [`diagram.py`, `PLAIN_LANGUAGES`]
     refs: >-
       [[hmd-0030#the-site-build]]
   - kind: open
-    state: todo
-    tags: [site, cells]
+    state: blocked
+    tags: [site, ci]
     text: >-
-      **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells,
-      through the same module and the same bounds as D2, with the same labelled
-      placeholder when no renderer is installed
+      **Install `merman-cli` where the site is built.** CI and the Pages
+      deploy install the pinned toolchain, and that toolchain does not carry
+      the Mermaid renderer yet, so a `mermaid#show` cell on the published site
+      shows its source with the reason
     notes: >-
-      Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains
-      `mermaid#show`
+      Unblocked by a toolchain release that pins `merman-cli`; then move the
+      pin in `toolchain.json` and check `merman-cli --version` beside
+      `d2 --version` in both workflows
     refs: >-
-      [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd)
+      [[hmd-0034#where-the-renderer-comes-from]]
   - kind: broken
     state: todo
     tags: [site, embeds]
@@ -230,6 +234,16 @@ work:
       A changelog is a historical record
     refs: >-
       [[hmd-0005#what-deliberately-keeps-its-current-spelling]]
+  - kind: done
+    tags: [site, cells]
+    text: >-
+      **Mermaid diagrams and diagram cells in the site build** — a
+      `mermaid#show` cell is drawn through `merman-cli` and a `d2#show` cell
+      through `d2`, by one engine class with the same 64 KiB, 2 s, and
+      64-entry bounds, the same `data:` image, and the same labelled
+      placeholder when a renderer is missing. A plain `mermaid` fence is a
+      code block. `diagram.py` gains `MermaidEngine`, `CELL_KINDS`, and
+      `engine_name`; unreleased.
   - kind: done
     tags: [config, cli]
     text: >-
@@ -518,8 +532,8 @@ work
 | todo    | **Property-based tests of the resolver's claims, over generated vaults.** The specification asserts properties that no test states for every tree: a wildcard import never changes a name the spine already resolved, a resolved path never lies outside the namespace root, embed expansion always terminates, and the sweep returns one match, an ambiguity, or nothing, never a silent pick. Generate random trees, cards, imports and embeds, and check each claim; a shrunk counterexample is either a resolver bug or a sentence the specification has to withdraw. The existing determinism test could take its trees from the same generator [`test_determinism.py`] | The cheap form of the parked Lean model in the format's tracker, and the condition for unparking it. Needs `hypothesis` as a test dependency                                    | resolver, tests | [[hmd-lang-spec#resolution-rules]], [[hmd-lang-spec#embed-expansion]], [the format's tracker](lang.hmd) |
 | blocked | **Redirect the retired domain** to the current one, preserving paths                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Registrar configuration, not a commit. See Broken                                                                                                                               | domain          | [[hmd-0005#the-canonical-host-and-the-state-dns-has-to-reach]]                                          |
 | parked  | **Rename the package inside the parked integration suite** on the extension's old branch, which still uses the pre-rename directory name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Waits on that branch being picked up                                                                                                                                            | rename          | [[hmd-0005#the-repository-and-the-urls-that-point-at-it]]                                               |
-| todo    | **Draw only diagram cells in the site build.** A `d2#show` fence is drawn as a `d2` fence is today, and a plain `d2` fence becomes a code block                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Lands in the same release as the TypeScript implementation's change and the rewrite of this repository's fences [`diagram.py`, `LANGUAGES`]                                     | site, cells     | [[hmd-0030#the-site-build]]                                                                             |
-| todo    | **Draw Mermaid diagrams in the site build**, for `mermaid#show` cells, through the same module and the same bounds as D2, with the same labelled placeholder when no renderer is installed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Waits on the renderer being chosen; `LANGUAGES` in `diagram.py` gains `mermaid#show`                                                                                            | site, cells     | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd)                                  |
+| todo    | **Draw only diagram cells in the site build.** A plain `d2` fence still draws beside the `d2#show` cell, and it becomes a code block                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Lands in the same release as the TypeScript implementation's change, after this repository's fences are rewritten and HQL writes `d2#show` [`diagram.py`, `PLAIN_LANGUAGES`]    | site, cells     | [[hmd-0030#the-site-build]]                                                                             |
+| blocked | **Install `merman-cli` where the site is built.** CI and the Pages deploy install the pinned toolchain, and that toolchain does not carry the Mermaid renderer yet, so a `mermaid#show` cell on the published site shows its source with the reason                                                                                                                                                                                                                                                                                                                                                                                                                          | Unblocked by a toolchain release that pins `merman-cli`; then move the pin in `toolchain.json` and check `merman-cli --version` beside `d2 --version` in both workflows         | site, ci        | [[hmd-0034#where-the-renderer-comes-from]]                                                              |
 <!-- /hql:output -->
 
 ## Broken
@@ -573,6 +587,7 @@ work
 <!-- hql:output hash=f0400f06f960 status=ok -->
 | Shipped                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Tags            |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| **Mermaid diagrams and diagram cells in the site build** — a `mermaid#show` cell is drawn through `merman-cli` and a `d2#show` cell through `d2`, by one engine class with the same 64 KiB, 2 s, and 64-entry bounds, the same `data:` image, and the same labelled placeholder when a renderer is missing. A plain `mermaid` fence is a code block. `diagram.py` gains `MermaidEngine`, `CELL_KINDS`, and `engine_name`; unreleased.                                                                                                                                                                                                                               | site, cells     |
 | **"Vault not found" when no `.hmd/` is above the start directory** — the error reads the way git's does outside a repository and says to run `hmd init` or pass `--root`; the README no longer describes the `wiki` setting or the `--wiki` flag; released in 0.5.1                                                                                                                                                                                                                                                                                                                                                                                                 | config, cli     |
 | **`location_path` names the namespace root** — the setting formerly called `wiki`, read relative to the vault with the default `.`, the vault itself, instead of `doc/wiki`; no alias. `hmd init --location-path` replaces `--wiki`, and with no flag creates no directory; released in 0.5.0.                                                                                                                                                                                                                                                                                                                                                                      | config          |
 | **The HMD007 check follows only the embedded region** — it walks the section a fragment expands to, not every embed in the target card, so two embeds of different sections of one card, or a section embedding a sibling section, are no longer a false cycle. A card or a section that embeds itself still is. Held by the `embed-sections-of-one-card` and `embed-self` corpus cases; released in 0.5.0.                                                                                                                                                                                                                                                         | linter, embeds  |
@@ -621,7 +636,8 @@ work
 <!-- hql:output hash=4aad2eff54ad status=ok -->
 | Tag      | Open | Broken | Limitations | Done | Questions |
 | -------- | ---- | ------ | ----------- | ---- | --------- |
-| cells    | 2    | 0      | 0           | 0    | 0         |
+| cells    | 1    | 0      | 0           | 1    | 0         |
+| ci       | 1    | 0      | 0           | 0    | 0         |
 | cli      | 0    | 0      | 0           | 4    | 3         |
 | config   | 0    | 0      | 0           | 4    | 2         |
 | docs     | 0    | 0      | 2           | 0    | 0         |
@@ -634,7 +650,7 @@ work
 | rename   | 1    | 0      | 3           | 1    | 2         |
 | resolver | 1    | 0      | 0           | 2    | 1         |
 | scanner  | 0    | 2      | 0           | 0    | 0         |
-| site     | 2    | 1      | 0           | 4    | 1         |
+| site     | 2    | 1      | 0           | 5    | 1         |
 | tests    | 1    | 0      | 0           | 1    | 1         |
 <!-- /hql:output -->
 

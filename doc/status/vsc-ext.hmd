@@ -10,6 +10,7 @@ import:
   - from /proposals/HMD-0026 import index as hmd-0026
   - from /proposals/HMD-0030 import index as hmd-0030
   - from /proposals/HMD-0033 import index as hmd-0033
+  - from /proposals/HMD-0034 import index as hmd-0034
 ---
 
 # STATUS — the VS Code extension
@@ -85,8 +86,9 @@ picks and re-indexes without a reload, since `0.6.1` [issue 0116].
 | blocked | **Drop the mask.** Before handing a card to HQL the extension renames a bare `hql` fence to `txt` and marks an `hql#query` fence `hidden`, because `hql render` runs bare `hql` fences as cells and writes outputs for queries, and this format says they are a listing and a hidden cell. Unblocks when HQL adopts both rules | One function and its call [`src/hql/engine.ts`, `maskForHql`] | [[hmd-0026#the-divergence-with]] |
 | blocked | **Name the HQL project and import `hmd` on the command line.** HQL's record of projects and vaults has a host pass the project it resolved, `--project <dir>`, and inject `--import hmd`. The extension passes neither: `hql render` imports `hmd` and selects the project itself, and the HQL the toolchain pins predates both flags and refuses an option it does not know. Unblocks when the toolchain pins an HQL release that has them | One argument list [`src/hql/engine.ts`, `run`] | [[hmd-0026#running-a-cell]] |
 | parked | **The integration suite** under `@vscode/test-cli` — written, compiling, and set aside on the `feat/vsc-ext-1` branch, because two upstream defects make it unrunnable on macOS | Below | [[hmd-0021#12-packaging-and-ci]] |
-| todo | **Diagram cells in the preview.** A `d2#show` or `mermaid#show` fence is drawn like an `hql#eval` cell: the drawing first, the source behind Code, Edit beside it, and Show in place of Run. A cell is drawn when the card opens; after an edit it keeps its last drawing, marked stale, until Show. Nothing is written into the card, and a plain `d2` fence becomes code | Lands together with the core's change and the rewrite of this repository's `d2` fences, or the book loses its diagrams | [[hmd-0030]] |
-| todo | **Draw Mermaid diagrams in the preview**, for `mermaid#show` cells, with a renderer pinned in the toolchain beside `d2`, falling back to `PATH`, and the same cache, bounds, and `data:` image delivery | The renderer is the cost: Mermaid's reference CLI drives a headless Chromium, which is heavy in a VSIX and slow to start | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd) |
+| blocked | **Carry `merman-cli` in the build.** The preview draws a `mermaid#show` cell with `merman-cli` from the `hyperMarkdown.diagram.mermaidPath` setting or from `PATH`. No platform build carries the binary yet, so a fresh install shows a Mermaid cell as its source with the reason | Unblocked by a toolchain release that pins `merman-cli`. Then move the pin in `toolchain.json`, check each VSIX for `toolchain/bin/merman-cli` in the release workflow, and set `MERMAN_BIN` in CI so the tests against the real binary run. Each platform build grows by 16 MB to 26 MB | [[hmd-0034#where-the-renderer-comes-from]] |
+| todo | **Turn a plain `d2` fence into code in the preview.** It still draws, without the cell layout, beside the `d2#show` cell | Lands together with the core's change and the rewrite of this repository's `d2` fences, or the book loses its diagrams | [[hmd-0030#deployment-activation]] |
+| backlog | **Show All Diagrams**, for a card, the way Run has Run All | An open question of the record, not yet asked for | [[hmd-0030#open-questions]] |
 
 **Why the integration suite is parked**, neither reason in our code: the test
 harness spawns `Contents/MacOS/Electron` and current VS Code ships that binary
@@ -119,6 +121,20 @@ about 300 MB on first run, which is why it is not in the default test command.
 
 ## Done
 
+- **Diagram cells in the preview** — a `d2#show` or `mermaid#show` fence is
+  drawn like an `hql#eval` cell: the drawing first, the source behind Code,
+  Edit beside it, and Show in place of Run. The drawing follows the source as
+  it is typed. When the source stops drawing, the cell keeps its last drawing,
+  marked stale, with the reason under it, and Show draws it again. Show is
+  offered inside an embed, and nothing is written into the card. A **Show
+  diagram** code lens sits above each cell, and the command *Show Diagram*
+  draws the cell under the cursor; unreleased [[hmd-0030]].
+- **Mermaid diagrams in the preview** — a `mermaid#show` cell is drawn by
+  `merman-cli`, a native renderer with no browser, found by the
+  `hyperMarkdown.diagram.mermaidPath` setting, then in the build's toolchain
+  directory, then on `PATH`. It shares the cache, the 64 KiB and 2 s bounds,
+  and the `data:` image delivery of D2, and one engine runs both renderers;
+  unreleased [[hmd-0034]].
 - **The build carries the language server** — every platform build holds
   `hmd-lsp` 0.1.0 in `toolchain/bin/`, from toolchain 0.6.0, and the client
   looks there before `PATH`. The release workflow checks each VSIX for it;
@@ -265,6 +281,10 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-25: Done rows for diagram cells in the preview and for Mermaid
+  drawn by `merman-cli`. The Open row for cells becomes the smaller row for a
+  plain `d2` fence, and the Open row for Mermaid becomes a blocked row for
+  carrying the renderer in the build.
 - 2026-11-25: 0.7.0. Status names it. Done rows for HQL highlighting, for a
   cell in any language, for the Linguist fence table, and for carrying
   `hmd-lsp` in the build, whose blocked row is gone. Open rows for a `d2`

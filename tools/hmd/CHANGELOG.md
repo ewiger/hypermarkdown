@@ -13,6 +13,19 @@ only for the Python API.
 
 ## [Unreleased]
 
+### Added
+- **Mermaid diagrams in the site build.** A fence that opens `mermaid#show` is
+  drawn by [`merman-cli`](https://github.com/latias94/merman), a native Mermaid
+  renderer that needs no browser, found on `PATH`. It shares the bounds of D2:
+  64 KiB of source, 2 seconds for a render, and a drawing delivered as a
+  `data:` image. With no `merman-cli` installed the cell shows its source and
+  the reason, and the build stays green.
+- **Diagram cells.** `d2#show` is drawn exactly as a `d2` fence is. A plain
+  `mermaid` fence is a listing and stays a code block. A plain `d2` fence
+  still draws; `d2#show` is the form that will keep drawing.
+- `diagram.MermaidEngine`, `diagram.engines()`, and `diagram.engine_name()`.
+  `D2Engine` and `MermaidEngine` share one base class, `diagram.Engine`.
+
 ## [0.5.1] — 2026-11-25
 
 ### Changed

@@ -21,6 +21,27 @@ point in
 
 ## [Unreleased]
 
+### Added
+
+- **Diagram cells.** A fence that opens `d2#show` or `mermaid#show` becomes a
+  `DiagramBlock`, matched exactly and case-sensitively. `DIAGRAM_CELL_KINDS`
+  maps each kind to its engine, `diagramLanguage` reads a fence's info string,
+  `isDiagramCell` and `diagramEngine` answer for a block's language, and
+  `scanDiagramCells` finds the cells in a card's text with their lines.
+- **Mermaid.** `mermaid#show` is a diagram. A plain `mermaid` fence stays a
+  code block.
+
+### Changed
+
+- **`IR_VERSION` is 5.** `DiagramBlock` gains `drawnFrom` and `current`, the
+  state of the drawing a consumer attached. A consumer that builds a
+  `DiagramBlock` must set both.
+- **A diagram cell is keyed by position** among the card's diagram cells, not
+  by its source, so an edit keeps the element that shows it. A plain `d2`
+  fence keeps its key by source.
+- `DiagramBlock.language` is `d2#show` or `mermaid#show` for a cell, as
+  written. It is `d2` for a plain `d2` fence, which still draws.
+
 ## [0.4.0] — 2026-11-25
 
 The HyperMarkDown 0.1 rules for encoding, the lexical model, and heading

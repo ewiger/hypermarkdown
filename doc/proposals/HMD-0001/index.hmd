@@ -166,9 +166,11 @@ block_id     := ALPHA / DIGIT *63( ALPHA / DIGIT / "_" / "-" )
   vocabulary (P3) — but the whole mapping is exposed in the model and in
   `hmd graph` output.
 
-**Explicitly excluded from the MVP grammar:** inline properties (`key:: value`),
-highlights (`==text==`), and Mermaid. The first is deferred; the latter two are
-rejected by the source.
+**Explicitly excluded from the MVP grammar:** inline properties (`key:: value`)
+and highlights (`==text==`). The first is deferred; the second is rejected by
+the source. Mermaid was excluded here too, as superseded by D2. HMD-0034
+reverses that: a `mermaid#show` fence is a diagram with the same standing as
+a `d2#show` fence.
 
 ### 3. Heading anchors
 
@@ -792,6 +794,8 @@ excerpts versus block anchors (Q3), and the query grammar (Q6).
 
 ## Changelog
 
+- 2026-11-25: Mermaid is no longer excluded from the grammar; HMD-0034 accepts
+  it as a diagram language beside D2.
 - 2026-07-31: drafted
 - 2026-07-31: §5 reworked from recursive-per-scope to the two-phase spine walk
   plus single root sweep; folder-note binding added (HMD012); worked example

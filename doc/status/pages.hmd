@@ -5,6 +5,7 @@ import:
   - from /proposals/HMD-0005 import index as hmd-0005
   - from /proposals/HMD-0022 import index as hmd-0022
   - from /proposals/HMD-0030 import index as hmd-0030
+  - from /proposals/HMD-0034 import index as hmd-0034
 ---
 
 # STATUS — the website
@@ -69,6 +70,7 @@ revisiting is that maths loads from a CDN at view time.
 | todo | **The roadmap is behind the releases**: its version table, its news, and a section that lists released cells as coming | It now says where the work goes — the specification's first version and the editor here, AI and graph querying in HQL — and nothing else on it was brought forward. It is the one page that states versions, so it is the one page that has to be right | [the roadmap card](../issues/0013-the-roadmap-is-behind-the-releases.hmd) |
 | todo | **A screenshot of the example notebook for the cover**, in place of a crop from another vault | Needs the editor opened by hand | [the screenshot card](../issues/0114-a-screenshot-of-the-example-notebook.hmd) |
 | todo | **Rewrite every `d2` fence as `d2#show`** — in the book, the wiki, the README, and the example vaults, about eighteen fences — so the diagrams still draw once a plain `d2` fence is a listing. A fence that shows D2 source on purpose, inside an outer example fence, stays as it is | Lands with the release that turns the rule on in both implementations, not before it and not after | [[hmd-0030#backwards-compatibility]] |
+| blocked | **Show Mermaid beside D2 on the public pages**: the Features page, the README, and the tools pages list D2 alone, and the Features page shows a diagram as D2 only. Add a `mermaid#show` example next to the D2 one | Unblocked when the Pages build installs a toolchain that carries `merman-cli`; before that the example would be published as its own source with a reason | [[hmd-0034]] |
 | backlog | **Self-host the maths typesetter**, so the site has no runtime dependency on anything it does not ship | Today it loads from a CDN, which is the site's only network dependency at view time. Not argued yet | — |
 
 ## Broken
@@ -209,6 +211,8 @@ run permanently.
 
 ## Changelog
 
+- 2026-11-25: a blocked Open row for showing Mermaid beside D2 on the public
+  pages, which waits on the Pages build carrying the Mermaid renderer.
 - 2026-11-25: the feature list and the interop sketch removed, and every
   reference to them repointed at Features or dropped.
 - 2026-11-25: Features moved into Language; Learn regrouped; the Wiki tab
