@@ -20,17 +20,19 @@ in [`semantics.hmd`](semantics.hmd), and the website in
 
 ## Status
 
-**Written, tested, and prepared for its first release, 0.1.0.** The program builds, and it answers
+**Released as 0.1.0 on 2026-11-25.** The program builds, and it answers
 semantic tokens, go to definition, hover, and diagnostics for the three ways a
 reference fails to resolve. It reads the text in the editor in front of the
 text on disk, so a reference to a card that is not saved yet resolves. 51
 tests: the unit tests, 26 tests that speak the protocol to a server on a
 thread, and 4 that run the built program.
 
-The VS Code extension is a client of it, written and not yet released. There
-is no release of the server, and the pinned toolchain does not carry it. A
-developer builds it with Cargo and points the extension's setting, Neovim, or
-Helix at the binary.
+The program is on the GitHub release `lsp-v0.1.0` for Linux and macOS on
+x86-64 and ARM64 and for Windows on x86-64, and the package is
+`hypermarkdown-lsp` on crates.io. The VS Code extension is a client of it,
+written and not yet released. The pinned toolchain does not carry the program
+yet, so a user downloads it or builds it with `cargo install
+hypermarkdown-lsp`, and puts it on `PATH`.
 
 The server replaces the Python language server that was decided earlier and
 never built. Python stays the canonical implementation and the only complete
@@ -40,9 +42,7 @@ linter.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| doing | **Cut the first release, 0.1.0.** Release the resolver crate 0.4.0 first, run the release workflow by hand once to see all five archives build on real runners, push the tag `lsp-v0.1.0`, and publish `hypermarkdown-lsp` to crates.io | The workflow has never run: it was rehearsed on one machine, for the two macOS targets only. The musl and Windows builds are untried | [[hmd-0033#distribution]] |
-| todo | **Publish to crates.io from the workflow.** The first publication is by hand, because crates.io allows a trusted publisher only on a crate that exists. Configure one for `hypermarkdown-lsp`, naming this repository, `release-lsp.yml` and an environment, and add the job | The resolver crate's workflow is the model | [[hmd-0033#distribution]] |
-| blocked | **The toolchain carries the binary** beside `d2` and `hql`, so the extension bundles it and a user installs nothing. Unblocks when the first release is cut | Decide first whether the toolchain repository builds the binary or takes it from this repository's release | [[hmd-0033#distribution]] |
+| todo | **The toolchain carries the binary** beside `d2` and `hql`, so the extension bundles it and a user installs nothing. The first release is cut, so nothing blocks this; the work is in the toolchain repository | Decide first whether the toolchain repository builds the binary or takes it from this repository's release | [[hmd-0033#distribution]] |
 | todo | **Go to a heading or a block.** A reference with a fragment leads to the top of the card today. It should lead to the heading or the block the fragment names | The resolver crate reads no heading and no block anchor. The rule that turns a heading's text into the name a fragment matches is the language's, so the code belongs in the crate | [[hmd-0033#go-to-definition]] |
 | todo | **Tokens for block anchors and frontmatter.** A trailing `^block-id` and the frontmatter block get no token | The crate reports neither position today | [[hmd-0033#semantic-tokens]] |
 | todo | **Completion** of card names, headings, and block anchors after `[[` | Needs the list of names a card can write for another card, which is the resolver's knowledge and belongs in the crate | [[hmd-0033#deployment-activation]] |
@@ -89,11 +89,20 @@ Nothing known.
   vault configurations.
 - **Positions converted** between code points and UTF-16 units, with a
   byte-order mark and all three line endings [[hmd-0033#positions]].
+- **The first release, 0.1.0** — the tag `lsp-v0.1.0` on 2026-11-25: five
+  archives and `SHA256SUMS` on the GitHub release, built by the workflow on
+  its first tagged run, and `hypermarkdown-lsp` 0.1.0 on crates.io, published
+  by hand. The resolver crate 0.4.0 went first.
+- **The workflow publishes the package** — an `lsp-vX.Y.Z` tag publishes
+  `hypermarkdown-lsp` to crates.io through a trusted publisher, in the
+  `crates-io` environment, after all five platforms have built and before the
+  GitHub release is cut. First used by the release after 0.1.0
+  [[hmd-0033#distribution]].
 - **A release workflow** — `release-lsp.yml`, on an `lsp-vX.Y.Z` tag: the
   gates, one program for each of the five platforms the toolchain serves,
   named after its Rust target as HQL names its archives, and a GitHub release
   with the archives and `SHA256SUMS`. A run by hand builds everything and
-  cuts nothing. Not yet run [[hmd-0033#distribution]].
+  cuts nothing [[hmd-0033#distribution]].
 - **A CI job** — format, lints as errors, the tests against the committed
   lockfile on Linux, macOS, and Windows, and a build on the minimum supported
   Rust version.
@@ -116,6 +125,10 @@ cargo test --locked
 
 ## Changelog
 
+- 2026-11-25: the release workflow publishes the package to crates.io; the
+  row for it becomes a Done row.
+- 2026-11-25: 0.1.0 is released. The row for cutting it becomes a Done row,
+  and the toolchain row is no longer blocked.
 - 2026-11-25: the package is `hypermarkdown-lsp`, because `hmd-lsp` on
   crates.io is another project's. The question about crates.io is answered.
 - 2026-11-25: the release workflow is written; cutting the first release is

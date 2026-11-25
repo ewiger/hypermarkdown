@@ -88,11 +88,11 @@ board:
       - id: "0115"
         title: "Mermaid diagrams, on par with D2"
         file: 0115-mermaid-diagrams-on-par-with-d2.hmd
-    doing:
+    doing: []
+    done:
       - id: "0117"
         title: "A language server, written in Rust"
-        file: 0117-a-language-server-in-rust.hmd
-    done:
+        file: "archive/0117-a-language-server-in-rust.hmd"
       - id: "0116"
         title: "Vault not found: the extension should say so and offer to initialize one"
         file: "archive/0116-initialize-a-vault-from-the-editor.hmd"

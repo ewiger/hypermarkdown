@@ -73,8 +73,7 @@ picks and re-indexes without a reload, since `0.6.1` [issue 0116].
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **Check the language client in a running editor.** The decisions the client makes are unit-tested, and the server is tested over the protocol, but the two have not been run together in an editor. Walk the list in the extension's `DEVELOP.md`: the error colour on a link that names no card, hover, Go to Definition, one diagnostic and not two, an unsaved card, and the notice when the program is absent [issue 0117] | The parked integration suite is where this would be automated | [[hmd-0033#the-vs-code-extension-is-a-client]] |
-| blocked | **Carry `hmd-lsp` in the build.** No VSIX holds the program, so a user gets the server only from `PATH` or from the setting. Unblocks when the pinned toolchain carries it; the client already looks in `toolchain/bin/` first | The release workflow checks which binaries a VSIX holds, and that list gains `hmd-lsp` | [[hmd-0033#distribution]] |
+| blocked | **Carry `hmd-lsp` in the build.** No VSIX holds the program, so a user gets the server only from `PATH` or from the setting. The server is released as 0.1.0. Unblocks when the pinned toolchain carries it; the client already looks in `toolchain/bin/` first | The release workflow checks which binaries a VSIX holds, and that list gains `hmd-lsp` | [[hmd-0033#distribution]] |
 | todo | **Colour the listings in the preview.** A fenced block in Python, C, or any other language shows in one colour, because neither the extension nor the core has a highlighter. Colour it as the editor does [issue 0118] | Shiki reads the same TextMate grammars the editor uses, this extension's own among them, so a listing would look the same on both sides. It must run in the extension host and send coloured HTML, because the webview's content policy allows no script from outside | [[hmd-0021#11-webview-hardening]] |
 | todo | **Colour a `d2` listing in the editor.** A `d2` fence shows in one colour unless the user has installed an extension for D2, because this extension carries no grammar for it. The fence table already gives a `d2` fence the scope `source.d2`. Carry a grammar that declares that scope [issue 0118] | `hql` has its grammar. The extension carries `d2` itself for the preview, so a user expects the editor to colour it without a second extension | [[hmd-0026]] |
 | todo | **Colour a fence nested in a list or a quote.** The fence rules apply at the top level of a card. Inside a list item or a block quote the Markdown grammar reads the fence, so a cell there is not coloured, and a language outside the Markdown list is not either. Move the fence rules into an injection [issue 0118] | Not tested in a tokenizer; it follows from where the rules are included. The same change as the link rules need | — |
@@ -126,7 +125,8 @@ about 300 MB on first run, which is why it is not in the default test command.
   and gives an unresolved, an ambiguous and an escaping link the scope themes
   colour as an error. With no program it says so once and changes nothing
   else, and it never starts the server in an untrusted or a virtual
-  workspace; unreleased [[hmd-0033#the-vs-code-extension-is-a-client]].
+  workspace. Checked by hand in a development host against the server's
+  build; unreleased [[hmd-0033#the-vs-code-extension-is-a-client]].
 - **Vault not found, and Initialize Vault** — a card with no `.hmd/` above it,
   up to the workspace folder, is not read unless `hyperMarkdown.root` names an
   explicit root, as the specification requires. The preview, an opened card,
@@ -258,6 +258,8 @@ npm run -w tools/hmd-vsc-ext package
 
 ## Changelog
 
+- 2026-11-25: the client was checked by hand in a running editor, so that
+  row is gone, and the server it starts is released as 0.1.0.
 - 2026-11-25: the client of the language server is written, so its Open row
   becomes a Done row, a row for checking it in a running editor, and a blocked
   row for carrying the program in the build.
