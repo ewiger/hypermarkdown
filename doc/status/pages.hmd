@@ -93,7 +93,7 @@ revisiting is that maths loads from a CDN at view time.
 ## Done
 
 - **The documentation is written in HyperMarkDown** — the chapters, the
-  trackers, the issues, the memory notes, the discussions, the models, and the
+  trackers, the issues, the memory notes, the models, and the
   companion notes of the proposals are `.hmd` cards, and `hmd lint` checks all
   of them. Every `README.md`, the cover, the Tools section index, and the
   proposal template stay Markdown.
