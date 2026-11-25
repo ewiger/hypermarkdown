@@ -174,6 +174,11 @@ queries for the artifact within a second of a successful upload and reports
 `Found 0 artifact(s)` — the metadata has not propagated yet. Same remedy, and
 the same reason to reach for a new run rather than a retry.
 
+On 2026-11-25 that transient failure hit about two runs in three, so the
+workflow changed instead. The deploy now runs in a job of its own that needs
+the build job, as GitHub's Pages starter workflow does. The gap between the two
+jobs gives the artifact time to register.
+
 ## Dependency bounds are for consumers; the lockfile is for us
 
 `uv.lock` is committed and both CI and the Pages deploy install with
