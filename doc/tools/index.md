@@ -1,8 +1,8 @@
 # Quick start
 
 Two installs, and neither one needs the other. The **VS Code extension** renders
-a card while you write it. The **`hmd` command** checks a whole tree of them and
-publishes it. Take either, or both — the usual shape is the extension while
+a card while you write it. The **`hmd` command** checks a whole tree of them,
+and its **MkDocs plugin** publishes the tree as a website. Take either, or both — the usual shape is the extension while
 writing and the CLI in CI. A third, **`hql`**, is optional and a separate
 project: a query language that runs over a tree of cards.
 
@@ -85,13 +85,26 @@ git clone https://github.com/ewiger/hypermarkdown
 hmd lint --root hypermarkdown/examples/cs-alg-sorting
 ```
 
-## 3. Publish it, if you want a site
+## 3. The MkDocs plugin
 
-The site builder ships as an extra, and registers itself with MkDocs:
+The MkDocs plugin builds a tree of cards into a website with
+[MkDocs](https://www.mkdocs.org/). Each card becomes a page, each link points at
+the page it resolves to, and each embed is expanded in place. The site you are
+reading is built by the plugin from this project's own `doc/` tree.
+
+The plugin is part of the `hmd` package and installs as an extra:
 
 ```bash
 pip install "HyperMarkDown[mkdocs]"
 ```
+
+The extra installs MkDocs 1.6 and the Material theme 9, and registers the plugin
+with MkDocs under the key `hypermarkdown`.
+
+The cards do not have to be the whole site. Point `docs_dir` at the
+documentation tree and `root` at the part of it that holds cards. The rest of
+the tree stays ordinary Markdown in the order you give it, and `hmd://wiki`
+marks where the section generated from the cards goes in the nav:
 
 ```yaml
 # mkdocs.yml
@@ -110,18 +123,31 @@ nav:
 ```
 
 ```bash
-mkdocs serve
+mkdocs serve              # or: mkdocs build --strict
 ```
 
-Point `docs_dir` at a documentation tree and `root` at the part of it that is a
-namespace: the rest is hand-ordered markdown, the cards are generated, and
-`hmd://wiki` says where the generated section belongs in your nav. The site you
-are reading is that build, from this project's own `doc/` tree.
+Your nav is used as written, except that `hmd://wiki` is replaced by the
+generated section. Without a `nav` key, the plugin derives the whole nav from
+the tree of cards.
 
-D2 diagrams are the one thing with an outside dependency. A `d2` fence draws
-when [`d2`](https://d2lang.com) is on your `PATH` or Docker is available, and
-shows its own labelled source when neither is — a diagram never degrades to a
-blank space.
+- **Cards become pages.** A card at `a/b.hmd` is served at `a/b/`, and so is a
+  folder note at `a/b/index.hmd`.
+- **MkDocs checks the links.** The plugin rewrites each wikilink to a relative
+  link to the source file, so MkDocs computes and validates the URL itself, and
+  `--strict` fails on a broken one.
+- **A link to an unwritten card is red, not an error.** A wiki can be published
+  while it is still being written.
+- **Publication is opt-in.** A card is on the site only if its frontmatter says
+  `nav: {visibility: public}`. A folder note passes that setting down to the
+  cards below it. A card without it is left out of the build, and the build
+  warns when a published card links to one that is left out.
+- **Diagrams draw.** A `d2` fence is drawn when [`d2`](https://d2lang.com) is on
+  your `PATH` or Docker is available. Otherwise the page shows the diagram's
+  labelled source, and the build still passes.
+
+MkDocs 2.0 removes plugins, so the extra pins MkDocs below 2.0. The plugin's
+full documentation is in the
+[`hmd` README](https://github.com/ewiger/hypermarkdown/blob/main/tools/hmd/README.md#publish-it-a-book-with-a-wiki-in-it).
 
 ## 4. Ask questions of it
 
@@ -195,6 +221,8 @@ The vault is the same tree `hmd lint` checks. To learn HQL, read
   every construct with its source shown beside what it renders.
 - **[The VS Code extension](vscode.hmd)** — what the preview gives you, and the
   gaps it still has.
+- **[The MkDocs plugin](#3-the-mkdocs-plugin)** — how this site is built, and
+  how to build one like it.
 - **[HQL](https://hql-lang.org/)** — the query language's own site:
   introduction, install, the book, and the reference.
 - **[Presentation](../public/presentation.hmd)** — the trade-offs between

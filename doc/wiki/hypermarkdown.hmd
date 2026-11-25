@@ -45,7 +45,14 @@ The format stacks three layers, each preserving the one below:
 A **wikilink** names its target by filename without the `.hmd` extension. The
 display text after `|` lets the sentence read naturally. A `#` addresses a
 heading inside the target and is forgiving about capitalization and spacing,
-since it matches against the heading's slug.
+since case and punctuation are removed from both before they are compared. It
+reaches the first heading of that text in the card.
+
+Planned for version 0.2, and still being designed: **HQL paths**. A path such
+as `@[[card#Chapter##Setup]]` selects a section by its place in the heading
+tree, so it can reach the `Setup` inside `Chapter` when the card has several.
+Ordinary links do not change. The design is in [the HQL path
+proposal](../proposals/HMD-0032/index.hmd).
 
 A **block anchor** is a trailing `^name` at the end of a block's last line,
 preceded by at least one space and followed only by the line ending. The anchor

@@ -6,7 +6,6 @@ import:
   - from /proposals/HMD-0021 import index as hmd-0021
   - from /proposals/HMD-0026 import index as hmd-0026
   - from /proposals/HMD-0030 import index as hmd-0030
-  - from /proposals/HMD-0032 import index as hmd-0032
 ---
 
 # STATUS — `@hypermarkdown/core`
@@ -54,7 +53,6 @@ subscript, and LaTeX environments written without dollar signs.
 | todo | **The publication model, and the rule that depends on it.** Parse `nav` as a mapping of order and visibility, inherit visibility from the nearest ancestor folder note defaulting to private, and warn when a published card links to or embeds an unpublished one. Four files; reproduce the canonical behaviour exactly and keep the embed veto a decision the caller passes in, so a later policy change has somewhere to land | Unblocked on 2026-11-22: this implementation's spec now follows the language specification's diagnostics table rather than stopping at sixteen rules [HMD017] | [[hmd-0002#3-expansion]], [[hmd-0020#9-diagnostics]] |
 | todo | **Subscript.** `~x~` is subscript on the website and nothing here — not a math gap at all: it comes from a markdown extension, and markdown-it's builtin covers only `~~strikethrough~~`. One line to wire in `markdown-it-sub`, a new dependency | Then the ledgered difference is deleted, because a ledger entry that stops diverging fails the build | [[hmd-0020#3-3-free-syntax]] |
 | todo | **LaTeX environments at block level.** `\begin{align}` on its own is math on the website and prose here, because this implementation only recognises a block that opens with `$$`. The likeliest real-world hit of the KaTeX-versus-MathJax difference, and the only one not written down | Not currently ledgered | [[hmd-0020#3-3-free-syntax]] |
-| backlog | **Resolve HQL paths.** Recognise `@[[…]]` and `!@[[…]]`, build a card's tree of sections and anchored blocks, select nodes by child, descendant, and anchor steps, and report HMD020 for a link that selects several sections. This implementation and the canonical one must select the same nodes, so the corpus cases come first | Waits on the language answering the record's open questions and writing the rule into the specification for 0.2.0. Replaces the in-card address of HMD-0006, which is deferred | [[hmd-0032#the-construct]], [[hmd-0032#selecting-nodes]] |
 | todo | **Recognise diagram cells.** `d2#show` and `mermaid#show` become a `DiagramBlock`, matched exactly; a plain `d2` fence becomes an ordinary code block. `DiagramBlock` gains the state of the drawing on screen and a key by position among the card's diagram cells, so an edit keeps the reader's Code toggle, and `IR_VERSION` moves to 5 | First recognise `d2#show` beside `d2`, then drop plain `d2` in the release that the repository's fences are rewritten for [`src/diagram/fence.ts`] | [[hmd-0030]] |
 | todo | **Recognise a `mermaid#show` fence as a diagram.** One entry in `DIAGRAM_LANGUAGES`; `DiagramBlock` already carries its language | The core does not render, so this does not wait on the renderer; it lands with diagram cells | [the Mermaid card](../issues/0115-mermaid-diagrams-on-par-with-d2.hmd) |
 
@@ -168,6 +166,7 @@ environment variable is set, which CI does.
 
 ## Changelog
 
+- 2026-11-25: the HQL path row is withdrawn. HMD-0032 is a design draft and is not ready to implement; the row returns when the record is accepted.
 - 2026-11-25: a backlog row for HQL path, HMD-0032, the construct `@[[…]]` that HyperMarkDown 0.2.0 would add; it replaces the in-card address of HMD-0006, which is archived as deferred.
 - 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-24: before the 0.1.0 release. The tool conforms to HyperMarkDown

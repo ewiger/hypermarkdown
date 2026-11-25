@@ -695,7 +695,7 @@ summary of each card beside it is planned and not built.
 
 - [**VS Code extension**](tools/vscode.hmd) <span>editor</span> <em>Live preview, the vault's graph, diagnostics, and Run buttons on cells.</em>
 - [**hmd**](https://pypi.org/project/hypermarkdown/) <span>command line · Python</span> <em>`lint`, `render`, `graph`, `init` and `info` over a tree of cards.</em>
-- [**MkDocs plugin**](tools/index.md) <span>site</span> <em>Builds a tree of cards into a website. It built this one.</em>
+- [**MkDocs plugin**](tools/index.md#3-the-mkdocs-plugin) <span>site</span> <em>Builds a tree of cards into a website. It built this one.</em>
 - [**@hypermarkdown/core**](https://www.npmjs.com/package/@hypermarkdown/core) <span>library · TypeScript</span> <em>Parser, resolver and renderer. The extension's preview runs on it.</em>
 - [**hypermarkdown**](https://crates.io/crates/hypermarkdown) <span>library · Rust</span> <em>The resolver as a crate. It does not lint or render.</em>
 - [**hmd-semantics**](https://pypi.org/project/hypermarkdown-semantics/) <span>index builder · Python</span> <em>Builds and verifies a vault's semantic index.</em>

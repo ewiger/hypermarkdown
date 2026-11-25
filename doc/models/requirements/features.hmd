@@ -17,7 +17,10 @@ syntax items.
 2. **Wikilinks, embeds, and block-level addressing** (req 1–8)
    `[[Page]]`, `[[Page#Section]]`, `[[Page#^id]]`, and their `!`-prefixed
    embed forms. The base composition primitive everything else (templates,
-   queries, transclusion) builds on top of.
+   queries, transclusion) builds on top of. Planned for 0.2 and still being
+   designed: HQL paths, `@[[Page#Section##Subsection]]`, which select a
+   section by its place in the heading tree, as JSONPath selects a value
+   [HMD-0032].
 
 3. **Parameterized transclusion / templates** (req 20, 79–86, §10)
    `{{template|arg=value}}` on Jinja2, with query-result iteration (82) and

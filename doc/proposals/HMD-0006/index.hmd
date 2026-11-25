@@ -15,10 +15,11 @@ nav:
 > wikilink would break. The work continues in
 > [HMD-0032](../HMD-0032/index.hmd), which adds a separate construct,
 > `@[[…]]`, for addressing inside a card and leaves `[[…]]` exactly as 0.1
-> defines it. The unreleased implementation on the `feat/in-card-address`
-> branch is not merged. Its block segmentation, sentence and word rules, and
-> integrity digest are material for later versions of HMD-0032. The text
-> below is kept unchanged as the record of the first design.
+> defines it. An unreleased implementation of this design was written on a
+> branch and was deleted without being merged. The block segmentation,
+> sentence and word rules, and integrity digest described below are material
+> for later versions of HMD-0032. The text below is kept unchanged as the
+> record of the first design.
 
 ## Abstract
 

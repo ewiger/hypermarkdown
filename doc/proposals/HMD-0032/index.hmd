@@ -40,6 +40,14 @@ small number of documents, because text that 0.1 reads as an `@` followed by a
 link becomes one construct with its own grammar. *Versioning*, below, lists
 each case.
 
+**Design status.** This record is a design draft, and the design is not
+finished. The rules below are the current proposal, written precisely so that
+they can be discussed and tested on examples. They are not ready to implement,
+and no tool implements them. Implementation starts after the open questions are
+answered and the record is accepted. Until then, the ordinary link and embed
+work exactly as the 0.1.1 specification describes, and the shared conformance
+corpus checks that in all three implementations.
+
 ## Motivation
 
 - **A link should be able to name a part of a part.** 0.1 can name a card, one
@@ -263,12 +271,20 @@ states the language version it conforms to.
 
 ## Deployment / Activation
 
-The rule goes into the specification as *HQL paths* in the version that
-becomes 0.2.0. The canonical implementation, the TypeScript core, and the Rust
-crate implement it, and each releases with "conforms to 0.2.0". The editor
-follows the TypeScript core. HQL changes its reading of `@[[name#heading]]` in
-its next release after that. The rows for this work are in the language
-tracker and in each tool's tracker.
+Nothing is built while this record is a draft. The work happens in this order:
+
+1. Answer the open questions below, and accept the record.
+2. Write the rule into the specification as *HQL paths*, in the version that
+   becomes 0.2.0.
+3. Add the corpus cases listed under *Test Plan*.
+4. Implement the rule in the canonical implementation, then in the TypeScript
+   core and the Rust crate. Each tool releases with "conforms to 0.2.0". The
+   editor follows the TypeScript core.
+5. HQL changes its reading of `@[[name#heading]]` in its next release after
+   that.
+
+The design work is tracked in the language tracker. Rows in the tool trackers
+are added when step 4 starts.
 
 ## Test Plan
 
@@ -306,6 +322,13 @@ reading.
 - **Should the specification define `[[foo#bar]]` as the first node of
   `@[[foo##bar]]`**, so that the format has one selection algorithm instead
   of two?
+- **What does a path link look like on the page?** This draft hides the `@`
+  and renders the link as an ordinary link to the same place. Showing the
+  `@`, or showing the path, would tell a reader that the link selects by
+  structure.
+- **Can a path select content that has no heading?** Text before the first
+  heading belongs to the root, and a path can reach it only by selecting the
+  whole card or an anchored block.
 
 ## See also
 
@@ -321,3 +344,5 @@ reading.
 ## Changelog
 
 - 2026-11-25: drafted
+- 2026-11-25: marked as a design draft that is not ready to implement; the
+  implementation rows leave the tool trackers until the record is accepted

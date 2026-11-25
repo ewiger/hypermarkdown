@@ -1,7 +1,6 @@
 ---
 import:
   - from /proposals/HMD-0027 import index as hmd-0027
-  - from /proposals/HMD-0032 import index as hmd-0032
 ---
 
 # STATUS — `hypermarkdown` (Rust)
@@ -48,7 +47,6 @@ references through this crate and keep no resolution code of its own.
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
 | backlog | **A comparison suite that asks the reference implementation.** The corpus pins 37 cases. The TypeScript implementation also compares itself with `hmd` over the wiki and two example vaults; this crate was compared with `hmd` by hand, over those trees and over nine thousand generated ones, with every reference, position and outcome equal, and nothing in the repository repeats that | Needs Python in the crate's CI job, which today installs none | [[hmd-0027#conformance]] |
-| backlog | **Resolve HQL paths.** Parse `@[[…]]`, build a card's tree of sections and anchored blocks, and return the node list a path selects. The crate resolves and does not lint, so a path that selects nothing or several nodes is an outcome the caller reads, not a diagnostic. Once HQL takes its resolver from this crate, HQL's reading of `@[[name#heading]]` changes with it | Waits on the specification for 0.2.0 and the canonical corpus cases | [[hmd-0032#selecting-nodes]], [[hmd-0032#hql]] |
 
 ## Broken
 
@@ -137,6 +135,7 @@ None.
 
 ## Changelog
 
+- 2026-11-25: the HQL path row is withdrawn. HMD-0032 is a design draft and is not ready to implement; the row returns when the record is accepted.
 - 2026-11-25: a backlog row for HQL path, HMD-0032, the construct `@[[…]]` that HyperMarkDown 0.2.0 would add; it replaces the in-card address of HMD-0006, which is archived as deferred.
 - 2026-11-24: a Done row for reading `location_path`, the `wiki` setting's new name.
 - 2026-11-24: before the 0.1.0 release. The crate conforms to HyperMarkDown

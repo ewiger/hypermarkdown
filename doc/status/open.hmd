@@ -78,8 +78,8 @@ the board, in the order this view lists them.
 | doing   | 2    |
 | todo    | 26   |
 | blocked | 4    |
-| backlog | 13   |
-| parked  | 4    |
+| backlog | 10   |
+| parked  | 3    |
 <!-- /hql:output -->
 
 ## Rows
@@ -129,7 +129,6 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | blocked | Redirect the retired domain                                                                        | [hmd](hmd.hmd)             |
 | blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.hmd)     |
-| backlog | Resolve HQL paths, the canonical implementation.                                                   | [hmd](hmd.hmd)             |
 | backlog | HQL path, for HyperMarkDown 0.2.0.                                                                 | [lang](lang.hmd)           |
 | backlog | Carry an integrity digest on a quotation                                                           | [lang](lang.hmd)           |
 | backlog | Cross-project namespaces.                                                                          | [lang](lang.hmd)           |
@@ -138,12 +137,9 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | backlog | Derive a test dataset from the standard.                                                           | [lang](lang.hmd)           |
 | backlog | Self-host the maths typesetter                                                                     | [pages](pages.hmd)         |
 | backlog | A comparison suite that asks the reference implementation.                                         | [rs-core](rs-core.hmd)     |
-| backlog | Resolve HQL paths.                                                                                 | [rs-core](rs-core.hmd)     |
 | backlog | Say when `--vault` is not a vault.                                                                 | [semantics](semantics.hmd) |
-| backlog | Resolve HQL paths.                                                                                 | [ts-core](ts-core.hmd)     |
 | backlog | Filter the graph by namespace and tag                                                              | [vsc-ext](vsc-ext.hmd)     |
 | parked  | Rename the package inside the parked integration suite                                             | [hmd](hmd.hmd)             |
-| parked  | The branch `feat/in-card-address`.                                                                 | [lang](lang.hmd)           |
 | parked  | A Lean model of resolution and embed expansion.                                                    | [lang](lang.hmd)           |
 | parked  | The integration suite                                                                              | [vsc-ext](vsc-ext.hmd)     |
 <!-- /hql:output -->
