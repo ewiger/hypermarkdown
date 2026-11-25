@@ -19,6 +19,7 @@ import * as vscode from "vscode";
 import { scanCells, SUFFIX } from "@hypermarkdown/core";
 
 import type { VaultCatalog } from "../catalog.js";
+import { reportMissingVault } from "../commands/initVault.js";
 import { HqlEngine, HqlRunError, describeOutcome } from "./engine.js";
 import { hqlOptions } from "./options.js";
 
@@ -71,8 +72,14 @@ export class CellRunner implements vscode.Disposable {
       return;
     }
     const card = await this.catalog.openCard(uri);
-    if (card === null || card.vault.root.scheme !== "file") {
-      void vscode.window.showWarningMessage("No vault claims this card, so there is nothing to run its cells against.");
+    if (card === null) {
+      // Say what is missing and offer the fix here, before `hql` is called:
+      // its own "not a vault" error names the problem and not the remedy.
+      await reportMissingVault(this.catalog, uri, { always: true });
+      return;
+    }
+    if (card.vault.root.scheme !== "file") {
+      void vscode.window.showWarningMessage("HQL cells run only in a vault on the local disk.");
       return;
     }
 

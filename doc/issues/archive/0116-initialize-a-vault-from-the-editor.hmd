@@ -1,10 +1,10 @@
 # 0116 — Vault not found: the extension should say so and offer to initialize one
 
-**Column**: todo
+**Column**: done — closed 2026-11-25
 **Opened**: 2026-11-25
-**Related**: [the extension's tracker](../status/vsc-ext.hmd),
-[the per-card discovery card](archive/0108-vault-root-discovery-per-card.hmd),
-[the rename card](archive/0023-rename-wiki-to-location-path.hmd),
+**Related**: [the extension's tracker](../../status/vsc-ext.hmd),
+[the per-card discovery card](0108-vault-root-discovery-per-card.hmd),
+[the rename card](0023-rename-wiki-to-location-path.hmd),
 [[hmd-lang-spec#the-namespace]], [[hmd-lang-spec#project-configuration]]
 
 ## What
@@ -93,24 +93,26 @@ vault for it to be relative to. `hmd init` takes it as an option beside the
 vault path, for the user who wants the cards in a subfolder from the start.
 The extension's init does not need it.
 
-## Things to settle while building it
+## How the open questions were settled
 
 - **A refused vault.** When the nearest `.hmd/` has a refused `config.toml`, the
-  card has a vault and the problem is the config. The error should open the
-  config file, not offer to create a second marker.
-- **A nested vault.** A directory below an existing vault's namespace root is a
-  valid choice, and it takes its cards out of the enclosing namespace. It does
-  not arise in the common case, because there the card has no vault above it.
-  If it can arise, the quick pick should say so.
-- **The cache.** Rebuilding the catalog after init fixes this path. A watcher on
-  `**/.hmd` would also fix the path where a user creates the directory by hand,
-  which is the reporter's first failure. Decide whether this card does both.
-- **Untrusted workspaces.** Creating a directory writes to the user's disk.
-  Decide whether the command is offered in Restricted Mode.
-- **Repositories that relied on the fallback.** Opening a folder of cards with
-  no `.hmd/` used to preview them. After this change it shows the error. The
-  changelog states this as a breaking change, and the error's button is the
-  migration.
+  card has a vault and the problem is the config. The refusal is already shown
+  once, naming the key. Opening such a card offers nothing more, and running a
+  cell on it says the vault is not opened because its config was refused. No
+  second marker is offered.
+- **A nested vault.** It does not arise. The candidates are the directories
+  above a card that no vault claims, so none of them is inside a vault's
+  namespace root. A directory that already holds `.hmd/` is left out of the
+  list.
+- **The cache.** Both paths are fixed. Init rebuilds the catalog itself, and a
+  watcher on `**/.hmd` rebuilds it when a marker is created or removed any
+  other way. An open preview then finds its card again in the rebuilt catalog.
+- **Untrusted workspaces.** Initializing a vault writes to the disk, so it
+  follows the extension's rule for writes: it needs a trusted workspace. In
+  Restricted Mode the error is shown without the button.
+- **Repositories that relied on the fallback.** The changelog states the change
+  as breaking, and the error's button is the migration. Every example tree in
+  this repository already has its own `.hmd/`, and so does `doc/`.
 
 ## Done when
 

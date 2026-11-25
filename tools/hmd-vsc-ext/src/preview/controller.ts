@@ -17,6 +17,7 @@ import { IR_VERSION, SUFFIX, cardSuffix, headingKey } from "@hypermarkdown/core"
 
 import { sameCard, type CardRef, type VaultCatalog } from "../catalog.js";
 import { createCard } from "../commands/createCard.js";
+import { initializeVault } from "../commands/initVault.js";
 import { REPARSE_DEBOUNCE_MS, debounce } from "../debounce.js";
 import {
   classifyHref,
@@ -50,8 +51,12 @@ export class PreviewController implements vscode.Disposable {
   private maximised = false;
   private current: CardRef | null = null;
   private lastAppliedScroll = 0;
-  /** An open `.hmd` file no vault claims, so the empty state can say which. */
-  private unclaimed: vscode.Uri | null = null;
+  /**
+   * An open `.hmd` file no vault claims, and why, so the empty state can say
+   * which card and offer the fix.
+   */
+  private unclaimed: { uri: vscode.Uri; reason: "missing" | "refused" | "outside" } | null =
+    null;
   private readonly disposables: vscode.Disposable[] = [];
   private readonly refresh = debounce(REPARSE_DEBOUNCE_MS, () => this.send());
   private readonly cardChanged = new vscode.EventEmitter<string | null>();
@@ -68,7 +73,11 @@ export class PreviewController implements vscode.Disposable {
     this.disposables.push(
       webview.onDidReceiveMessage((raw: unknown) => this.receive(raw)),
       catalog.onDidChange((card) => {
-        if (card === null || sameCard(card, this.current)) this.refresh();
+        // A new vault may claim the card this preview could not show: look
+        // for it again, so a vault initialized a moment ago needs no reload.
+        if (card === null && this.unclaimed !== null) void this.retryUnclaimed();
+        else if (card === null && this.isStale()) void this.reopenCurrent();
+        else if (card === null || sameCard(card, this.current)) this.refresh();
       }),
       vscode.window.onDidChangeActiveTextEditor(() => void this.follow()),
       vscode.window.onDidChangeTextEditorVisibleRanges((event) => this.onEditorScroll(event)),
@@ -173,16 +182,63 @@ export class PreviewController implements vscode.Disposable {
     const uri = editor.document.uri;
     const card = await this.catalog.openCard(uri);
     if (card === null) {
+      // Only a card can be unclaimed; any other file leaves the preview alone.
+      if (!uri.path.endsWith(SUFFIX)) return;
+      const reason = await this.catalog.explain(uri);
       // Say so only while that editor is still the active one: the answer
       // arrived late, and the user may have clicked on.
       if (vscode.window.activeTextEditor?.document.uri.toString() === uri.toString()) {
-        this.unclaimed = uri;
+        this.unclaimed = { uri, reason };
+        this.setCard(null);
         this.send();
       }
       return;
     }
     this.unclaimed = null;
     this.setCard(card);
+    this.send();
+  }
+
+  /**
+   * Try the unclaimed card again, after the catalog changed.
+   *
+   * Not `follow`: the button that initialized the vault is in this preview, so
+   * the preview has focus and there is no active text editor to follow.
+   */
+  private async retryUnclaimed(): Promise<void> {
+    const unclaimed = this.unclaimed;
+    if (unclaimed === null || this.pinned) return;
+    const card = await this.catalog.openCard(unclaimed.uri);
+    if (card === null || this.unclaimed !== unclaimed) return;
+    this.unclaimed = null;
+    this.setCard(card);
+    this.send();
+  }
+
+  /** True when the catalog was rebuilt and this preview holds a dropped vault. */
+  private isStale(): boolean {
+    const card = this.current;
+    return card !== null && this.catalog.vaultAt(card.vault.key) !== card.vault;
+  }
+
+  /**
+   * Find the card on screen again, in the rebuilt catalog.
+   *
+   * A `.hmd/` created or removed changes which vault claims a card, so the
+   * card may now belong to another vault, or to none.
+   */
+  private async reopenCurrent(): Promise<void> {
+    const held = this.current;
+    if (held === null) return;
+    const uri = held.vault.uriFor(held.rel);
+    const card = await this.catalog.openCard(uri);
+    if (this.current !== held) return;
+    if (card === null) {
+      this.unclaimed = { uri, reason: await this.catalog.explain(uri) };
+      this.setCard(null);
+    } else {
+      this.setCard(card);
+    }
     this.send();
   }
 
@@ -244,6 +300,9 @@ export class PreviewController implements vscode.Disposable {
         return;
       case "createCard":
         void createCard(this.catalog, this.current, message.target);
+        return;
+      case "initVault":
+        void initializeVault(this.catalog, this.unclaimed?.uri ?? null);
         return;
       case "runCell":
       case "runAllCells": {
@@ -473,11 +532,17 @@ export class PreviewController implements vscode.Disposable {
    * read what they wrote (§5.1).
    */
   private send(): void {
-    if (!this.catalog.ready) return;
     if (this.current === null) {
-      this.post({ type: "error", message: this.emptyState() });
+      // A card with no vault is reported even in a window with no vault at
+      // all, since that is exactly the window where it needs saying.
+      if (this.unclaimed?.reason === "missing") {
+        this.post({ type: "error", message: this.emptyState(), action: "initVault" });
+      } else if (this.catalog.ready || this.unclaimed !== null) {
+        this.post({ type: "error", message: this.emptyState() });
+      }
       return;
     }
+    if (!this.catalog.ready) return;
 
     if (this.mode === "graph") {
       this.post({
@@ -534,8 +599,16 @@ export class PreviewController implements vscode.Disposable {
    */
   private emptyState(): string {
     if (this.unclaimed === null) return "Open a .hmd card to preview it.";
-    const name = this.unclaimed.path.slice(this.unclaimed.path.lastIndexOf("/") + 1);
-    return `No HyperMarkDown vault claims ${name}. A vault is a directory carrying a .hmd/ directory; add one at the root of this card's tree, or set hyperMarkdown.root.`;
+    const { uri, reason } = this.unclaimed;
+    const name = uri.path.slice(uri.path.lastIndexOf("/") + 1);
+    switch (reason) {
+      case "refused":
+        return `The vault that holds ${name} is not opened, because its .hmd/config.toml was refused.`;
+      case "outside":
+        return `${name} is outside every workspace folder, so no vault can claim it.`;
+      default:
+        return `Vault not found for ${name}: no .hmd/ directory above it. A vault is the directory that holds .hmd/, and a card is read only inside one.`;
+    }
   }
 
   private post(message: HostMessage): void {

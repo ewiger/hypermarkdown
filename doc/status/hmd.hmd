@@ -257,6 +257,13 @@ work:
     refs: >-
       [[hmd-0005#what-deliberately-keeps-its-current-spelling]]
   - kind: done
+    tags: [config, cli]
+    text: >-
+      **"Vault not found" when no `.hmd/` is above the start directory** — the
+      error reads the way git's does outside a repository and says to run
+      `hmd init` or pass `--root`; the README no longer describes the `wiki`
+      setting or the `--wiki` flag; not yet released
+  - kind: done
     tags: [config]
     text: >-
       **`location_path` names the namespace root** — the setting formerly called

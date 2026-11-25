@@ -438,6 +438,23 @@ body.is-graph-fullscreen .hmd-graph {
   font-size: 0.85em;
 }
 
+/* The fix for what the status reports, as the primary action (issue 0116). */
+.hmd-status-action {
+  appearance: none;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.7rem;
+  border: 1px solid var(--vscode-button-background);
+  border-radius: var(--hmd-radius);
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hmd-status-action:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
 /* -- HQL cells (HMD-0026) ----------------------------------------------- */
 
 /* The output is the content; the bar is furniture, quiet until it is wanted. */

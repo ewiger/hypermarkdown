@@ -21,6 +21,35 @@ against
 
 ## [Unreleased]
 
+### Added
+
+- **HyperMarkDown: Initialize Vault.** It lists the workspace folder, which is
+  the default, and every directory between it and the open card, such as
+  `doc/`, with the number of `.hmd` files each would claim. It creates an empty
+  `.hmd/` in the one you pick, which is a complete vault, and re-indexes, so the
+  card is claimed without a reload. It runs only in a trusted workspace.
+- **Vault not found, with the fix beside it.** Opening a card that no vault
+  claims shows an error with an **Initialize Vault…** button, once per
+  workspace folder in a session. The preview says the same with the button
+  under it, and running a cell says it every time, before `hql` is called, so
+  `hql`'s own "not a vault" error is no longer what a user sees.
+- **A `.hmd/` created or removed outside the extension is picked up.** One made
+  by hand, by `hmd init`, or by a checkout rebuilds the index, and an open
+  preview finds its card in the new vault. Before, nothing changed until
+  **Rebuild Index** or a reload.
+
+### Changed
+
+- **Breaking: a card with no `.hmd/` above it is not read.** The workspace folder
+  used to be the vault of last resort, so the preview drew such a card while
+  `hql` refused it. The specification says that with no vault found and no
+  explicit namespace root, an implementation reports an error and reads
+  nothing, and the extension now does. Initialize a vault, or set
+  `hyperMarkdown.root`, which is the explicit root.
+- The preview's ⚡ button and its commands are offered on any `.hmd` file, not
+  only in a window that already holds a vault, since that is where the preview
+  explains what is missing.
+
 ## [0.6.0] — 2026-11-25
 
 ### Changed

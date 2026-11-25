@@ -23,11 +23,25 @@ const stub = vscode as unknown as {
   workspace: {
     fs: unknown;
     workspaceFolders: { uri: unknown; name: string; index: number }[] | undefined;
+    getConfiguration: () => { get: <T>(key: string, fallback: T) => T };
   };
 };
 
 let folder: string;
 let catalog: VaultCatalog;
+
+/** A fresh catalog over the tree as it is now, the way a reload would see it. */
+async function reopen(): Promise<void> {
+  catalog.dispose();
+  catalog = new VaultCatalog(vscode.Uri.file("/ext"));
+  await catalog.initialize();
+}
+
+/** Make the workspace folder itself a vault: an empty `.hmd/` is a whole one. */
+async function markFolder(): Promise<void> {
+  await mkdir(join(folder, ".hmd"), { recursive: true });
+  await reopen();
+}
 
 async function write(path: string, text: string): Promise<void> {
   await mkdir(join(folder, path, ".."), { recursive: true });
@@ -66,11 +80,12 @@ afterEach(async () => {
 
 describe("which vault claims a card", () => {
   it("resolves a card in a nested vault against that vault, not the folder's", async () => {
+    await markFolder();
     const wikiCard = await catalog.openCard(uri("doc/wiki/topic.hmd"));
     const exampleCard = await catalog.openCard(uri("examples/sorting/complexity.hmd"));
 
-    // With no `.hmd/` above it, a card belongs to the folder's own vault, whose
-    // namespace root is the folder itself: `location_path` defaults to `.`.
+    // The folder's own `.hmd/` claims the wiki card, and its namespace root is
+    // the folder itself: `location_path` defaults to `.`.
     expect(wikiCard?.rel).toBe("doc/wiki/topic.hmd");
     expect(exampleCard?.rel).toBe("complexity.hmd");
 
@@ -101,13 +116,36 @@ describe("which vault claims a card", () => {
     expect(card?.vault.pages()).toEqual(["complexity.hmd", "quicksort.hmd"]);
   });
 
-  it("keeps the folder's own root for cards with no marker above them", async () => {
-    // `doc/wiki` works with no `.hmd/` at the repository root, which is what
-    // the fallback exists for. The folder is the namespace root, since
-    // `location_path` defaults to `.`.
+  it("reads no card that has no `.hmd/` above it (issue 0116)", async () => {
+    // With no vault found and no explicit root, the specification says to
+    // report an error and read nothing, as git does in a folder that was never
+    // initialized. The workspace folder is not a vault of last resort.
+    expect(await catalog.openCard(uri("doc/wiki/index.hmd"))).toBeNull();
+    expect(await catalog.explain(uri("doc/wiki/index.hmd"))).toBe("missing");
+    expect(catalog.loaded()).toHaveLength(0);
+    expect(catalog.ready).toBe(false);
+  });
+
+  it("claims those cards once the folder holds an empty `.hmd/`", async () => {
+    await markFolder();
     const card = await catalog.openCard(uri("doc/wiki/index.hmd"));
     expect(card?.rel).toBe("doc/wiki/index.hmd");
     expect(card?.vault.projectRoot.toString()).toBe(vscode.Uri.file(folder).toString());
+  });
+
+  it("reads them from an explicit `hyperMarkdown.root`, with no `.hmd/` at all", async () => {
+    const config = stub.workspace.getConfiguration;
+    stub.workspace.getConfiguration = () => ({
+      get: <T>(key: string, fallback: T): T => (key === "root" ? ("doc/wiki" as T) : fallback),
+    });
+    try {
+      await reopen();
+      const card = await catalog.openCard(uri("doc/wiki/index.hmd"));
+      expect(card?.rel).toBe("index.hmd");
+      expect(card?.vault.root.toString()).toBe(uri("doc/wiki").toString());
+    } finally {
+      stub.workspace.getConfiguration = config;
+    }
   });
 
   it("indexes a vault once, however many cards ask for it", async () => {
@@ -115,7 +153,7 @@ describe("which vault claims a card", () => {
     const second = await catalog.openCard(uri("examples/sorting/quicksort.hmd"));
 
     expect(second?.vault).toBe(first?.vault);
-    expect(catalog.loaded()).toHaveLength(2);
+    expect(catalog.loaded()).toHaveLength(1);
   });
 
   it("answers synchronously once a vault is indexed", async () => {
@@ -140,10 +178,8 @@ describe("a vault nested inside an indexed one (issue 0009)", () => {
     // holds a card named like one of the outer vault's.
     await write("doc/wiki/public/.hmd/config.toml", 'location_path = "."\n');
     await write("doc/wiki/public/topic.hmd", "# Inner topic\n\nSee [[/topic]].\n");
-    // `beforeEach` indexed the folder's vault before the nested one existed.
-    catalog.dispose();
-    catalog = new VaultCatalog(vscode.Uri.file("/ext"));
-    await catalog.initialize();
+    // The folder is the outer vault.
+    await markFolder();
   }
 
   it("is not part of the outer vault", async () => {
@@ -169,12 +205,6 @@ describe("a vault nested inside an indexed one (issue 0009)", () => {
 });
 
 describe("a vault whose config sets `wiki`", () => {
-  async function reopen(): Promise<void> {
-    catalog.dispose();
-    catalog = new VaultCatalog(vscode.Uri.file("/ext"));
-    await catalog.initialize();
-  }
-
   it("is refused: the error names both keys, and none of its cards opens", async () => {
     const shown = vi.spyOn(vscode.window, "showErrorMessage");
     await write("examples/legacy/.hmd/config.toml", 'wiki = "."\n');

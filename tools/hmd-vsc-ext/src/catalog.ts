@@ -22,7 +22,7 @@ import { DiagramEngine } from "./diagram/engine.js";
 import { diagramOptions } from "./diagram/options.js";
 import { CellRunner } from "./hql/runner.js";
 import { Vault } from "./vault.js";
-import { discoverVault, folderRoot } from "./workspaceHost.js";
+import { discoverVault, explainUnclaimed, folderRoot, type Unclaimed } from "./workspaceHost.js";
 
 /** A card, named by the vault that claims it and its path inside that vault. */
 export interface CardRef {
@@ -39,7 +39,7 @@ export class VaultCatalog implements vscode.Disposable {
   private readonly vaults = new Map<string, Vault>();
   /** In-flight loads, so two cards opened at once build one vault. */
   private readonly loading = new Map<string, Promise<Vault>>();
-  /** The vault of last resort per workspace folder, keyed by folder URI. */
+  /** The workspace folder's own vault, keyed by folder URI, once indexed. */
   private readonly fallbacks = new Map<string, string>();
   private readonly diagrams: DiagramEngine;
   /** Runs HQL cells (HMD-0026). Shared for the reason the diagram engine is. */
@@ -78,7 +78,7 @@ export class VaultCatalog implements vscode.Disposable {
     return this.vaults.get(key);
   }
 
-  /** Index the first workspace folder's own vault, so the window has one. */
+  /** Index the first workspace folder's own vault, when it has one. */
   async initialize(): Promise<void> {
     const folder = vscode.workspace.workspaceFolders?.[0];
     if (folder === undefined) return;
@@ -120,8 +120,9 @@ export class VaultCatalog implements vscode.Disposable {
    * The card this URI names, discovering its vault if this is the first one.
    *
    * Walks up from the card to the nearest `.hmd/`, stopping at the containing
-   * workspace folder, and falls back to that folder's own root when nothing
-   * above the card carries a marker.
+   * workspace folder, whose own `.hmd/` (or the explicit `hyperMarkdown.root`)
+   * is the last place asked. Null when none of them claims the card: a card
+   * with no vault is not read (issue 0116), and `explain` says why.
    */
   async openCard(uri: vscode.Uri): Promise<CardRef | null> {
     const known = this.cardFor(uri);
@@ -149,14 +150,19 @@ export class VaultCatalog implements vscode.Disposable {
     return this.cardFor(uri);
   }
 
-  /** The vault a card outside every marked tree belongs to, unless refused. */
+  /** Why `openCard` returned null for this URI. */
+  explain(uri: vscode.Uri): Promise<Unclaimed> {
+    return explainUnclaimed(uri);
+  }
+
+  /** The workspace folder's own vault, unless it has none or it is refused. */
   private async fallbackFor(folder: vscode.Uri): Promise<Vault | null> {
     const known = this.fallbacks.get(folder.toString());
     const existing = known === undefined ? undefined : this.vaults.get(known);
     if (existing !== undefined) return existing;
 
     const discovered = await folderRoot(folder);
-    if ("refused" in discovered) return null;
+    if (discovered === null || "refused" in discovered) return null;
     const vault = await this.load(discovered.root, () =>
       Vault.load(discovered.projectRoot, discovered.root, discovered.config, (rel) =>
         this.fire(discovered.root.toString(), rel),

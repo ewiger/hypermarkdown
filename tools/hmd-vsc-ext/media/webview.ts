@@ -112,7 +112,7 @@ window.addEventListener("message", (event: MessageEvent<HostMessage>) => {
     case "error":
       // Never blank the panel: stale content plus a warning beats an empty one,
       // because the author can still read what they wrote (§5.1).
-      showStatus(message.message);
+      showStatus(message.message, message.action);
       return;
     default:
       return;
@@ -271,8 +271,19 @@ window.addEventListener("resize", () => {
 
 // -- status --------------------------------------------------------------
 
-function showStatus(message: string): void {
+/** Labels of the buttons a status message may carry, keyed by its action. */
+const STATUS_ACTIONS = { initVault: "Initialize Vault…" } as const;
+
+function showStatus(message: string, action?: keyof typeof STATUS_ACTIONS): void {
   status.textContent = message;
+  if (action !== undefined) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "hmd-status-action";
+    button.textContent = STATUS_ACTIONS[action];
+    button.addEventListener("click", () => vscode.postMessage({ type: action }));
+    status.append(" ", button);
+  }
   status.hidden = false;
 }
 

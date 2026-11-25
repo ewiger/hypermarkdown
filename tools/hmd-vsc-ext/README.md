@@ -21,7 +21,8 @@ HyperMarkDown is ordinary markdown plus links into a knowledge graph: you write
 the *name* of a card and it is resolved for you, a card can be built out of other
 cards, and a linter checks the whole graph. Every `.md` file is already valid
 `.hmd` syntax. A file is read as a card when it is inside a vault: some
-directory above it must contain a `.hmd/` directory, which `hmd init` creates.
+directory above it must contain a `.hmd/` directory. An empty one is enough,
+and **HyperMarkDown: Initialize Vault** creates it.
 The format itself — every construct, the resolution rules, the rule IDs —
 is documented at [hypermarkdown.org](https://hypermarkdown.org/). This page is
 about the extension.
@@ -41,7 +42,10 @@ ext install hypermarkdown.hmd
   [releases](https://github.com/ewiger/hypermarkdown/releases?q=vsc-ext).
 
 Then open any `.hmd` file and click the ⚡ at the top right of the editor.
-Nothing else is required: no interpreter, no virtualenv, no configuration.
+If no `.hmd/` directory is above the card, the extension says **vault not
+found** and offers **Initialize Vault…**, which asks where the vault goes and
+creates an empty `.hmd/` there. Nothing else is required: no interpreter, no
+virtualenv, no configuration.
 Requires VS Code 1.90 or newer.
 
 > Everything below is built and gated by tests. The publication model is not
@@ -105,7 +109,7 @@ rendering without it.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| `hyperMarkdown.root` | `""` | Namespace root for the workspace folder itself, for cards no vault claims. Empty reads `location_path` from the folder's `.hmd/config.toml`, which defaults to the folder itself. |
+| `hyperMarkdown.root` | `""` | An explicit namespace root for the workspace folder, relative to it. Set it to read cards that have no `.hmd/` above them; it also wins over the folder's own `.hmd/config.toml`. Empty means no explicit root. |
 | `hyperMarkdown.preview.scrollSync` | `true` | Keep preview and editor on the same source line. |
 | `hyperMarkdown.preview.embeds` | `expanded` | Whether embed cards start expanded. |
 | `hyperMarkdown.diagnostics.scope` | `workspace` | Publish diagnostics for every indexed card — in every vault opened this session — or only for open ones. |
@@ -119,6 +123,8 @@ group you are in
 - **HyperMarkDown: Open Preview to the Side** — the same, in the group beside it
 - **HyperMarkDown: Pin Preview to This Card** — stop following the active editor
 - **HyperMarkDown: Create Missing Card** — write the card a red link points at
+- **HyperMarkDown: Initialize Vault** — choose a directory, from the workspace
+folder down to the open card, and create an empty `.hmd/` in it
 - **HyperMarkDown: Rebuild Index** — drop every vault and re-scan from scratch
 - **HyperMarkDown: Run HQL Cell** — run the cell under the cursor and write its
 output into the card
@@ -137,10 +143,18 @@ Nothing resolves across a boundary. Two vaults are two namespaces, so a
 `[[wikilink]]`, an embed, and a backlink all stay inside the vault of the card
 that wrote them.
 
-A card with no `.hmd/` above it belongs to the workspace folder itself, whose
-root is `hyperMarkdown.root` when set, else `location_path` from the folder's
-`.hmd/config.toml`, else the folder itself — so a bare directory of
-cards works with no setup at all.
+A card with no `.hmd/` above it, up to and including the workspace folder, has
+no vault, and the extension does not read it. This is the rule of the format,
+and it works the way git does in a folder that was never initialized: the
+preview says **vault not found**, running a cell says the same, and both offer
+**Initialize Vault…**. The choices are the workspace folder, which is the
+default, and every directory between it and the card, such as `doc/`. The
+extension creates an empty `.hmd/` in the one you pick, so the namespace root
+is that directory, and re-indexes without a reload. A `.hmd/` created any other
+way, by hand or by `hmd init`, is picked up the same way.
+
+To read such cards without a vault, set `hyperMarkdown.root`: it is an explicit
+namespace root, and it wins over discovery for the workspace folder.
 
 ## Where the preview appears
 

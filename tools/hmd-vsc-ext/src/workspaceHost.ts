@@ -99,7 +99,7 @@ export interface RefusedRoot {
 }
 
 export interface DiscoveredRoot {
-  /** The directory carrying `.hmd/`, or the workspace folder when none does. */
+  /** The directory carrying `.hmd/`, or the workspace folder for an explicit root. */
   projectRoot: vscode.Uri;
   /** The namespace root: `location_path` resolved against the project root. */
   root: vscode.Uri;
@@ -183,9 +183,10 @@ function namespaceRoot(projectRoot: vscode.Uri, locationPath: string): vscode.Ur
  * whose `location_path` resolves to a tree the card is not in does not claim the card,
  * so the walk continues past it.
  *
- * Returns null when nothing above the card carries a marker; the folder's own
- * root (`folderRoot` below) is the fallback, which is what keeps a repository
- * with no `.hmd/` at all working. Returns a refusal when the nearest marker's
+ * Returns null when nothing below the folder and above the card carries a
+ * marker; the folder's own vault (`folderRoot` below) is asked next, and it
+ * exists only when the folder holds `.hmd/` or an explicit root is set.
+ * Returns a refusal when the nearest marker's
  * config is refused: the card is that vault's, and it is not opened anywhere.
  */
 export async function discoverVault(
@@ -212,21 +213,78 @@ export async function discoverVault(
 /**
  * Resolve the namespace root for a workspace folder itself.
  *
- * Order: the `hyperMarkdown.root` setting, then `.hmd/config.toml`'s
- * `location_path`, which defaults to `.`. If the result does not exist the
- * folder itself is used, so that opening a bare directory of cards works with
- * no setup at all (VSX-061). This
- * is the vault of last resort — a card with no `.hmd/` above it belongs to it.
- * A refusal when the folder's own `.hmd/config.toml` is refused.
+ * The folder is a vault only when it holds `.hmd/`, or when the
+ * `hyperMarkdown.root` setting names an explicit namespace root. That setting
+ * is the explicit root the specification requires an implementation to offer,
+ * and it wins over the marker. With neither, the result is null: with no vault
+ * found and no explicit root, the specification says to report an error and
+ * read nothing, which is what git does in a folder that was never initialized
+ * (issue 0116).
+ *
+ * With a marker, the root is `.hmd/config.toml`'s `location_path`, which
+ * defaults to `.`, the folder itself. A refusal when that config is refused.
  */
-export async function folderRoot(folder: vscode.Uri): Promise<DiscoveredRoot | RefusedRoot> {
+export async function folderRoot(
+  folder: vscode.Uri,
+): Promise<DiscoveredRoot | RefusedRoot | null> {
+  const override = vscode.workspace.getConfiguration("hyperMarkdown").get<string>("root", "");
+  const explicit = override.trim() !== "";
+  if (!explicit && !(await exists(vscode.Uri.joinPath(folder, MARKER_DIR)))) return null;
+
   const config = await readConfig(folder);
   if (config === null) return { refused: folder };
 
-  const override = vscode.workspace.getConfiguration("hyperMarkdown").get<string>("root", "");
-  const locationPath = override.trim() === "" ? config.locationPath : override.trim();
-  const candidate = namespaceRoot(folder, locationPath);
-
+  const candidate = namespaceRoot(folder, explicit ? override.trim() : config.locationPath);
   if (await exists(candidate)) return { projectRoot: folder, root: candidate, config };
+  // An explicit root that does not exist names nothing to read.
+  if (explicit) return null;
   return { projectRoot: folder, root: folder, config };
+}
+
+/** Why no vault claims a card: none was found, or the nearest one is refused. */
+export type Unclaimed = "missing" | "refused" | "outside";
+
+/**
+ * Explain a card that no vault claims, for the message that says so.
+ *
+ * `outside` is a file with no workspace folder, which the extension never
+ * reads. `refused` is a card whose nearest `.hmd/` has a config that was
+ * refused: it has a vault, and the fix is the config, not a second marker.
+ * Everything else is `missing`: no `.hmd/` above the card, up to and including
+ * the workspace folder.
+ */
+export async function explainUnclaimed(card: vscode.Uri): Promise<Unclaimed> {
+  const folder = vscode.workspace.getWorkspaceFolder(card);
+  if (folder === undefined) return "outside";
+  const discovered = await discoverVault(card, folder.uri);
+  if (discovered !== null && "refused" in discovered) return "refused";
+  const own = await folderRoot(folder.uri);
+  if (own !== null && "refused" in own) return "refused";
+  return "missing";
+}
+
+/**
+ * The directories where a new `.hmd/` would claim `card`, outermost first.
+ *
+ * Every directory from the workspace folder down to the card's own directory
+ * is one: the walk up from the card would meet a marker in any of them. With
+ * no card, the folder itself, and its `doc/` when there is one, since that is
+ * where a project's documentation usually lives.
+ */
+export async function vaultCandidates(
+  folder: vscode.Uri,
+  card: vscode.Uri | null,
+): Promise<vscode.Uri[]> {
+  if (card === null) {
+    const doc = vscode.Uri.joinPath(folder, "doc");
+    return (await exists(doc)) ? [folder, doc] : [folder];
+  }
+  const segments = segmentsBetween(folder, card);
+  if (segments === null) return [];
+  const directories = segments.slice(0, -1);
+  const candidates = [folder];
+  for (let depth = 1; depth <= directories.length; depth += 1) {
+    candidates.push(vscode.Uri.joinPath(folder, ...directories.slice(0, depth)));
+  }
+  return candidates;
 }
