@@ -40,8 +40,8 @@ linter.
 
 | Status | Work | Notes | References |
 | --- | --- | --- | --- |
-| todo | **A release workflow.** Build one binary for each of the five platforms the toolchain serves, on an `lsp-vX.Y.Z` tag, and attach them to the GitHub release | The resolver crate's release workflow is the model for the gates, and the toolchain's archive names are the model for the platforms | [[hmd-0033#distribution]] |
-| blocked | **The toolchain carries the binary** beside `d2` and `hql`, so the extension bundles it and a user installs nothing. Unblocks when the release workflow has cut a first release | Decide first whether the toolchain repository builds the binary or takes it from this repository's release | [[hmd-0033#distribution]] |
+| todo | **Cut the first release.** Run the release workflow by hand once, to see all five archives build on real runners, then give the changelog a section for 0.1.0 and push the tag `lsp-v0.1.0` | The workflow has never run: it was written and rehearsed on one machine, for the two macOS targets only. The musl and Windows builds are untried | [[hmd-0033#distribution]] |
+| blocked | **The toolchain carries the binary** beside `d2` and `hql`, so the extension bundles it and a user installs nothing. Unblocks when the first release is cut | Decide first whether the toolchain repository builds the binary or takes it from this repository's release | [[hmd-0033#distribution]] |
 | todo | **Go to a heading or a block.** A reference with a fragment leads to the top of the card today. It should lead to the heading or the block the fragment names | The resolver crate reads no heading and no block anchor. The rule that turns a heading's text into the name a fragment matches is the language's, so the code belongs in the crate | [[hmd-0033#go-to-definition]] |
 | todo | **Tokens for block anchors and frontmatter.** A trailing `^block-id` and the frontmatter block get no token | The crate reports neither position today | [[hmd-0033#semantic-tokens]] |
 | todo | **Completion** of card names, headings, and block anchors after `[[` | Needs the list of names a card can write for another card, which is the resolver's knowledge and belongs in the crate | [[hmd-0033#deployment-activation]] |
@@ -88,6 +88,11 @@ Nothing known.
   vault configurations.
 - **Positions converted** between code points and UTF-16 units, with a
   byte-order mark and all three line endings [[hmd-0033#positions]].
+- **A release workflow** — `release-lsp.yml`, on an `lsp-vX.Y.Z` tag: the
+  gates, one program for each of the five platforms the toolchain serves,
+  named after its Rust target as HQL names its archives, and a GitHub release
+  with the archives and `SHA256SUMS`. A run by hand builds everything and
+  cuts nothing. Not yet run [[hmd-0033#distribution]].
 - **A CI job** — format, lints as errors, the tests against the committed
   lockfile on Linux, macOS, and Windows, and a build on the minimum supported
   Rust version.
@@ -111,6 +116,8 @@ cargo test --locked
 
 ## Changelog
 
+- 2026-11-25: the release workflow is written; cutting the first release is
+  the open row.
 - 2026-11-25: the VS Code extension is a client; its rows are in the
   extension's tracker.
 - 2026-11-25: the tracker opens. The server is written and tested, with a CI

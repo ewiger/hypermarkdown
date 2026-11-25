@@ -93,4 +93,32 @@ tracked in [`doc/status/lsp.hmd`](../../doc/status/lsp.hmd), against
 
 ## Releasing
 
-There is no release path yet. The tracker lists it as open work.
+The server is released as one program for each platform, by
+[`release-lsp.yml`](../../.github/workflows/release-lsp.yml). Nothing goes to
+a registry. The archives are attached to the GitHub release, with a
+`SHA256SUMS` file beside them. A release is:
+
+1. the changelog section for the version, and the version in `Cargo.toml`;
+2. a run of the workflow by hand (`workflow_dispatch`), which runs every gate
+   and builds all five archives, and cuts no release;
+3. the tag `lsp-vX.Y.Z` pushed, which builds the archives again and cuts the
+   GitHub release.
+
+The platforms are the five the pinned toolchain serves, and a test in
+`tests/test_release.py` holds the two lists together:
+
+| Platform | Archive |
+| --- | --- |
+| Linux x86-64 | `hmd-lsp-vX.Y.Z-x86_64-unknown-linux-musl.tar.gz` |
+| Linux ARM64 | `hmd-lsp-vX.Y.Z-aarch64-unknown-linux-musl.tar.gz` |
+| macOS x86-64 | `hmd-lsp-vX.Y.Z-x86_64-apple-darwin.tar.gz` |
+| macOS ARM64 | `hmd-lsp-vX.Y.Z-aarch64-apple-darwin.tar.gz` |
+| Windows x86-64 | `hmd-lsp-vX.Y.Z-x86_64-pc-windows-msvc.zip` |
+
+Each archive holds one directory, named as the archive is, with the program,
+`LICENSE` and `README.md`. The Linux programs link the C library statically,
+and the Windows program links the C runtime statically, so each is one file
+with nothing to install beside it.
+
+The release profile in `Cargo.toml` strips symbols and optimises the program
+as one unit. The program is about 1.5 MB.

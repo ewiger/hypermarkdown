@@ -41,7 +41,8 @@ Completion and rename are not written yet.
 
 ## Install
 
-There is no release yet. Build the program from this directory:
+There is no release yet. When there is one, its page will hold an archive for
+each platform. Until then, build the program from this directory:
 
 ```sh
 cargo build --release

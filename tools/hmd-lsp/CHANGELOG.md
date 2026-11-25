@@ -30,5 +30,8 @@ Implementation state is tracked in
   them off with the `diagnostics` initialization option.
 - **Unsaved documents.** The server reads the text in the editor in front of
   the text on disk, so a reference to a card that is not saved yet resolves.
+- **A release workflow.** An `lsp-vX.Y.Z` tag builds one program for each of
+  Linux x86-64 and ARM64, macOS x86-64 and ARM64, and Windows x86-64, and
+  attaches the archives and their SHA-256 digests to the GitHub release.
 - **Changes on disk.** The server asks a client that allows it to watch cards
   and vault configurations, and reads a vault again when one changes.
