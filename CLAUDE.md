@@ -69,7 +69,15 @@ frontmatter, and the other trackers will follow. The steps are in
 `doc/memory/2026-11-25-status-tables-are-written-by-hql.hmd`.
 
 At the start of every agent invocation, read every file under `doc/memory/` and
-include that context in the work.
+include that context in the work. The notes are included here, so that they
+load with these instructions. Add a line for each new note:
+
+@doc/memory/decisions.hmd
+@doc/memory/2026-08-06-typescript-editor-line.hmd
+@doc/memory/2026-08-10-hypermarkdown-identity.hmd
+@doc/memory/2026-08-11-two-licenses-and-a-contributors-file.hmd
+@doc/memory/2026-09-14-marketplace-federated-publishing.hmd
+@doc/memory/2026-11-25-status-tables-are-written-by-hql.hmd
 
 Ignore `.grem/**` during ordinary work. Do not inspect, summarize, follow, or
 modify its contents unless the user explicitly asks to execute a grem workflow
