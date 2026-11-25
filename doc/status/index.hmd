@@ -35,8 +35,9 @@ an Open row, from the repository root:
 hql render --in-place --emit after doc/status/kanban.hmd doc/status/proposals.hmd doc/status/open.hmd
 ```
 
-Any `hql` from 0.7.1 on will do, including the one in the pinned toolchain
-(`node scripts/toolchain.mjs` prints its directory).
+This needs `hql` 0.8.0 or later. Earlier versions do not read `location_path`
+from the vault's configuration and refuse to run. The pinned toolchain still
+ships 0.7.2, so use an `hql` installed with `cargo install hql`.
 
 ## Rows as data
 

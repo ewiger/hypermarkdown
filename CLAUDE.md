@@ -62,6 +62,12 @@ progress in `doc/memory/`, in `doc/wiki/` cards, in a proposal's `index.hmd`, or
 in a tool's `README.md` — a decision that needs discussion becomes an open
 question in the tracker.
 
+Do not type into a table that an HQL cell wrote, which is any table between
+`hql:output` markers. Change the data the cell reads, run `hql render`, and
+commit both. `doc/status/hmd.hmd` keeps its rows in the `work` list of its
+frontmatter, and the other trackers will follow. The steps are in
+`doc/memory/2026-11-25-status-tables-are-written-by-hql.hmd`.
+
 At the start of every agent invocation, read every file under `doc/memory/` and
 include that context in the work.
 
