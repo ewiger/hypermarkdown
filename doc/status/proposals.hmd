@@ -63,7 +63,7 @@ cards
 | Table(columns = ["proposal", "title", "status", "trackers"])
 | format(as = Markdown)
 ```
-<!-- hql:output hash=2de03b22833a status=ok -->
+<!-- hql:output hash=e5b991a52d23 status=ok -->
 | proposal                                    | title                                                                             | status     | trackers                                                                                                     |
 | ------------------------------------------- | --------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
 | [HMD-0001](../proposals/HMD-0001/README.md) | MVP — grammar, resolver, and `hmd lint`                                           | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [pages](pages.hmd), [vsc-ext](vsc-ext.hmd)                                 |
@@ -71,7 +71,7 @@ cards
 | [HMD-0003](../proposals/HMD-0003/README.md) | HQL — the Hyper Query Language                                                    | superseded | [lang](lang.hmd)                                                                                             |
 | [HMD-0004](../proposals/HMD-0004/README.md) | The hyper web — namespaces beyond one tree                                        | drafted    | [hmd](hmd.hmd), [lang](lang.hmd)                                                                             |
 | [HMD-0005](../proposals/HMD-0005/README.md) | The HyperMarkDown rename — one identity across domain, repository, and registries | drafted    | [hmd](hmd.hmd), [pages](pages.hmd), [vsc-ext](vsc-ext.hmd)                                                   |
-| [HMD-0006](../proposals/HMD-0006/README.md) | Extended URI for transclusion and link referencing when addressing inside a card  | drafted    | [lang](lang.hmd), [ts-core](ts-core.hmd)                                                                     |
+| [HMD-0006](../proposals/HMD-0006/README.md) | Extended URI for transclusion and link referencing when addressing inside a card  | deferred   | [hmd](hmd.hmd), [lang](lang.hmd), [rs-core](rs-core.hmd), [ts-core](ts-core.hmd)                             |
 | [HMD-0020](../proposals/HMD-0020/README.md) | `@hypermarkdown/core` — the TypeScript document model                             | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                             |
 | [HMD-0021](../proposals/HMD-0021/README.md) | The VS Code extension — the HyperMarkDown preview surface                         | drafted    | [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)                                                               |
 | [HMD-0022](../proposals/HMD-0022/README.md) | D2 diagrams                                                                       | drafted    | [lang](lang.hmd), [pages](pages.hmd)                                                                         |
@@ -83,4 +83,5 @@ cards
 | [HMD-0029](../proposals/HMD-0029/README.md) | Markdown files are cards                                                          | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [rs-core](rs-core.hmd), [semantics](semantics.hmd), [ts-core](ts-core.hmd) |
 | [HMD-0030](../proposals/HMD-0030/README.md) | Diagram cells                                                                     | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [pages](pages.hmd), [ts-core](ts-core.hmd), [vsc-ext](vsc-ext.hmd)         |
 | [HMD-0031](../proposals/HMD-0031/README.md) | Freeze                                                                            | drafted    | —                                                                                                            |
+| [HMD-0032](../proposals/HMD-0032/README.md) | HQL path — addressing inside a card with `@[[…]]`                                 | drafted    | [hmd](hmd.hmd), [lang](lang.hmd), [rs-core](rs-core.hmd), [ts-core](ts-core.hmd)                             |
 <!-- /hql:output -->

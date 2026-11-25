@@ -38,6 +38,33 @@ hql render --in-place --emit after doc/status/kanban.hmd doc/status/proposals.hm
 Any `hql` from 0.7.1 on will do, including the one in the pinned toolchain
 (`node scripts/toolchain.mjs` prints its directory).
 
+## Rows as data
+
+[`hmd.hmd`](hmd.hmd) keeps its rows as data, and HQL cells write its tables.
+It is the first tracker to do so; the other six still write their tables by
+hand.
+
+The rows are a list named `work` in the card's frontmatter. Each row has
+these fields:
+
+| Field | Holds |
+| --- | --- |
+| `kind` | `open`, `broken`, `limitation`, `done`, or `question`: the section the row belongs to |
+| `state` | `todo`, `doing`, `backlog`, `blocked`, or `parked`, on `open` and `broken` rows |
+| `tags` | the parts of the tool the row is about, such as `linter`, `site`, or `lsp` |
+| `text` | the row itself, as Markdown |
+| `notes` | the second column: the notes, the symptom, or why a limitation stands |
+| `refs` | the references that back the row |
+
+To change a row, edit it in the frontmatter and re-render the card with the
+command under [Generated views](#generated-views), adding `doc/status/hmd.hmd`
+to it. Never edit a table under a cell by hand. The rendered tables are part
+of the card, so `hmd lint` checks the references in them.
+
+Each section of the tracker is one cell that filters `work` by `kind`. The
+**By tag** section counts the rows that carry each tag. A query in any other
+card can read the same rows from `cards`, as [`open.hmd`](open.hmd) does.
+
 ## How these files work
 
 Each tracker reads in one order, and it is the order a reader asks in:

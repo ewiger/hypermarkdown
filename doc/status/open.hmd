@@ -21,15 +21,38 @@ type OpenRow { state : String, work : String, tracker : String }
 fn open_section(body: String) : String =
     regex.find(body, "(?s)\\n## Open\\n.*?(\\n## |\\z)").unwrap_or("")
 
-// The Open rows of one tracker.
-fn rows_of(c: Card) : Seq<OpenRow> =
+// A row as a tracker keeps it in the `work` list of its header.
+type Row { kind : String, state? : String, tags : List<String>, text : String, notes? : String, refs? : String }
+type Tracker : Data { work? : List<Row> }
+
+// A link to a tracker.
+fn link(c: Card) : String = "[" + c.name + "](" + c.name + ".hmd)"
+
+// The work a row names: its bold lead, without the marks.
+fn lead(text: String) : String =
+    regex.find(text, "^\\*\\*[^*]+\\*\\*")
+    | map(s => regex.replace_all(s, "\\*\\*", ""))
+    | unwrap_or(text)
+
+// The Open rows of a tracker that keeps its rows in its header.
+fn header_rows(c: Card) : List<OpenRow> =
+    match (c.header | Tracker).work { some(rows) => rows, _ => [] }
+    | filter(r => r.kind == "open")
+    | map(r => OpenRow(state = r.state.unwrap_or(""), work = lead(r.text), tracker = link(c)))
+
+// The Open rows of a tracker that still writes its Open table by hand.
+fn body_rows(c: Card) : List<OpenRow> =
     regex.find_all(open_section(c.body),
         "(?m)^\\| (doing|todo|blocked|backlog|parked) \\| \\*\\*[^*]+\\*\\*")
     | map(line => OpenRow(
         state = regex.find(line, "^\\| [a-z]+").map(s => regex.replace_first(s, "^\\| ", "")).unwrap_or(""),
         work = regex.replace_first(regex.replace_first(line, "^\\| [a-z]+ \\| \\*\\*", ""), "\\*\\*$", ""),
-        tracker = "[" + c.name + "](" + c.name + ".hmd)",
+        tracker = link(c),
       ))
+
+// The Open rows of one tracker, from its header when it has rows there.
+fn rows_of(c: Card) : List<OpenRow> =
+    header_rows(c) given (header_rows(c) | size) > 0 otherwise body_rows(c)
 
 cards
 | filter(c => regex.is_match(c.path, "^status/[a-z-]+\\.hmd$")
@@ -49,14 +72,14 @@ the board, in the order this view lists them.
 | Table(columns = ["state", "rows"])
 | format(as = Markdown)
 ```
-<!-- hql:output hash=2d3c7edd4b79 status=ok -->
+<!-- hql:output hash=5a4227e6b146 status=ok -->
 | state   | rows |
 | ------- | ---- |
 | doing   | 2    |
 | todo    | 28   |
 | blocked | 5    |
-| backlog | 11   |
-| parked  | 3    |
+| backlog | 13   |
+| parked  | 4    |
 <!-- /hql:output -->
 
 ## Rows
@@ -71,7 +94,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | Table(columns = ["state", "work", "tracker"])
 | format(as = Markdown)
 ```
-<!-- hql:output hash=2b491a7b6b0e status=ok -->
+<!-- hql:output hash=3052e1fad0cf status=ok -->
 | state   | work                                                                                               | tracker                    |
 | ------- | -------------------------------------------------------------------------------------------------- | -------------------------- |
 | doing   | Cells, rendered by the tools.                                                                      | [lang](lang.hmd)           |
@@ -81,7 +104,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Property-based tests of the resolver's claims, over generated vaults.                              | [hmd](hmd.hmd)             |
 | todo    | Draw only diagram cells in the site build.                                                         | [hmd](hmd.hmd)             |
 | todo    | Draw Mermaid diagrams in the site build                                                            | [hmd](hmd.hmd)             |
-| todo    | Settle the address grammar before it is built.                                                     | [lang](lang.hmd)           |
+| todo    | Answer the open questions of HQL path before it is built.                                          | [lang](lang.hmd)           |
 | todo    | Clear numeric section references from the documentation.                                           | [lang](lang.hmd)           |
 | todo    | Finish unifying what a vault and a namespace are across the specification, the HMD tools, and HQL. | [lang](lang.hmd)           |
 | todo    | Ask HQL to read `location_path`.                                                                   | [lang](lang.hmd)           |
@@ -109,7 +132,8 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | blocked | Re-render the generated status views.                                                              | [lang](lang.hmd)           |
 | blocked | Drop the mask.                                                                                     | [vsc-ext](vsc-ext.hmd)     |
 | blocked | Name the HQL project and import `hmd` on the command line.                                         | [vsc-ext](vsc-ext.hmd)     |
-| backlog | Address and quote inside a card.                                                                   | [lang](lang.hmd)           |
+| backlog | Resolve HQL paths, the canonical implementation.                                                   | [hmd](hmd.hmd)             |
+| backlog | HQL path, for HyperMarkDown 0.2.0.                                                                 | [lang](lang.hmd)           |
 | backlog | Carry an integrity digest on a quotation                                                           | [lang](lang.hmd)           |
 | backlog | Cross-project namespaces.                                                                          | [lang](lang.hmd)           |
 | backlog | Grow the CommonMark examples into a differential dataset.                                          | [lang](lang.hmd)           |
@@ -117,10 +141,12 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | backlog | Derive a test dataset from the standard.                                                           | [lang](lang.hmd)           |
 | backlog | Self-host the maths typesetter                                                                     | [pages](pages.hmd)         |
 | backlog | A comparison suite that asks the reference implementation.                                         | [rs-core](rs-core.hmd)     |
+| backlog | Resolve HQL paths.                                                                                 | [rs-core](rs-core.hmd)     |
 | backlog | Say when `--vault` is not a vault.                                                                 | [semantics](semantics.hmd) |
-| backlog | Parse the in-card address.                                                                         | [ts-core](ts-core.hmd)     |
+| backlog | Resolve HQL paths.                                                                                 | [ts-core](ts-core.hmd)     |
 | backlog | Filter the graph by namespace and tag                                                              | [vsc-ext](vsc-ext.hmd)     |
 | parked  | Rename the package inside the parked integration suite                                             | [hmd](hmd.hmd)             |
+| parked  | The branch `feat/in-card-address`.                                                                 | [lang](lang.hmd)           |
 | parked  | A Lean model of resolution and embed expansion.                                                    | [lang](lang.hmd)           |
 | parked  | The integration suite                                                                              | [vsc-ext](vsc-ext.hmd)     |
 <!-- /hql:output -->
