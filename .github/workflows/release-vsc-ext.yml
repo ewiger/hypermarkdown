@@ -132,15 +132,20 @@ jobs:
       # both macOS, and Windows, whose ARM64 VSIX carries the x64 binaries —
       # and not on Linux ARM64, which runs cells with an `hql` on PATH or
       # named in the setting (issue 0111).
-      - name: Check every VSIX carries its d2, and its hql where HQL ships one
+      #
+      # `hmd-lsp`, the language server, is in the toolchain for every platform
+      # since 0.6.0, so every VSIX must carry it (issue 0117). Without it the
+      # extension still works, and says once that the server is absent: a
+      # build that lost the binary would look like a working release.
+      - name: Check every VSIX carries its d2 and hmd-lsp, and its hql where HQL ships one
         run: |
           set -euo pipefail
           for vsix in dist-vsix/*.vsix; do
             case "$vsix" in
-              *win32*)                          expected="extension/toolchain/bin/d2.exe extension/toolchain/bin/hql.exe" ;;
+              *win32*)                          expected="extension/toolchain/bin/d2.exe extension/toolchain/bin/hmd-lsp.exe extension/toolchain/bin/hql.exe" ;;
               *linux-x64*|*darwin-x64*|*darwin-arm64*)
-                                                expected="extension/toolchain/bin/d2 extension/toolchain/bin/hql" ;;
-              *)                                expected="extension/toolchain/bin/d2" ;;
+                                                expected="extension/toolchain/bin/d2 extension/toolchain/bin/hmd-lsp extension/toolchain/bin/hql" ;;
+              *)                                expected="extension/toolchain/bin/d2 extension/toolchain/bin/hmd-lsp" ;;
             esac
             for file in $expected; do
               if ! unzip -l "$vsix" | grep -q "$file"; then

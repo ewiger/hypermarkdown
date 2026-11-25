@@ -76,7 +76,7 @@ the board, in the order this view lists them.
 | state   | rows |
 | ------- | ---- |
 | doing   | 2    |
-| todo    | 32   |
+| todo    | 31   |
 | blocked | 4    |
 | backlog | 15   |
 | parked  | 3    |
@@ -110,7 +110,6 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Validate the grammar, a release requirement for 0.1.                                               | [lang](lang.hmd)           |
 | todo    | Review lexical compatibility with CommonMark.                                                      | [lang](lang.hmd)           |
 | todo    | Accept Mermaid as a diagram language on par with D2.                                               | [lang](lang.hmd)           |
-| todo    | The toolchain carries the binary                                                                   | [lsp](lsp.hmd)             |
 | todo    | Go to a heading or a block.                                                                        | [lsp](lsp.hmd)             |
 | todo    | Tokens for block anchors and frontmatter.                                                          | [lsp](lsp.hmd)             |
 | todo    | Completion                                                                                         | [lsp](lsp.hmd)             |
