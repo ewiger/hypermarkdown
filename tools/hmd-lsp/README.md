@@ -41,14 +41,21 @@ Completion and rename are not written yet.
 
 ## Install
 
-There is no release yet. When there is one, its page will hold an archive for
-each platform. Until then, build the program from this directory:
+Download the archive for your platform from
+[the releases page](https://github.com/ewiger/hypermarkdown/releases), where
+each release of the server is titled `Binary · hmd-lsp`, and put the `hmd-lsp`
+program inside it on your `PATH`. There is an archive for Linux and macOS on
+x86-64 and ARM64, and for Windows on x86-64.
+
+Or build it with Cargo:
 
 ```sh
-cargo build --release
+cargo install hypermarkdown-lsp
 ```
 
-The program is `target/release/hmd-lsp`.
+The package is named `hypermarkdown-lsp`, and the program it installs is
+`hmd-lsp`. Do not run `cargo install hmd-lsp`: that name on crates.io belongs
+to an unrelated project.
 
 ## Use
 

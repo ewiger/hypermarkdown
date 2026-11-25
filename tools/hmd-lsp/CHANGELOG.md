@@ -8,11 +8,22 @@ and keep their own changelogs, and
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+The package is
+[`hypermarkdown-lsp`](https://crates.io/crates/hypermarkdown-lsp) on crates.io,
+and each release carries the program for five platforms on
+[its GitHub release](https://github.com/ewiger/hypermarkdown/releases).
+
 Implementation state is tracked in
 [`doc/status/lsp.hmd`](../../doc/status/lsp.hmd), against
 [HMD-0033](../../doc/proposals/HMD-0033/index.hmd).
 
 ## [Unreleased]
+
+## [0.1.0] — 2026-11-25
+
+The first release. The program is `hmd-lsp`. The package on crates.io is
+`hypermarkdown-lsp`, because the name `hmd-lsp` there belongs to an unrelated
+project.
 
 ### Added
 

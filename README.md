@@ -268,7 +268,8 @@ resolves to, over the Language Server Protocol: semantic tokens, go to
 definition, hover, and diagnostics for a reference that does not resolve. It
 resolves through the Rust crate above, it reads the text in the editor in
 front of the text on disk, and it works in any editor that speaks the
-protocol. It is not released yet.
+protocol. Each release carries the program for five platforms, and
+`cargo install hypermarkdown-lsp` builds it.
 
 ### [`hmd-semantics`](tools/hmd-semantics/) — the semantic index builder
 

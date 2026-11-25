@@ -39,7 +39,8 @@ in [`Cargo.toml`](tools/hmd-rs-core/Cargo.toml), with
 
 The language server under `tools/hmd-lsp/` declares one too, in
 [`Cargo.toml`](tools/hmd-lsp/Cargo.toml), with
-[its changelog](tools/hmd-lsp/CHANGELOG.md). It is not released yet.
+[its changelog](tools/hmd-lsp/CHANGELOG.md). Its binaries are released on an
+`lsp-vX.Y.Z` tag, and its package is `hypermarkdown-lsp` on crates.io.
 
 The semantic index builder under `tools/hmd-semantics/` declares one too, as
 `__version__` in

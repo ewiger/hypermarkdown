@@ -3,8 +3,9 @@ name: Release (language server)
 # The binaries of `hmd-lsp`, the language server, driven by an `lsp-vX.Y.Z`
 # tag. The server is its own Cargo package under `tools/hmd-lsp/`, and it is
 # released as one native program for each platform the pinned toolchain
-# serves. Nothing is published to a registry: the archives are attached to the
-# GitHub release, where the toolchain and a user can take them.
+# serves. The archives are attached to the GitHub release, where the toolchain
+# and a user can take them. The package, `hypermarkdown-lsp`, is published to
+# crates.io by hand until a trusted publisher is configured for it.
 #
 # The prefix begins with `l`, so neither `v[0-9]*` (the Python tool), nor
 # `ts-core-v*`, `rs-core-v[0-9]*`, `semantics-v[0-9]*` or `vsc-ext-v*` matches

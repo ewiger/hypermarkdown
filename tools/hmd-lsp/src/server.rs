@@ -23,6 +23,9 @@ use crate::{features, tokens};
 /// What can end the server other than the client asking it to stop.
 pub type Failure = Box<dyn Error + Send + Sync>;
 
+/// The server's name, which is the program's and not the package's.
+pub const NAME: &str = "hmd-lsp";
+
 /// The files whose changes on disk change what a reference resolves to.
 const WATCHED: [&str; 2] = ["**/*.{hmd,md,markdown}", "**/.hmd/config.toml"];
 
@@ -80,7 +83,7 @@ pub fn run(connection: &Connection) -> Result<(), Failure> {
     let result = InitializeResult {
         capabilities: capabilities(),
         server_info: Some(ServerInfo {
-            name: env!("CARGO_PKG_NAME").to_owned(),
+            name: NAME.to_owned(),
             version: Some(env!("CARGO_PKG_VERSION").to_owned()),
         }),
     };

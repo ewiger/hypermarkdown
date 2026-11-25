@@ -16,6 +16,8 @@ crates.io. Implementation state is tracked in
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-25
+
 ### Added
 
 - **`Vault::open_with`** loads a vault from disk through a host the caller

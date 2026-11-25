@@ -27,7 +27,7 @@ fn main() -> ExitCode {
             // the only one there is.
             "--stdio" => {}
             "-V" | "--version" => {
-                println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+                println!("{} {}", hmd_lsp::server::NAME, env!("CARGO_PKG_VERSION"));
                 return ExitCode::SUCCESS;
             }
             "-h" | "--help" => {

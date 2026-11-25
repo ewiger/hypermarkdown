@@ -110,8 +110,9 @@ class BinaryTool(Tool):
         # No registry holds the program. The archives are on the release
         # itself, one for each platform, with their digests beside them.
         return [
-            f"[hmd-lsp {version}](https://github.com/{REPO}/releases/tag/lsp-v{version})",
             "one archive for each platform below, with `SHA256SUMS`",
+            f"[hypermarkdown-lsp {version}](https://crates.io/crates/hypermarkdown-lsp/{version})",
+            f"`cargo install hypermarkdown-lsp@{version}`",
         ]
 
 

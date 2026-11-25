@@ -75,7 +75,7 @@ the board, in the order this view lists them.
 <!-- hql:output hash=5a4227e6b146 status=ok -->
 | state   | rows |
 | ------- | ---- |
-| doing   | 2    |
+| doing   | 3    |
 | todo    | 33   |
 | blocked | 5    |
 | backlog | 15   |
@@ -98,6 +98,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | state   | work                                                                                               | tracker                    |
 | ------- | -------------------------------------------------------------------------------------------------- | -------------------------- |
 | doing   | Cells, rendered by the tools.                                                                      | [lang](lang.hmd)           |
+| doing   | Cut the first release, 0.1.0.                                                                      | [lsp](lsp.hmd)             |
 | doing   | Rearrange the site                                                                                 | [pages](pages.hmd)         |
 | todo    | Property-based tests of the resolver's claims, over generated vaults.                              | [hmd](hmd.hmd)             |
 | todo    | Draw only diagram cells in the site build.                                                         | [hmd](hmd.hmd)             |
@@ -110,7 +111,7 @@ Every open row, `doing` first, then `todo`, `blocked`, `backlog` and
 | todo    | Validate the grammar, a release requirement for 0.1.                                               | [lang](lang.hmd)           |
 | todo    | Review lexical compatibility with CommonMark.                                                      | [lang](lang.hmd)           |
 | todo    | Accept Mermaid as a diagram language on par with D2.                                               | [lang](lang.hmd)           |
-| todo    | Cut the first release.                                                                             | [lsp](lsp.hmd)             |
+| todo    | Publish to crates.io from the workflow.                                                            | [lsp](lsp.hmd)             |
 | todo    | Go to a heading or a block.                                                                        | [lsp](lsp.hmd)             |
 | todo    | Tokens for block anchors and frontmatter.                                                          | [lsp](lsp.hmd)             |
 | todo    | Completion                                                                                         | [lsp](lsp.hmd)             |

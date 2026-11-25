@@ -16,7 +16,9 @@ Every tool lives in its own directory under `tools/`:
 - `tools/hmd-lsp/` — `hmd-lsp`, the language server, as a Rust program. It
   resolves through the crate in `tools/hmd-rs-core/`, by path, and keeps no
   resolution code of its own; it does not lint. Its own Cargo package with
-  its own `Cargo.lock`; released on an `lsp-vX.Y.Z` tag.
+  its own `Cargo.lock`; released on an `lsp-vX.Y.Z` tag. The package is
+  `hypermarkdown-lsp` on crates.io, because `hmd-lsp` there is another
+  project's, and the program it builds is `hmd-lsp`.
 - `tools/hmd-semantics/` — `hmd-semantics`, the builder of a vault's semantic
   index, as the Python distribution `hypermarkdown-semantics`. Its own project
   with its own `uv.lock`, outside the uv workspace, so that `torch` and

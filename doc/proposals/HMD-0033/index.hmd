@@ -102,7 +102,8 @@ therefore forbids the server from resolving anything itself.
 ### The tool
 
 - The server MUST be a Rust program in `tools/hmd-lsp/`, built as one binary
-  named `hmd-lsp`. It is its own Cargo package with its own committed
+  named `hmd-lsp`. The Cargo package is named `hypermarkdown-lsp`, because
+  the name `hmd-lsp` on crates.io belongs to an unrelated project. It is its own Cargo package with its own committed
   `Cargo.lock`, outside both the uv workspace and the npm workspace, as the
   resolver crate is.
 - The package MUST depend on the `hypermarkdown` crate by path, at
@@ -261,6 +262,10 @@ message for each:
   x86-64.
 - A release is built by a workflow in this repository on a tag with the
   prefix `lsp-v`, and the binaries are attached to the GitHub release.
+- The package is published to crates.io as `hypermarkdown-lsp`, so that
+  `cargo install hypermarkdown-lsp` builds the program on a platform that has
+  no archive. A published package cannot depend on a path, so the resolver
+  crate is released first whenever the server needs a newer version of it.
 - The pinned toolchain carries the binary beside `d2` and `hql`, and the
   extension bundles the toolchain, so a user of the extension installs
   nothing.
@@ -361,8 +366,8 @@ cargo test --locked
 - Is the toolchain repository the place that builds the server's binaries, or
   does it take them from this repository's release as it takes `hql` from
   HQL's?
-- Is the server published to crates.io, so that `cargo install hmd-lsp`
-  works?
+- ~~Is the server published to crates.io?~~ **Answered 2026-11-25: yes, as
+  `hypermarkdown-lsp`.** The name `hmd-lsp` there is another project's.
 - How does the server update one card of a loaded vault without loading the
   vault again?
 
@@ -375,4 +380,6 @@ cargo test --locked
 
 ## Changelog
 
+- 2026-11-25: the package is `hypermarkdown-lsp` on crates.io, and the
+  program stays `hmd-lsp`.
 - 2026-11-25: drafted

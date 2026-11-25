@@ -94,15 +94,23 @@ tracked in [`doc/status/lsp.hmd`](../../doc/status/lsp.hmd), against
 ## Releasing
 
 The server is released as one program for each platform, by
-[`release-lsp.yml`](../../.github/workflows/release-lsp.yml). Nothing goes to
-a registry. The archives are attached to the GitHub release, with a
-`SHA256SUMS` file beside them. A release is:
+[`release-lsp.yml`](../../.github/workflows/release-lsp.yml). The archives are
+attached to the GitHub release, with a `SHA256SUMS` file beside them. The
+package is also published to crates.io as `hypermarkdown-lsp`. The name
+`hmd-lsp` there belongs to an unrelated project, so the package and the
+program have different names. A release is:
 
 1. the changelog section for the version, and the version in `Cargo.toml`;
-2. a run of the workflow by hand (`workflow_dispatch`), which runs every gate
+2. a release of the resolver crate first, when the server needs a version of
+   it that crates.io does not have, because a published package cannot depend
+   on a path;
+3. a run of the workflow by hand (`workflow_dispatch`), which runs every gate
    and builds all five archives, and cuts no release;
-3. the tag `lsp-vX.Y.Z` pushed, which builds the archives again and cuts the
-   GitHub release.
+4. the tag `lsp-vX.Y.Z` pushed, which builds the archives again and cuts the
+   GitHub release;
+5. `cargo publish --locked` from this directory. It is run by hand: crates.io
+   lets a workflow publish through a trusted publisher only for a crate that
+   exists, and no trusted publisher is configured for this one yet.
 
 The platforms are the five the pinned toolchain serves, and a test in
 `tests/test_release.py` holds the two lists together:

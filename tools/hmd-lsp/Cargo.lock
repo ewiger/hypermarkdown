@@ -45,7 +45,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "735eaa21a6a5ffb2e84362faaeb90c05ba8e19797ca30428478cb6ea3a4921bc"
 
 [[package]]
-name = "hmd-lsp"
+name = "hypermarkdown"
+version = "0.4.0"
+dependencies = [
+ "serde",
+ "serde_yaml_ng",
+ "toml",
+ "unicode-normalization",
+]
+
+[[package]]
+name = "hypermarkdown-lsp"
 version = "0.1.0"
 dependencies = [
  "hypermarkdown",
@@ -53,16 +63,6 @@ dependencies = [
  "lsp-types",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "hypermarkdown"
-version = "0.3.0"
-dependencies = [
- "serde",
- "serde_yaml_ng",
- "toml",
- "unicode-normalization",
 ]
 
 [[package]]
