@@ -739,7 +739,7 @@ summary of each card beside it is planned and not built.
 
 <div class="hmd-parts" markdown>
 
-- [**Vision**](public/vision.hmd) <span>Pages as units of knowledge: readable, connected, and executable.</span>
+- [**Vision**](public/vision.hmd) <span>A web of plain text pages that people, programs, and AI agents can read.</span>
 - [**Namespaces**](public/namespaces.hmd) <span>Cards, directories, and reference resolution.</span>
 - [**Features**](public/features.md) <span>What a card can carry, shown working.</span>
 - [**Language Specification**](wiki/hmd-lang-spec.hmd) <span>The normative text: grammar, resolution, diagnostics.</span>
