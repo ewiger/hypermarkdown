@@ -57,7 +57,7 @@ board:
     todo:
       - id: "0116"
         title: "A card no vault claims should offer to make one"
-        file: 0116-initialize-a-vault-from-the-editor.md
+        file: 0116-initialize-a-vault-from-the-editor.hmd
       - id: "0019"
         title: "Review lexical compatibility with CommonMark"
         file: "0019-lexical-compatibility-with-commonmark.hmd"

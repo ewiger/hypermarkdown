@@ -2,9 +2,9 @@
 
 **Column**: todo
 **Opened**: 2026-11-25
-**Related**: [the extension's tracker](../status/vsc-ext.md),
-[the per-card discovery card](archive/0108-vault-root-discovery-per-card.md),
-[the vault boundary card](0021-specify-the-vault-directory-and-its-boundary.md),
+**Related**: [the extension's tracker](../status/vsc-ext.hmd),
+[the per-card discovery card](archive/0108-vault-root-discovery-per-card.hmd),
+[the vault boundary card](0021-specify-the-vault-directory-and-its-boundary.hmd),
 [[hmd-lang-spec#the-namespace]], [[hmd-lang-spec#project-configuration]]
 
 ## What
@@ -43,7 +43,7 @@ dependency on Python.
 
 The reporter suggests `wiki = "."` because 0.5.2 predates the specification
 change that replaced `wiki` with `location_path`
-([the rename card](archive/0023-rename-wiki-to-location-path.md)). A config
+([the rename card](archive/0023-rename-wiki-to-location-path.hmd)). A config
 that sets `wiki` is now refused on purpose. The extension's code follows the
 new rule, but its README was missed in the rename. It still says the
 fallback root comes from "`wiki` from the folder's `.hmd/config.toml`, else
