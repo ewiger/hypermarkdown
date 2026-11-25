@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0028: The `[hql]` and `[semantics]` tables, and the semantic index
 
 **Status**: drafted
@@ -585,12 +590,12 @@ uv run python -m pytest
 - [HQL-0002](https://github.com/ewiger/hql/blob/main/doc/proposals/HQL-0002/index.hmd),
   HQL's record of semantic retrieval, where schema version 1 and the text
   contract were first written down.
-- [HMD-0001](../HMD-0001/README.md), which specifies `.hmd/config.toml` and
+- [HMD-0001](../HMD-0001/index.hmd), which specifies `.hmd/config.toml` and
   the rule that unread keys are ignored.
-- [HMD-0026](../HMD-0026/README.md), which specifies HQL cells in a card.
-- [HMD-0027](../HMD-0027/README.md), the Rust resolver crate, HQL's other
+- [HMD-0026](../HMD-0026/index.hmd), which specifies HQL cells in a card.
+- [HMD-0027](../HMD-0027/index.hmd), the Rust resolver crate, HQL's other
   dependency on this repository.
-- [HMD-0024](../HMD-0024/README.md), which fixes the repository as a monorepo
+- [HMD-0024](../HMD-0024/index.hmd), which fixes the repository as a monorepo
   of tools and says what each tool owns.
 - [`doc/status/semantics.hmd`](../../status/semantics.hmd), where the builder's
   work is tracked, and [`doc/status/hmd.hmd`](../../status/hmd.hmd), where the

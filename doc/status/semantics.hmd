@@ -1,6 +1,6 @@
 ---
 import:
-  - from /proposals/HMD-0028 import README as hmd-0028
+  - from /proposals/HMD-0028 import index as hmd-0028
 ---
 
 # STATUS — `hmd-semantics`

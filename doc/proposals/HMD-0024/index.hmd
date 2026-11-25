@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0024: The `tools/` layout, and a Python language server
 
 **Status**: drafted
@@ -367,9 +372,9 @@ uv build --package HyperMarkDown
 
 ## See also
 
-- [HMD-0020](../HMD-0020/README.md) — the TypeScript implementation, the
+- [HMD-0020](../HMD-0020/index.hmd) — the TypeScript implementation, the
   conformance corpus, and the drift ledger.
-- [HMD-0021](../HMD-0021/README.md) — the VS Code extension.
+- [HMD-0021](../HMD-0021/index.hmd) — the VS Code extension.
 - [`DEVELOP.md`](../../../DEVELOP.md) — the repository's setup and gates.
 - [`doc/DEVELOPER.hmd`](../../DEVELOPER.hmd) — an index of the four development
   guides; the per-tool build and test commands now live with each tool.

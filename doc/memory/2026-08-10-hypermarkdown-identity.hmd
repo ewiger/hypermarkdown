@@ -13,7 +13,7 @@
 > text below is kept as the record of what was argued.
 
 A second pass over the project's name, taken days after
-[HMD-0005](../proposals/HMD-0005/README.md) shipped the first one. Recorded here
+[HMD-0005](../proposals/HMD-0005/index.hmd) shipped the first one. Recorded here
 because the decision is a convention rather than a code change, and because the
 reason it is cheap now — and would not be later — is not derivable from either
 the code or the git history.

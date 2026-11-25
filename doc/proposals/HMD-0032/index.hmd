@@ -1,9 +1,14 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0032: HQL path — addressing inside a card with `@[[…]]`
 
 **Status**: drafted
 **Created**: 2026-11-25
 **Targets**: HyperMarkDown 0.2.0
-**Source**: [HMD-0006](../HMD-0006/README.md), deferred, and the document
+**Source**: [HMD-0006](../HMD-0006/index.hmd), deferred, and the document
 reference `@[[…]]` of [HQL](https://hql-lang.org/)
 
 ## Abstract
@@ -42,7 +47,7 @@ each case.
   inside `Linux`" when the card has a `Setup` under every platform. The
   reader then gets the first `Setup` in the card, which is often the wrong
   one, and the only remedy is to add an anchor to the target.
-- **Extending `[[…]]` breaks the format.** [HMD-0006](../HMD-0006/README.md)
+- **Extending `[[…]]` breaks the format.** [HMD-0006](../HMD-0006/index.hmd)
   put the address into the fragment of the ordinary link. That changed the
   meaning of `/`, `@`, and words such as `Para3` inside every fragment that 0.1
   accepts, and it required every tool that parses a wikilink to change at
@@ -304,11 +309,11 @@ reading.
 
 ## See also
 
-- [HMD-0006](../HMD-0006/README.md) — the first design for addressing inside a
+- [HMD-0006](../HMD-0006/index.hmd) — the first design for addressing inside a
   card, deferred.
-- [HMD-0026](../HMD-0026/README.md) — HQL cells, where `@[[…]]` already
+- [HMD-0026](../HMD-0026/index.hmd) — HQL cells, where `@[[…]]` already
   appears in cards.
-- [HMD-0031](../HMD-0031/README.md) — the freeze inventory for 0.1, which left
+- [HMD-0031](../HMD-0031/index.hmd) — the freeze inventory for 0.1, which left
   addressing inside a card to a later version, with diagnostics from HMD020.
 - [RFC 9535](https://www.rfc-editor.org/rfc/rfc9535) — JSONPath.
 - [HQL](https://hql-lang.org/) — the document reference and its types.

@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0006: Extended URI for transclusion and link referencing when addressing inside a card
 
 **Status**: deferred
@@ -8,7 +13,7 @@
 > the grammar of the ordinary `[[…]]` link, so `/`, `@`, and words such as
 > `Para3` inside a fragment would change meaning, and every tool that parses a
 > wikilink would break. The work continues in
-> [HMD-0032](../HMD-0032/README.md), which adds a separate construct,
+> [HMD-0032](../HMD-0032/index.hmd), which adds a separate construct,
 > `@[[…]]`, for addressing inside a card and leaves `[[…]]` exactly as 0.1
 > defines it. The unreleased implementation on the `feat/in-card-address`
 > branch is not merged. Its block segmentation, sentence and word rules, and
@@ -93,7 +98,7 @@ converge on the same missing piece:
 ## Non-goals
 
 - **No fetch mechanism, no wire protocol, no trust model.** Those belong to
-  [HMD-0004](../HMD-0004/README.md) and remain open there. This record defines
+  [HMD-0004](../HMD-0004/index.hmd) and remain open there. This record defines
   what an address *is*, not how a remote one is retrieved.
 - **No change to how a bare name resolves.** The four-phase search is untouched.
   This record defines the notation for the result of that search, not the
@@ -137,13 +142,13 @@ card_path  := segment *( "/" segment )
   spellings for one card must not become two addresses for one card, for the
   same reason they do not become two URLs.
 
-The scheme is `hmd`, which [HMD-0002](../HMD-0002/README.md) already spends on
+The scheme is `hmd`, which [HMD-0002](../HMD-0002/index.hmd) already spends on
 the nav placeholder `hmd://wiki`. That is not a collision to resolve but a case
 to absorb: a URI with an authority and no path names the namespace as a whole,
 which is exactly what the placeholder means. The placeholder becomes the
 zero-path case of this grammar and needs no amendment.
 
-The shorthand `namespace:card_path` fixed by [HMD-0004](../HMD-0004/README.md)
+The shorthand `namespace:card_path` fixed by [HMD-0004](../HMD-0004/index.hmd)
 is the in-card spelling of the same thing, and the two MUST agree: expanding a
 shorthand and resolving a URI produce one location. The shorthand is what an
 author types inside a card, where the namespace binding is in scope; the URI is
@@ -495,7 +500,7 @@ a crash.
 
 - A URI MUST NOT be dereferenced as a side effect of parsing, linting, or
   rendering a card. Writing an address is not asking for its target, and the
-  no-silent-network rule carried by [HMD-0004](../HMD-0004/README.md) applies to
+  no-silent-network rule carried by [HMD-0004](../HMD-0004/index.hmd) applies to
   this spelling of an address exactly as to the shorthand.
 - A card path in a URI MUST satisfy the same containment check as any other
   resolved target, against whatever tree the namespace's provider exposes. An
@@ -565,13 +570,13 @@ second namespace or a widened root — is deliberately left for its own record.
 
 ## See also
 
-- [HMD-0001](../HMD-0001/README.md) — the grammar this extends, the four-phase
+- [HMD-0001](../HMD-0001/index.hmd) — the grammar this extends, the four-phase
   resolution search, and the containment rule.
-- [HMD-0002](../HMD-0002/README.md) — the URL policy, the visibility gate on
+- [HMD-0002](../HMD-0002/index.hmd) — the URL policy, the visibility gate on
   embedding, and the `hmd://wiki` nav placeholder this grammar absorbs.
-- [HMD-0004](../HMD-0004/README.md) — namespaces, the `namespace:card` shorthand,
+- [HMD-0004](../HMD-0004/index.hmd) — namespaces, the `namespace:card` shorthand,
   and the binding rules a URI's authority relies on.
-- [HMD-0020](../HMD-0020/README.md) — the document model that must carry block
+- [HMD-0020](../HMD-0020/index.hmd) — the document model that must carry block
   kind, order, and source extent for an address to resolve.
 - [`TEMPLATE.md`](../TEMPLATE.md) — the house rule on identifiers in prose that
   this record makes enforceable.

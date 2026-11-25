@@ -34,7 +34,7 @@ leaves the editor line the same room.
 `feat/mvp` is Python, MkDocs, and `HMD-0002`–`HMD-0019`. `feat/vsc-ext` is
 TypeScript, the VS Code extension, and `HMD-0020+`; its decisions live in
 `doc/memory/2026-08-06-typescript-editor-line.hmd` on that branch. `feat/mvp` is
-the merge target. `doc/proposals/README.md` is the one file both streams append
+the merge target. `doc/proposals/index.hmd` is the one file both streams append
 to, so expect a mechanical conflict there and nowhere else.
 
 ## MkDocs needed a spec before it needed code
@@ -299,7 +299,7 @@ One packaging consequence that is not derivable and bites silently: a bare
 builds an empty `unknown-0.0.0` and exits zero — so the release path names
 `uv build --package hypermarkdown` explicitly.
 
-The full record is [HMD-0024](../proposals/HMD-0024/README.md), which also
+The full record is [HMD-0024](../proposals/HMD-0024/index.hmd), which also
 decides the language server: Python on `pygls`, living with the canonical
 implementation.
 

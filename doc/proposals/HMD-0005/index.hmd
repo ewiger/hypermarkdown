@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0005: The HyperMarkDown rename — one identity across domain, repository, and registries
 
 **Status**: drafted
@@ -400,7 +405,7 @@ holds the only copy.
 
 - [`doc/memory/decisions.hmd`](../../memory/decisions.hmd) — the four-versions
   rule, the tag prefixes, and why the packaging symlinks were reversed.
-- [HMD-0024](../HMD-0024/README.md) — the `tools/` layout whose directory names
+- [HMD-0024](../HMD-0024/index.hmd) — the `tools/` layout whose directory names
   this record leaves alone.
 - [`doc/wiki/tracking.hmd`](../../wiki/tracking.hmd) — the record/tracker split.
 

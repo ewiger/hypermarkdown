@@ -161,7 +161,7 @@ only for the Python API.
 ## [0.4.0] — 2026-11-15
 
 ### Added
-- **Markdown files are cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/README.md)).
+- **Markdown files are cards** ([HMD-0029](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0029/index.hmd)).
   A `.md` or `.markdown` file below the namespace root loads as a Markdown card:
   `[[guide]]` resolves to `guide.md`, `[[guide#Install]]` checks its headings,
   and `![[guide]]` transcludes its body. Its body is not scanned and not

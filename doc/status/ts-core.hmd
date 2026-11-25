@@ -1,12 +1,12 @@
 ---
 import:
-  - from /proposals/HMD-0002 import README as hmd-0002
-  - from /proposals/HMD-0006 import README as hmd-0006
-  - from /proposals/HMD-0020 import README as hmd-0020
-  - from /proposals/HMD-0021 import README as hmd-0021
-  - from /proposals/HMD-0026 import README as hmd-0026
-  - from /proposals/HMD-0030 import README as hmd-0030
-  - from /proposals/HMD-0032 import README as hmd-0032
+  - from /proposals/HMD-0002 import index as hmd-0002
+  - from /proposals/HMD-0006 import index as hmd-0006
+  - from /proposals/HMD-0020 import index as hmd-0020
+  - from /proposals/HMD-0021 import index as hmd-0021
+  - from /proposals/HMD-0026 import index as hmd-0026
+  - from /proposals/HMD-0030 import index as hmd-0030
+  - from /proposals/HMD-0032 import index as hmd-0032
 ---
 
 # STATUS — `@hypermarkdown/core`

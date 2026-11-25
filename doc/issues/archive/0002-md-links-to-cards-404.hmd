@@ -28,9 +28,9 @@ Three links were affected, all of them 404s:
 
 | Page | Link |
 | --- | --- |
-| `doc/wiki/README.md` | `hypermarkdown.hmd` |
-| `doc/proposals/HMD-0001/README.md` | `../../wiki/hypermarkdown.hmd` |
-| `doc/proposals/HMD-0002/README.md` | `../../wiki/md-hmd-interop.hmd` |
+| `doc/wiki/index.hmd` | `hypermarkdown.hmd` |
+| `doc/proposals/HMD-0001/index.hmd` | `../../wiki/hypermarkdown.hmd` |
+| `doc/proposals/HMD-0002/index.hmd` | `../../wiki/md-hmd-interop.hmd` |
 
 MkDocs did report each one as `contains a link to '…' which is excluded from the
 built site`, at INFO level. That is exactly the kind of message a green

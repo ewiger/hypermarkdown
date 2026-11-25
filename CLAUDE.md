@@ -38,11 +38,10 @@ Treat `doc/` as a modular knowledge base:
 Keep L0, L1, and L2 lens files directly under `doc/models/`.
 
 Write every document under `doc/` as a HyperMarkDown card, with the `.hmd`
-extension. Four kinds of file stay Markdown: every `README.md`, because GitHub
-renders only that name on a directory page; the cover, `doc/index.md`; the
-Tools section index, `doc/tools/index.md`, until the site plugin can publish a
-folder note as a section index; and `doc/proposals/TEMPLATE.md`, because it is
-the template of a `README.md`. A card that the site publishes needs
+extension. The page of a directory is its folder note, `index.hmd`, and not a
+`README.md`. Three files stay Markdown: the cover, `doc/index.md`; the Tools
+section index, `doc/tools/index.md`, until the site plugin can publish a
+folder note as a section index; and `doc/proposals/TEMPLATE.md`. A card that the site publishes needs
 `nav.visibility: public` in its frontmatter, because a card is private by
 default. Run `hmd lint` from `doc/` after any edit there.
 
@@ -51,7 +50,7 @@ Track progress **per tool**, in `doc/status/`: `lang.hmd` for the format itself,
 five tools, and
 `pages.hmd` for the website. `kanban.hmd`, `open.hmd`, and `proposals.hmd`
 beside them are generated views, not trackers: HQL queries over the vault
-`doc/`, re-rendered with the command in `doc/status/README.md`. The seven
+`doc/`, re-rendered with the command in `doc/status/index.hmd`. The seven
 trackers are the only place work is tracked, and they
 read in one order: **Status** in prose, then **Open**, **Broken**, **Limitations
 (known gaps)**, and **Done** last. Open rows carry a state in the board's own
@@ -59,7 +58,7 @@ words — `todo`, `doing`, `backlog`, `blocked`, `parked` — and a blocked row 
 what unblocks it. Work points have no identifiers: a row is named by its
 subject, and anything a reader would look up trails the sentence in brackets. A proposal is a record and carries no tracker; its rows
 go to whichever tracker owns the code, citing the proposal. Never record
-progress in `doc/memory/`, in `doc/wiki/` cards, in a proposal's `README.md`, or
+progress in `doc/memory/`, in `doc/wiki/` cards, in a proposal's `index.hmd`, or
 in a tool's `README.md` — a decision that needs discussion becomes an open
 question in the tracker.
 

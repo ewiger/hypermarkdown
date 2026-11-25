@@ -1,14 +1,14 @@
 ---
 tags: [tracker]
 import:
-  - from /proposals/HMD-0001 import README as hmd-0001
-  - from /proposals/HMD-0004 import README as hmd-0004
-  - from /proposals/HMD-0005 import README as hmd-0005
-  - from /proposals/HMD-0020 import README as hmd-0020
-  - from /proposals/HMD-0024 import README as hmd-0024
-  - from /proposals/HMD-0028 import README as hmd-0028
-  - from /proposals/HMD-0030 import README as hmd-0030
-  - from /proposals/HMD-0032 import README as hmd-0032
+  - from /proposals/HMD-0001 import index as hmd-0001
+  - from /proposals/HMD-0004 import index as hmd-0004
+  - from /proposals/HMD-0005 import index as hmd-0005
+  - from /proposals/HMD-0020 import index as hmd-0020
+  - from /proposals/HMD-0024 import index as hmd-0024
+  - from /proposals/HMD-0028 import index as hmd-0028
+  - from /proposals/HMD-0030 import index as hmd-0030
+  - from /proposals/HMD-0032 import index as hmd-0032
 work:
   - kind: open
     state: todo

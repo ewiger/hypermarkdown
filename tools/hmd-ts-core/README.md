@@ -8,7 +8,7 @@
 Parser, resolver, and renderer for [HyperMarkDown](https://github.com/ewiger/hypermarkdown),
 in TypeScript, with no Python and no editor API.
 
-Specified by [HMD-0020](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0020/README.md). The Python
+Specified by [HMD-0020](https://github.com/ewiger/hypermarkdown/blob/main/doc/proposals/HMD-0020/index.hmd). The Python
 package under [`tools/hmd/`](https://github.com/ewiger/hypermarkdown/tree/main/tools/hmd) is **canonical**: where the two disagree,
 Python is right and this one carries the bug.
 

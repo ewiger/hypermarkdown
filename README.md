@@ -335,7 +335,7 @@ cargo install hql --locked      # or a release binary from its releases page
   gates, and release.
 - **[`doc/proposals/`](doc/proposals/)** — numbered specifications. A change to
   the format or the tooling starts as one; reserve its number in
-  [`doc/proposals/README.md`](doc/proposals/README.md).
+  [`doc/proposals/index.hmd`](doc/proposals/index.hmd).
 - **[`doc/status/`](doc/status/)** — progress, tracked per tool: `lang.hmd` for
   the format, `hmd.hmd`, `ts-core.hmd`, `vsc-ext.hmd`, `rs-core.hmd`, and `semantics.hmd`
   for the five tools, and `pages.hmd` for the site. Updated in the same commit that changes the code, and

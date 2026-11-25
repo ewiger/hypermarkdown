@@ -4,8 +4,8 @@
 **Source:** [`initial_sketch.hmd`](initial_sketch.hmd) §14 (requirements 87–97) and
 §15 (architecture)
 **Date:** 2026-08-06
-**Specified by:** [HMD-0020](../../proposals/HMD-0020/README.md) (core),
-[HMD-0021](../../proposals/HMD-0021/README.md) (extension)
+**Specified by:** [HMD-0020](../../proposals/HMD-0020/index.hmd) (core),
+[HMD-0021](../../proposals/HMD-0021/index.hmd) (extension)
 
 ---
 
@@ -24,7 +24,7 @@ new requirements take the next free number rather than renumbering.
 spine and the extension a thin LSP client, on the strength of principle P5
 (*one implementation*). That principle is retired here — see §8 — and the
 parser, resolver, and renderer are reimplemented in TypeScript. The reasoning
-belongs to [HMD-0020](../../proposals/HMD-0020/README.md); the consequence
+belongs to [HMD-0020](../../proposals/HMD-0020/index.hmd); the consequence
 visible in this document is that no requirement below depends on a Python
 process being present at runtime.
 
@@ -59,7 +59,7 @@ variables and is legible under light, dark, and high-contrast themes.
 ## 2. Rendered preview (89, 93, 96)
 
 **VSX-010** (MUST) The preview renders every construct of
-[HMD-0001](../../proposals/HMD-0001/README.md) §2: wikilinks, aliased links,
+[HMD-0001](../../proposals/HMD-0001/index.hmd) §2: wikilinks, aliased links,
 heading links, block anchors, block references, and the three embed forms.
 
 **VSX-011** (MUST) An embed renders as a visually distinct card, labelled with
@@ -87,7 +87,7 @@ fenced code with syntax highlighting.
 ahead of time by the `d2` CLI rather than by the extension. An unrendered fence
 shows its source with an action that renders it — a diagram not yet compiled is
 not a defect in the card and must not look like one. Specified by
-[HMD-0022](../../proposals/HMD-0022/README.md).
+[HMD-0022](../../proposals/HMD-0022/index.hmd).
 
 **VSX-017** (MUST) Rendering is deterministic and offline. The same buffer and
 the same workspace produce the same preview, with no network access (P1).
@@ -204,7 +204,7 @@ feature, and it is avoidable.
 
 (MAY) An explicitly invoked command may require a build tool, and must say
 plainly which one when it is missing. Diagram rendering is the first such case
-([HMD-0022](../../proposals/HMD-0022/README.md) §7); `d2` is an author-time tool
+([HMD-0022](../../proposals/HMD-0022/index.hmd) §7); `d2` is an author-time tool
 like a formatter, and requiring it of the person *writing* a diagram is ordinary
 where requiring it of the person *reading* a card is not.
 

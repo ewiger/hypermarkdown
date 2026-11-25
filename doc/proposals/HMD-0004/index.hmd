@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0004: The hyper web — namespaces beyond one tree
 
 **Status**: drafted
@@ -8,7 +13,7 @@
 This proposal names the layer that sits outside a single project's own tree of
 cards, and it needs two concepts to do it, not one. A **module** is a folder
 acting as a resolution boundary a bare name cannot cross sideways — the thing
-[HMD-0001](../HMD-0001/README.md) already builds, given a word of its own so
+[HMD-0001](../HMD-0001/index.hmd) already builds, given a word of its own so
 that the word below is free to mean one thing. A **namespace** is a rooted tree
 of cards, addressable as a whole: a project's own tree is its default
 namespace, unnamed because nothing yet needs to be told apart from it, and any
@@ -32,7 +37,7 @@ this record to exist now, even unbuilt:
 
 - **A word was doing two jobs, and now does one.** "A folder is a namespace"
   opened [Namespaces](../../public/namespaces.hmd), while
-  [HMD-0001](../HMD-0001/README.md) used the same word for the rooted tree the
+  [HMD-0001](../HMD-0001/index.hmd) used the same word for the rooted tree the
   resolver runs inside, and this record needed it for a third thing at a
   different layer. Three meanings for one word would make every future
   sentence about any of them ambiguous, so they were reconciled rather than
@@ -72,11 +77,11 @@ this record to exist now, even unbuilt:
 - **No wire protocol, no fetch mechanism, no caching or vendoring story** for a
   namespace backed by a remote server.
 - **No change to resolution inside one module.** Every rule in
-  [HMD-0001](../HMD-0001/README.md) §4–§5 stands exactly as written; this
+  [HMD-0001](../HMD-0001/index.hmd) §4–§5 stands exactly as written; this
   record adds an orthogonal address form, not a replacement.
 - **No rewrite of HMD-0001.** [Namespaces](../../public/namespaces.hmd) now
   teaches module, namespace, path, and URL as four separate words, but
-  [HMD-0001](../HMD-0001/README.md) needs no amendment to agree with it: what
+  [HMD-0001](../HMD-0001/index.hmd) needs no amendment to agree with it: what
   it calls the namespace root is the root of the default namespace, and every
   rule it states about resolution, containment, and import is unchanged. The
   handful of sentences there that say "namespace" where they mean a folder are
@@ -92,7 +97,7 @@ this record to exist now, even unbuilt:
 
 ### Module: a folder, and the boundary a bare name cannot cross
 
-A module is exactly what [HMD-0001](../HMD-0001/README.md) and
+A module is exactly what [HMD-0001](../HMD-0001/index.hmd) and
 [Namespaces](../../public/namespaces.hmd) already build: a folder acting as a
 boundary a bare name cannot cross sideways, an `index.hmd` speaking for it,
 and `import` reaching across it on purpose. Nothing about that mechanism
@@ -146,7 +151,7 @@ namespace     := segment
   the provider for `namespace` serves. This is the one syntactic form this
   record fixes. Once `namespace` resolves to a provider and its tree, resolving
   `path/to/card` inside that tree reuses `page_ref` exactly as
-  [HMD-0001](../HMD-0001/README.md) already defines it, absolute from that
+  [HMD-0001](../HMD-0001/index.hmd) already defines it, absolute from that
   tree's own root — nothing about within-tree resolution is invented twice.
 - The existing absolute (`/path`), relative (`./path`), and bare (`path`)
   forms of HMD-0001 §2 are unaffected. `namespace:path` is an additional,
@@ -167,7 +172,7 @@ of missing machinery:
   to disambiguate it from.
 - **Another folder.** A different rooted tree on the same filesystem, or a
   checkout beside this one, bound to its own namespace ID. Nearly free: the
-  binding step [HMD-0001](../HMD-0001/README.md) already defines, run against a
+  binding step [HMD-0001](../HMD-0001/index.hmd) already defines, run against a
   second root once that root has an ID.
 - **A web server.** A namespace published by another project entirely, at a URL
   it announces, static or dynamic. No new REST protocol is invented for this;
@@ -191,7 +196,7 @@ of missing machinery:
 
 Stated now, independent of syntax, so that whatever mechanism eventually binds
 a namespace ID to a provider is built inside these rules rather than around
-them — the same move [HMD-0001](../HMD-0001/README.md) made by fixing
+them — the same move [HMD-0001](../HMD-0001/index.hmd) made by fixing
 determinism before the resolver that had to satisfy it existed.
 
 - Resolution MUST be deterministic for a fixed set of namespace bindings: the
@@ -199,7 +204,7 @@ determinism before the resolver that had to satisfy it existed.
   HMD-0001's determinism principle applied to a namespace that is not the
   project's own.
 - A remote namespace's provider MUST NOT be dereferenced silently.
-  [HMD-0001](../HMD-0001/README.md) pins "no network access" for the MVP
+  [HMD-0001](../HMD-0001/index.hmd) pins "no network access" for the MVP
   resolver; any mechanism that fetches from a remote namespace crosses that
   boundary and MUST do so as an explicit, visible step — a pinned snapshot, a
   vendoring command, an explicit build flag — never as a side effect of
@@ -211,7 +216,7 @@ determinism before the resolver that had to satisfy it existed.
   consequence worth stating on its own: the set of trees a build may read is
   fixed by one reviewable file, and no card can widen it.
 - A resolved target MUST still satisfy the containment check
-  [HMD-0001](../HMD-0001/README.md) defines, against whatever tree the
+  [HMD-0001](../HMD-0001/index.hmd) defines, against whatever tree the
   namespace's provider exposes, even when that tree is not the project's own
   root. A namespace boundary is a second root, not an exemption from the
   escape check.
@@ -253,19 +258,19 @@ before it adds a new one:
 
 Every mechanism question is open by design. They are tracked in
 [the language tracker](../../status/lang.hmd#the-hyper-web-hmd-0004) and only there, following
-the same departure from `TEMPLATE.md` that [HMD-0003](../HMD-0003/README.md)
+the same departure from `TEMPLATE.md` that [HMD-0003](../HMD-0003/index.hmd)
 took: a list mirrored in two files drifts, and then neither copy can be
 trusted without opening both.
 
 ## See also
 
 - [`doc/status/lang.hmd`](../../status/lang.hmd) — work points, limitations, and the open questions.
-- [HMD-0001](../HMD-0001/README.md) — the module boundary, the namespace root,
+- [HMD-0001](../HMD-0001/index.hmd) — the module boundary, the namespace root,
   the containment check, and the `import` mechanism this record builds on and
   extends outward.
 - [HQL](https://hql-lang.org/) — the query language whose cross-namespace reach this record's
   binding mechanism, once designed, is expected to answer. Its record here,
-  [HMD-0003](../HMD-0003/README.md), is superseded by that documentation.
+  [HMD-0003](../HMD-0003/index.hmd), is superseded by that documentation.
 - [Namespaces](../../public/namespaces.hmd) — the settled vocabulary for a
   reader who is not implementing it, and the within-tree resolution rules that
   `namespace:path` reuses once a namespace ID resolves to a provider.

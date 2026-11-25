@@ -172,7 +172,7 @@ The decisions that held 0.1 back, taken together.
   HQL cell is run, and a plain `d2` or `mermaid` fence is a listing. The
   specification names the cell kinds and says their bodies are opaque to the
   resolver; how a tool runs or draws them is guidance, not a rule.
-  [HMD-0030](doc/proposals/HMD-0030/README.md)
+  [HMD-0030](doc/proposals/HMD-0030/index.hmd)
 
 #### Changed
 
@@ -205,7 +205,7 @@ The decisions that held 0.1 back, taken together.
 
 #### Changed
 
-- **Markdown files are cards** ([HMD-0029](doc/proposals/HMD-0029/README.md)).
+- **Markdown files are cards** ([HMD-0029](doc/proposals/HMD-0029/index.hmd)).
   A `.md` or `.markdown` file below the namespace root is a Markdown card: a
   link and embed target with heading anchors and exposed frontmatter, whose
   body is CommonMark and is not scanned. Binding tries `.hmd`, `.md` and
@@ -239,7 +239,7 @@ The decisions that held 0.1 back, taken together.
   from it, and HQL's own documentation is the authority on all of it — the
   language, and the cells by which a card carries it. What the format still
   owes is its tools rendering those cells, which is open.
-  [HMD-0003](doc/proposals/HMD-0003/README.md)
+  [HMD-0003](doc/proposals/HMD-0003/index.hmd)
 
 ### 2026-08-08
 
@@ -278,7 +278,7 @@ The decisions that held 0.1 back, taken together.
   existing precaution became load-bearing in the process: every entry point must
   accept a document's *text*, since an unsaved buffer is a language server's
   ordinary input.
-  [HMD-0024](doc/proposals/HMD-0024/README.md)
+  [HMD-0024](doc/proposals/HMD-0024/index.hmd)
 
 ### 2026-08-07
 
@@ -289,16 +289,16 @@ The decisions that held 0.1 back, taken together.
   its source, reaching a page as a `data:` URI. The renderer is a binary the
   project depends on rather than a library it links: with no renderer present a
   diagram degrades to its own labelled source, so a missing tool is never a
-  failed build. [HMD-0022](doc/proposals/HMD-0022/README.md)
+  failed build. [HMD-0022](doc/proposals/HMD-0022/index.hmd)
 - **A name for computed content, and no syntax for it.** HQL — a card that
   computes its content from the graph instead of listing it by hand — is reserved
   with the constraints any grammar must satisfy and deliberately no grammar.
-  [HMD-0003](doc/proposals/HMD-0003/README.md)
+  [HMD-0003](doc/proposals/HMD-0003/index.hmd)
 - **The hyper web, as a shape rather than a mechanism.** What a module is, what a
   namespace is, and why the two are not the same thing; the form
   `namespace:path/to/card` names a place to look up front, and what answers for
   that name need not be local, static, or singular. No binding syntax and no wire
-  protocol. [HMD-0004](doc/proposals/HMD-0004/README.md)
+  protocol. [HMD-0004](doc/proposals/HMD-0004/index.hmd)
 
 #### Changed
 
@@ -316,12 +316,12 @@ The decisions that held 0.1 back, taken together.
 - **The format has a second implementation, and a contract between the two.**
   Cards render live in an editor from a TypeScript implementation, with the
   document model, its typed nodes, and the preview surface specified rather than
-  left to the client. [HMD-0020](doc/proposals/HMD-0020/README.md),
-  [HMD-0021](doc/proposals/HMD-0021/README.md)
+  left to the client. [HMD-0020](doc/proposals/HMD-0020/index.hmd),
+  [HMD-0021](doc/proposals/HMD-0021/index.hmd)
 - **Book-mode rendering.** A tree of cards builds as a site: the output URL for a
   card, the nav order, where embeds expand, and how a wiki sits *inside* a
   hand-ordered book. `nav` joins the reserved frontmatter keys, which amends the
-  closed set the grammar had fixed. [HMD-0002](doc/proposals/HMD-0002/README.md)
+  closed set the grammar had fixed. [HMD-0002](doc/proposals/HMD-0002/index.hmd)
 
 #### Removed
 
@@ -358,4 +358,4 @@ The decisions that held 0.1 back, taken together.
   renders as a red link — writing forward is how a wiki grows — while an ambiguous
   or malformed link is an error. Everything else about the prose is left alone.
 - **Rule IDs, `HMD001`–`HMD016`**, stable and citable, plus the exit codes a CI
-  job needs. [HMD-0001](doc/proposals/HMD-0001/README.md)
+  job needs. [HMD-0001](doc/proposals/HMD-0001/index.hmd)

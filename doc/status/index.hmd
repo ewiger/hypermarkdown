@@ -99,7 +99,7 @@ trackers are cards, so `hmd lint` checks every one of these references.
 
 A tracker cites a proposal under a short name, such as `hmd-0021`. The
 tracker's frontmatter binds that name with an import:
-`from /proposals/HMD-0021 import README as hmd-0021`. Add an import when a
+`from /proposals/HMD-0021 import index as hmd-0021`. Add an import when a
 tracker cites a proposal for the first time. The fragment is matched against
 the proposal's headings after the language normalizes both, and punctuation
 becomes a separator, so the heading `3.1 Masking` is `#3-1-masking` and `The

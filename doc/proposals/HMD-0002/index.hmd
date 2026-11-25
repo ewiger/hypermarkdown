@@ -1,8 +1,13 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0002: MkDocs book-mode rendering
 
 **Status**: drafted (implemented; three open questions block acceptance)
 **Created**: 2026-08-06
-**Source**: [HMD-0001 §9](../HMD-0001/README.md), open questions 8 and 9
+**Source**: [HMD-0001 §9](../HMD-0001/index.hmd), open questions 8 and 9
 
 ## Abstract
 

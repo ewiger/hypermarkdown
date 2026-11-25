@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: public
+---
+
 # HMD-0030: Diagram cells
 
 **Status**: drafted
@@ -282,9 +287,9 @@ uv run python -m pytest tools/hmd/tests/test_diagram.py
 
 ## See also
 
-- [HMD-0026](../HMD-0026/README.md) — HQL cells: the layout, the Code toggle,
+- [HMD-0026](../HMD-0026/index.hmd) — HQL cells: the layout, the Code toggle,
   Edit, and the listing rule this record extends to diagrams.
-- [HMD-0022](../HMD-0022/README.md) — the diagram block, the renderer, its
+- [HMD-0022](../HMD-0022/index.hmd) — the diagram block, the renderer, its
   bounds, its cache, and its image delivery, all kept here.
 - [The Mermaid card](../../issues/0115-mermaid-diagrams-on-par-with-d2.hmd) —
   the Mermaid renderer, still to be chosen.

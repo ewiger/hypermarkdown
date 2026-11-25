@@ -1,7 +1,7 @@
 ---
 import:
-  - from /proposals/HMD-0027 import README as hmd-0027
-  - from /proposals/HMD-0032 import README as hmd-0032
+  - from /proposals/HMD-0027 import index as hmd-0027
+  - from /proposals/HMD-0032 import index as hmd-0032
 ---
 
 # STATUS — `hypermarkdown` (Rust)

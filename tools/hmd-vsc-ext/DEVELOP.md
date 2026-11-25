@@ -7,8 +7,8 @@ manual walkthrough for the things unit tests cannot see.
 implementation this extension renders with — a preview bug is as likely to live
 there as here.
 
-Specified by [HMD-0021](../../doc/proposals/HMD-0021/README.md), with the graph
-tab in [HMD-0025](../../doc/proposals/HMD-0025/README.md); work points are
+Specified by [HMD-0021](../../doc/proposals/HMD-0021/index.hmd), with the graph
+tab in [HMD-0025](../../doc/proposals/HMD-0025/index.hmd); work points are
 tracked in [`doc/status/vsc-ext.hmd`](../../doc/status/vsc-ext.hmd).
 
 ## Prerequisites

@@ -29,7 +29,7 @@ CI runs the same three, with `cargo fmt --check`.
 
 It resolves. It does not lint and it does not render: no diagnostics, no heading
 slugs, no embed expansion, no HTML. A change that adds one of those is a change
-to [HMD-0027](../../doc/proposals/HMD-0027/README.md) first.
+to [HMD-0027](../../doc/proposals/HMD-0027/index.hmd) first.
 
 ## Constraints that are easy to break
 
@@ -85,7 +85,7 @@ over a real directory.
 [`LICENSE`](LICENSE) are this crate's own, and `Cargo.toml` lists all three in
 `include` so they travel in a package. None of them is a symlink. Work is
 tracked in [`doc/status/rs-core.hmd`](../../doc/status/rs-core.hmd), against
-[HMD-0027](../../doc/proposals/HMD-0027/README.md).
+[HMD-0027](../../doc/proposals/HMD-0027/index.hmd).
 
 ## Releasing
 

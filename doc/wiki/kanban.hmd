@@ -1,3 +1,8 @@
+---
+nav:
+  visibility: private
+---
+
 # Kanban board
 
 `doc/issues/` is the project's active-work layer: a lightweight **Kanban board**

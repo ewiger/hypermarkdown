@@ -7,9 +7,9 @@ tracker that owns it. A row's notes, its references, and what unblocks a
 the work is.
 
 This is a generated view, not a tracker: refresh it with the command in
-[the status README](README.md), and never edit an output by hand. A row reaches
+[the status README](index.hmd), and never edit an output by hand. A row reaches
 this view only when it starts with one of the board's states and a bold lead,
-which is the form [the README](README.md) asks every Open row to take.
+which is the form [the README](index.hmd) asks every Open row to take.
 
 ```hql#eval id=rows hidden
 import regex

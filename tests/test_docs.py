@@ -744,7 +744,7 @@ RETIRED_NAME_ALLOWED = {
     # registered and unused: a publisher name returned to the pool is one an
     # impostor can publish under. The setup table has to say which one that is.
     "tools/hmd-vsc-ext/DEVELOP.md",
-    "doc/proposals/HMD-0005/README.md",
+    "doc/proposals/HMD-0005/index.hmd",
     # This guard names the thing it forbids.
     "tests/test_docs.py",
 }

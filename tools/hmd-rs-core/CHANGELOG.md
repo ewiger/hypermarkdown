@@ -12,7 +12,7 @@ the usual `0.x` caveat: **the format itself may change between minor versions.**
 The crate is [`hypermarkdown`](https://crates.io/crates/hypermarkdown) on
 crates.io. Implementation state is tracked in
 [`doc/status/rs-core.md`](../../doc/status/rs-core.hmd), against
-[HMD-0027](../../doc/proposals/HMD-0027/README.md).
+[HMD-0027](../../doc/proposals/HMD-0027/index.hmd).
 
 ## [Unreleased]
 
@@ -90,7 +90,7 @@ crates.io. Implementation state is tracked in
 
 ### Added
 
-- **Markdown cards** ([HMD-0029](../../doc/proposals/HMD-0029/README.md)). A
+- **Markdown cards** ([HMD-0029](../../doc/proposals/HMD-0029/index.hmd)). A
   `.md` or `.markdown` file below the namespace root loads as a card of kind
   `Kind::Markdown`: a reference resolves to it, and it has no links, imports or
   `use` key, since a Markdown card is not scanned. `Page::kind` says which
