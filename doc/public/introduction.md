@@ -113,7 +113,7 @@ source as code and nothing runs.
 
 ## Frontmatter
 
-Frontmatter is the header of a card. It is a block of YAML at the very top of
+Frontmatter is the optional structured header of a card. It is a block of YAML at the very top of
 the file, between two `---` lines, and it holds metadata about the card as
 keys and values:
 
