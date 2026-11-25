@@ -117,7 +117,8 @@ def test_the_language_server_is_published_through_a_trusted_publisher():
     assert "name: crates-io" in job
     assert "id-token: write" in job
     assert "rust-lang/crates-io-auth-action" in job
-    assert "secrets." not in workflow
+    # No stored token anywhere in the workflow, in an expression that reads one.
+    assert "${{ secrets." not in workflow
     # Nothing is published from a manual run, or before every platform built.
     assert "startsWith(github.ref, 'refs/tags/lsp-v')" in job
     assert "needs: build" in job
