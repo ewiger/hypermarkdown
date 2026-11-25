@@ -17,8 +17,8 @@
 HyperMarkDown (`.hmd`) is ordinary GitHub-flavored markdown plus the part HTML
 had on its first day: a link that means something, a page that can be made out
 of other pages, a document that is part of a web rather than a file in a folder.
-Every `.md` file is already valid `.hmd`, so a tree is adopted one rename at a
-time.
+Every `.md` file is already valid `.hmd`. Once a tree has a `.hmd/` directory
+at its top, which `hmd init` creates, it can be adopted one file at a time.
 
 This distribution is the **canonical implementation** of that format. It ships
 three things:

@@ -7,7 +7,7 @@
 **Build your own local wiki knowledge base**
 
 [![Documentation](https://img.shields.io/badge/docs-hypermarkdown.org-ffb300)](https://hypermarkdown.org/)
-[![Spec](https://img.shields.io/badge/spec-0.1.0-blue)](https://hypermarkdown.org/wiki/hmd-lang-spec/)
+[![Spec](https://img.shields.io/badge/spec-0.1.1-blue)](https://hypermarkdown.org/wiki/hmd-lang-spec/)
 [![CI](https://github.com/ewiger/hypermarkdown/actions/workflows/ci.yml/badge.svg)](https://github.com/ewiger/hypermarkdown/actions/workflows/ci.yml)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-yellow.svg)](LICENSE)
 [![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-ef9421.svg)](LICENSE-DOCS)
@@ -35,10 +35,12 @@ connect form a knowledge graph. A card is one `.hmd` file:
   traversal, and write their results into the card. HQL also reads JSON, YAML,
   and records, so one query can join the vault with other data.
 
-Every `.md` file is already valid `.hmd`, so an existing tree of markdown files
-is adopted one rename at a time. A `.md` file in the tree is already a card
-that other cards can link to and embed. Rename it from `.md` to `.hmd` when
-you want its own links checked, and the rest stay as they are.
+An existing tree of Markdown files can be adopted one file at a time. First,
+make the tree a vault: run `hmd init` at its top, which creates a `.hmd/`
+directory. An empty `.hmd/` directory is enough. Inside a vault, every `.md`
+file is already a card that other cards can link to and embed. Rename a file
+from `.md` to `.hmd` when you want its own links checked. The other files can
+stay as they are.
 
 ```markdown
 See [[tokens#Rotation|the rotation window]], and say it once rather than twice:
@@ -193,14 +195,15 @@ Tokens rotate hourly. See [[tokens]], and here is the rule itself:
 ![[tokens#^rotation-rule]]
 ```
 
-Rename one file, add one link, then run `hmd lint` or install the VS Code
-extension (see below). The rest of the vault can stay plain Markdown until you
-choose to convert it. 
+Run `hmd init` once at the top of the tree, rename one file, add one link,
+then run `hmd lint` or install the VS Code extension (see below). The rest of
+the vault can stay plain Markdown until you choose to convert it.
 
 > Markdown is JavaScript; HyperMarkDown is TypeScript.
 
-Every Markdown file is already valid HyperMarkDown, the way JavaScript is
-already valid TypeScript. TypeScript adds types to the language you had.
+Every Markdown file is already valid HyperMarkDown syntax, the way JavaScript
+is already valid TypeScript. As with a TypeScript project, the file still has
+to be inside a project: here that is a vault, marked by a `.hmd/` directory. TypeScript adds types to the language you had.
 HyperMarkDown adds the knowledge graph, and [HQL](#hql-cells), a strongly typed
 expression and query language that runs inside a card. HQL queries the vault by
 structure and by meaning, with semantic retrieval and graph traversal, and

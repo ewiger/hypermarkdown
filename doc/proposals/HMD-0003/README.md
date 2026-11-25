@@ -253,8 +253,6 @@ has to open both files to find out which copy is current.
 - [HMD-0002](../HMD-0002/README.md) — MkDocs rendering, which evaluates fences.
 - [The initial sketch, §9](../../models/requirements/initial_sketch.md) — where
   the requirements behind this record originate.
-- [Feature list](../../wiki/hmd-feature-list.hmd) — rows F21, F24, and F25 are
-  this proposal's scope.
 
 ## Changelog
 

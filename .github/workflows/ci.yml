@@ -58,8 +58,10 @@ jobs:
       # roots are named explicitly so the gates do not depend on marker
       # discovery, and the fixture is deliberately not run under --strict —
       # it carries exactly one expected warning, the red link in glossary/.
-      - name: Lint doc/wiki
-        run: uv run hmd lint --root doc/wiki --strict
+      # The vault is `doc/`, and the site builds from that same root, so cards
+      # in `wiki/` link to chapters in `public/` with absolute paths.
+      - name: Lint doc
+        run: uv run hmd lint --root doc --strict
 
       - name: Lint the example fixture
         run: uv run hmd lint --root examples/small

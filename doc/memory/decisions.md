@@ -128,9 +128,10 @@ rejected flat markdown as its transport while MkDocs output stays one-way. The
 broader idea — `.md` is to `.hmd` as JavaScript is to TypeScript, with `md →
 hmd` as a conversion step that doubles as the fast authoring loop (draft in
 plain markdown, convert, let the resolver report what it could not place) — is
-sketched without consequence in
-[`doc/wiki/md-hmd-interop.hmd`](../wiki/md-hmd-interop.hmd). No proposal owns
-it.
+owned by no proposal. It was sketched in a wiki card, `md-hmd-interop`, which
+was removed on 2026-11-25 with the feature list: the specification and the
+Features page now say what the format is, and a sketch beside them was a third
+account to keep true.
 
 ## The site publishes from an artifact, not from a branch
 

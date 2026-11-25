@@ -2,6 +2,10 @@
 
 ## News and updates
 
+**2026-11-25 — HyperMarkDown 0.1.1.** A patch to the
+[specification](../wiki/hmd-lang-spec.hmd): it now says what a vault is, the
+directory where a namespace is stored. No construct changes.
+
 **2026-11-25 — HyperMarkDown 0.1.0, and every tool with it.** The first
 release of the [specification](../wiki/hmd-lang-spec.hmd).
 
@@ -53,7 +57,7 @@ type; the preview needs no Python.
 
 | | Version | Install from |
 | --- | --- | --- |
-| **HyperMarkDown**, the language | 0.1.0 | [specification](../wiki/hmd-lang-spec.hmd) |
+| **HyperMarkDown**, the language | 0.1.1 | [specification](../wiki/hmd-lang-spec.hmd) |
 | **`hmd`** — CLI, library, MkDocs plugin | 0.5.0 | [PyPI](https://pypi.org/project/hypermarkdown/) |
 | **`@hypermarkdown/core`** — TypeScript | 0.4.0 | [npm](https://www.npmjs.com/package/@hypermarkdown/core) |
 | **`hypermarkdown`** — Rust resolver | 0.3.0 | [crates.io](https://crates.io/crates/hypermarkdown) |
@@ -84,7 +88,7 @@ Released and out of preview. Installing is the [Quick start](../tools/index.md).
 - **Query** a vault with [HQL](https://hql-lang.org/): filter, sort, lexical and semantic
   search, graph traversal. A separate project.
 
-The specification is at 0.1.0. A later 0.x version may still change a
+The specification is at 0.1.1. A later 0.x version may still change a
 construct; 1.0 will promise that none changes.
 
 ## What is coming
@@ -155,7 +159,7 @@ HQL is at major version 0. A minor release may change the language.
 
 Today a name resolves inside one tree. The plan is for separately published
 collections to name each other, so a card in your vault can point into someone
-else's. The argument is in [Vision](vision.md).
+else's. The argument is in [Vision](vision.hmd).
 
 ### Your editor, not just VS Code
 

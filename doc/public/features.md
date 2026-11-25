@@ -67,7 +67,7 @@ vocabulary. `[[logging]]` in the billing folder means *your* logging card.
 Alias it, or point inside it:
 
 ```markdown
-The [[md-hmd-interop|comparison with TypeScript]] makes the case.
+The [[tokens|rotation rules]] apply to every session.
 See [[tokens#Rotation]] for the window.
 ```
 
@@ -94,12 +94,12 @@ A token is valid for exactly one rotation window. ^definition
 Write the definition once. Embed it in the API reference, the onboarding page,
 and the incident runbook. Fix it in one place.
 
-!!! tip "This page shows the syntax; the wiki runs it"
+!!! tip "See the syntax working in a real card"
 
     A chapter like this one is ordinary Markdown, so the constructs above stay
-    quoted rather than live. The [wiki](../wiki/README.md) section of this site
-    is the real thing — every card there is written in the format and resolved
-    by it.
+    quoted rather than live. The [tutorial](../wiki/hmd-tutorial.hmd) and the
+    [specification](../wiki/hmd-lang-spec.hmd) are the real thing — cards
+    written in the format and resolved by it.
 
 ## Diagrams
 
@@ -182,8 +182,9 @@ Your prose is left alone.
 
 ## Markdown is JavaScript. HyperMarkDown is TypeScript.
 
-A superset that adds structure a machine can check, erases back down to what it
-extends, and is adopted one file at a time.
+HyperMarkDown adds structure that a machine can check, and it renders back
+down to plain Markdown. Once your documentation is a vault, you can convert it
+one file at a time.
 
 ```markdown
 <!-- notes.md — valid Markdown, and already valid HyperMarkDown -->
@@ -197,11 +198,12 @@ Tokens rotate hourly. See [[tokens]], and here is the rule itself:
 ![[tokens#^rotation-rule]]
 ```
 
-Renaming the file changes nothing about its validity. The second version opts
-into checked wikilink semantics. `hmd lint` is `tsc --noEmit`, rendering to flat
+Renaming the file changes nothing about its validity, but the file must be
+inside a vault: some directory above it needs a `.hmd/` directory, which
+`hmd init` creates. The second version uses wikilinks, and `hmd lint` checks
+them. `hmd lint` is `tsc --noEmit`, rendering to flat
 Markdown is compilation, and adopting it file by file is why `allowJs` mattered:
-nobody rewrites a wiki by hand. The full argument is
-[MD ↔ HMD interoperability](../wiki/md-hmd-interop.hmd).
+nobody rewrites a wiki by hand.
 
 ## Go deeper
 
@@ -209,10 +211,6 @@ nobody rewrites a wiki by hand. The full argument is
   one sitting.
 - [The HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) — the normative
   text: grammar, resolution, diagnostics.
-- [The feature list](../wiki/hmd-feature-list.hmd) — the full inventory,
-  including what was deferred or rejected.
-- [Presentation](presentation.md) — what happens to a card afterwards: the
-  formats it converts to and the viewers that show it.
 - [Roadmap](roadmap.md) — versions, and what is being built next.
 
 [^1]: Footnotes, callouts, and the rest of this page's rich content come from

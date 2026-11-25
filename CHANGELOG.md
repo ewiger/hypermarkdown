@@ -25,8 +25,9 @@ publication.
 
 **The language's version is declared by the specification itself** — the
 *Version* callout at the top of
-[`doc/wiki/hmd-lang-spec.hmd`](doc/wiki/hmd-lang-spec.hmd), which currently
-specifies HyperMarkDown **0.1.0** against CommonMark 0.31.2. The version follows
+[`doc/wiki/hmd-lang-spec.hmd`](doc/wiki/hmd-lang-spec.hmd). That callout is the
+only place the number is written; the specification builds on CommonMark
+0.31.2. The version follows
 Semantic Versioning, so it always has three parts. A version
 section here is that number; the dated entries inside it record when each decision
 landed, because a language is worked on continuously and released rarely.
@@ -37,6 +38,22 @@ A tool release never implies a language version and a language version never wai
 for one. Progress is not tracked here either — the trackers under
 `doc/status/` are the only place work is recorded, one per tool plus one for the
 language itself.
+
+## [0.1.1] — 2026-11-25
+
+A patch release. It changes the wording of a definition, not the behaviour of
+any construct, so every implementation of 0.1.0 also implements 0.1.1.
+
+### 2026-11-25
+
+#### Changed
+
+- **What a vault is.** A vault is the directory where a namespace is stored.
+  Its `.hmd/` directory holds the vault's configuration, and tools, including
+  HQL and its extensions, may store other data about the vault there, such as a
+  search index.
+- **The body of the specification says "this version"** instead of repeating
+  the version number, so the Version callout is the only place it is written.
 
 ## [0.1.0] — 2026-11-25
 

@@ -9,5 +9,5 @@
 # whole vault, so anything narrower hides issues/, proposals/ and status/ from
 # those views.
 #
-# The site is unaffected: mkdocs.yml names its own namespace root, doc/wiki,
-# and CI lints with an explicit `--root doc/wiki`.
+# The site uses this same namespace root. HyperMarkDown cards opt into
+# publication individually with `nav.visibility: public`.

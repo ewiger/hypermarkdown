@@ -155,6 +155,16 @@ def test_the_language_version_has_a_changelog_section():
         " Version callout is the declaration, the badge only repeats it."
     )
 
+    # The roadmap's version table is the site's one statement of the language's
+    # version, so it has to name the same number as the callout.
+    roadmap = (ROOT / "doc" / "public" / "roadmap.md").read_text(encoding="utf-8")
+    row = re.search(r"^\| \*\*HyperMarkDown\*\*, the language \| ([^ |]+) \|", roadmap, re.M)
+    assert row is not None, "the roadmap's version table has no row for the language"
+    assert row.group(1) == version, (
+        f"the spec card specifies HyperMarkDown {version}, and the roadmap's"
+        f" version table says {row.group(1)}. Bump the table."
+    )
+
 
 @pytest.fixture(scope="module")
 def built_site(tmp_path_factory) -> Path:
@@ -201,20 +211,20 @@ def _drawer(home: str) -> str:
     return home[start:end]
 
 
-def test_the_top_bar_offers_the_language_specification(built_home):
-    """The site's headline deliverable is the specification of the *language*,
-    so the top bar has to reach it rather than leave it a row in the wiki
-    section.
+def test_language_opens_with_vision_and_ends_with_the_specification(built_home):
+    """The Language tab follows Vision → Namespaces → Features → Specification."""
+    tab = re.search(r'<a href="public/vision/"[^>]*>', _tabs(built_home))
+    assert tab is not None, "the Language tab no longer opens Vision"
 
-    It is the first page of the `Language` section, and a section tab takes its
-    href from the first page beneath it — so the tab reads `Language` and leads
-    here. The href is asserted in the tab bar and the title in the tree, because
-    the two fail separately: regrouping the nav moves the href, while the title
-    is lost to MkDocs building a page's `Page` from its **first** nav appearance
-    and silently discarding any title given at a later one.
-    """
-    tab = re.search(r'<a href="wiki/hmd-lang-spec/"[^>]*>', _tabs(built_home))
-    assert tab is not None, "the top bar no longer reaches the specification"
+    drawer = _drawer(built_home)
+    destinations = (
+        "public/vision/",
+        "public/namespaces/",
+        "public/features/",
+        "wiki/hmd-lang-spec/",
+    )
+    positions = [drawer.index(f'href="{dest}"') for dest in destinations]
+    assert positions == sorted(positions), "the Language submenu is out of order"
 
     entry = re.search(
         r'<a href="wiki/hmd-lang-spec/"[^>]*>(.*?)</a>', _drawer(built_home), re.S
@@ -240,6 +250,33 @@ def test_the_proposals_are_unlisted_but_still_published(built_site: Path):
         assert (built_site / "proposals" / number / "index.html").is_file(), (
             f"{number} stopped being published; links to it now 404 silently"
         )
+
+
+@pytest.mark.parametrize("name", ["vision", "namespaces"])
+def test_language_chapters_publish_as_cards_at_their_existing_urls(built_site: Path, name: str):
+    """The book's HMD cards must be processed, with working links to the wiki."""
+    assert (ROOT / "doc" / "public" / f"{name}.hmd").is_file()
+    html = (built_site / "public" / name / "index.html").read_text(encoding="utf-8")
+    article = html.split("<article", 1)[1].split("</article>", 1)[0]
+    assert re.search(r'href="../../wiki/hmd-lang-spec/(?:#[^"]*)?"', article)
+    assert 'class="hmd-redlink"' not in article
+    assert not (built_site / "public" / f"{name}.hmd").exists()
+
+
+def test_the_site_namespace_does_not_publish_private_cards(built_site: Path):
+    """Using the doc/ vault for the site must keep unpublished HMD cards private."""
+    from hypermarkdown.config import load
+    from hypermarkdown.resolve import Workspace
+    from hypermarkdown.urls import dest_for
+
+    workspace = Workspace(load(root_override=ROOT / "doc"))
+    for path, document in workspace.documents.items():
+        if document.is_markdown or workspace.is_public(path):
+            continue
+        destination = Path(dest_for(workspace.root, path))
+        output = destination.with_suffix("") / "index.html"
+        assert not (built_site / output).exists(), f"private card published: {path}"
+        assert not (built_site / path.relative_to(workspace.root)).exists()
 
 
 def test_the_bolt_reaches_the_page_as_a_logo_and_a_favicon(built_home):

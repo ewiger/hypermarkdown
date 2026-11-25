@@ -19,18 +19,12 @@ subfolders.
 3. [HyperMarkDown Language Specification](hmd-lang-spec.hmd) — the normative text behind
    the tutorial: grammar, resolution, diagnostics, and what a conforming
    implementation owes. Consult it when the answer has to be exact.
-4. [Feature list](hmd-feature-list.hmd) — every supported construct as a numbered
-   row, each pointing at the text that specifies it. An index to consult, not a
-   page to read through.
-5. [MD ↔ HMD interoperability](md-hmd-interop.hmd) — a sketch of converting
-   between plain Markdown and HyperMarkDown in both directions. Nothing here is
-   decided yet.
 
 ## The process
 
-6. [Tracking](tracking.hmd) — where progress is recorded, and why there is one
+4. [Tracking](tracking.hmd) — where progress is recorded, and why there is one
    tracker per proposal rather than a repository-wide list.
-7. [Kanban board](kanban.hmd) — how `doc/issues/` indexes the work currently in
+5. [Kanban board](kanban.hmd) — how `doc/issues/` indexes the work currently in
    flight, and how that differs from a proposal.
 
 ## Writing a card

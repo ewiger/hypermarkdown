@@ -54,7 +54,7 @@ while the table above does not have to.
 wins over a card far away, and multiple autodiscovery matches require a
 qualified reference. Ordered wildcard imports instead use declaration
 precedence and report a shadowing warning. The complete rules are in
-[Namespaces](namespaces.md).
+[Namespaces](namespaces.hmd).
 
 ## Frontmatter
 
@@ -75,21 +75,25 @@ warning. Everything else about your prose is left alone.
 
 ## Adopting it
 
-A `.md` file remains syntactically valid after it is renamed to `.hmd`, so
-adoption can be gradual: rename one file, review any text that now has HMD
-semantics, add one link, and run `hmd lint`. Nothing forces the rest of the tree
-to follow.
+A file is only treated as a card if it is inside a vault. A vault is the
+directory where your cards are stored. It is marked by a `.hmd/` directory, in
+the same way that `.git/` marks a Git repository, and every file below it
+belongs to the vault. `.hmd/` holds the vault's configuration and the data that
+tools such as HQL keep about the vault, for example a search index. So the
+first step is to run `hmd init` at the top of your documentation. An empty
+`.hmd/` directory is enough.
+
+After that, you can adopt the format one file at a time. Rename a `.md` file to
+`.hmd`, check any text that now has a HyperMarkDown meaning, add one link, and
+run `hmd lint`. The other files can stay plain Markdown.
 
 ## Where the full picture lives
 
 - [The HyperMarkDown Language Specification](../wiki/hmd-lang-spec.hmd) is the normative
   text behind it: the grammar, the resolution algorithm, and the diagnostics,
   stated exactly.
-- [The feature list](../wiki/hmd-feature-list.hmd) is the exhaustive
-  inventory: every feature, what provides it, and where it stands — including
-  what is deferred or absent, so nothing gets re-argued from scratch.
-- [MD ↔ HMD interoperability](../wiki/md-hmd-interop.hmd) makes the argument
-  that `.hmd` stands to `.md` as TypeScript stands to JavaScript.
+- [Features](features.md) lists what the language supports, with a working
+  example of each.
 
 !!! tip "Read next"
 

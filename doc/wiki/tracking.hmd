@@ -105,9 +105,9 @@ board answers *what is being worked on right now*. An issue is usually the
 short-lived thing, and the tracker row it moves is the durable one — a card
 picked up becomes a row, and the card stops being the record of it.
 
-See [[hmd-feature-list]] for the same distinction applied to the format itself:
-that card tracks what the *format* has, a tracker tracks what one
-*implementation* has, and they answer different questions.
+The same split applies to the language. [[/public/features|Features]] lists
+what the language supports. A tracker records how much of it one tool has
+built.
 
 ## Place in the knowledge base
 

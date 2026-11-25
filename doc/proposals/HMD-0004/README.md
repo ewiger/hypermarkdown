@@ -31,7 +31,7 @@ with good internal cross-references, not a web of documents. Three things push
 this record to exist now, even unbuilt:
 
 - **A word was doing two jobs, and now does one.** "A folder is a namespace"
-  opened [Namespaces](../../public/namespaces.md), while
+  opened [Namespaces](../../public/namespaces.hmd), while
   [HMD-0001](../HMD-0001/README.md) used the same word for the rooted tree the
   resolver runs inside, and this record needed it for a third thing at a
   different layer. Three meanings for one word would make every future
@@ -74,7 +74,7 @@ this record to exist now, even unbuilt:
 - **No change to resolution inside one module.** Every rule in
   [HMD-0001](../HMD-0001/README.md) §4–§5 stands exactly as written; this
   record adds an orthogonal address form, not a replacement.
-- **No rewrite of HMD-0001.** [Namespaces](../../public/namespaces.md) now
+- **No rewrite of HMD-0001.** [Namespaces](../../public/namespaces.hmd) now
   teaches module, namespace, path, and URL as four separate words, but
   [HMD-0001](../HMD-0001/README.md) needs no amendment to agree with it: what
   it calls the namespace root is the root of the default namespace, and every
@@ -93,7 +93,7 @@ this record to exist now, even unbuilt:
 ### Module: a folder, and the boundary a bare name cannot cross
 
 A module is exactly what [HMD-0001](../HMD-0001/README.md) and
-[Namespaces](../../public/namespaces.md) already build: a folder acting as a
+[Namespaces](../../public/namespaces.hmd) already build: a folder acting as a
 boundary a bare name cannot cross sideways, an `index.hmd` speaking for it,
 and `import` reaching across it on purpose. Nothing about that mechanism
 changes here — this record only gives the concept a name that does not
@@ -226,7 +226,7 @@ renders as a red link. The new form is additive: it gives that previously
 meaningless shape a meaning, and changes no link that resolves today.
 
 The module/namespace vocabulary is prose, and settling it changed prose only.
-[Namespaces](../../public/namespaces.md) was rewritten to teach the four words
+[Namespaces](../../public/namespaces.hmd) was rewritten to teach the four words
 apart, and the callout in [Features](../../public/features.md) that read "a
 folder is a namespace" now says "a folder is a module". No behaviour, no
 diagnostic, and no configuration key changed, and HMD-0001 needed no amendment
@@ -266,7 +266,7 @@ trusted without opening both.
 - [HQL](https://hql-lang.org/) — the query language whose cross-namespace reach this record's
   binding mechanism, once designed, is expected to answer. Its record here,
   [HMD-0003](../HMD-0003/README.md), is superseded by that documentation.
-- [Namespaces](../../public/namespaces.md) — the settled vocabulary for a
+- [Namespaces](../../public/namespaces.hmd) — the settled vocabulary for a
   reader who is not implementing it, and the within-tree resolution rules that
   `namespace:path` reuses once a namespace ID resolves to a provider.
 

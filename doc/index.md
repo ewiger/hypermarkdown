@@ -223,8 +223,9 @@ block at the top is frontmatter. The rich layer adds its own syntax, such as
 <div markdown>
 ### Markdown files are cards
 
-A `.md` file in the tree is a target for links and embeds without being
-renamed. Rename it to `.hmd` when its own links should be checked.
+Inside a vault, a directory with a `.hmd/` directory in it, a `.md` file is a
+target for links and embeds without being renamed. Rename it to `.hmd` when its
+own links should be checked.
 </div>
 
 <div markdown>
@@ -321,7 +322,7 @@ diagnostics, over CommonMark 0.31.2. Cells are defined by HQL, not by it.
 </div>
 </div>
 
-<p class="hmd-fineprint" markdown>The first step that finds the name wins. In the graph, `specs/auth/login` imports `shared/tokens` under the name `shared-tokens`, because a bare `tokens` there is the card in its own folder. A name that is found nowhere is a warning, a red link: a link can be written before its card. Ordinary Markdown links are not checked. The full rules are in [Namespaces](public/namespaces.md).</p>
+<p class="hmd-fineprint" markdown>The first step that finds the name wins. In the graph, `specs/auth/login` imports `shared/tokens` under the name `shared-tokens`, because a bare `tokens` there is the card in its own folder. A name that is found nowhere is a warning, a red link: a link can be written before its card. Ordinary Markdown links are not checked. The full rules are in [Namespaces](public/namespaces.hmd).</p>
 
 </section>
 
@@ -738,16 +739,15 @@ summary of each card beside it is planned and not built.
 
 <div class="hmd-parts" markdown>
 
-- [**Introduction**](public/introduction.md) <span>The format at a glance, and how to adopt it one file at a time.</span>
-- [**Tutorial**](wiki/hmd-tutorial.hmd) <span>Every construct of the language, with its source beside what it renders.</span>
+- [**Vision**](public/vision.hmd) <span>Pages as units of knowledge: readable, connected, and executable.</span>
+- [**Namespaces**](public/namespaces.hmd) <span>Cards, directories, and reference resolution.</span>
 - [**Features**](public/features.md) <span>What a card can carry, shown working.</span>
 - [**Language Specification**](wiki/hmd-lang-spec.hmd) <span>The normative text: grammar, resolution, diagnostics.</span>
-- [**Namespaces**](public/namespaces.md) <span>How a name becomes a card: folders, imports, and what is planned across repositories.</span>
+- [**Introduction**](public/introduction.md) <span>The format at a glance, and how to adopt it one file at a time.</span>
+- [**Tutorial**](wiki/hmd-tutorial.hmd) <span>Build a reading club vault and generate a reading list with HQL.</span>
 - [**Cell output**](public/cell-output.md) <span>What each kind of value is written as, and how to choose a format.</span>
 - [**Presentation**](public/presentation.md) <span>Editor, site and plain text: what each one shows.</span>
-- [**Vision**](public/vision.md) <span>Independently served cards that link to each other, and how much of that is unbuilt.</span>
 - [**Roadmap**](public/roadmap.md) <span>Released versions, what works today, and what is coming.</span>
-- [**The wiki**](wiki/README.md) <span>This project's own cards, built into this site.</span>
 
 </div>
 </section>

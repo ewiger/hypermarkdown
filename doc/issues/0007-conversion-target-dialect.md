@@ -92,7 +92,6 @@ HTML unambiguously a build product, which is the same argument
 ## Not blocking
 
 Nothing in the MVP depends on this. Conversion as a command does not exist yet
-and no proposal owns it — the sketch is in
-[`doc/wiki/md-hmd-interop.hmd`](../wiki/md-hmd-interop.hmd). This card exists so
+and no proposal owns it. This card exists so
 the target question is attached to conversion before conversion gets specified,
 rather than discovered after it hardcodes one output.

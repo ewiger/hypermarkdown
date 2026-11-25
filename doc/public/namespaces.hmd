@@ -1,0 +1,244 @@
+---
+nav:
+  visibility: public
+description: Cards, directories, and reference resolution in HyperMarkDown.
+---
+
+# Namespaces
+
+A **namespace** contains the cards of a knowledge base. The cards are organized
+in directories, starting at the **namespace root**. Wikilinks and embeds resolve
+only within this tree.
+
+Different directories can contain cards with the same name. For example,
+`guides/tokens.hmd` and `reference/tokens.hmd` are separate cards. The resolver
+uses the referring card's location and imports to resolve `[[tokens]]`.
+An explicit path, such as `[[/reference/tokens]]`, selects the target directly.
+
+The examples below use the handbook from the
+[[/wiki/hmd-lang-spec|Language Specification]].
+
+## Vaults and modules
+
+A **vault** is the physical home of a namespace: the directory on disk where
+its cards are stored. A vault is marked by a `.hmd/` directory at its top, in
+the same way that a `.git/` directory marks a Git repository. `hmd init`
+creates it.
+
+The `.hmd/` directory is where tools keep their technical data about the
+vault. It does not hold much today:
+
+- `config.toml` is the vault's configuration. It says where the cards start.
+- `index.sqlite` is the semantic index that `hmd-semantics` builds. HQL uses
+  it to search the cards by meaning.
+
+HQL and its extensions can also use `.hmd/` as their storage. Indexes of every
+kind are the main example. An extension can also keep a cache, or the data for
+a new feature, in `.hmd/` without adding files next to your cards.
+
+Here is the handbook's layout:
+
+```text
+handbook/                      the vault
+  .hmd/config.toml             location_path = "wiki"
+  wiki/                        the namespace root
+    index.hmd
+    setup.hmd
+    guides/                    a module
+      index.hmd
+      install.hmd
+      tokens.hmd
+    reference/                 another module
+      tokens.hmd
+      api.md
+```
+
+The vault's configuration says where the cards start. Here, `location_path = "wiki"` makes `handbook/wiki/` the
+**namespace root**. Without that setting, the cards start at the vault itself.
+A tool can also be given an explicit root.
+
+Each directory inside the namespace is a **module**. Modules group cards and
+provide a local context for looking up names. They share one namespace, so a
+card in `guides/` can refer to a card in `reference/`.
+
+The boundary matters to queries as well as links. HQL exposes the vault's
+cards as `cards`, with paths relative to the namespace root. In this example,
+the path of the installation guide is `guides/install.hmd`. A link and a
+query can therefore refer to the same document in the same knowledge base.
+
+## References
+
+From `guides/install.hmd`, these references have different meanings:
+
+| Reference | Meaning |
+| --- | --- |
+| `[[tokens]]` | Search for `tokens`; here, the local `guides/tokens.hmd` wins |
+| `[[reference/tokens]]` | Search for that path; here, it is found from the namespace root |
+| `[[./tokens]]` | Go directly to `tokens` in the current directory |
+| `[[../reference/tokens]]` | Go up one directory, then into `reference/` |
+| `[[/reference/tokens]]` | Go directly from the namespace root to `reference/tokens.hmd` |
+
+A reference starting with `/`, `./`, or `../` follows that path directly.
+Otherwise, it is **unqualified**: the resolver searches for it. A single
+segment such as `tokens` is also called a **bare name**. An unqualified path
+such as `reference/tokens` uses the search rules too.
+
+Paths use `/` on every platform, and names are case-sensitive. The leading
+`/` means the namespace root, not the root of your computer's filesystem.
+Use an ordinary Markdown link, such as `[HQL](https://hql-lang.org/)`, for a
+web address or a file outside the namespace.
+
+## Reference resolution
+
+For an unqualified reference, the search proceeds in this order:
+
+1. **Named imports.** An import in this card can bind a bare name to a
+   particular card.
+2. **The current directory and its parents.** Look in the card's own
+   directory, then each parent, stopping at the namespace root. This path
+   through the directories is called the **spine**.
+3. **Imported directories.** Look in the directories the card imports with
+   `*`, in declaration order.
+4. **Recursive search.** If autodiscovery is enabled, look through its
+   configured scope. A single matching card resolves; several matches are
+   an ambiguity.
+
+An earlier match takes precedence over a later phase. From
+`guides/install.hmd`, `[[tokens]]` finds `guides/tokens.hmd` in the current
+directory. The resolver has its answer; it does not need to choose between
+that card and `reference/tokens.hmd`.
+
+From `setup.hmd`, the same name behaves differently. There is no `tokens`
+card at the root, and the spine does not open the `guides/` or `reference/`
+directories to look inside them. With the default configuration and no
+imports, recursive search then finds both cards. The link is ambiguous
+(`HMD002`); neither the shorter path nor the first file found wins.
+
+The author can resolve the ambiguity by writing `[[guides/tokens]]` or
+`[[reference/tokens]]`. To choose a destination directly, use
+`[[/reference/tokens]]`.
+
+Recursive search can also find a card by the ending components of its path.
+For example, `[[physics/thermodynamics]]` can find
+`science/physics/thermodynamics.hmd` if it is the only match in scope. These
+are complete path components: `[[dynamics]]` does not match that card.
+
+## Imports
+
+An import belongs in the frontmatter of the card that uses it. The handbook's
+installation guide imports its API reference like this:
+
+```yaml
+---
+import:
+  - from /reference import api
+---
+```
+
+Now `[[api]]` names `reference/api.md`. A named import takes precedence even
+over a card in the current directory. To give the imported card a different
+local name, write `from /reference import tokens as api-tokens` and link to
+`[[api-tokens]]`.
+
+A wildcard import, `from /reference import *`, adds a directory to the third
+search phase. It is checked after the current directory and its parents, and
+does not search recursively inside the imported directory. If several imported
+directories contain a match, the first wins and the others produce a shadowing
+warning (`HMD016`).
+
+Imports apply only to the card that declares them. An import in a folder's
+`index.hmd` does not bind names in the cards below it.
+
+## Folder notes
+
+A card named `index` is a **folder note**: the page that represents its
+directory. In the handbook, `[[guides]]`, `[[guides/]]`, and
+`[[guides/index]]` all reach `guides/index.hmd`.
+
+If a sibling `guides.hmd` is added, it takes the name `[[guides]]`. The folder
+note remains reachable through `[[guides/]]` or `[[guides/index]]`, and the
+collision produces a warning.
+
+Folder notes can also be `.md` or `.markdown` cards. Only `index.hmd` provides
+inherited configuration, such as publication visibility and feature toggles,
+for the cards below it. Imports are still local to that file.
+
+## Discovery and namespace boundaries
+
+By default, recursive search covers the whole namespace. This configuration
+restricts that final phase to the source card's directory and its descendants:
+
+```toml
+location_path = "wiki"
+
+[discovery]
+autodiscovery = true
+mode = "recursive"
+```
+
+Set `mode = "both"` to restore the whole-namespace scope. The earlier phases
+still run in either mode. A card can disable autodiscovery with
+`use: [no_autodiscovery]` in its frontmatter, or enable it with
+`use: [autodiscovery]`; the search scope itself is a project setting.
+
+All phases stay inside the namespace. A path that escapes the root is an error
+(`HMD003`), and a symbolic link cannot bypass that boundary. A directory with
+its own `.hmd/` establishes a **nested vault** with an independent namespace.
+The enclosing namespace excludes its cards, and references do not cross the
+boundary in either direction.
+
+A missing card is different from a boundary violation or an ambiguity. You can
+write `[[deploy]]` before creating a deployment guide. It remains an unresolved
+link, commonly shown in red, and produces a warning (`HMD001`). This supports
+writing down a connection while its destination is still to be written. A
+strict validation mode may treat warnings as build failures.
+
+## Beyond one namespace
+
+The longer-term aim is to connect knowledge bases maintained independently.
+A design handbook could refer to a research collection while each keeps its
+own authors, organization, and source documents.
+
+The reserved address form expresses that connection:
+
+```text
+[[research:methods/sampling]]
+```
+
+Here, `research` would select a namespace, and `methods/sampling` would select
+a card from its root. This is **proposed syntax**: the current standard
+requires namespace-qualified targets to be treated as malformed. It does not
+define cross-namespace resolution.
+
+The proposal puts namespace bindings in project configuration. A binding
+would associate a name such as `research` with a **provider**: a folder, a
+server, or another source able to return a card for a path. Moving the same
+collection to a different provider could then leave its references unchanged.
+The binding schema and the mechanism for fetching remote content remain open.
+
+The design keeps access explicit. A card cannot grant itself access to another
+collection by mentioning its name. Remote content must be fetched through an
+explicit operation, so resolving or linting a link does not silently make a
+network request. Each provider must preserve its namespace boundary, and
+resolution must remain reproducible for the same content and configuration.
+
+HQL already supports querying another local vault through a configured source
+with its own `cards` and `graph`. That does not extend HyperMarkDown's link
+resolution: combining values from two vaults in a query and resolving a
+wikilink between them are separate capabilities.
+
+The purpose of this extension is to let independently authored knowledge stay
+connected and reusable at its source. [[vision|Vision]] develops that larger
+picture, including pages that inspect their knowledge base and compute new
+results from it.
+
+## Further reading
+
+- [[/wiki/hmd-lang-spec#The namespace|Language Specification]] — the
+  authoritative namespace and resolution rules.
+- [The example handbook](https://github.com/ewiger/hypermarkdown/tree/main/examples/handbook)
+  — the files used on this page and in the specification.
+- [HQL: A vault of documents](https://hql-lang.org/book/21-a-vault/) — querying
+  cards and reading other vaults as configured sources.
+- [[/proposals/HMD-0004/README|The cross-namespace proposal]] — the design
+  record and open questions for reaching beyond one tree.

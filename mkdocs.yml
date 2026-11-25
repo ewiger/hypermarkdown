@@ -23,9 +23,8 @@ edit_uri: edit/main/doc/
 # a setting here that the override ignores would be a second claim free to
 # drift away from the first.
 
-# The site covers the whole documentation tree, while the `[[…]]` namespace is
-# restricted to `doc/wiki` by the plugin's `root` below. The book and the wiki
-# build together; only the wiki is a namespace.
+# The site uses the existing doc/ vault, so book chapters and wiki cards can
+# refer to one another. Each .hmd card opts into publication with nav.visibility.
 docs_dir: doc
 
 # The working memory of the project, not part of the published book. `status/`
@@ -113,34 +112,35 @@ theme:
 
 plugins:
   - hypermarkdown:
-      root: doc/wiki
+      root: doc
 
 # The authored nav wins everywhere except where it asks for the wiki by name.
 # `hmd://wiki` is replaced by the section derived from the namespace tree, so
 # the book keeps its own order and still says where the cards belong.
 nav:
   - Home: index.md
-  # Two subjects rather than seven pages. A flat nav made every chapter its own
-  # tab, so the top bar was a table of contents and said nothing about which
-  # pages belong together — a visitor had to read all seven titles to find the
-  # one they wanted. `Learn` is the prose you read cold, in the order you read
-  # it; `Language` is what you consult afterwards, led by the normative text.
-  #
-  # A section tab links to the first page beneath it, so these open on
-  # `Introduction` and on the specification respectively.
+  # Language introduces the vision, explains namespaces, lists the features,
+  # then gives the standard. A section tab opens its first page, so Language
+  # opens Vision.
+  - Language:
+      # The plugin registers these .hmd sources under .md names for MkDocs.
+      - Vision: public/vision.md
+      - Namespaces: public/namespaces.md
+      - Features: public/features.md
+      - Language Specification: wiki/hmd-lang-spec.md
+  # Learn reads in order: what the format is, how to write it, then what a
+  # card does beyond its own text — cells that compute, and the tools that
+  # present it.
   - Learn:
       - Introduction: public/introduction.md
       - Tutorial: wiki/hmd-tutorial.md
-      - Features: public/features.md
-      - Presentation: public/presentation.md
       - Cell output: public/cell-output.md
-  - Language:
-      - Language Specification: wiki/hmd-lang-spec.md
-      - Namespaces: public/namespaces.md
-      - Vision: public/vision.md
-  - Wiki:
-      - Overview: wiki/README.md
-      - hmd://wiki
+      - Presentation: public/presentation.md
+  # No Wiki tab. The cards under `wiki/` are the project's working knowledge
+  # base, and the two a visitor needs — the tutorial and the specification —
+  # are placed above. The rest stay published and reachable by link (see
+  # `not_in_nav` below); `hmd://wiki` would splice the whole derived section
+  # back into the top bar.
   # `tools/index.md` is the section's index page, under `navigation.indexes`, so
   # the tab and the sidebar heading both open it. This tab used to lead to a
   # GitHub tree listing four directories, which answers "where is the source"
@@ -191,8 +191,12 @@ nav:
 # `validation.links.not_found: info` below would not even report. Unlisted and
 # reachable is the state that costs nothing; `not_in_nav` is how MkDocs is told
 # the omission is deliberate, so it stops offering to add them.
+#
+# The wiki cards are unlisted for the same reason: chapters and the tutorial
+# link to them, and the nav places the two a visitor needs by hand.
 not_in_nav: |
   proposals/
+  wiki/
 
 # `generator: false` drops Material's own footer credit so the license line in
 # `overrides/partials/copyright.html` is the only one there — the footer is
